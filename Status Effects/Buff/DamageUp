@@ -1,0 +1,90 @@
+package myMarvelcardgamepack; 
+class DamageUp extends BuffEff 
+{
+    int strength=616;
+    int duration=616;
+    int chance=616;
+    String name;
+    int hashcode;
+    int oduration; //original; for Copying
+    @Override
+    public int getchance()
+    {
+        return chance;
+    }
+    @Override
+    public boolean getstackable()
+    {
+        return false;
+    }
+    @Override
+    public String getimmunityname()
+    {
+        return "Damage Up";
+    }
+    @Override 
+    public String getefftype()
+    {
+        return "Buffs";
+    }
+    @Override
+    public int getpower()
+    {
+        return strength;
+    }
+    @Override 
+    public int getcode()
+    {
+        return hashcode;
+    }
+    @Override
+    public String geteffname()
+    {
+        if (duration<500)
+        {
+            name="Damage Up: "+strength+", "+duration+" turn(s)";
+            return name;
+        }
+        else
+        {
+            name="Damage Up: "+strength;
+            return name;
+        }
+    }
+    public DamageUp (int nchance, int nstrength)
+    {
+        strength=nstrength;
+        chance=nchance;
+        hashcode=Card_HashCode.RandomCode();
+    }
+    public DamageUp (int nchance, int nstrength, int nduration)
+    {
+        strength=nstrength;
+        duration=nduration;
+        oduration=duration;
+        chance=nchance;
+        hashcode=Card_HashCode.RandomCode();
+    }
+    @Override
+    public void onTurnStart (Character hero)
+    {
+    }
+    @Override
+    public void onTurnEnd (Character hero)
+    {
+        --duration;
+        if (duration<=0)
+        {
+            hero.remove(hero, hashcode);
+        }
+    }
+    public void onApply (Character target)
+    {
+        target.BD+=strength;            
+    }
+    @Override
+    public void Nullified (Character target)
+    {
+        target.BD-=strength;
+    }
+}
