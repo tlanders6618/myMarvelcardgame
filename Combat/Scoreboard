@@ -1,0 +1,154 @@
+package myMarvelcardgamepack;
+
+
+/**
+ * Designer: Timothy Landers
+ * Date: 12/8/22
+ * Filename: Scoreboard
+ * Purpose: To display characters' status.
+ */
+import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
+import java.util.ArrayList;
+import java.awt.*;
+public class Scoreboard
+{    
+    static JFrame frame;
+    static JPanel Panel;
+    static JTable table;
+    static JTable table2;
+    public static void main (Character[] team11, Character[] team22)
+    {                  
+        //The frame is the GUI itself; the window that displays everything
+        frame = new JFrame("Battle Progress");
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        //Create a content pane to hold tables
+        Panel = new JPanel(new BorderLayout());
+        //Add content pane to frame 
+        frame.add(Panel); 
+        //Column and row names and information for tables
+        String row1[][]=GetRows(team11); 
+        String row2[][]=GetRows(team22);      
+        String column1[]=GetColumns(team11);     
+        String column2[]=GetColumns(team22);
+        //Make tables 
+        table=new JTable(row1,column1);  
+        table2=new JTable(row2,column2); 
+        //Make the tables' first column a set size since it doesn't need much space
+        table.getColumnModel().getColumn(0).setMinWidth(90); table.getColumnModel().getColumn(0).setMaxWidth(90);
+        table2.getColumnModel().getColumn(0).setMinWidth(90); table2.getColumnModel().getColumn(0).setMaxWidth(90);
+        //Make tables uneditable
+        table.setEnabled(false);
+        table2.setEnabled(false);
+        //Put tables onto scrollpanes
+        JScrollPane Scroll = new JScrollPane(table); 
+        JScrollPane Scroll2 = new JScrollPane(table2);
+        //Set scrollpane locations
+        Panel.add(Scroll, BorderLayout.WEST);
+        Panel.add(Scroll2, BorderLayout.EAST);  
+        //Set scrollpane sizes
+        Scroll.setPreferredSize(new Dimension(675,200));     
+        Scroll2.setPreferredSize(new Dimension(675,200)); 
+        
+        //Size the frame 
+        frame.setSize(1050,500); //width and then height; this must be done last or the GUI will not show
+        frame.pack();
+        frame.setVisible(true);
+    }
+    public static void UpdateScore (Character[] team1, Character[] team2)
+    {
+        frame.setVisible(false); 
+        String[][] newrow1=GetRows(team1);
+        String[][] newrow2=GetRows(team2);         
+        String newcolumn1[]=GetColumns(team1);     
+        String newcolumn2[]=GetColumns(team2);
+        table.setModel(new DefaultTableModel (newrow1, newcolumn1));
+        table2.setModel(new DefaultTableModel (newrow2, newcolumn2));        
+        table.getColumnModel().getColumn(0).setMinWidth(90); table.getColumnModel().getColumn(0).setMaxWidth(90);
+        table2.getColumnModel().getColumn(0).setMinWidth(90); table2.getColumnModel().getColumn(0).setMaxWidth(90);
+        frame.setVisible(true); 
+    }
+    public static String[][] GetRows (Character[] champs)
+    {
+        //first row is team, second is health, third for shield, everything else is stateff
+        //format is row then column
+        int max=0; ArrayList <String> manywords= new ArrayList<String>(); int he=champs.length;
+        for (Character lad: champs)
+        {
+            if (lad!=null&&lad.effects.size()>max)
+            {
+                max=lad.effects.size(); //the rows should only be as numerous as necessary; no more rows than there are status effects
+            }
+        } 
+        max+=4; //to make space for the team and shield and health
+        String[][] words=new String[max][he+1]; //since there's an extra column listing what each row is for
+        int counter=1; 
+        words[0][0]="Team"; words[1][0]="Health"; words[2][0]="Shield"; words[3][0]="Status effects";
+        for (Character lad: champs)
+        {
+            if (lad!=null&&lad.team1==true)
+            {
+                words[0][counter]="Team 1"; 
+            }
+            else
+            {
+                words[0][counter]="Team 2";
+            }
+            ++counter;
+        }
+        counter=1;
+        for (Character lad: champs)
+        {
+            if (lad!=null)
+            {
+                words[1][counter]=lad.GetHP(lad);
+                ++counter;
+            }
+        }
+        counter=1; 
+        for (Character lad: champs)
+        {
+            if (lad!=null)
+            {
+                words[2][counter]=lad.GetShield(lad);
+                ++counter;
+            }
+        }
+        counter=1; int statcount=3;
+        for (Character lad: champs)
+        {
+            if (lad!=null)
+            {
+                for (StatEff eff: lad.effects)
+                {
+                    words[statcount][counter]=eff.geteffname();
+                    ++statcount;
+                }
+            }
+            statcount=3; ++counter;
+        }
+        return words;
+    }
+    public static String[] GetColumns (Character[] champs)
+    {
+        //column titles are just the heroes' names
+        ArrayList <String> words= new ArrayList<String>(); int index=1; //the first row is the description
+        words.add("Name");
+        for (Character lad: champs)
+        {
+            if (lad!=null)
+            {
+                String name=lad.Cname;
+                words.add(name);
+                ++index;
+            }            
+        }
+        String[] Titles= new String[index]; int counter=0;
+        for (String str: words)
+        {
+            Titles[counter]=str;
+            ++counter;
+        }
+        return Titles;
+    }    
+}
