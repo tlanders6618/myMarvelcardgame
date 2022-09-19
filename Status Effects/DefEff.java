@@ -185,6 +185,17 @@ class Protect extends DefEff
             pr.PrepareProtect(protector, weakling);
             weakling.add(weakling, pr);
             pr.lessprotected(hashcode); //send over the protect's hashcode in case the protected is nullified
+            String s;
+            if (duration>500)
+            {
+                s="Protecting: "+weakling.Cname;
+            }
+            else
+            {
+                s="Protecting: "+weakling.Cname+", "+duration+" turn(s)"; //since the add method doesn't print anything for protect effects
+            }
+            System.out.println ("\n"+protector.Cname+" gained "+s);
+            System.out.println ("\n"+weakling.Cname+" gained "+pr.geteffname());
         }
     }
     @Override
