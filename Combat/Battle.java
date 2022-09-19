@@ -72,7 +72,7 @@ public class Battle
                 ++round;
             }
         }
-        System.out.println ("\nTotal turns taken: "+tturns); //for data gathering only; 28, 30
+       /* System.out.println ("\nTotal turns taken: "+tturns); //for data gathering only; 28, 30
         System.out.println ("Rounds taken: "+round); //for data gathering only; 13, 14
         for (Character h: team1)
         {
@@ -87,7 +87,7 @@ public class Battle
             {
                 System.out.println(h.Cname+": "+h.turn+" turns taken"); //all dps comp: 3, 4
             }
-        }
+        }*/
         return Pwinner;
     }
     public static void CheckActive(boolean team)
