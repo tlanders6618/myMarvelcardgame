@@ -9,10 +9,28 @@ package myMarvelcardgamepack;
  */
 public class Ability_List_Summon
 {
-    static Ability[][] AbilityListS = new Ability[30][5]; //rows then column e.g. 1,0 means row 2 column 1. Visualise tic tac toe board
-    //columns are for abilities rows are for characters
     public static Ability GetAb (int index, int counter)
     {
-        return AbilityListS[index][counter];
+        //attack abs construction: String name, String type, String friendly, int dmg, int cooldown
+        //friendly means ally, enemy, both, either, neither, self, ally inc, ally exc
+        //type is single, self, multitarg, random, or aoe  
+        Ability[] toret= new Ability[1];
+        switch (index) //since making a giant array of hundreds of elements was very slow, this should be faster, albeit longer
+        {
+            default: System.out.println ("Problem getting abilities");
+        }
+        return toret[0];
+    }    
+    public static Ability MakeAbName (int counter)
+    {
+        switch (counter)
+        {
+            case 0:
+            case 1:
+            case 2: 
+            case 3: 
+            case 4: 
+        }
+        return null; 
     }
 }
