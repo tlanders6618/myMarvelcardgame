@@ -282,6 +282,91 @@ class ChanceDown extends DebuffEff
         target.Cchance+=50;
     }
 }
+class Disrupt extends DebuffEff 
+{
+    int duration=616;
+    int chance=616;
+    String name;
+    int hashcode;
+    int oduration=616; //original; for Copying
+    @Override
+    public int getchance()
+    {
+        return chance;
+    }
+    @Override
+    public boolean getstackable()
+    {
+        return false;
+    }
+    @Override
+    public String getimmunityname()
+    {
+        return "Disrupt";
+    }
+    @Override 
+    public String getefftype()
+    {
+        return "Debuffs";
+    }
+    @Override
+    public int getpower()
+    {
+        return 616;
+    }
+    @Override 
+    public int getcode()
+    {
+        return hashcode;
+    }
+    @Override
+    public String geteffname()
+    {
+        if (duration<500)
+        {
+            name="Disrupt, "+duration+" turn(s)";
+        }
+        else
+        {
+            name="Disrupt";
+        }
+        return name;
+    }
+    public Disrupt (int nchance, int ndur)
+    {
+        duration=ndur;
+        chance=nchance;
+        hashcode=Card_HashCode.RandomCode();
+    }
+    public Disrupt (int nchance)
+    {
+        chance=nchance;
+        hashcode=Card_HashCode.RandomCode();
+    }
+    @Override
+    public void onTurnStart (Character hero)
+    {
+    }
+    @Override
+    public void onTurnEnd (Character hero)
+    {
+        --duration;
+        if (duration<=0)
+        {
+            hero.remove(hero, hashcode);
+        }
+    }
+    @Override
+    public void onApply (Character target)
+    {
+        target.immunities.add("Buffs");
+    }
+    @Override
+    public void Nullified (Character target)
+    {
+        target.immunities.remove("Buffs");
+    }
+}
 class Shatter extends DebuffEff 
 {
     int duration=616;
