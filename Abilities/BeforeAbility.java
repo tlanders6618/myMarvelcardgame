@@ -205,12 +205,24 @@ class ChooseStat extends BeforeAbility //choose one effect to apply
    public int Use(Character hero, Character target)
    {
       System.out.println("Choose a status effect to apply. Type the number next to its name");
+      if (choice1!=null)
+      {
+         System.out.println("1. "+choice1[0]);
+      }
+      if (choice2!=null)
+      {
+         System.out.println("2. "+choice1[0]);
+      }
+      if (choice3!=null)
+      {
+         System.out.println("3. "+choice1[0]);
+      }
       int choice=0;
       do 
       {
          choice=DamageStuff.GetInput();
       }
-      while (choice<4&&choice>0&&CHOICENUMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM);       
+      while (choice<4&&choice>0&&choice<=choicenum);       
       if (choice==1)
       {
          hero.activeability[0].AddTempString(choice1);
