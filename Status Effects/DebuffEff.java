@@ -7,6 +7,7 @@ package myMarvelcardgamepack;
  * Filename: DebuffEff
  * Purpose: To list all the debuffs in one file because there's a lot of them.
  */
+import java.util.ArrayList;
 public abstract class DebuffEff extends StatEff 
 {
     public DebuffEff ()
@@ -415,7 +416,7 @@ class Shatter extends DebuffEff
         ArrayList<StatEff>modexception= new ArrayList<StatEff>();
         if (target.effects.size()!=0)
         {
-            modexception.addAll(hero.effects);
+            modexception.addAll(target.effects);
         }
         for (StatEff eff: modexception)
         {
