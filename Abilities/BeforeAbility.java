@@ -220,7 +220,7 @@ class ChooseStat extends BeforeAbility //choose one effect to apply
       int choice=0;
       do 
       {
-         choice=DamageStuff.GetInput();
+         choice=Damage_Stuff.GetInput();
       }
       while (choice<4&&choice>0&&choice<=choicenum);       
       if (choice==1)
@@ -235,6 +235,7 @@ class ChooseStat extends BeforeAbility //choose one effect to apply
       {
          hero.activeability[0].AddTempString(choice3);
       }      
+      return 0;
    }
 }
 class DamageCounterBroad extends BeforeAbility //increase damage based on number of target buffs, debuffs, or def effs
