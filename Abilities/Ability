@@ -25,6 +25,7 @@ public abstract class Ability
     public abstract void SetChannelled(Character ad, Ability a, Character[] f);
     public abstract boolean GetTogether();
     public abstract void AddStatString (String[] p);
+    public abstract void AddTempString (String[] p);
     /**public void ChangeTarget (Character t)
     {
     }*/
