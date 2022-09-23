@@ -9,10 +9,10 @@ public class Dev_Notes
      * change empowerments to work with aoe across the board
      * change skip turn criteria
      * Add wound
+     * Update this thing with bucky/sl
      * Add sl abilities
      * add sl index to card selection
      * add sl passive
-     * Replace attackab, basicab, and ability with java files so I can read
      *
      * Edits
      * 
