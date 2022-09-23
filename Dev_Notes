@@ -1,13 +1,16 @@
 To Do:
 -need to replace this with proper dev notes
--Add disrupt
 -Add wound
 -Add sl abilities
 -add sl index to card selection
 -add sl passive
+-Replace attackab, basicab, and ability with java files so I can read
 
 Edited:
+-Debuffeff
 -Ability
+-Ability list player
+-Ability list summon
 -Damage stuff
 -Added recovery to heal eff
 -AttackAb now has tempstrings and addtempstring method; all abs must have same
