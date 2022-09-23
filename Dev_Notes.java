@@ -14,16 +14,8 @@ public class Dev_Notes
      * add sl passive
      * Replace attackab, basicab, and ability with java files so I can read
      *
-     * Edited
-     * Debuffeff
-     * Ability
-     * Ability list player
-     * Ability list summon
-     * Damage stuff
-     * Added recovery to heal eff
-     * AttackAb now has tempstrings and addtempstring method; all abs must have same
-     * new beforeab choosestat for sl
-     * minor comment to special ab
+     * Edits
+     * 
      * 
      * Before adding any new content:
      * Add status effects to the game (and check for their interaction methods, e.g. characters cannot evade while submerged so change evade criteria)
@@ -33,6 +25,7 @@ public class Dev_Notes
      * Make sure to add new status effects to the factory first
      * Evade method justevaded binary eff should be cleared on turnend
      * When making changes to status effects, make the change to its Other counterpart too (e.g. change ShatterE when changing Shatter)
+     * New characters must be registered in InHP and card selection
      * 
      * Known issues   
      * SHATTER MUST IGNORE EVADE IF SUCCESSFULLY APPLIED
