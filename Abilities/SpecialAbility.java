@@ -11,18 +11,18 @@ public abstract class SpecialAbility
    public SpecialAbility()
    {
    }
-   public int Use(Character hero, Character target)
+   public int Use(Character hero, Character target) //for before abs
    {
        return 0;
    }
-   public void Use (Character caller, Character target, int dmg) 
+   public void Use (Character caller, Character target, int dmg) //for after abs
    {
    }
-   public int Use (Character victim, int dmg, Character attacker)
+   public int Use (Character victim, int dmg, Character attacker) //only for special abs; not before or after abs
    {
        return dmg;
    }
-   public void Undo (Character victim)
+   public void Undo (Character victim) //only for special abs; not before or after abs
    {
    }
 }
