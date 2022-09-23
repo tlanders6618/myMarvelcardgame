@@ -107,7 +107,7 @@ class AttackAb extends Ability
                         for (SpecialAbility ob: special)
                         {
                             change=ob.Use(user, chump); //apply unique ability functions before attacking; this only affects before abs
-                        } 
+                        }
                         damage+=change;
                         if (user.ignores.contains("Defence")) 
                         {
