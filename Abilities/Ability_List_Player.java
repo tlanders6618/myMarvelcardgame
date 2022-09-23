@@ -24,11 +24,37 @@ public class Ability_List_Player
             case 5: toret[0]=Ability_List_Player.MakeAbWM(counter); break;
             case 6: toret[0]=Ability_List_Player.MakeAbCap(counter); break;
             case 7: toret[0]=Ability_List_Player.MakeAbFalc(counter); break;
+            case 8: toret[0]=Ability_List_Player.MakeAbBucky(counter); break;
+            case 9: toret[0]=Ability_List_Player.MakeAbStarLord(counter); break;
             default: System.out.println ("Problem getting abilities");
         }
         return toret[0];
     }    
     public static Ability MakeAbName (int counter)
+    {
+        switch (counter)
+        {
+            case 0:
+            case 1:
+            case 2: 
+            case 3: 
+            case 4: 
+        }
+        return null; 
+    }
+    public static Ability MakeAbStarLord (int counter)
+    {
+        switch (counter)
+        {
+            case 0:
+            case 1:
+            case 2: return null;
+            case 3: 
+            case 4: 
+        }
+        return null; 
+    }
+    public static Ability MakeAbBucky (int counter)
     {
         switch (counter)
         {
