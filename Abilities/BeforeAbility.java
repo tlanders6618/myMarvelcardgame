@@ -182,6 +182,49 @@ class BeforeNullify extends BeforeAbility
         return 0;
     }
 }
+class ChooseStat extends BeforeAbility //choose one effect to apply
+{
+   String[] choice1; String[] choice2; String[] choice3; int choicenum;
+   public ChooseStat(String[] one, String[] two, String[] three)
+   {
+      choice1=one; choice2=two; choice3=three;
+      if (one!=null)
+      {
+         ++choicenum;
+      }
+      if (two!=null)
+      {
+         ++choicenum;
+      }
+      if (three!=null)
+      {
+         ++choicenum;
+      }
+   }
+   @Override
+   public int Use(Character hero, Character target)
+   {
+      System.out.println("Choose a status effect to apply. Type the number next to its name");
+      int choice=0;
+      do 
+      {
+         choice=DamageStuff.GetInput();
+      }
+      while (choice<4&&choice>0&&CHOICENUMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM);       
+      if (choice==1)
+      {
+         hero.activeability[0].AddTempString(choice1);
+      }
+      else if (choice==2)
+      {
+         hero.activeability[0].AddTempString(choice2);
+      }
+      else if (choice==3)
+      {
+         hero.activeability[0].AddTempString(choice3);
+      }      
+   }
+}
 class DamageCounterBroad extends BeforeAbility //increase damage based on number of target buffs, debuffs, or def effs
 {//needed for characters like rogue and ronan
     int amount; String unique; String name;
