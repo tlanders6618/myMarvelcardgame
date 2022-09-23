@@ -3,11 +3,27 @@ public class Dev_Notes
 {
     /**
      * To Do
-     * learn to share code
+     * make evade method
      * learn how others can download code and launch game
      * need to add turnend method 
      * change empowerments to work with aoe across the board
      * change skip turn criteria
+     * Add wound
+     * Add sl abilities
+     * add sl index to card selection
+     * add sl passive
+     * Replace attackab, basicab, and ability with java files so I can read
+     *
+     * Edited
+     * Debuffeff
+     * Ability
+     * Ability list player
+     * Ability list summon
+     * Damage stuff
+     * Added recovery to heal eff
+     * AttackAb now has tempstrings and addtempstring method; all abs must have same
+     * new beforeab choosestat for sl
+     * minor comment to special ab
      * 
      * Before adding any new content:
      * Add status effects to the game (and check for their interaction methods, e.g. characters cannot evade while submerged so change evade criteria)
