@@ -23,6 +23,7 @@ class AttackAb extends Ability
     ArrayList<StatEff> selfapply= new ArrayList<StatEff>();
     ArrayList<StatEff> otherapply= new ArrayList<StatEff>();
     ArrayList<String[]> statstrings= new ArrayList<String[]>();
+    ArrayList<String[]> tempstrings= new ArrayList<String[]>();
     int damage=616; int odamage=616;
     int multihit=0; //how many times to repeat the attack; the number of + signs
     int multiuse=0;
@@ -145,6 +146,18 @@ class AttackAb extends Ability
                                 otherapply.add(New);
                             }
                         }
+                        for (String[] array: tempstrings)
+                        {  
+                            StatEff New=StatFactory.MakeStat(array); 
+                            if (array[4].equalsIgnoreCase("true"))
+                            {
+                                selfapply.add(New);
+                            }
+                            else if (!(user.binaries.contains("Missed"))&&array[4].equalsIgnoreCase("false")) 
+                            {
+                                otherapply.add(New);
+                            }
+                        }
                         toadd=Ability.ApplyStats(user, chump, together, selfapply, otherapply);
                         user.onAttack(user); //activate relevant passives
                         if (aoe==false)
@@ -159,7 +172,7 @@ class AttackAb extends Ability
                         }
                         if (selfapply.size()!=0)
                         {
-                            selfapply.removeAll(selfapply); //ensures every status effect is unique, to avoid bugs
+                            selfapply.removeAll(selfapply); //ensures every status effect is unique, to avoid bugs and unintended reactions
                         }
                         if (otherapply.size()!=0)
                         {
