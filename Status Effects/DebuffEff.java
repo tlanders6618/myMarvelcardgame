@@ -412,11 +412,16 @@ class Shatter extends DebuffEff
     {
         target.binaries.add("Shattered");
         target.SHLD=0;
-        for (StatEff eff: target.effects)
+        ArrayList<StatEff>modexception= new ArrayList<StatEff>();
+        if (target.effects.size()!=0)
+        {
+            modexception.addAll(hero.effects);
+        }
+        for (StatEff eff: modexception)
         {
             if (eff.getefftype().equalsIgnoreCase("Defence"))
             {
-               target.remove(target, eff.getcode());
+                target.remove(target, eff.getcode());
             }
         }
     }
