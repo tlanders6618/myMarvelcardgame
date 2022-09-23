@@ -105,4 +105,40 @@ public class Damage_Stuff
             hero.ignores.remove ("Provoke");
         }
     }
+    public static void DOTImmune (Character hero, boolean add)
+    {
+        if (add==true)
+        {
+            hero.immunities.add ("Bleed");
+            hero.immunities.add ("Poison");
+            hero.immunities.add ("Shock");
+            hero.immunities.add ("Burn");
+        }
+        else
+        {
+            hero.immunities.remove ("Bleed");
+            hero.immunities.remove ("Poison");
+            hero.immunities.remove ("Shock");
+            hero.immunities.remove ("Burn");
+        }
+    }
+    public static void DMGDebImmune (Character hero, boolean add)
+    {
+       if (add==true)
+        {
+            hero.immunities.add ("Bleed");
+            hero.immunities.add ("Poison");
+            hero.immunities.add ("Shock");
+            hero.immunities.add ("Burn");
+            hero.immunities.add ("Countdown");
+        }
+        else
+        {
+            hero.immunities.remove ("Bleed");
+            hero.immunities.remove ("Poison");
+            hero.immunities.remove ("Shock");
+            hero.immunities.remove ("Burn");
+            hero.immunities.remove ("Countdown");
+        }
+    }
 }
