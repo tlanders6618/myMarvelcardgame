@@ -178,6 +178,10 @@ class AttackAb extends Ability
                         {
                             otherapply.removeAll(otherapply);
                         }
+                        if (tempstrings.size()!=0) //these effects are only sometimes applied with attacks, hence the name temp; they're reset afterwards
+                        {
+                            tempstrings.removeAll(tempstrings);
+                        }
                         --multi;
                         user.CheckDrain(user, damage);
                         damage=odamage; //reset damage 
