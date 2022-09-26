@@ -3,19 +3,11 @@ public class Dev_Notes
 {
     /**
      * To Do
-     * make evade method
+     * learn to share code
      * learn how others can download code and launch game
      * need to add turnend method 
      * change empowerments to work with aoe across the board
      * change skip turn criteria
-     * Add wound
-     * Update this thing with bucky/sl
-     * Add sl abilities
-     * add sl index to card selection
-     * add sl passive
-     *
-     * Edits
-     * 
      * 
      * Before adding any new content:
      * Add status effects to the game (and check for their interaction methods, e.g. characters cannot evade while submerged so change evade criteria)
@@ -25,7 +17,6 @@ public class Dev_Notes
      * Make sure to add new status effects to the factory first
      * Evade method justevaded binary eff should be cleared on turnend
      * When making changes to status effects, make the change to its Other counterpart too (e.g. change ShatterE when changing Shatter)
-     * New characters must be registered in InHP, setname, and card selection
      * 
      * Known issues   
      * SHATTER MUST IGNORE EVADE IF SUCCESSFULLY APPLIED
@@ -34,6 +25,15 @@ public class Dev_Notes
      * 
      * Balance changes
      * reduce cd of im boost ?
+     * 
+     * Edited in BlueJ (i.e. need to update in here):
+     * Battle
+     * Character
+     * Ab list player
+     * afterability
+     * Debuffeff
+     * activepassive
+     * Stat factory
      * 
      * */
 } 
