@@ -3,8 +3,6 @@ public class Dev_Notes
 {
     /**
      * To Do
-     * learn to share code
-     * learn how others can download code and launch game
      * need to add turnend method 
      * change empowerments to work with aoe across the board
      * change skip turn criteria
