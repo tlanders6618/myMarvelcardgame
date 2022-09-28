@@ -2,6 +2,7 @@
 ## **How to play**
 * Contains everything you need to know about the game: https://docs.google.com/presentation/d/1tXi-Xax6gpD_fK78wmKdNHbxzLkiDPN8nPUgWfP-6OY/edit#slide=id.g13593422b03_0_15
 ## **How to run the program**
+* Disclaimer: the following has only been tested and confirmed to work with Windows. This may or may not work on other operating systems
 * Download Java 11 at https://www.techspot.com/downloads/5553-java-jdk.html 
 * Download the myMarvelcardgame.jar file from above, by clicking on it and selecting "download" on the right hand side
 * Drag the jar from your downloads folder to your desktop
