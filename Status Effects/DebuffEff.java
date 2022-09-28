@@ -293,7 +293,6 @@ class Countdown extends DebuffEff
     int oduration=616; //original; for Copying
     ArrayList<StatEff>toapply= new ArrayList<StatEff>();
     ArrayList<SpecialAbility>specials= new ArrayList<SpecialAbility>();
-    Character user;
     @Override
     public int getchance()
     {
@@ -330,12 +329,11 @@ class Countdown extends DebuffEff
         name="Countdown, "+duration+" turn(s)";
         return name;
     }
-    public Countdown (int nchance, int ndur, int pow, Character sir)
+    public Countdown (int nchance, int ndur, int pow)
     {
         duration=ndur;
         chance=nchance;
         power=pow;
-        user=sir;
         hashcode=Card_HashCode.RandomCode();
     }
     @Override
@@ -351,18 +349,18 @@ class Countdown extends DebuffEff
             hero.remove(hero, hashcode);
             int dmg=power; dmg=Damage_Stuff.DamageDecrease(false, hero, dmg);
             dmg=hero.TakeDamage(hero, dmg, false);
-            if (toapply.size()>0&&hero.dead==false) //they survived the damage
+            if (toapply.size()>0&&hero.dead==false) //they survived the damage, so they can gain status effects
             {
                 for (StatEff eff: toapply)
                 {
-                    eff.CheckApply(user, hero, eff);
+                    eff.CheckApply(make a new method here, hero, eff);
                 }
             }
             if (specials.size()>0) 
             {
                 for (SpecialAbility eff: specials)
                 {
-                    eff.Use (user, null, dmg); 
+                    eff.Use (make a new method here, null, dmg); 
                 }
             }
         }
