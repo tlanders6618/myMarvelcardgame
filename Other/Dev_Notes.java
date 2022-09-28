@@ -6,6 +6,8 @@ public class Dev_Notes
      * need to add turnend method 
      * change empowerments to work with aoe across the board
      * change skip turn criteria
+     * fix evade
+     * fix shatter
      * 
      * Before adding any new content:
      * Add status effects to the game (and check for their interaction methods, e.g. characters cannot evade while submerged so change evade criteria)
@@ -25,13 +27,6 @@ public class Dev_Notes
      * reduce cd of im boost ?
      * 
      * Edited in BlueJ (i.e. need to update in here):
-     * Battle
-     * Character
-     * Ab list player
-     * afterability
-     * Debuffeff
-     * activepassive
-     * Stat factory
      * 
      * */
 } 
