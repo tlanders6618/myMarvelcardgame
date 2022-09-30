@@ -55,7 +55,7 @@ public class Ability_List_Player
             case 3: AttackAb clarice= new AttackAb ("Clarice", "single", "enemy", 90, 3); String[] one=StatFactory.SetParam ("Burn", "100", "15", "2", "false");
             String[] two=StatFactory.SetParam ("Stun", "100", "616", "616", "false"); clarice.special.add(new ChooseStat (one, two, null));
             return clarice;
-            case 4: AttackAb terry= new AttackAb ("Terry", "single", "enemy", 90, 3); String[] uno=StatFactory.SetParam ("Wound", "100", "2", "616", "false");
+            case 4: AttackAb terry= new AttackAb ("Terry", "single", "enemy", 90, 3); String[] uno=StatFactory.SetParam ("Wound", "100", "1", "616", "false");
             String[] dos=StatFactory.SetParam ("Disrupt", "100", "1", "616", "false"); terry.special.add(new ChooseStat (uno, dos, null));
             return terry;
         }
@@ -67,7 +67,9 @@ public class Ability_List_Player
         {
             case 0: BasicAb talon= new BasicAb ("Precision Shot", "single", "enemy", 45);
             return talon;
-            case 1:
+            case 1: DebuffAb gren= new DebuffAb ("Grenade Lob", "single", "enemy", 0); 
+            String[] explode= StatFactory.SetParam("Countdown", "100", "55", "2", "false"); gren.AddStatString(explode);
+            //return gren; need to find way for ctd to ricochet
             case 2: 
             case 3: 
             case 4: 
