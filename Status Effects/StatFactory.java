@@ -28,7 +28,7 @@ public class StatFactory
             case "Burn": eff[0]=new Burn (Integer.valueOf(param[1]), Integer.valueOf(param[2]), Integer.valueOf(param[3])); break;            
             case "Chance Down": eff[0]=new ChanceDown (Integer.valueOf(param[1]), Integer.valueOf(param[2])); break;
             case "Chance Up": eff[0]=new ChanceUp (Integer.valueOf(param[1]), Integer.valueOf(param[2])); break;
-            //case "Countdown": eff[0]=new Countdown (Integer.valueOf(param[1]), Integer.valueOf(param[2]), Integer.valueOf(param[3])); break;
+            case "Countdown": eff[0]=new Countdown (Integer.valueOf(param[1]), Integer.valueOf(param[2]), Integer.valueOf(param[3])); break;
             case "Damage Up": eff[0]=new DamageUp (Integer.valueOf(param[1]), Integer.valueOf(param[2]), Integer.valueOf(param[3])); break;
             case "Disrupt": eff[0]=new Disrupt (Integer.valueOf(param[1]), Integer.valueOf(param[2])); break;
             case "Protect": eff[0]=new Protect (Integer.valueOf(param[1]), Integer.valueOf(param[2])); break;
