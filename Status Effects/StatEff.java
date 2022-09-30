@@ -65,8 +65,8 @@ public abstract class StatEff
     }
     public void CheckApply (Character hero, Character target, StatEff effect)
     {
-        boolean apple=effect.CheckStacking(target, effect, effect.getstackable()); 
-        if (target.immunities.contains(effect.getefftype())||target.immunities.contains(effect.getimmunityname())||apple==false)
+        boolean apple=true; 
+        if (target.immunities.contains(effect.getefftype())||target.immunities.contains(effect.getimmunityname()))
         {
             StatEff.applyfail(hero, effect);
             apple=false;
@@ -78,7 +78,11 @@ public abstract class StatEff
         }
         else if (apple==true&&target.dead==false)
         {
-            target.add(target, effect);
+            apple=effect.CheckStacking(target, effect, effect.getstackable()); 
+            if (apple==true)
+            {
+                target.add(target, effect);
+            }
         }
     }
     public boolean CheckStacking (Character target, StatEff effect, boolean stackable)
@@ -99,8 +103,7 @@ public abstract class StatEff
                     present=true; //there's already an effect of the type trying to be applied
                     if (targeteff.getpower()<effect.getpower()) //but if the new effect is stronger, it replaces the old one
                     {
-                        target.effects.remove(targeteff); 
-                        target.effects.add(effect);
+                        target.remove(target, targeteff); 
                         applied=true;
                     }
                     else
