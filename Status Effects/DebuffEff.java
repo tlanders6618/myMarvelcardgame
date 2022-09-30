@@ -292,7 +292,7 @@ class Countdown extends DebuffEff
     int power=616;
     int oduration=616; //original; for Copying
     ArrayList<StatEff>toapply= new ArrayList<StatEff>();
-    ArrayList<SpecialAbility>specials= new ArrayList<SpecialAbility>();
+    ArrayList<String> specials= new ArrayList<String>(); //ricochet, extend, etc
     @Override
     public int getchance()
     {
@@ -353,14 +353,17 @@ class Countdown extends DebuffEff
             {
                 for (StatEff eff: toapply)
                 {
-                    eff.CheckApply(make a new method here, hero, eff);
+                    eff.CheckApply(null, hero, eff);
                 }
             }
             if (specials.size()>0) 
             {
-                for (SpecialAbility eff: specials)
+                for (String eff: specials)
                 {
-                    eff.Use (make a new method here, null, dmg); 
+                    if (eff.equalsIgnoreCase("Ricochet")) //the only special thing countdowns can do as of 3.1 is Ricochet, so an if statement is fine for now
+                    {
+                        Ability.DoRicochetDmg (dmg, hero, true);
+                    }
                 }
             }
         }
