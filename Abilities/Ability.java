@@ -87,14 +87,7 @@ public abstract class Ability
         boolean team=hero.team1; 
         if (shock==false) //get the opponent's team, otherwise leave team as is and get the character's team for a random teammate
         {
-            if (team==true) //hero is on team1
-            {
-                team=false; //set it to be opposite in order to get their opponent's team
-            }
-            else if (team==false) //hero is on team2
-            {
-                team=true;
-            }
+            team=Damage_Stuff.TeamFlip(team);
         }
         //Determine the caller's enemies or teammates
         Character[] enemies= new Character[6];
