@@ -61,7 +61,14 @@ public abstract class StatEff
     }
     public static void applyfail (Character hero, StatEff eff)
     {
-        System.out.println (hero.Cname+"'s "+eff.geteffname()+" could not be applied due to an immunity, chance, or another status effect");
+        if (hero!=null)
+        {
+            System.out.println (hero.Cname+"'s "+eff.geteffname()+" could not be applied due to an immunity, chance, or another status effect");
+        }
+        else
+        {
+            System.out.println (eff.geteffname()+" could not be applied due to an immunity, chance, or another status effect");
+        }
     }
     public void CheckApply (Character hero, Character target, StatEff effect)
     {
