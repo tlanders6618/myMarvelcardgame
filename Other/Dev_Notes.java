@@ -9,7 +9,6 @@ public class Dev_Notes
      * fix evade
      * fix shatter
      * make ws abilities
-     * ws needs a passive
      * test sl and ws before rolling out
      * BEFORE DOING FURY OVERRIDE SUMMON METHODS
      * 
@@ -25,6 +24,7 @@ public class Dev_Notes
      * Known issues   
      * SHATTER MUST IGNORE EVADE IF SUCCESSFULLY APPLIED
      * nullify, steal, etc should not ignore evade
+     * Invisible needs to remove taunt
      * status effects are not meant to be applied to heroes who evade
      * 
      * Balance changes
