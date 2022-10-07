@@ -4,6 +4,7 @@ public class Dev_Notes
     /**
      * To Do
      * need to add turnend method 
+     * overide turn method with true/false for qs
      * change empowerments to work with aoe across the board
      * change skip turn criteria
      * fix evade
@@ -35,5 +36,6 @@ public class Dev_Notes
      * debuffeff (countdown)
      * stateff (checkapply, checkstacking, applyfail, statfactory)
      * ability (getranomdenemy, ablistplayer)
+     * afterab (extend)
      * */
 } 
