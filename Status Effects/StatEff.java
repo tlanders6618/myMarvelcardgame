@@ -110,7 +110,7 @@ public abstract class StatEff
                     present=true; //there's already an effect of the type trying to be applied
                     if (targeteff.getpower()<effect.getpower()) //but if the new effect is stronger, it replaces the old one
                     {
-                        target.remove(target, targeteff); 
+                        target.remove(target, targeteff.getcode()); 
                         applied=true;
                     }
                     else
