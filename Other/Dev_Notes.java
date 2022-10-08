@@ -30,12 +30,8 @@ public class Dev_Notes
      * 
      * Balance changes
      * reduce cd of im boost ?
-     * make sl wound 1 turn (was 2)
      * 
      * Edited (i.e. need to update):
-     * debuffeff (countdown)
-     * stateff (checkapply, checkstacking, applyfail, statfactory)
-     * ability (getranomdenemy, ablistplayer)
-     * afterab (extend)
+     * 
      * */
 } 
