@@ -25,7 +25,32 @@ public static Ability MakeAbNickJr (int counter)
             case 1: BasicAb smg= new BasicAb ("SMG", "AoE", "enemy", 35);
             return smg;
             case 2: BuffAb cache= new BuffAb ("Hidden Weapons Cache", "single", "ally inclusive", 0); 
-            String[] sword= StatFactory.SetParam("Damage Up", "100", "10", "1", "idk"); cache.AddStatString(sword); FIX THSSSSSS
+            String[] sword= StatFactory.SetParam("Damage Up", "100", "10", "1", "knull"); cache.AddStatString(sword);
+            
+            for (String[] array: statstrings) //in buffab
+                    {  
+                       StatEff New=StatFactory.MakeStat(array); //this is how selfapply and other apply are populated
+                       if (array[4].equalsIgnoreCase("true"))
+                       {
+                           selfapply.add(New);
+                       }
+                       else if (array[4].equalsIgnoreCase("false"))
+                       {
+                           otherapply.add(New);
+                       }
+                       else
+                       {
+                            if (chump.team1==user.team1)
+                            {
+                                otherapply.add(New);
+                            }
+                            else 
+                            {
+                                selfapply.add(New);
+                            }
+                       }
+                    }
+                    
             return cache;
             case 3: return null;
             case 4: AttackAb air= new AttackAb ("Airstrike", "AoE", "enemy", 90, 5);
