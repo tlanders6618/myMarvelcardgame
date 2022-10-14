@@ -40,7 +40,8 @@ public static Ability MakeAbNickJr (int counter)
                        }
                        else
                        {
-                            if (chump.team1==user.team1)
+                            if (chump.team1==user.team1) //buff abs only target friends; so it's either a teammate or self
+                            //wait no that doesnt work blast
                             {
                                 otherapply.add(New);
                             }
