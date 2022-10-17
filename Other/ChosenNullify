@@ -1,0 +1,131 @@
+package myMarvelcardgamepack;
+
+
+/**
+ * Designer: Timothy Landers
+ * Date: 19/8/22
+ * Filename: BeforeAbility
+ * Purpose: To perform non status effect related functions on abilities.
+ */
+import java.util.ArrayList; 
+public abstract class BeforeAbility extends SpecialAbility //used before a hero attacks, modifying damage
+{
+   public BeforeAbility()
+   {
+   }
+}
+class BeforeNullifyChosen extends BeforeAbility
+{
+    String[] buffname; 
+    String number; 
+    int chance; 
+    boolean together; //true for together and false for separate
+    public BeforeNullifyChosen (int nullifychance, String numbertoremove, boolean randomorchosen, String[] mnameofbufftonullify, boolean tog)
+    {
+        chance=nullifychance; buffname=mnameofbufftonullify; number=numbertoremove; choice=randomorchosen; together=tog;
+    }
+    @Override
+    public int Use (Character user, Character target)
+    {
+        boolean succeed=false;  
+        ArrayList<StatEff> removal= new ArrayList <StatEff>();
+        int available=0; //how many buffs hero can nullify after checking chance
+        if (!(target.immunities.contains("Nullify"))&&!(target.immunities.contains("Other"))) 
+        {
+            if (together==true) //the application chance is rolled once for all the effects
+            {
+                succeed=Card_CoinFlip.Flip(chance+user.Cchance);
+                if (succeed==false)
+                {
+                    System.out.println (user.Cname+"'s Nullify failed to apply due to chance."); //(Test) The application chance was "+chance);
+                }
+            }
+        }    
+            else //chance calculated separately
+            {
+              if (!(buffname[i].equalsIgnoreCase("all"))) //nullify specific buffs on the target, e.g. Counter
+              {
+                for (int i=0; i<buffname.length; i++)
+                {
+                  for (StatEff eff: target.effects)
+                  {
+                    if (eff.getefftype().equalsIgnoreCase("Buffs")&&eff.geteffname().equalsIgnoreCase(buffname[i]))
+                        {
+                            succeed=Card_CoinFlip.Flip(chance+user.Cchance);
+                            if (succeed==true)
+                            {
+                                removal.add(eff); //stores which effects will be removed
+                                ++available;
+                            }
+                        }
+                    }
+                    succeed=true;
+                    else //nullify all buffs on the target, regardless of type
+                    {
+                        succeed=Card_CoinFlip.Flip(chance+user.Cchance);
+                        if (succeed==true)
+                        {
+                            removal.add(eff); //stores which effects will be removed
+                        }                        
+                    }
+                }
+            }
+        }
+        if (succeed==true) //remove certain number
+        {
+            if (choice==false) //remove randomly
+            {
+                while (available>0)
+                {
+                    StatEff removve=target.GetRandomStatEff(target, "Buffs"); 
+                    target.remove (target, removve.getcode());
+                    System.out.println(target.Cname+"'s "+removve.geteffname()+" was Nullified!");
+                    --available;
+                }
+            }
+            else //choose buffs to remove
+            {
+                if (user.team1==true)
+                {
+                    System.out.println ("Player 1, choose a buff to Nullify from "+target.Cname+".");
+                }
+                else
+                {
+                    System.out.println ("Player 2, choose a buff to Nullify from "+target.Cname+".");
+                }
+                while (available>0)
+                {
+                    int counter=0; int removeme=616;                    
+                    if (target.effects.size()!=0)
+                    {
+                        for (StatEff eff: target.effects)
+                        {
+                            if (eff.getefftype().equalsIgnoreCase("Buffs"))
+                            {
+                                int o= counter+1;
+                                System.out.println(o+": "+eff.geteffname());
+                                ++counter;
+                            }                            
+                        }         
+                        System.out.println ("Enter the number next to it, not its name."); boolean falg=false;
+                        do
+                        {
+                            removeme=Damage_Stuff.GetInput();
+                            --removeme;
+                            if (removeme>=0&&removeme<target.effects.size())
+                            {
+                                falg=true;
+                            }
+                        }
+                        while (falg==false);
+                        StatEff gone= target.effects.get(removeme);
+                        target.remove(target, gone.getcode());
+                        System.out.println(target.Cname+"'s "+gone.geteffname()+" was Nullified!");
+                    }
+                    --available;
+                }
+            }
+        }
+        return 0;
+    }
+}
