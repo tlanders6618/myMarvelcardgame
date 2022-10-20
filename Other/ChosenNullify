@@ -68,7 +68,7 @@ class NullifyChosen extends BeforeAbility
                 }                    
             }
         }
-        if (succeed==true) //then choose which to remove
+        if (removal.size()>0) //then choose which to remove
         {
             System.out.println (user.Cname+", choose a buff to Nullify from "+target.Cname+".");
             System.out.println ("Enter the number next to it, not its name."); 
@@ -79,24 +79,23 @@ class NullifyChosen extends BeforeAbility
                System.out.println(o+": "+eff.geteffname());
                ++counter;
             }            
-                        
-                        do
-                        {
-                            removeme=Damage_Stuff.GetInput();
-                            --removeme;
-                            if (removeme>=0&&removeme<target.effects.size())
-                            {
-                                falg=true;
-                            }
-                        }
-                        while (falg==false);
-                        StatEff gone= target.effects.get(removeme);
-                        target.remove(target, gone.getcode());
-                        System.out.println(target.Cname+"'s "+gone.geteffname()+" was Nullified!");
+            for (int i=0; i<available; i++)
+            {
+                do
+                {
+                    removeme=Damage_Stuff.GetInput();
+                    --removeme;
+                    if (removeme>=0&&removeme<removal.size())
+                    {
+                        falg=true;
                     }
-                    --available;
                 }
+                while (falg==false);
+                StatEff gone= removal.get(removeme);
+                System.out.println(target.Cname+"'s "+gone.geteffname()+" was Nullified!");
+                target.remove(target, gone.getcode());                        
             }
+            --available;
         }
         return 0;
     }
