@@ -33,7 +33,7 @@ class NullifyChosen extends AfterAbility
                     System.out.println (user.Cname+"'s Nullify failed to apply due to chance."); //(Test) The application chance was "+chance);
                 }
             }
-            else if (target.effects.size()>0) //chance calculated separately
+            else if (together==false) //chance calculated separately
             {
                 for (int i=0; i<buffname.length; i++)
                 {
