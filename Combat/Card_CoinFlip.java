@@ -15,10 +15,6 @@ public class Card_CoinFlip
         boolean success=false;
         if (chance>=100)
         {
-            if (chance>=500)
-            {
-                System.out.println ("Constructor must have failed to correctly set the chance because it's over 500."); 
-            }
             success=true;
         }
         else if (chance==50)
