@@ -26,7 +26,7 @@ public class Card_Game_Main
         bans[6]=62; bans[7]=24; //players cannot pick gauntlet thanos, binary, etc
         
         //Selecting cards
-        System.out.println ("Welcome. Current version: 2.0. Latest playable character: Falcon. All succeeding characters are being worked on and will be released in the near future.");
+        System.out.println ("Welcome. Latest playable character: Star-Lord. Please check the character overview list for the full list of playable characters.");
         System.out.println ("Remember, characters will take turns in the order they are picked.");
         //System.out.println ("\nEnter draft mode (allows character banning and up to one character switch)? Type 'yes' or 'no'.");
         boolean issue=true; //no draft mode until there are at least 16 heroes
