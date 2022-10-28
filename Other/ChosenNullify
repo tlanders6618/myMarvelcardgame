@@ -8,7 +8,7 @@ package myMarvelcardgamepack;
  * Purpose: To allow a hero to Nullify chosen buffs from an enemy.
  */
 import java.util.ArrayList; 
-class NullifyChosen extends BeforeAbility
+class NullifyChosen extends AfterAbility
 {
     String[] buffname; 
     int chance; 
@@ -19,7 +19,7 @@ class NullifyChosen extends BeforeAbility
         chance=nullifychance; buffname=mnameofbufftonullify; together=tog; available=num;
     }
     @Override
-    public int Use (Character user, Character target)
+    public void Use (Character user, Character target, int ignoreme)
     {
         boolean succeed=false;  
         ArrayList<StatEff> removal= new ArrayList<StatEff>();
