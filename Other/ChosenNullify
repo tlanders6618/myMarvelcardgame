@@ -14,7 +14,7 @@ class NullifyChosen extends AfterAbility
     int chance; 
     int available;
     boolean together; //true for together and false for separate
-    public BeforeNullifyChosen (int nullifychance, int num, String[] mnameofbufftonullify, boolean tog)
+    public NullifyChosen (int nullifychance, int num, String[] mnameofbufftonullify, boolean tog)
     {
         chance=nullifychance; buffname=mnameofbufftonullify; together=tog; available=num;
     }
