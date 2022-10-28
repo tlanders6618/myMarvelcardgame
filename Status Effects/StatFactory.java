@@ -19,6 +19,17 @@ public class StatFactory
         y[4]=five;
         return y;
     }
+    public static String[] SetParam (String one, String two, String three, String four, String five, String six)
+    {
+        String[] y= new String[6];
+        y[0]=one;
+        y[1]=two;
+        y[2]=three;
+        y[3]=four;
+        y[4]=five;
+        y[5]=six;
+        return y;
+    }
     public static StatEff MakeStat (String[] param)
     {
         StatEff[] eff=new StatEff[1];
@@ -28,7 +39,7 @@ public class StatFactory
             case "Burn": eff[0]=new Burn (Integer.valueOf(param[1]), Integer.valueOf(param[2]), Integer.valueOf(param[3])); break;            
             case "Chance Down": eff[0]=new ChanceDown (Integer.valueOf(param[1]), Integer.valueOf(param[2])); break;
             case "Chance Up": eff[0]=new ChanceUp (Integer.valueOf(param[1]), Integer.valueOf(param[2])); break;
-            case "Countdown": eff[0]=new Countdown (Integer.valueOf(param[1]), Integer.valueOf(param[2]), Integer.valueOf(param[3])); break;
+            case "Countdown": eff[0]=new Countdown (Integer.valueOf(param[1]), Integer.valueOf(param[2]), Integer.valueOf(param[3]), param[5]); break;
             case "Damage Up": eff[0]=new DamageUp (Integer.valueOf(param[1]), Integer.valueOf(param[2]), Integer.valueOf(param[3])); break;
             case "Disrupt": eff[0]=new Disrupt (Integer.valueOf(param[1]), Integer.valueOf(param[2])); break;
             case "Protect": eff[0]=new Protect (Integer.valueOf(param[1]), Integer.valueOf(param[2])); break;
