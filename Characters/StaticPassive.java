@@ -9,6 +9,10 @@ package myMarvelcardgamepack;
  */
 public class StaticPassive 
 {
+    public static void Bucky (Character barnes)
+    {
+        barnes.ignores.add("Defence");
+    }
     public static void Falcon (Character falcon) 
     {
         if (falcon.team1==true)
@@ -26,11 +30,11 @@ public class StaticPassive
             int index=Card_Selection.ChooseTargetFriend (friends);
             friends[index].add(friends[index], red);
         }
-        else
-        {
+        else 
+        { 
             Character[] friends=Battle.team2;
             int index=Card_Selection.ChooseTargetFriend (friends);
-            friends[index].add(friends[index], red);
+            friends[index].add(friends[index], red); 
         }
     }
     public static void WM (Character machine, int turns)
@@ -38,7 +42,7 @@ public class StaticPassive
         if (turns==0)
         {
             System.out.println ("\nHeat Signature Detection activated.");
-            Damage_Stuff.IgnoreTargeting(machine, true);
+            Damage_Stuff.IgnoreTargeting(machine, true); 
             if (machine.team1==true)
             {
                 System.out.println ("Player 1, choose an enemy to target.");
