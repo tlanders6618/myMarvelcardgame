@@ -48,7 +48,7 @@ public class Ability_List_Player
         {
             case 0: BasicAb talon= new BasicAb ("Jet Slam", "single", "enemy", 45);
             return talon;
-            case 1: HealAb pump= new HealAb ("Pump It Up", "AoE", "ally inclusive", 3); String[] dance= StatFactory.SetParam("Recovery", "200", "10", "2", "false");
+            case 1: HealAb pump= new HealAb ("Pump It Up", "AoE", "ally inclusive", 3); String[] dance= StatFactory.SetParam("Recovery", "300", "10", "2", "false");
             pump.AddStatString(dance);
             return pump;
             case 2: return null;
@@ -65,14 +65,21 @@ public class Ability_List_Player
     {
         switch (counter)
         {
-            case 0: BasicAb talon= new BasicAb ("Precision Shot", "single", "enemy", 45);
-            return talon;
+            case 0: BasicAb shot= new BasicAb ("Precision Shot", "single", "enemy", 45);
+            return shot;
             case 1: DebuffAb gren= new DebuffAb ("Grenade Lob", "single", "enemy", 0); 
-            String[] explode= StatFactory.SetParam("Countdown", "100", "55", "2", "false"); gren.AddStatString(explode);
-            //return gren; need to find way for ctd to ricochet
-            case 2: 
-            case 3: 
-            case 4: 
+            String[] explode= StatFactory.SetParam("Countdown", "100", "55", "2", "false", "Ricochet"); gren.AddStatString(explode);
+            return gren; 
+            case 2: AttackAb expert= new AttackAb("Expert Marksman", "single", "enemy", 35, 2); 
+            String[] decoy=StatFactory.SetParam("Countdown", "100", "35", "2", "false", "knull"); expert.AddStatString(decoy); 
+            String[] blood= new String[2];
+            String[] privy= new String[2]; 
+            blood[0]="Countdown"; privy[0]="Debuffs"; blood[1]="Countdown"; privy[1]="Other";
+            expert.special.add(new Extend (300, false, "2", blood, privy, 1, true));
+            return expert;
+            case 3: OtherAb det= new OtherAb("Detonator", "single", "enemy", 2); det.special.add(new Activate (false, "Countdown", 70)); det.attack=true;
+            return det;
+            case 4: return null;
         }
         return null; 
     }
@@ -99,16 +106,16 @@ public class Ability_List_Player
     {
         switch (counter)
         {
-            case 0: BasicAb toss= new BasicAb ("Shield Throw", "single", "enemy", 40); toss.special.add(new Ricochet (200)); 
+            case 0: BasicAb toss= new BasicAb ("Shield Throw", "single", "enemy", 40); toss.special.add(new Ricochet (300)); 
             return toss;
             case 1: AttackAb bash= new AttackAb ("Shield Bash", "single", "enemy", 90, 3); String[] stunner= StatFactory.SetParam("Stun", "100", "616", "616", "false");
             bash.AddStatString (stunner); 
             return bash;
             case 2: return null; 
-            case 3: DefAb star= new DefAb ("Star Spangled Avenger", "self", "self", 3); String[] banner=StatFactory.SetParam("Taunt", "200", "1", "616", "true");
-            star.AddStatString(banner); String[] whelmed= StatFactory.SetParam("Resistance", "200", "10", "1", "true"); star.AddStatString(whelmed);
+            case 3: DefAb star= new DefAb ("Star Spangled Avenger", "self", "self", 3); String[] banner=StatFactory.SetParam("Taunt", "300", "1", "616", "true");
+            star.AddStatString(banner); String[] whelmed= StatFactory.SetParam("Resistance", "300", "10", "1", "true"); star.AddStatString(whelmed);
             return star;
-            case 4: HealAb lib= new HealAb ("Sentinel of Liberty", "AoE", "ally inclusive", 3); lib.special.add(new Confidence(200, 30));
+            case 4: HealAb lib= new HealAb ("Sentinel of Liberty", "AoE", "ally inclusive", 3); lib.special.add(new Confidence(300, 30));
             return lib;
         }
         return null; //in case something goes wrong, the default is null
@@ -125,7 +132,8 @@ public class Ability_List_Player
             case 3: AttackAb ft= new AttackAb ("Flamethrower", "single", "enemy", 80, 3); String[] pyre=StatFactory.SetParam("Burn", "100", "20", "1", "false");
             ft.AddStatString (pyre); 
             return ft;
-            case 4: AttackAb army= new AttackAb ("Army of One", "single", "enemy", 120, 4); army.special.add (new BeforeNullify (100, "all", false, "all", true)); 
+            case 4: AttackAb army= new AttackAb ("Army of One", "single", "enemy", 120, 4); String[] holy=new String[1]; holy[0]="all";
+            army.special.add (new BeforeNullify (100, "all", false, holy, true)); 
             return army;
         }
         return null; //in case something goes wrong, the default is null
@@ -138,9 +146,9 @@ public class Ability_List_Player
             return rep;
             case 1: BasicAb miss= new BasicAb ("Micro-Missile Barrage", "AoE", "enemy", 40); 
             return miss; 
-            case 2: HealAb recharge= new HealAb ("Recharge", "self", "self", 3); recharge.special.add (new Confidence (200, 30));  
+            case 2: HealAb recharge= new HealAb ("Recharge", "self", "self", 3); recharge.special.add (new Confidence (300, 30));  
             return recharge;
-            case 3: BuffAb boost= new BuffAb ("Power Boost", "self", "self", 3); String[] Antidisestablishmentarianism= StatFactory.SetParam("Damage Up", "200", "30", "1", "true");
+            case 3: BuffAb boost= new BuffAb ("Power Boost", "self", "self", 3); String[] Antidisestablishmentarianism= StatFactory.SetParam("Damage Up", "300", "30", "1", "true");
             boost.AddStatString (Antidisestablishmentarianism); boost.special.add (new SelfDMG (30));
             return boost;
             case 4: AttackAb uni= new AttackAb ("Unibeam", "single", "enemy", 100, 3); 
@@ -198,7 +206,7 @@ public class Ability_List_Player
             return cdart; 
             case 1: BasicAb mbarr= new BasicAb("Mooncopter Barrage", "AoE", "enemy", 35);   
             return mbarr; 
-            case 2: DefAb lunarp= new DefAb ("Lunar Protector", "single", "Ally exclusive", 2); String[] gloom=StatFactory.SetParam ("Protect", "200", "1", "616", "true");
+            case 2: DefAb lunarp= new DefAb ("Lunar Protector", "single", "Ally exclusive", 2); String[] gloom=StatFactory.SetParam ("Protect", "300", "1", "616", "true");
             lunarp.AddStatString(gloom); 
             return lunarp; 
             case 3: return null; 
