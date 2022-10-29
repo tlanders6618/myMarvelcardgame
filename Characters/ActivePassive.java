@@ -17,14 +17,7 @@ public class ActivePassive
             Confidence heal= new Confidence (200, 10);
             Character[] targets= new Character[6];
             targets=Battle.GetTeammates(quill, quill.team1);
-            for (int i=0; i<6; i++)
-            {
-                if (targets[i]==null)
-                {
-                    targets[i]=quill;
-                    break;
-                }
-            }
+            System.out.println ("\nDance break!");
             for (Character me: targets)
             {
                 if (me!=null)
@@ -32,13 +25,14 @@ public class ActivePassive
                     heal.Use(quill, me, 616);
                 }
             }
+            heal.Use(quill, quill, 616);
         }
     }
     public static void CaptainA (Character cap)
     {
-        if (cap.CheckFor(cap, "Shatter")==false&&!(cap.binaries.contains("Stunned")))
+        if (cap.CheckFor(cap, "Shatter")==false&&cap.CheckFor(cap, "Stun")==false)
         {
-            cap.Shielded(cap, 10);
+            cap.Shielded(cap, 20);
         }
     }
     public static void Gamora (Character gam, StatEff buff, boolean inc)
