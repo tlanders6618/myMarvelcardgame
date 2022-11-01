@@ -12,19 +12,24 @@ class ExtendRandom extends AfterAbility
 {
     String[] effname; 
     String[] efftype;
-    int chance; 
+    int chance; int duration;
     int max; int available=0; //how many effects the ability can extend, before and after checking the chance, respectively
     boolean together; //true for together and false for separate
-    public ExtendRandom (int echance, int num, String[] ename, String[] etype, boolean tog)
+    public ExtendRandom (int echance, int num, String[] ename, String[] etype, int dur, boolean tog)
     {
-        chance=echance; effname=ename; efftype=etype; together=tog; max=num;
+        chance=echance; effname=ename; efftype=etype; together=tog; max=num; duration=dur;
     }
     @Override
     public void Use (Character user, Character target, int ignoreme)
     {
-        boolean succeed=false;  
+        boolean succeed=false; int cando;
         ArrayList<StatEff> removal= new ArrayList<StatEff>();
-        if (!(target.immunities.contains("Extend"))&&!(target.immunities.contains("Other"))&&target.effects.size()>0) 
+        for (int i=0; i<effname.length; i++)
+        {
+            int canadd=target.GetStatCount (target, effname[i], efftype[i]);
+            cando+=canadd;
+        }
+        if (!(target.immunities.contains("Extend"))&&!(target.immunities.contains("Other"))&&cando>0) 
         {
             if (together==true) //the application chance is rolled once for all the effects
             {
@@ -53,74 +58,18 @@ class ExtendRandom extends AfterAbility
                     System.out.println (user.Cname+"'s Extend failed to apply due to chance."); //(Test) The application chance was "+chance);
                 }
             }   
-            if (available>0&&(target.CheckFor(target,effname[0])==true)||target.CheckFor(target.effname[1]))
+            if (available>0)
             {
-                for (int i=0; i<available; i++)
+                for (int i=0; i<cando; i++)
                 {
-                    target.GetRandomStatEff(target, 
-                }
-            }
-            //delete everything below 
-                  if (!(buffname[i].equalsIgnoreCase("all"))) //nullify specific buffs on the target, e.g. Counter
-                  {
-                     for (StatEff eff: target.effects)
-                     {
-                        if (eff.getefftype().equalsIgnoreCase("Buffs")&&eff.geteffname().equalsIgnoreCase(buffname[i]))
-                        {
-                            succeed=Card_CoinFlip.Flip(chance+user.Cchance);
-                            if (succeed==true)
-                            {
-                                removal.add(eff); //stores which effects will be removed
-                            }
-                        }
-                     }   
-                   }
-                  else //extend anything
-                  {
-                     for (StatEff eff: target.effects)
-                     {
-                        if (eff.getefftype().equalsIgnoreCase(efftype[i]))
-                        {
-                            succeed=Card_CoinFlip.Flip(chance+user.Cchance);
-                            if (succeed==true)
-                            {
-                                removal.add(eff); //stores which effects will be removed
-                            }
-                        }
-                     }   
-                   }
-                }                    
-            }
-        }
-        if (removal.size()>0) //then choose which to remove
-        {
-            System.out.println (user.Cname+", choose a buff to Nullify from "+target.Cname+".");
-            System.out.println ("Enter the number next to it, not its name."); 
-            boolean falg=false; int counter=0; int removeme=616;
-            for (StatEff eff: removal)
-            {
-               int o=counter+1;  
-               System.out.println(o+": "+eff.geteffname());
-               ++counter;
-            }            
-            for (int i=0; i<available; i++)
-            {
-                do
-                {
-                    removeme=Damage_Stuff.GetInput();
-                    --removeme;
-                    if (removeme>=0&&removeme<removal.size())
+                    StatEff toext=target.GetRandomStatEff(target, effname[i], efftype[i]);
+                    toext.Extended(duration);
+                    --available;
+                    if (available<=0)
                     {
-                        falg=true;
+                        i+=cando;
                     }
                 }
-                while (falg==false);
-                StatEff gone= removal.get(removeme);
-                System.out.println(target.Cname+"'s "+gone.geteffname()+" was Nullified!");
-                target.remove(target, gone.getcode());                        
             }
-            --available;
-        }
-        return 0;
-    }
-}
+        }  
+}             
