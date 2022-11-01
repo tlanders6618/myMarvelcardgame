@@ -1103,7 +1103,7 @@ public class Character
             {
                 rando= (int)(Math.random()*hero.effects.size());
             }
-            while (!(hero.effects.get(rando).getefftype().equalsIgnoreCase(type))||!(hero.effects.get(rando).geteffname().equalsIgnoreCase(name));
+            while (!(hero.effects.get(rando).getefftype().equalsIgnoreCase(type))||!(hero.effects.get(rando).geteffname().equalsIgnoreCase(name)));
             return hero.effects.get(rando); //returns the effect in the array at the index of the given random index number
         }
         else
