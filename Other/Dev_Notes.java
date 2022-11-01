@@ -35,6 +35,9 @@ public class Dev_Notes
      * reduce cd of im boost ?
      * 
      * Edited (i.e. need to update):
+     * All the extend/nullify stuff in the other folder
+     * Character (getrandomstateff)
+     GOTTA FIX WS Detonator to ignore status effects and activate to ig defence
      * 
      * Think about vapor and gambit ctd
      * 
