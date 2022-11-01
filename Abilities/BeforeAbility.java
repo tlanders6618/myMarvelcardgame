@@ -326,7 +326,7 @@ class Ignore extends BeforeAbility
    {
       switch (condition)
       {
-         case "always": Ignore.Execute(toadd); success=true; break;
+         case "always": Ignore.Execute(hero, toadd); success=true; break;
          case "enemy health below": if (target.HP<=condnumber)
          {
             Ignore.Execute(hero, toadd); success=true;
@@ -340,7 +340,7 @@ class Ignore extends BeforeAbility
       if (success==true)
       {
          success=false;
-         Ignore.IgnoreUndo(hero);
+         Ignore.IgnoreUndo(hero, toadd);
       }
    }
    public static void Execute (Character hero, String todo)
