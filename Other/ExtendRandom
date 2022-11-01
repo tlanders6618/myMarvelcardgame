@@ -4,7 +4,7 @@ package myMarvelcardgamepack;
 /**
  * Designer: Timothy Landers
  * Date: 28/10/22
- * Filename: RandomExtend
+ * Filename: ExtendRandom
  * Purpose: To allow a hero to Extend random effects on an enemy.
  */
 import java.util.ArrayList; 
