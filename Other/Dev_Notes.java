@@ -44,6 +44,7 @@ public class Dev_Notes
      alter abombination debilitate -5 and aura +5
      double check stun cancels channelled
      put version names in the jars
+     doing both yondus now
      * 
      * Think about vapor and gambit ctd
      * 
