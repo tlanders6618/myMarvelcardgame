@@ -35,16 +35,7 @@ public class Dev_Notes
      * reduce cd of im boost ?
      * 
      * Edited (i.e. need to update):
-     * All the extend/nullify stuff in the Other folder
-     * Character (getrandomstateff, getstatcount)
-     * beforeability (ignore)
      * 
-     GOTTA FIX WS Detonator to ignore status effects and activate to ig defence
-     ihulk rez cannot be prevented
-     alter abombination debilitate -5 and aura +5
-     double check stun cancels channelled
-     put version names in the jars
-     doing both yondus now
      * 
      * Think about vapor and gambit ctd
      * 
