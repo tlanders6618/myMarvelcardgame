@@ -37,6 +37,7 @@ public class Dev_Notes
      * Edited (i.e. need to update):
      * All the extend/nullify stuff in the Other folder
      * Character (getrandomstateff, getstatcount)
+     * beforeability (ignore)
      * 
      GOTTA FIX WS Detonator to ignore status effects and activate to ig defence
      ihulk rez cannot be prevented
