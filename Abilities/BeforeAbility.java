@@ -314,6 +314,52 @@ class DamageCounterRemove extends BeforeAbility //increase damage based on numbe
         return increase;
     }
 }
+class Ignore extends BeforeAbility
+{
+   String condition; String toadd; int condnumber; boolean success=false;
+   public Ignore (String add, String cond, int number)
+   {
+      condition=cond; toadd=add; condnumber=number;
+   }
+   @Override
+   public int Use (Character hero, Character target)
+   {
+      switch (condition)
+      {
+         case "always": Ignore.Execute(toadd); success=true; break;
+         case "enemy health below": if (target.HP<=condnumber)
+         {
+            Ignore.Execute(hero, toadd); success=true;
+         } 
+         break;
+      }
+   }
+   @Override
+   public void Use (Character hero, Character target, int noodle) //afterability to undo effects after attack
+   {
+      if (success==true)
+      {
+         success=false;
+         Ignore.IgnoreUndo(hero);
+      }
+   }
+   public static void Execute (Character hero, String todo)
+   {
+      switch (todo)
+      {
+         case "targeting effects": Damage_Stuff.IgnoreTargeting (hero, true); break;
+         case "defence": hero.ignores.add("Defence"); break;
+      }
+   }
+   public static void IgnoreUndo (Character hero, String toremove)
+   {
+      switch (toremove)
+      {
+         case "targeting effects": Damage_Stuff.IgnoreTargeting (hero, false); break;
+         case "defence": hero.ignores.remove("Defence"); break;
+      }
+   }
+}
 class SelfDMG extends BeforeAbility
 {
     int amount;
