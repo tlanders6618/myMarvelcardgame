@@ -43,6 +43,7 @@ public class Dev_Notes
      ihulk rez cannot be prevented
      alter abombination debilitate -5 and aura +5
      double check stun cancels channelled
+     put version names in the jars
      * 
      * Think about vapor and gambit ctd
      * 
