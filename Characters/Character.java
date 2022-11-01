@@ -1081,27 +1081,34 @@ public class Character
             }
         }
     }
-    public StatEff GetRandomStatEff (Character hero, String type) //ensure size is appropriate before calling this and whatnot
+    public int GetStatCount (Character hero, String name, String type)
     {
-        int rando=hero.effects.size();
-        switch (type) 
+        int num=0;
+        for (StatEff eff: hero.effects)
         {
-            case "Buffs": 
-            do
+            if (eff.geteffname().equals(name)&&eff.getefftype().equals(type))
             {
-                rando= (int)(Math.random()*hero.effects.size());
+                ++num;
             }
-            while (!(hero.effects.get(rando).getefftype().equalsIgnoreCase("Buffs")));
-            break;
-            case "Debuffs": 
-            do
-            {
-                rando= (int)(Math.random()*hero.effects.size());
-            }
-            while (!(hero.effects.get(rando).getefftype().equalsIgnoreCase("Debuffs")));
-            break;
-            default: System.out.println("Spelling error prevented a random status effect from being retrieved.");
         }
-        return hero.effects.get(rando); //returns the effect in the array at the index of the given random index number
+        return num;
+    }
+    public StatEff GetRandomStatEff (Character hero, String name, String type) //ensure size is appropriate before calling this and whatnot
+    {
+        int go=hero.GetStatCount (hero, name, type);
+        if (go>0)
+        {
+            int rando=hero.effects.size();
+            do
+            {
+                rando= (int)(Math.random()*hero.effects.size());
+            }
+            while (!(hero.effects.get(rando).getefftype().equalsIgnoreCase(type))||!(hero.effects.get(rando).geteffname().equalsIgnoreCase(name));
+            return hero.effects.get(rando); //returns the effect in the array at the index of the given random index number
+        }
+        else
+        {
+            return null;
+        }
     }
 }
