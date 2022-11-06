@@ -5,16 +5,13 @@ public class Dev_Notes
      * un-uncomment the thing in battle ALWAYS
      * 
      * To Do
-     * need to add turnend method 
      * overide turn method with true/false for qs
      * change empowerments to work with aoe across the board
      * change skip turn criteria
-     * make evade method (Evade method justevaded binary eff should be cleared on turnend)
      * make shatter method
      * BEFORE DOING FURY OVERRIDE SUMMON METHODS
      * add altname for stateff
-     * attack methods must all have evasion consideration added
-     * attackigdef maynot count for bd or crit
+     * double check glossary desc before doing assist and multitarget
      * 
      * Before adding any new content:
      * Add status effects to the game (and check for their interaction methods, e.g. characters cannot evade while submerged so change evade criteria)
