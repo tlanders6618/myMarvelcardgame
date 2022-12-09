@@ -2,9 +2,9 @@ public static Ability MakeAbOGDrax (int counter)
     {
         switch (counter)
         {
-            case 0: BasicAb blast= new BasicAb ("Cosmic Blast", "single", "enemy", 45); blast.special.add(new DamageCounterBroad ("false", "Obsession", 5);
+            case 0: BasicAb blast= new BasicAb ("Cosmic Blast", "single", "enemy", 45); blast.special.add(new DamageCounterBroad ("false", "true", "Obsession", 5);
             return blast;
-            case 1: BasicAb blow= new BasicAb ("Finishing Blow", "single", "enemy", 40); blow.special.add(new DamageCounterRemove ("false", "Obsession", 40);
+            case 1: BasicAb blow= new BasicAb ("Finishing Blow", "single", "enemy", 40); blow.special.add(new DamageCounterRemove ("false", "true", "Obsession", 40);
             return blow;
             case 2: return null;
             case 3: return null;            
