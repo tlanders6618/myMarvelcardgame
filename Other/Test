@@ -12,4 +12,49 @@ public static Ability MakeAbOGDrax (int counter)
         }
         return null; 
     }
+    
     //fix dcbroad to check immunity name not just effname
+    //make obsession eff in factory
+    //thanos is immune to other but not control or persuasion; inf thanos banish immunity is redundant
+    //card selection doesnt distinguish between taunt def and taunt other
+    //mention base sc is now guaranteed
+    //drax passive apply to all stateffs
+    
+public static void DraxOG (Character drax) //static passive
+{
+    Card_CoinFlip.IgnoreTargeting(drax, true);
+    drax.immunities.add("Buffs");
+    drax.ignores.add("Invisible");
+    if (drax.team1==true)
+            {
+                System.out.println ("Player 1, choose Drax's Obsession.");
+            }
+            else
+            {
+                System.out.println ("Player 2, choose Drax's Obsession.");
+            }
+            Character[] foes=Battle.TargetFilter(drax, "enemy", "single");
+            Obsession obsess= new Obsession(616); 
+            foes[0].add(foes[0], obsess);
+            drax.passivefriend[0]=foes[0];
+            drax.passivecount=1;
+            drax.ignores.remove("Invisible");
+}
+
+public static void DraxOG (Character drax, boolean attack) //active passive for on turnend
+{
+    if (attack==false&&drax.binaries.contains("Death")) //undying rage was triggered
+    {
+        drax.binaries.remove("Death");
+        drax.onDeath(drax, null, "DoT");
+    }
+    else if (attack==true) //add one more obsession to the target
+    {
+        if (!(drax.binaries.contains("Missed"))&&drax.passivecount<3)
+        {
+            Obsession obs= new Obsession (616);
+            drax.passivefriend[0].add(drax.passivefriend[0], obs);
+            drax.passivecount++;
+        }
+    }
+}
