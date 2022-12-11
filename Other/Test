@@ -1,9 +1,6 @@
 
     //make obsession eff in factory
-    //thanos is immune to other but not control or persuasion; inf thanos banish immunity is redundant
     //card selection doesnt distinguish between taunt def and taunt other
-    //mention base sc is now guaranteed
-    //drax passive apply to all stateffs
     
 public static void DraxOG (Character drax) //static passive
 {
