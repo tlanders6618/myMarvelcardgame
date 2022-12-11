@@ -1,27 +1,7 @@
 
     //make obsession eff in factory
     //card selection doesnt distinguish between taunt def and taunt other
-    
-public static void DraxOG (Character drax) //static passive
-{
-    Card_CoinFlip.IgnoreTargeting(drax, true);
-    drax.immunities.add("Buffs");
-    drax.ignores.add("Invisible");
-    if (drax.team1==true)
-            {
-                System.out.println ("Player 1, choose Drax's Obsession.");
-            }
-            else
-            {
-                System.out.println ("Player 2, choose Drax's Obsession.");
-            }
-            Character[] foes=Battle.TargetFilter(drax, "enemy", "single");
-            Obsession obsess= new Obsession(616); 
-            foes[0].add(foes[0], obsess);
-            drax.passivefriend[0]=foes[0];
-            drax.passivecount=1;
-            drax.ignores.remove("Invisible");
-}
+   
 
 public static void DraxOG (Character drax, boolean attack) //active passive for on turnend
 {
