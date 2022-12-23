@@ -1,20 +1,4 @@
     //card selection doesnt distinguish between taunt def and taunt other
    
 
-public static void DraxOG (Character drax, boolean attack) //active passive for on turnend
-{
-    if (attack==false&&drax.binaries.contains("Death")) //undying rage was triggered
-    {
-        drax.binaries.remove("Death");
-        drax.onDeath(drax, null, "DoT");
-    }
-    else if (attack==true) //add one more obsession to the target
-    {
-        if (!(drax.binaries.contains("Missed"))&&drax.passivecount<3)
-        {
-            Obsession obs= new Obsession (616);
-            drax.passivefriend[0].add(drax.passivefriend[0], obs);
-            drax.passivecount++;
-        }
-    }
-}
+
