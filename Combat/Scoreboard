@@ -15,8 +15,10 @@ public class Scoreboard
 {    
     static JFrame frame;
     static JPanel Panel;
-    static JTable table;
-    static JTable table2;
+    static JTable table11; //for player 1's first 3 characters    
+    static JTable table12; //for player 1's second set of 3 characters
+    static JTable table21; 
+    static JTable table22;
     public static void main (Character[] team11, Character[] team22)
     {                  
         //The frame is the GUI itself; the window that displays everything
@@ -27,28 +29,46 @@ public class Scoreboard
         //Add content pane to frame 
         frame.add(Panel); 
         //Column and row names and information for tables
-        String row1[][]=GetRows(team11); 
-        String row2[][]=GetRows(team22);      
-        String column1[]=GetColumns(team11);     
-        String column2[]=GetColumns(team22);
+        String row11[][]; String column11[]; //for player 1's heroes
+        String row12[][]; String column12[]; 
+        String row21[][]; String column21[]; //for player 2's heroes
+        String row22[][]; String column22[];
+        if (Battle.p1heroes>3) //make a second table; there are three heroes max per table so the display is readable
+        {
+            row12=GetRows(team11, false); column12=GetRows(team11, false);
+            table12=new JTable(row12, column12);
+            table12.getColumnModel().getColumn(0).setMinWidth(90); table11.getColumnModel().getColumn(0).setMaxWidth(90);
+            table12.setEnabled(false);
+            JScrollPane Scroll12 = new JScrollPane(table12); 
+        }
+        row11=GetRows(team11, true); column11=GetColumns(team11, true);
+        if (Battle.p2heroes>3)
+        {
+            row22=GetRows(team11, false); column22=GetRows(team11, false);
+            table22= new JTable(row22, column22); 
+            table22.getColumnModel().getColumn(0).setMinWidth(90); table21.getColumnModel().getColumn(0).setMaxWidth(90);
+            table22.setEnabled(false);
+            JScrollPane Scroll22 = new JScrollPane(table22); 
+        }
+        row21=GetRows(team22, true); column21=GetColumns(team22, true);
         //Make tables 
-        table=new JTable(row1,column1);  
-        table2=new JTable(row2,column2); 
+        table11=new JTable(row11,column11);  
+        table21=new JTable(row21,column21); 
         //Make the tables' first column a set size since it doesn't need much space
-        table.getColumnModel().getColumn(0).setMinWidth(90); table.getColumnModel().getColumn(0).setMaxWidth(90);
-        table2.getColumnModel().getColumn(0).setMinWidth(90); table2.getColumnModel().getColumn(0).setMaxWidth(90);
+        table11.getColumnModel().getColumn(0).setMinWidth(90); table11.getColumnModel().getColumn(0).setMaxWidth(90);
+        table21.getColumnModel().getColumn(0).setMinWidth(90); table21.getColumnModel().getColumn(0).setMaxWidth(90);
         //Make tables uneditable
-        table.setEnabled(false);
-        table2.setEnabled(false);
+        table11.setEnabled(false);
+        table21.setEnabled(false);
         //Put tables onto scrollpanes
-        JScrollPane Scroll = new JScrollPane(table); 
-        JScrollPane Scroll2 = new JScrollPane(table2);
+        JScrollPane Scroll11 = new JScrollPane(table11); 
+        JScrollPane Scroll21 = new JScrollPane(table21);
         //Set scrollpane locations
-        Panel.add(Scroll, BorderLayout.WEST);
-        Panel.add(Scroll2, BorderLayout.EAST);  
+        Panel.add(Scroll11, BorderLayout.WEST);
+        Panel.add(Scroll21, BorderLayout.EAST);  
         //Set scrollpane sizes
-        Scroll.setPreferredSize(new Dimension(675,200));     
-        Scroll2.setPreferredSize(new Dimension(675,200)); 
+        Scroll11.setPreferredSize(new Dimension(675,200));     
+        Scroll21.setPreferredSize(new Dimension(675,200)); 
         
         //Size the frame 
         frame.setSize(1050,500); //width and then height; this must be done last or the GUI will not show
@@ -62,89 +82,181 @@ public class Scoreboard
         String[][] newrow2=GetRows(team2);         
         String newcolumn1[]=GetColumns(team1);     
         String newcolumn2[]=GetColumns(team2);
-        table.setModel(new DefaultTableModel (newrow1, newcolumn1));
-        table2.setModel(new DefaultTableModel (newrow2, newcolumn2));        
-        table.getColumnModel().getColumn(0).setMinWidth(90); table.getColumnModel().getColumn(0).setMaxWidth(90);
-        table2.getColumnModel().getColumn(0).setMinWidth(90); table2.getColumnModel().getColumn(0).setMaxWidth(90);
+        table11.setModel(new DefaultTableModel (newrow1, newcolumn1));
+        table21.setModel(new DefaultTableModel (newrow2, newcolumn2));        
+        table11.getColumnModel().getColumn(0).setMinWidth(90); table11.getColumnModel().getColumn(0).setMaxWidth(90);
+        table21.getColumnModel().getColumn(0).setMinWidth(90); table21.getColumnModel().getColumn(0).setMaxWidth(90);
         frame.setVisible(true); 
     }
-    public static String[][] GetRows (Character[] champs)
+    public static String[][] GetRows (Character[] champs, boolean halftocheck) //check first 3 team members or last 3, since it's 3 per table
     {
         //first row is team, second is health, third for shield, everything else is stateff
         //format is row then column
-        int max=0; ArrayList <String> manywords= new ArrayList<String>(); int he=champs.length;
-        for (Character lad: champs)
+        int max=1; ArrayList <String> manywords= new ArrayList<String>(); int length=champs.length;
+        if (halftocheck==true)
         {
-            if (lad!=null&&lad.effects.size()>max)
+            for (int i=0; i<3; i++)
             {
-                max=lad.effects.size(); //the rows should only be as numerous as necessary; no more rows than there are status effects
-            }
-        } 
-        max+=4; //to make space for the team and shield and health
-        String[][] words=new String[max][he+1]; //since there's an extra column listing what each row is for
+                if (champs[i]!=null&&champs[i].effects.size()>max)
+                {
+                    max=champs[i].effects.size(); //no more rows than there are status effects
+                }
+            } 
+        }
+        else
+        {
+            for (int i=3; i<6; i++)
+            {
+                if (champs[i]!=null&&champs[i].effects.size()>max)
+                {
+                    max=champs[i].effects.size(); //no more rows than there are status effects
+                }
+            } 
+        }
+        max+=3; //to make space for the team and shield and health
+        String[][] words=new String[max][length+1]; //since there's an extra column listing what each row is for
         int counter=1; 
         words[0][0]="Team"; words[1][0]="Health"; words[2][0]="Shield"; words[3][0]="Status effects";
-        for (Character lad: champs)
+        if (halftocheck==true)
         {
-            if (lad!=null&&lad.team1==true)
+            for (int i=0; i<3; i++)
             {
-                words[0][counter]="Team 1"; 
+                if (champs[i]!=null&&champs[i].team1==true)
+                {
+                    words[0][counter]="Team 1"; 
+                }
+                else
+                {
+                    words[0][counter]="Team 2";
+                }
+                ++counter; 
             }
-            else
+        }
+        else
+        {
+            for (int i=3; i<6; i++)
             {
-                words[0][counter]="Team 2";
+                if (champs[i]!=null&&champs[i].team1==true)
+                {
+                    words[0][counter]="Team 1"; 
+                }
+                else
+                {
+                    words[0][counter]="Team 2";
+                }
+                ++counter; 
             }
-            ++counter;
         }
         counter=1;
-        for (Character lad: champs)
+        if (halftocheck==true)
         {
-            if (lad!=null)
+            for (int i=0; i<3; i++)
             {
-                words[1][counter]=lad.GetHP(lad);
-                ++counter;
+                if (champs[i]!=null)
+                {
+                    words[1][counter]=champs[i].GetHP(champs[i]);
+                    ++counter;
+                }
+            }
+        }
+        else
+        {
+            for (int i=3; i<6; i++)
+            {
+                if (champs[i]!=null)
+                {
+                    words[1][counter]=champs[i].GetHP(champs[i]);
+                    ++counter;
+                }
             }
         }
         counter=1; 
-        for (Character lad: champs)
+        if (halftocheck==true)
         {
-            if (lad!=null)
+            for (int i=0; i<3; i++)
             {
-                words[2][counter]=lad.GetShield(lad);
-                ++counter;
+                if (champs[i]!=null)
+                {
+                    words[2][counter]=champs[i].GetShield(champs[i]);
+                    ++counter;
+                }
+            }
+        }
+        else
+        {
+            for (int i=3; i<6; i++)
+            {
+                if (champs[i]!=null)
+                {
+                    words[2][counter]=champs[i].GetShield(champs[i]);
+                    ++counter;
+                }
             }
         }
         counter=1; int statcount=3;
-        for (Character lad: champs)
+        if (halftocheck==true)
         {
-            if (lad!=null)
+            for (int i=0; i<3; i++)
             {
-                for (StatEff eff: lad.effects)
+                if (champs[i]!=null)
                 {
-                    words[statcount][counter]=eff.geteffname();
-                    ++statcount;
+                    for (StatEff eff: champs[i].effects)
+                    {
+                        words[statcount][counter]=eff.geteffname();
+                        ++statcount;
+                    }
                 }
+                statcount=3; ++counter;
             }
-            statcount=3; ++counter;
+        }
+        else
+        {
+            for (int i=3; i<6; i++)
+            {
+                if (champs[i]!=null)
+                {
+                    for (StatEff eff: champs[i].effects)
+                    {
+                        words[statcount][counter]=eff.geteffname();
+                        ++statcount;
+                    }
+                }
+                statcount=3; ++counter;
+            }
         }
         return words;
     }
-    public static String[] GetColumns (Character[] champs)
+    public static String[] GetColumns (Character[] champs, boolean halftocheck)
     {
         //column titles are just the heroes' names
         ArrayList <String> words= new ArrayList<String>(); int index=1; //the first row is the description
         words.add("Name");
-        for (Character lad: champs)
+        if (halftocheck==true)
         {
-            if (lad!=null)
+            for (int i=0; i<3; i++)
             {
-                String name=lad.Cname;
-                words.add(name);
-                ++index;
-            }            
+                if (champs[i]!=null)
+                {
+                    String name=champs[i].Cname;
+                    words.add(name);
+                    ++index;
+                }            
+            }
+        }
+        else
+        {
+            for (int i=3; i<6; i++)
+            {
+                if (champs[i]!=null)
+                {
+                    String name=champs[i].Cname;
+                    words.add(name);
+                    ++index;
+                }            
+            }
         }
         String[] Titles= new String[index]; int counter=0;
-        for (String str: words)
+        for (String str: words) //convert arraylist to array
         {
             Titles[counter]=str;
             ++counter;
