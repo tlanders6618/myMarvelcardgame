@@ -19,7 +19,7 @@ public class Scoreboard
     static JTable table12; //for player 1's second set of 3 characters
     static JTable table21; 
     static JTable table22;
-    public static void main (Character[] team11, Character[] team22)
+    public static void main (Character[] team1, Character[] team2)
     {                  
         //The frame is the GUI itself; the window that displays everything
         frame = new JFrame("Battle Progress");
@@ -33,24 +33,9 @@ public class Scoreboard
         String row12[][]; String column12[]; 
         String row21[][]; String column21[]; //for player 2's heroes
         String row22[][]; String column22[];
-        if (Battle.p1heroes>3) //make a second table; there are three heroes max per table so the display is readable
-        {
-            row12=GetRows(team11, false); column12=GetRows(team11, false);
-            table12=new JTable(row12, column12);
-            table12.getColumnModel().getColumn(0).setMinWidth(90); table11.getColumnModel().getColumn(0).setMaxWidth(90);
-            table12.setEnabled(false);
-            JScrollPane Scroll12 = new JScrollPane(table12); 
-        }
-        row11=GetRows(team11, true); column11=GetColumns(team11, true);
-        if (Battle.p2heroes>3)
-        {
-            row22=GetRows(team11, false); column22=GetRows(team11, false);
-            table22= new JTable(row22, column22); 
-            table22.getColumnModel().getColumn(0).setMinWidth(90); table21.getColumnModel().getColumn(0).setMaxWidth(90);
-            table22.setEnabled(false);
-            JScrollPane Scroll22 = new JScrollPane(table22); 
-        }
-        row21=GetRows(team22, true); column21=GetColumns(team22, true);
+        //Get the information
+        row11=GetRows(team1, true); column11=GetColumns(team1, true);        
+        row21=GetRows(team2, true); column21=GetColumns(team2, true);
         //Make tables 
         table11=new JTable(row11,column11);  
         table21=new JTable(row21,column21); 
@@ -62,10 +47,31 @@ public class Scoreboard
         table21.setEnabled(false);
         //Put tables onto scrollpanes
         JScrollPane Scroll11 = new JScrollPane(table11); 
-        JScrollPane Scroll21 = new JScrollPane(table21);
+        JScrollPane Scroll21 = new JScrollPane(table21);         
         //Set scrollpane locations
         Panel.add(Scroll11, BorderLayout.WEST);
         Panel.add(Scroll21, BorderLayout.EAST);  
+        //make a second table if needed; there are three heroes max per table so the display is readable
+        if (Battle.p1heroes>3) 
+        {
+            row12=GetRows(team1, false); column12=GetColumns(team1, false);
+            table12=new JTable(row12, column12);
+            table12.getColumnModel().getColumn(0).setMinWidth(90); table11.getColumnModel().getColumn(0).setMaxWidth(90);
+            table12.setEnabled(false);
+            JScrollPane Scroll12 = new JScrollPane(table12); 
+            Panel.add (Scroll12, BorderLayout.WEST);
+            Scroll12.setPreferredSize(new Dimension(675,200));     
+        }
+        if (Battle.p2heroes>3)
+        {
+            row22=GetRows(team2, false); column22=GetColumns(team2, false);
+            table22= new JTable(row22, column22); 
+            table22.getColumnModel().getColumn(0).setMinWidth(90); table21.getColumnModel().getColumn(0).setMaxWidth(90);
+            table22.setEnabled(false);
+            JScrollPane Scroll22 = new JScrollPane(table22); 
+            Panel.add(Scroll22, BorderLayout.EAST);
+            Scroll22.setPreferredSize(new Dimension(675,200));     
+        }
         //Set scrollpane sizes
         Scroll11.setPreferredSize(new Dimension(675,200));     
         Scroll21.setPreferredSize(new Dimension(675,200)); 
@@ -78,14 +84,36 @@ public class Scoreboard
     public static void UpdateScore (Character[] team1, Character[] team2)
     {
         frame.setVisible(false); 
-        String[][] newrow1=GetRows(team1);
-        String[][] newrow2=GetRows(team2);         
-        String newcolumn1[]=GetColumns(team1);     
-        String newcolumn2[]=GetColumns(team2);
-        table11.setModel(new DefaultTableModel (newrow1, newcolumn1));
-        table21.setModel(new DefaultTableModel (newrow2, newcolumn2));        
+        String[][] newrow11=GetRows(team1, true);
+        String[][] newrow21=GetRows(team2, true);         
+        String newcolumn11[]=GetColumns(team1, true);     
+        String newcolumn21[]=GetColumns(team2, true);
+        table11.setModel(new DefaultTableModel (newrow11, newcolumn11));
+        table21.setModel(new DefaultTableModel (newrow21, newcolumn21));        
         table11.getColumnModel().getColumn(0).setMinWidth(90); table11.getColumnModel().getColumn(0).setMaxWidth(90);
         table21.getColumnModel().getColumn(0).setMinWidth(90); table21.getColumnModel().getColumn(0).setMaxWidth(90);
+        if (Battle.p1heroes>3)
+        {
+            String[][] newrow12=GetRows(team1, false);
+            String[] newcolumn12=GetColumns(team1, false);
+            table12.setModel(new DefaultTableModel (newrow12, newcolumn12));
+            table12.getColumnModel().getColumn(0).setMinWidth(90); table12.getColumnModel().getColumn(0).setMaxWidth(90);
+        }
+        else if (table12!=null) //get rid of the table because the extra heroes have died
+        {
+            table12.setModel(new DefaultTableModel());
+        }
+        if (Battle.p2heroes>3)
+        {
+            String[][] newrow22=GetRows(team2, false);
+            String[] newcolumn22=GetColumns(team2, false);
+            table22.setModel(new DefaultTableModel (newrow22, newcolumn22));
+            table22.getColumnModel().getColumn(0).setMinWidth(90); table22.getColumnModel().getColumn(0).setMaxWidth(90);
+        }
+        else if (table22!=null)
+        {
+            table22.setModel(new DefaultTableModel());
+        }
         frame.setVisible(true); 
     }
     public static String[][] GetRows (Character[] champs, boolean halftocheck) //check first 3 team members or last 3, since it's 3 per table
