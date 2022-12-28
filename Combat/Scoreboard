@@ -56,7 +56,7 @@ public class Scoreboard
         {
             row12=GetRows(team1, false); column12=GetColumns(team1, false);
             table12=new JTable(row12, column12);
-            table12.getColumnModel().getColumn(0).setMinWidth(90); table11.getColumnModel().getColumn(0).setMaxWidth(90);
+            table12.getColumnModel().getColumn(0).setMinWidth(90); table12.getColumnModel().getColumn(0).setMaxWidth(90);
             table12.setEnabled(false);
             JScrollPane Scroll12 = new JScrollPane(table12); 
             Panel.add (Scroll12, BorderLayout.WEST);
@@ -66,7 +66,7 @@ public class Scoreboard
         {
             row22=GetRows(team2, false); column22=GetColumns(team2, false);
             table22= new JTable(row22, column22); 
-            table22.getColumnModel().getColumn(0).setMinWidth(90); table21.getColumnModel().getColumn(0).setMaxWidth(90);
+            table22.getColumnModel().getColumn(0).setMinWidth(90); table22.getColumnModel().getColumn(0).setMaxWidth(90);
             table22.setEnabled(false);
             JScrollPane Scroll22 = new JScrollPane(table22); 
             Panel.add(Scroll22, BorderLayout.EAST);
