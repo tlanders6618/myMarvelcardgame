@@ -23,7 +23,7 @@ public class Scoreboard
     {                  
         //The frame is the GUI itself; the window that displays everything
         frame = new JFrame("Battle Progress");
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); //try hide on close
         //Create a content pane to hold tables
         Panel = new JPanel(new BorderLayout());
         //Add content pane to frame 
