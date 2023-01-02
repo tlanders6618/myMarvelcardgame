@@ -33,9 +33,6 @@ public class Dev_Notes
      * Balance changes:
      * 
      * Edited (i.e. need to update):
-     * stateff
-     * statfactory
-     * ALL stateffs
      * 
      * to test:
      * counter attack must trigger the took damage method for the attacker, with boolean true
