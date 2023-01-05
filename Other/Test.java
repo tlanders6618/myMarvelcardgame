@@ -28,6 +28,30 @@ public class Test
         return null;
     }    
    
+   ApplyShatter extends Before Ab 
+   {
+      int chance; int duration;
+      ApplyShatter (int chancer, int dur)
+      {
+         chance=chancer; duration=dur;
+      }
+      @Override
+      Use
+      {
+         if (!(hero.binaries.contains("Missed")))
+         {
+            coinflip with chance+Cchance;
+            if it applies
+            {
+               String[] shatter=StatFactory.SetParam("Shatter", chance.toString() wont work, "616", durtostring, "false");
+               Make stateff and check apply the normal way
+            }
+               else nothing
+         }
+      }
+      
+   }
+   
    Speed (Character fast)
    {
       //check fast's team
@@ -36,17 +60,19 @@ public class Test
          if (team1[i]==fast)
          {
             //all code is in here
-            if (i!=0)
+            make sure to check this code works both when speed is being applied on fast's turn and when it's being applied off their turn
+            if (i!=0) //the character with speed is not in the first position of the array
             {
-              Character bobby=team[i-1];
+              Character C11=team[i-1]; //one in front of fast
+              Character c13= //the one going right after fast
             }
-            else if (i==0)
+            else if (i==0) //the one being snared is already going first but isn't necessarily taking their turn now
             {
-               Character C12=team1[1]; Character C13=team1[2];
+               Character C12=team1[1]; Character C13=team1[2]; //team1[0]=fast already
             }
             
          } //end if
-      } //end loop
+      } //end for loop
    } //end method
    
-} //end class
+} //end test class
