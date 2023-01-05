@@ -19,11 +19,11 @@ public class Test
             String[] two=StatFactory.SetParam("Counter", chance, "35", "2", "true"); 
             fierce.AddStatString(gloom); fierce.AddStatString(one); fierce.AddStatString(two);
             return fierce; 
-            case 3: AttackAb dice= new AttackAb("Slice and Dice", "single", "enemy", 80, 3); 
+            case 3: AttackAb dice= new AttackAb("Slice and Dice", "single", "enemy", 80, 3); dice.special.add (new Ricochet (500));
             return dice; 
-            case 4: AttackAb Khonshu= new AttackAb ("Fist of Khonshu", "single", "enemy", 110, 4); String[] loss=StatFactory.SetParam("Stun", "100", "616", "616", "false");
-            Khonshu.AddStatString (loss); 
-            return Khonshu;
+            case 4: AttackAb destroy= new AttackAb ("The Destroyer", "single", "enemy", 120, 4);
+            //append shatter method for 1 turn here
+            return destroy;
         }
         return null;
     }    
