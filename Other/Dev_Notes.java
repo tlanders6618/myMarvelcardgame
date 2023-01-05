@@ -6,7 +6,8 @@ public class Dev_Notes
      * 
      * To Do
      * BANISH MUST --P1HEROES WHEN APPLIED
-     * make boolean aoe an attribute of all abs by default
+     * make boolean aoe and boolean attack attributes of all abs by default
+     * check for blind before doing beforeabs and make damage counter not trigger on blind
      * make tracker stateff
      * change empowerments to work with aoe across the board
      * change skip turn criteria
