@@ -17,6 +17,10 @@ public class Test
             {
               Character bobby=team[i-1];
             }
+            else if (i==0)
+            {
+               Character C12=team1[1]; Character C13=team1[2];
+            }
             
          } //end if
       } //end loop
