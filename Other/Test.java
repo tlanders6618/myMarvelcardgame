@@ -13,7 +13,7 @@ public class Test
             twins.AddStatString(despair); twins.AddStatString(knock); twins.together=false;
             String[] life= StatFactory.SetParam("Drain", "500", "616", "2", "true", "Half"); twins.AddStatString(life);
             return twins; 
-            case 2: DefAb fierce= new DefAb ("Fierce Protector", "single", "Ally exclusive", 3); String[] gloom=StatFactory.SetParam ("Protect", "500", "1", "616", "true");
+            case 2: DefAb fierce= new DefAb ("Fierce Protector", "single", "ally exclusive", 3); String[] gloom=StatFactory.SetParam ("Protect", "500", "1", "616", "true");
             String[] one=StatFactory.SetParam("Counter", chance, "35", "2", "true"); 
             String[] two=StatFactory.SetParam("Counter", chance, "35", "2", "true"); 
             fierce.AddStatString(gloom); fierce.AddStatString(one); fierce.AddStatString(two);
@@ -49,20 +49,19 @@ public class Test
     {
         switch (counter)
         {
-            case 0: 
-            return headbutt; 
-            case 1: 
-            return twins; 
-            case 2: 
-            return fierce; 
-            case 3: 
-            return dice; 
-            case 4: 
-            return destroy;
+            case 0: BasicAb x= new BasicAb("X-Slash", "single", "enemy", 35); String[] julie=StatFactory.SetParam("Bleed", "50", "15", "1", "false");
+            return x; 
+            case 1: BasicAb primal= new BasicAb ("Primal Punch", "single", "enemy", 45); 
+            return primal; 
+            case 2: return null; //make regen
+            case 3: return null; //make tracker eff for berserker also override the on death stateff removal to not remove it
+            case 4: AttackAb best= new AttackAb ("Best There Is", "single", "enemy", 100, 5); best.special.add(new DamageCounterRemove (all but other on self));
+            return best;
         }
         return null;
     }  
    
+   //from now on, check blind before attacking but not during attacking; move it out of attack method so damage counter isn't wasted
    ApplyShatter extends Before Ab 
    {
       int chance; int duration;
