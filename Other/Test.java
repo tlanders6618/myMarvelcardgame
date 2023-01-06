@@ -23,6 +23,7 @@ public class Test
             case 4: AttackAb destroy= new AttackAb ("The Destroyer", "single", "enemy", 120, 4);
             //append shatter method for 1 turn here
             //og drax obsession passive should be (500+cchance)
+              //make drain
             return destroy;
         }
         return null;
