@@ -2,7 +2,6 @@ public class Test
 {
    public static Ability MakeAbDrax (int counter) 
     {
-        String[] p= new String[5];
         switch (counter)
         {
             case 0: BasicAb headbutt =new BasicAb ("Headbutt", "single", "enemy", 45); 
@@ -27,6 +26,40 @@ public class Test
         }
         return null;
     }    
+   public static Ability MakeAbX23 (int counter) 
+     {
+        switch (counter)
+        {
+            case 0: 
+            return headbutt; 
+            case 1: 
+            return twins; 
+            case 2: 
+            return fierce; 
+            case 3: 
+            return dice; 
+            case 4: 
+            return destroy;
+        }
+        return null;
+    }  
+   public static Ability MakeAbWolvie (int counter) 
+    {
+        switch (counter)
+        {
+            case 0: 
+            return headbutt; 
+            case 1: 
+            return twins; 
+            case 2: 
+            return fierce; 
+            case 3: 
+            return dice; 
+            case 4: 
+            return destroy;
+        }
+        return null;
+    }  
    
    ApplyShatter extends Before Ab 
    {
