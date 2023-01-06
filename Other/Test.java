@@ -1,5 +1,10 @@
 public class Test 
 {
+bold update names in changelong
+all buff abilities should have a cooldown
+check target filtering to not remove anymore targets if available enemies <=1 because what if all enemies have applied terror to me who to hit
+make ability maker/getter true false so rogue cant copy amadeus
+   
    public static Ability MakeAbDrax (int counter) 
     {
         switch (counter)
