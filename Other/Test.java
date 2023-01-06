@@ -22,6 +22,7 @@ public class Test
             return dice; 
             case 4: AttackAb destroy= new AttackAb ("The Destroyer", "single", "enemy", 120, 4);
             //append shatter method for 1 turn here
+            //og drax obsession passive should be (500+cchance)
             return destroy;
         }
         return null;
@@ -30,16 +31,17 @@ public class Test
      {
         switch (counter)
         {
-            case 0: 
-            return headbutt; 
-            case 1: 
-            return twins; 
-            case 2: 
-            return fierce; 
-            case 3: 
-            return dice; 
-            case 4: 
-            return destroy;
+            case 0: BasicAb karate= new BasicAb ("Karate Kick", "single", "enemy", 45);
+            return karate; 
+            case 1: BasicAb slash= new BasicAb ("Precision Slash", "single", "enemy", 35); String[] sun=StatFactory.SetParam("Precision", "100", "616", "2", "true");
+            slash.AddStatString(sun);
+            return slash; //rename the ab to drop the plural; also make precision and counter and check shatter for accuracy
+            case 2: return null;
+            case 3: AttackAb out= new AttackAb("Bleed Them Out", "single", "enemy", 60, 3); String[] bled=StatFactory.SetParam("Bleed", "100", "20", "2", "false");
+            out.AddStatString(bled);
+            return out; 
+            case 4: AttackAb trip= new AttackAb ("Triple Slash", "single", "enemy", 30, 3); trip.multi=2; trip.special.add(new Multichain(trip.multi) );
+            return trip;
         }
         return null;
     }  
