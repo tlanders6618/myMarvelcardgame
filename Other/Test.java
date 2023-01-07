@@ -1,10 +1,7 @@
 public class Test 
 {
-bold update names in changelong
 all buff abilities should have a cooldown
-check target filtering to not remove anymore targets if available enemies <=1 because what if all enemies have applied terror to me who to hit
-make ability maker/getter true false so rogue cant copy amadeus
-   remove coutnerattack from moon kngiht abilities list
+target filter doesn't account for 2 enemies being banished at same time
    
    public static Ability MakeAbDrax (int counter) 
     {
@@ -28,7 +25,6 @@ make ability maker/getter true false so rogue cant copy amadeus
             return dice; 
             case 4: AttackAb destroy= new AttackAb ("The Destroyer", "single", "enemy", 120, 4);
             //append shatter method for 1 turn here
-            //og drax obsession passive should be (500+cchance)
               //make drain
             return destroy;
         }
@@ -42,7 +38,7 @@ make ability maker/getter true false so rogue cant copy amadeus
             return karate; 
             case 1: BasicAb slash= new BasicAb ("Precision Slash", "single", "enemy", 35); String[] sun=StatFactory.SetParam("Precision", "100", "616", "2", "true");
             slash.AddStatString(sun);
-            return slash; //rename the ab to drop the plural; also make precision and counter and check shatter for accuracy
+            return slash; //make precision and counter and check shatter for accuracy
             case 2: return null;
             case 3: AttackAb out= new AttackAb("Bleed Them Out", "single", "enemy", 60, 3); String[] bled=StatFactory.SetParam("Bleed", "100", "20", "2", "false");
             out.AddStatString(bled);
@@ -60,8 +56,8 @@ make ability maker/getter true false so rogue cant copy amadeus
             return x; 
             case 1: BasicAb primal= new BasicAb ("Primal Punch", "single", "enemy", 45); 
             return primal; 
-            case 2: return null; //make regen
-            case 3: return null; //make tracker eff for berserker also override the on death stateff removal to not remove it
+            case 2: return null; 
+            case 3: return null; 
             case 4: AttackAb best= new AttackAb ("Best There Is", "single", "enemy", 100, 5); best.special.add(new DamageCounterRemove (all but other on self));
             return best;
         }
@@ -69,29 +65,7 @@ make ability maker/getter true false so rogue cant copy amadeus
     }  
    
    //from now on, check blind before attacking but not during attacking; move it out of attack method so damage counter isn't wasted
-   ApplyShatter extends Before Ab 
-   {
-      int chance; int duration;
-      ApplyShatter (int chancer, int dur)
-      {
-         chance=chancer; duration=dur;
-      }
-      @Override
-      Use
-      {
-         if (!(hero.binaries.contains("Missed")))
-         {
-            coinflip with chance+Cchance;
-            if it applies
-            {
-               String[] shatter=StatFactory.SetParam("Shatter", chance.toString() wont work, "616", durtostring, "false");
-               Make stateff and check apply the normal way
-            }
-               else nothing
-         }
-      }
-      
-   }
+   
    
    Speed (Character fast)
    {
