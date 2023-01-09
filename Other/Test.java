@@ -2,33 +2,7 @@ public class Test
 {
 all buff abilities should have a cooldown
 target filter doesn't account for 2 enemies being banished at same time
-   
-   public static Ability MakeAbDrax (int counter) 
-    {
-        switch (counter)
-        {
-            case 0: BasicAb headbutt =new BasicAb ("Headbutt", "single", "enemy", 45); 
-            cdart.AddStatString(despair); 
-            return headbutt; 
-            case 1: AttackAb twins= new AttackAb("Twins Blades", "single", "enemy", 80, 3); 
-            String[] despair=StatFactory.SetParam("Bleed", "100", "5", "2", "false");
-            String[] knock=StatFactory.SetParam("Bleed", "100", "5", "2", "false"); 
-            twins.AddStatString(despair); twins.AddStatString(knock); twins.together=false;
-            String[] life= StatFactory.SetParam("Drain", "500", "616", "2", "true", "Half"); twins.AddStatString(life);
-            return twins; 
-            case 2: DefAb fierce= new DefAb ("Fierce Protector", "single", "ally exclusive", 3); String[] gloom=StatFactory.SetParam ("Protect", "500", "1", "616", "true");
-            String[] one=StatFactory.SetParam("Counter", chance, "35", "2", "true"); 
-            String[] two=StatFactory.SetParam("Counter", chance, "35", "2", "true"); 
-            fierce.AddStatString(gloom); fierce.AddStatString(one); fierce.AddStatString(two);
-            return fierce; 
-            case 3: AttackAb dice= new AttackAb("Slice and Dice", "single", "enemy", 80, 3); dice.special.add (new Ricochet (500));
-            return dice; 
-            case 4: AttackAb destroy= new AttackAb ("The Destroyer", "single", "enemy", 120, 4);
-            //append shatter method for 1 turn here
-              //make drain
-            return destroy;
-        }
-        return null;
+  
     }    
    public static Ability MakeAbX23 (int counter) 
      {
@@ -63,10 +37,7 @@ target filter doesn't account for 2 enemies being banished at same time
         }
         return null;
     }  
-   
-   //from now on, check blind before attacking but not during attacking; move it out of attack method so damage counter isn't wasted
-   
-   
+  
    Speed (Character fast)
    {
       //check fast's team
