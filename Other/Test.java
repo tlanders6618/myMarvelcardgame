@@ -25,7 +25,7 @@ target filter doesn't account for 2 enemies being banished at same time
         if (current<multi)
         ++multi;
         else 
-        current=multi;
+        current=0;
       }
     }
 }
