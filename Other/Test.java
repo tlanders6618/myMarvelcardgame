@@ -4,6 +4,31 @@ all buff abilities should have a cooldown
 target filter doesn't account for 2 enemies being banished at same time
   
   //make four for wolvie; type is true, name is buff, debuff, heal, defence; amount is 10
+  //fix random ricochet below
+  
+  class Multichain extends AfterAbility
+{
+    int multi; int current;
+    public Multichain(int multiply)
+    {
+      multi=multiply; current=multiply;
+    }
+    @Override 
+    public void Use(Character caller, Character target, int ignore) 
+    {
+        if (target.dead==true&&current<multi)
+        {
+            //new target
+        }
+      else
+      {
+        if (current<multi)
+        ++multi;
+        else 
+        current=multi;
+      }
+    }
+}
   
    Speed (Character fast)
    {
