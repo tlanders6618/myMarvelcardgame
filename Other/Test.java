@@ -8,24 +8,26 @@ target filter doesn't account for 2 enemies being banished at same time
   
   class Multichain extends AfterAbility
 {
-    int multi; int current;
+    int multi; //number of hits in attack
+    int current=1; //current hit of attack
     public Multichain(int multiply)
     {
-      multi=multiply; current=multiply;
+      multi=multiply;
     }
     @Override 
     public void Use(Character caller, Character target, int ignore) 
     {
-        if (target.dead==true&&current<multi)
+        if (target.dead==true&&current<multi) //doesn't activate on final hit because there's no more dmg to deal
         {
             //new target
+          ++multi;
         }
       else
       {
         if (current<multi)
         ++multi;
         else 
-        current=0;
+        current=1; //reset counter
       }
     }
 }
