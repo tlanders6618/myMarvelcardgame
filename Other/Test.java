@@ -3,7 +3,7 @@ public class Test
 all buff abilities should have a cooldown
 target filter doesn't account for 2 enemies being banished at same time
   
-    }   
+  //make four for wolvie; type is true, name is buff, debuff, heal, defence; amount is 10
   
    Speed (Character fast)
    {
