@@ -5,6 +5,7 @@ target filter doesn't account for 2 enemies being banished at same time
   
   //make four for wolvie; type is true, name is buff, debuff, heal, defence; amount is 10
   //fix random ricochet below
+  //test x23 against mysterio dummies outside of battle
   
 class Multichain extends AfterAbility
 {
