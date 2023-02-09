@@ -34,55 +34,69 @@ class Multichain extends AfterAbility
 }
   //override attack method so ronin can check if target has bleed
   //have ability.applystats check if targ is dead before applying for effiency
-  //after last hit become unusable
+  //after last hit become unusable so it can only trigger once
+  //merge onattack method with attack method
   
-  
-  public void UseMultichain (Character user, AttackAb ab) //similar to chain
+  public void UseMultichain (Character user) //similar to chain; precondition of ab.aoe being false
     {
-        int uses=multis-current; 
+        int uses=multis-current; int odamage=ability.damage; int damage=odamage;
         ArrayList<StatEff> toadd= new ArrayList<StatEff>();  
         while (uses>0) 
         {
-            int change=0; int damage=ab.damage;
+            int change=0; 
             Character chump=Ability.GetRandomEnemy (user, false);
             if (chump!=null)
             {
-                        for (SpecialAbility ob: special)
+                            for (StatEff eff: user.effects) //undo empowerments from previous hit 
+                            {
+                                if (eff.getimmunityname().equalsIgnoreCase("Empower"))
+                                {
+                                    change=eff.UseEmpower(user, ability, damage, false);
+                                }
+                            }
+                        }
+                 for (StatEff eff: user.effects) //get empowerments for the rest of the attack
+                {
+                   if (eff.getimmunityname().equalsIgnoreCase("Empower"))
+                   {
+                       change=eff.UseEmpower(user, ability, damage, true);
+                   }
+                }
+                        for (SpecialAbility ob: ability.special)
                         {
                             change=ob.Use(user, chump); //apply unique ability functions before attacking; this only affects before abs
                         } 
                         damage+=change;
-                        chump=user.Attack(user, chump, damage, aoe); //damage formula is calculated here
-                        for (SpecialAbility ob: special)
+                        chump=user.Attack(user, chump, damage, false); //damage formula is calculated here
+                        for (SpecialAbility ob: ability.special)
                         {
                             ob.Use(user, chump, dmgdealt); //apply unique ability functions after attacking; this only activates after abs
                         } 
-                        for (String[] array: ab.tempstrings) LEFT OFF HERE
+                        for (String[] array: ability.tempstrings) LEFT OFF HERE true 
                         {  
                             StatEff New=StatFactory.MakeStat(array); 
                             if (array[4].equalsIgnoreCase("true"))
                             {
-                                selfapply.add(New);
+                                ability.selfapply.add(New);
                             }
                             else if (!(user.binaries.contains("Missed"))&&array[4].equalsIgnoreCase("false")) 
                             {
-                                otherapply.add(New);
+                                ability.otherapply.add(New);
                             }
                         }
-                        for (String[] array: ab.statstrings)
+                        for (String[] array: ability.statstrings)
                         {  
                             StatEff New=StatFactory.MakeStat(array); //this is how selfapply and other apply are populated
                             if (array[4].equalsIgnoreCase("true"))
                             {
-                                selfapply.add(New);
+                                ability.selfapply.add(New);
                             }
                             else if (!(user.binaries.contains("Missed"))&&array[4].equalsIgnoreCase("false")) //they cannot apply effects if the target evaded/they are blind
                             {
-                                otherapply.add(New);
+                                ability.otherapply.add(New);
                             }
                         }
                         toadd=Ability.ApplyStats(user, chump, together, selfapply, otherapply);
-                        user.onAttack(user, chump); //activate relevant passives
                         for (StatEff eff: user.effects) //undo empowerments
                             {
                                 if (eff.getimmunityname().equalsIgnoreCase("Empower"))
@@ -90,25 +104,12 @@ class Multichain extends AfterAbility
                                     change=eff.UseEmpower(user, ab, damage, false);
                                 }
                             }
-                        if (selfapply.size()!=0)
-                        {
-                            selfapply.removeAll(selfapply); //ensures every status effect is unique, to avoid bugs
-                        }
-                        if (otherapply.size()!=0)
-                        {
-                            otherapply.removeAll(otherapply);
-                        }
-                        if (tempstrings.size()!=0) //these effects are only sometimes applied with attacks, hence the name temp; they're reset afterwards
-                        {
-                            tempstrings.removeAll(tempstrings);
-                        }
                         if (user.binaries.contains("Missed"))
                         {
                             user.binaries.remove("Missed");
                         }
-                        --multi;
                         damage=odamage; //reset damage 
-                        dmgdealt=0;
+                        ability.dmgdealt=0;
                 }
                 --uses;
         }
