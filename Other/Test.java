@@ -6,39 +6,42 @@ target filter doesn't account for 2 enemies being banished at same time
   //make four for wolvie; type is true, name is buff, debuff, heal, defence; amount is 10
   //fix random ricochet below
   
-  class Multichain extends AfterAbility
+class Multichain extends AfterAbility
 {
-    int multi; //number of hits in attack
+    int multis; //number of hits in attack
     int current=1; //current hit of attack
     public Multichain(int multiply)
     {
-      multi=multiply;
+      multis=multiply;
     }
     @Override 
     public void Use(Character caller, Character target, int ignore) 
     {
         if (target.dead==true&&current<multi) //doesn't activate on final hit because there's no more dmg to deal
         {
-            //new target
-          ++multi;
+           UseMultichain(caller);
+           current=1; //reset counter because attack was just finished on another target(s) 
         }
       else
       {
-        if (current<multi)
-        ++multi;
+        if (current<multis)
+        ++current;
         else 
-        current=1; //reset counter
+        current=1; //reset counter because attack is over
       }
     }
 }
+  //override attack method so ronin can check if target has bleed
+  //have ability.applystats check if targ is dead before applying for effiency
+  //after last hit become unusable
   
   
-  public void MoreMultichain (Character user, Ability ab, ArrayList<Character> targets)
+  public void UseMultichain (Character user, Ability ab) //similar to chain
     {
-        int uses=1; 
+        int uses=multis-current; 
         ArrayList<StatEff> toadd= new ArrayList<StatEff>();  
         int multi=multihit; int omulti=multihit;
-        while (uses>0) //repeat the attack for each multiuse; channelled abilities will do nothing now and activate later
+        while (uses>0) 
         {
             int change=0;
             if (targets.size()<=0)
