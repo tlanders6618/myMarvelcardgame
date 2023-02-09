@@ -32,6 +32,117 @@ target filter doesn't account for 2 enemies being banished at same time
     }
 }
   
+  
+  public void MoreMultichain (Character user, Ability ab, ArrayList<Character> targets)
+    {
+        int uses=1; 
+        ArrayList<StatEff> toadd= new ArrayList<StatEff>();  
+        int multi=multihit; int omulti=multihit;
+        while (uses>0) //repeat the attack for each multiuse; channelled abilities will do nothing now and activate later
+        {
+            int change=0;
+            if (targets.size()<=0)
+            {
+                uses=-1;
+                System.out.println(ab.oname+" could not be used due to a lack of eligible targets.");
+            }
+            for (Character chump: targets) //use the ability on its target
+            {
+                if (chump!=null) //if null, skip entirely
+                {
+                    do 
+                    {
+                        for (SpecialAbility ob: special)
+                        {
+                            change=ob.Use(user, chump); //apply unique ability functions before attacking; this only affects before abs
+                        } 
+                        damage+=change;
+                        if (user.ignores.contains("Status effects"))
+                        {
+                            chump.HP-=damage;
+                            if (chump.HP<=0)
+                            {
+                                chump.onLethalDamage(chump, user, "attack");
+                            }
+                        }
+                        else if (lose==true)
+                        {
+                            chump.HP-=damage; //need to rewrite this to account for protect
+                            chump.onAttacked(chump, user, 0);
+                        }
+                        else 
+                        {
+                            chump=user.Attack(user, chump, damage, aoe); //damage formula is calculated here
+                        }
+                        for (SpecialAbility ob: special)
+                        {
+                            ob.Use(user, chump, dmgdealt); //apply unique ability functions after attacking; this only activates after abs
+                        } 
+                        for (String[] array: tempstrings)
+                        {  
+                            StatEff New=StatFactory.MakeStat(array); 
+                            if (array[4].equalsIgnoreCase("true"))
+                            {
+                                selfapply.add(New);
+                            }
+                            else if (!(user.binaries.contains("Missed"))&&array[4].equalsIgnoreCase("false")) 
+                            {
+                                otherapply.add(New);
+                            }
+                        }
+                        for (String[] array: statstrings)
+                        {  
+                            StatEff New=StatFactory.MakeStat(array); //this is how selfapply and other apply are populated
+                            if (array[4].equalsIgnoreCase("true"))
+                            {
+                                selfapply.add(New);
+                            }
+                            else if (!(user.binaries.contains("Missed"))&&array[4].equalsIgnoreCase("false")) //they cannot apply effects if the target evaded/they are blind
+                            {
+                                otherapply.add(New);
+                            }
+                        }
+                        toadd=Ability.ApplyStats(user, chump, together, selfapply, otherapply);
+                        user.onAttack(user, chump); //activate relevant passives
+                        if (aoe==false)
+                        {
+                            for (StatEff eff: user.effects) //undo empowerments
+                            {
+                                if (eff.getimmunityname().equalsIgnoreCase("Empower"))
+                                {
+                                    change=eff.UseEmpower(user, ab, damage, false);
+                                }
+                            }
+                        }
+                        if (selfapply.size()!=0)
+                        {
+                            selfapply.removeAll(selfapply); //ensures every status effect is unique, to avoid bugs
+                        }
+                        if (otherapply.size()!=0)
+                        {
+                            otherapply.removeAll(otherapply);
+                        }
+                        if (tempstrings.size()!=0) //these effects are only sometimes applied with attacks, hence the name temp; they're reset afterwards
+                        {
+                            tempstrings.removeAll(tempstrings);
+                        }
+                        if (user.binaries.contains("Missed"))
+                        {
+                            user.binaries.remove("Missed");
+                        }
+                        --multi;
+                        damage=odamage; //reset damage 
+                        dmgdealt=0;
+                    }
+                    while (multi>-1); //then repeat the attack for each multihit
+                    multi=omulti; //reset the multihit counter for the next use
+                }
+                --uses;
+            }
+        }
+    
+   
+    
    Speed (Character fast)
    {
       //check fast's team
