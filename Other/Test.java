@@ -10,9 +10,10 @@ class Multichain extends AfterAbility
 {
     int multis; //number of hits in attack
     int current=1; //current hit of attack
-    public Multichain(int multiply)
+    AttackAb ability;
+    public Multichain(int multiply, AttackAb ability)
     {
-      multis=multiply;
+      multis=multiply; this.ability=ability;
     }
     @Override 
     public void Use(Character caller, Character target, int ignore) 
@@ -36,52 +37,27 @@ class Multichain extends AfterAbility
   //after last hit become unusable
   
   
-  public void UseMultichain (Character user, Ability ab) //similar to chain
+  public void UseMultichain (Character user, AttackAb ab) //similar to chain
     {
         int uses=multis-current; 
         ArrayList<StatEff> toadd= new ArrayList<StatEff>();  
-        int multi=multihit; int omulti=multihit;
         while (uses>0) 
         {
-            int change=0;
-            if (targets.size()<=0)
+            int change=0; int damage=ab.damage;
+            Character chump=Ability.GetRandomEnemy (user, false);
+            if (chump!=null)
             {
-                uses=-1;
-                System.out.println(ab.oname+" could not be used due to a lack of eligible targets.");
-            }
-            for (Character chump: targets) //use the ability on its target
-            {
-                if (chump!=null) //if null, skip entirely
-                {
-                    do 
-                    {
                         for (SpecialAbility ob: special)
                         {
                             change=ob.Use(user, chump); //apply unique ability functions before attacking; this only affects before abs
                         } 
                         damage+=change;
-                        if (user.ignores.contains("Status effects"))
-                        {
-                            chump.HP-=damage;
-                            if (chump.HP<=0)
-                            {
-                                chump.onLethalDamage(chump, user, "attack");
-                            }
-                        }
-                        else if (lose==true)
-                        {
-                            chump.HP-=damage; //need to rewrite this to account for protect
-                            chump.onAttacked(chump, user, 0);
-                        }
-                        else 
-                        {
-                            chump=user.Attack(user, chump, damage, aoe); //damage formula is calculated here
-                        }
+                        chump=user.Attack(user, chump, damage, aoe); //damage formula is calculated here
                         for (SpecialAbility ob: special)
                         {
                             ob.Use(user, chump, dmgdealt); //apply unique ability functions after attacking; this only activates after abs
                         } 
-                        for (String[] array: tempstrings)
+                        for (String[] array: ab.tempstrings) LEFT OFF HERE
                         {  
                             StatEff New=StatFactory.MakeStat(array); 
                             if (array[4].equalsIgnoreCase("true"))
@@ -93,7 +69,7 @@ class Multichain extends AfterAbility
                                 otherapply.add(New);
                             }
                         }
-                        for (String[] array: statstrings)
+                        for (String[] array: ab.statstrings)
                         {  
                             StatEff New=StatFactory.MakeStat(array); //this is how selfapply and other apply are populated
                             if (array[4].equalsIgnoreCase("true"))
@@ -107,16 +83,13 @@ class Multichain extends AfterAbility
                         }
                         toadd=Ability.ApplyStats(user, chump, together, selfapply, otherapply);
                         user.onAttack(user, chump); //activate relevant passives
-                        if (aoe==false)
-                        {
-                            for (StatEff eff: user.effects) //undo empowerments
+                        for (StatEff eff: user.effects) //undo empowerments
                             {
                                 if (eff.getimmunityname().equalsIgnoreCase("Empower"))
                                 {
                                     change=eff.UseEmpower(user, ab, damage, false);
                                 }
                             }
-                        }
                         if (selfapply.size()!=0)
                         {
                             selfapply.removeAll(selfapply); //ensures every status effect is unique, to avoid bugs
@@ -136,14 +109,9 @@ class Multichain extends AfterAbility
                         --multi;
                         damage=odamage; //reset damage 
                         dmgdealt=0;
-                    }
-                    while (multi>-1); //then repeat the attack for each multihit
-                    multi=omulti; //reset the multihit counter for the next use
                 }
                 --uses;
-            }
         }
-    
    
     
    Speed (Character fast)
