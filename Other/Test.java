@@ -2,9 +2,6 @@ public class Test
 {
 all buff abilities should have a cooldown
 target filter doesn't account for 2 enemies being banished at same time
-  //fix random ricochet below
-  //test x23 against mysterio dummies outside of battle
-  
 
    
     
