@@ -10,16 +10,18 @@ package myMarvelcardgamepack;
 import java.util.ArrayList;
 public abstract class BuffEff extends StatEff 
 {
+    boolean myriad=true;
     public BuffEff ()
     {
     }
 }
-class DamageUp extends BuffEff 
+class Counter extends BuffEff 
 {
+    ArrayList<String[]>statstrings= new ArrayList<String[]>();
     @Override
     public String getimmunityname()
     {
-        return "Damage Up";
+        return "Counter";
     }
     @Override 
     public String getefftype()
@@ -32,37 +34,55 @@ class DamageUp extends BuffEff
         String name;
         if (duration<100)
         {
-            name="Damage Up: "+this.power+", "+this.duration+" turn(s)";
+            name="Counter: "+this.power+", "+this.duration+" turn(s)";
             return name;
         }
         else
         {
-            name="Damage Up: "+this.power;
+            name="Counter: "+this.power;
             return name;
         }
     }
-    public DamageUp (int nchance, int nstrength)
-    {
-        this.power=nstrength;
-        this.chance=nchance;
-        this.hashcode=Card_HashCode.RandomCode();
-    }
-    public DamageUp (int nchance, int nstrength, int nduration)
+    public Counter (int nchance, int nstrength, int nduration, String[] stat)
     {
         this.power=nstrength;
         this.duration=nduration;
         this.oduration=nduration;
         this.chance=nchance;
         this.hashcode=Card_HashCode.RandomCode();
-    }
-    public void onApply (Character target)
-    {
-        target.BD+=this.power;            
+        this.stackable=true;
+        this.myriad=false;
+        if (stat!=null)
+        {
+            statstrings.add(stat);
+        }
     }
     @Override
-    public void Nullified (Character target)
+    public void onApply (Character target)
+    {          
+    }
+    @Override
+    public void UseCounter(Character hero, Character attacker) //dmg based on status effects like damage up weakness and resistance
     {
-        target.BD-=this.power;
+        int dmg=this.power;
+        Damage_Stuff.CheckBlind(hero);
+        Damage_Stuff.CheckEvade(hero, attacker);
+        if (!(hero.binaries.contains("Missed")))
+        {
+            dmg=Damage_Stuff.DamageFormula(hero, attacker, dmg);
+            dmg=Damage_Stuff.CheckGuard(hero, attacker, dmg);
+            System.out.println (hero.Cname+" counterattacks!");
+            attacker.TakeDamage(attacker, hero, dmg, false); 
+            if (statstrings.size()>0)
+            {
+                for (String[] array: statstrings)
+                {
+                    String[][] toapply=StatFactory.MakeParam(array, null);
+                    StatEff New=StatFactory.MakeStat(toapply); 
+                    StatEff.CheckApply(hero, attacker, New);
+                }
+            }
+        }
     }
 }
 class Focus extends BuffEff 
@@ -112,6 +132,60 @@ class Focus extends BuffEff
     public void Nullified (Character target)
     {
         target.Cchance-=50;
+    }
+}
+class Intensify extends BuffEff 
+{
+    @Override
+    public String getimmunityname()
+    {
+        return "Intensify";
+    }
+    @Override 
+    public String getefftype()
+    {
+        return "Buffs";
+    }
+    @Override
+    public String geteffname()
+    {
+        String name;
+        if (duration<100)
+        {
+            name="Intensify: "+this.power+", "+this.duration+" turn(s)";
+            return name;
+        }
+        else
+        {
+            name="Intensify: "+this.power;
+            return name;
+        }
+    }
+    public Intensify (int nchance, int nstrength)
+    {
+        this.power=nstrength;
+        this.chance=nchance;
+        this.hashcode=Card_HashCode.RandomCode();
+        this.myriad=false;
+    }
+    public Intensify (int nchance, int nstrength, int nduration)
+    {
+        this.power=nstrength;
+        this.duration=nduration;
+        this.oduration=nduration;
+        this.chance=nchance;
+        this.hashcode=Card_HashCode.RandomCode();
+        this.myriad=false;
+    }
+    @Override
+    public void onApply (Character target)
+    {
+        target.BD+=this.power;            
+    }
+    @Override
+    public void Nullified (Character target)
+    {
+        target.BD-=this.power;
     }
 }
 class Invisible extends BuffEff
@@ -164,14 +238,112 @@ class Invisible extends BuffEff
         ArrayList<StatEff> r= new ArrayList<StatEff>();
         for (StatEff eff: target.effects)
         {
-            if (eff.getimmunityname().equalsIgnoreCase("taunt")) //cannot taunt and be invisible
+            if (eff.getimmunityname().equalsIgnoreCase("taunt")) //cannot taunt and be invisible, so taunt is removed
             {
                 r.add(eff);
             }
         }
         for (StatEff e: r)
         {
-            target.remove(target, e.hashcode, false);
+            target.remove(target, e.hashcode, "normal");
         }
+    }
+}
+class Precision extends BuffEff 
+{
+    @Override
+    public String getimmunityname()
+    {
+        return "Precision";
+    }
+    @Override 
+    public String getefftype() 
+    {
+        return "Buffs";
+    }
+    @Override
+    public String geteffname()
+    {
+        String name;
+        if (this.duration<100)
+        {
+            name="Precision, "+this.duration+" turn(s)";
+            return name;
+        }
+        else
+        {
+            name="Precision";
+            return name;
+        }
+    }
+    public Precision (int nchance)
+    {
+        this.chance=nchance;
+        this.hashcode=Card_HashCode.RandomCode();
+    }
+    public Precision (int nchance, int nduration)
+    {
+        this.duration=nduration;
+        this.oduration=nduration;
+        this.chance=nchance;
+        this.hashcode=Card_HashCode.RandomCode();
+    }
+    public void onApply (Character target)
+    {
+        target.CC+=50;      
+    }
+    @Override
+    public void Nullified (Character target)
+    {
+        target.CC-=50;
+    }
+}
+class Speed extends BuffEff 
+{
+    @Override
+    public String getimmunityname()
+    {
+        return "Speed";
+    }
+    @Override 
+    public String getefftype() 
+    {
+        return "Buffs";
+    }
+    @Override
+    public String geteffname()
+    {
+        String name;
+        if (this.duration<100)
+        {
+            name="Speed, "+this.duration+" turn(s)";
+            return name;
+        }
+        else
+        {
+            name="Speed";
+            return name;
+        }
+    }
+    public Speed (int nchance)
+    {
+        this.chance=nchance;
+        this.hashcode=Card_HashCode.RandomCode();
+    }
+    public Speed (int nchance, int nduration)
+    {
+        this.duration=nduration;
+        this.oduration=nduration;
+        this.chance=nchance;
+        this.hashcode=Card_HashCode.RandomCode();
+    }
+    public void onApply (Character target)
+    {
+        Battle.Speeded(target);
+    }
+    @Override
+    public void Nullified (Character target)
+    {
+        Battle.Snared(target);
     }
 }

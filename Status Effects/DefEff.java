@@ -30,14 +30,6 @@ class Evade extends DefEff
     {
         return "Evade";
     }
-    @Override
-    public void Nullified (Character target)
-    {
-    }
-    @Override
-    public void onTurnEnd(Character hero)
-    {
-    }
     public Evade (int achance) 
     {
         this.chance=achance;
@@ -53,12 +45,18 @@ class Protect extends DefEff
 {
     Character protector;
     Character weakling;
-    Protected[] myfriend=new Protected[1];
+    Protected myfriend;
+    boolean removed=false; //to prevent infinite loop of protect and protected trying to remove each other; this lets them know whether it's necessary or not
     @Override
-    public void Extended (int dur)
+    public void Extended (int dur, Character ignore)
     {
-        this.duration+=dur;
-        myfriend[0].duration+=dur;
+        this.duration+=dur; 
+        if (myfriend.duration<this.duration)
+        myfriend.duration+=dur;
+        if (this.duration<=0)
+        {
+            protector.remove(protector, this.hashcode, "normal");
+        }
     }
     @Override
     public String getimmunityname()
@@ -88,11 +86,13 @@ class Protect extends DefEff
     public void onTurnEnd(Character hero) 
     {
         --this.duration; 
-        myfriend[0].lessprotected(616);
         if (this.duration<=0) 
         {
-            hero.remove(hero, this.hashcode, false);
+            removed=true;
+            hero.remove(hero, this.hashcode, "normal");
         }
+        else
+        myfriend.lessprotected();
     }
     public Protect (int chancce, int ndur) 
     {
@@ -108,36 +108,44 @@ class Protect extends DefEff
     @Override
     public void onApply (Character hero) 
     {
-        boolean taunter=false;        
-        for (StatEff eff: weakling.effects)
+        boolean taunter=false, dupe=false;        
+        if (Character.CheckFor(weakling, "Taunt")==true||Character.CheckFor(protector, "Taunt")==true)
+        taunter=true;  
+        for (StatEff e: protector.effects)
         {
-            if (eff.getimmunityname().equalsIgnoreCase("Taunt"))
+            if (e.getimmunityname().equals("Protect")&&e.hashcode!=this.hashcode) //check if the protector has a protect other than this one; protect shouldn't stack with ProtectE
             {
-                taunter=true;
-                break;
+                dupe=true; break;
             }
         }
-        for (StatEff eff: protector.effects)
+        for (StatEff e: weakling.effects)
         {
-            if (eff.getimmunityname().equalsIgnoreCase("Taunt"))
+            if (e.getimmunityname().equals("Protect")&&e.hashcode!=this.hashcode)
             {
-                taunter=true;
-                break;
+                dupe=true; break;
             }
-        }
+        } 
         if (taunter==true)
         {
             System.out.println ("Taunting characters cannot be Protected.");
-            myfriend[0]=null;
-            hero.remove(hero, this.hashcode, true);
+            myfriend=null;
+            removed=true;
+            hero.remove(hero, this.hashcode, "silent");
+        }
+        else if (dupe==true)
+        {
+            System.out.println ("Characters who already have Protect cannot be Protected.");
+            myfriend=null;
+            removed=true;
+            hero.remove(hero, this.hashcode, "silent");
         }
         else 
         {
             Protected pr= new Protected(this.duration);
-            myfriend[0]=pr;
+            myfriend=pr;
+            pr.myfriend=this;
             pr.PrepareProtect(protector, weakling);
             weakling.add(weakling, pr);
-            pr.lessprotected(this.hashcode); //send over the protect's hashcode in case the protected is nullified
             String s;
             if (duration>500)
             {
@@ -154,9 +162,10 @@ class Protect extends DefEff
     @Override
     public void Nullified(Character target)
     {
-        if (myfriend[0]!=null)
+        removed=true;
+        if (myfriend!=null&&myfriend.removed==false) 
         {
-            weakling.remove(weakling, myfriend[0].hashcode, false);
+            weakling.remove(weakling, myfriend.hashcode, "normal");
         }
     }
     @Override
@@ -169,15 +178,17 @@ class Protected extends DefEff
 {
     Character protector;
     Character weakling;
-    int procode; //hashcode of protector's Protect
+    Protect myfriend;
+    boolean removed;
     @Override
-    public void Extended (int dur)
+    public void Extended (int dur, Character ignore)
     {
+        this.duration+=dur;
         for (StatEff f: protector.effects)
         {
-            if (f.getimmunityname().equalsIgnoreCase("protect"))
+            if (f.hashcode==myfriend.hashcode&&f.getimmunityname().equalsIgnoreCase("protect")&&f.duration<this.duration)
             {
-                f.Extended(dur);
+                f.Extended(dur, null);
             }
         }
     }
@@ -227,22 +238,23 @@ class Protected extends DefEff
     public void onTurnEnd(Character hero)
     {
     }
-    public void lessprotected(int code)
+    public void lessprotected ()
     {
-        if (code==616)
+        --this.duration;
+        if (this.duration<=0)
         {
-            --this.duration;
-        }
-        else
-        {
-            procode=code;
+            removed=true;
+            weakling.remove(weakling, this.hashcode, "normal");
         }
     }
     @Override
     public void Nullified(Character target)
     {
-        target.remove(target, this.hashcode, false); //target should be the one being protected     
-        protector.remove(protector, procode, false);
+        removed=true;
+        if (myfriend!=null&&myfriend.removed==false)
+        {
+            protector.remove(protector, myfriend.hashcode, "normal");
+        }
     }
 }
 class Resistance extends DefEff
@@ -344,16 +356,12 @@ class Taunt extends DefEff
                 hero.binaries.remove(binary);
             }
         }
-        for (StatEff eff: hero.effects) //taunting heroes cannot be protected
+        for (StatEff eff: hero.effects) //taunting heroes cannot be protected or invisible
         {
             if (eff.getimmunityname().equals("Invisible")||eff.getimmunityname().equals("Protect"))
             {
-                hero.remove(hero, eff.hashcode, false);
+                hero.remove(hero, eff.hashcode, "normal");
             }
         }
-    }
-    @Override
-    public void Nullified(Character target)
-    {
     }
 }

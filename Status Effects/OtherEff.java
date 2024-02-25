@@ -7,11 +7,78 @@ package myMarvelcardgamepack;
  * Filename: OtherEff
  * Purpose: To list all the Other status effects in one file.
  */
- 
+import java.util.ArrayList; 
 public abstract class OtherEff extends StatEff 
 {
     public OtherEff ()
     {
+    }
+}
+class Empower extends OtherEff
+{
+    String name; //of hero who made the empowerment
+    int index; //of hero who made the empowerment
+    int uses; //most cases 1, but not for iron man, whose empower can be used twice or more
+    boolean used=false;
+    @Override
+    public String getimmunityname()
+    {
+        return "Empower";
+    }
+    @Override 
+    public String getefftype()
+    {
+        return "Other";
+    }
+    @Override
+    public String geteffname() //since every Empower has a unique effect, they don't use standard eff names
+    {
+        return "Empower "+power+": "+name+", "+uses+" use(s)";
+    }
+    public Empower (int power, int use, String nname, int index)
+    {
+        name=nname;
+        this.index=index;
+        this.power=power;
+        uses=use;
+    }
+    @Override
+    public void onApply (Character target) 
+    {
+    }
+    @Override
+    public int UseEmpower(Character hero, Ability ab, boolean use) //use is true for applying effects and false when undoing an empowerment 
+    {
+        int value=0; 
+        if (use==true) //try to activate empowerment
+        {
+            switch (index) //has to be this way since every empowerment is unique
+            {
+                case 4: 
+                if (ab instanceof AttackAb) //damage boost only applies to abs that do dmg
+                {
+                    used=true;
+                    value=this.power; break;
+                }
+            }
+        }
+        else
+        {
+            if (used==true)
+            {
+                used=false;
+                --uses;
+            }
+        }
+        return value;
+    }
+    @Override
+    public void onTurnEnd (Character hero)
+    {
+        if (uses<=0)
+        {
+            hero.remove(hero, this.hashcode, "normal");
+        }
     }
 }
 class EvadeE extends OtherEff
@@ -32,10 +99,6 @@ class EvadeE extends OtherEff
         return "Evade Effect";
     }
     @Override
-    public void Nullified(Character target)
-    {
-    }
-    @Override
     public void onTurnEnd(Character hero)
     {
     }
@@ -48,6 +111,108 @@ class EvadeE extends OtherEff
     @Override
     public void onApply (Character target) 
     {
+    }
+}
+class FocusE extends OtherEff 
+{
+    @Override
+    public String getimmunityname()
+    {
+        return "Focus";
+    }
+    @Override 
+    public String getefftype() 
+    {
+        return "Other";
+    }
+    @Override
+    public String geteffname()
+    {
+        if (this.duration<100)
+        {
+            return "Focus Effect, "+this.duration+" turn(s)";
+        }
+        else
+        {
+            return "Focus Effect";
+        }
+    }
+    public FocusE (int nchance)
+    {
+        this.chance=nchance;
+        this.hashcode=Card_HashCode.RandomCode();
+        this.stackable=true;
+    }
+    public FocusE (int nchance, int nduration)
+    {
+        this.duration=nduration;
+        this.oduration=nduration;
+        this.chance=nchance;
+        this.hashcode=Card_HashCode.RandomCode();
+        this.stackable=true;
+    }
+    public void onApply (Character target)
+    {
+        target.Cchance+=50;      
+    }
+    @Override
+    public void Nullified (Character target)
+    {
+        target.Cchance-=50;
+    }
+}
+class IntensifyE extends OtherEff 
+{
+    @Override
+    public String getimmunityname()
+    {
+        return "Intensify";
+    }
+    @Override 
+    public String getefftype()
+    {
+        return "Other";
+    }
+    @Override
+    public String geteffname()
+    {
+        String name;
+        if (duration<100)
+        {
+            name="Intensify Effect: "+this.power+", "+this.duration+" turn(s)";
+            return name;
+        }
+        else
+        {
+            name="Intensify Effect: "+this.power;
+            return name;
+        }
+    }
+    public IntensifyE (int nchance, int nstrength)
+    {
+        this.power=nstrength;
+        this.chance=nchance;
+        this.hashcode=Card_HashCode.RandomCode();
+        this.stackable=true;
+    }
+    public IntensifyE (int nchance, int nstrength, int nduration)
+    {
+        this.power=nstrength;
+        this.duration=nduration;
+        this.oduration=nduration;
+        this.chance=nchance;
+        this.hashcode=Card_HashCode.RandomCode();
+        this.stackable=true;
+    }
+    @Override
+    public void onApply (Character target)
+    {
+        target.BD+=this.power;            
+    }
+    @Override
+    public void Nullified (Character target)
+    {
+        target.BD-=this.power;
     }
 }
 class Obsession extends OtherEff
@@ -68,10 +233,6 @@ class Obsession extends OtherEff
         return "Obsession Effect";
     }
     @Override
-    public void Nullified(Character target)
-    {
-    }
-    @Override
     public void onTurnEnd(Character hero)
     {
     }
@@ -90,11 +251,17 @@ class ProtectE extends OtherEff
     Character protector;
     Character weakling;
     ProtectedE myfriend;
+    boolean removed=false; //to prevent infinite loop of protect and protected trying to remove each other; this lets them know whether it's necessary or not
     @Override
-    public void Extended (int dur)
+    public void Extended (int dur, Character ignore)
     {
         this.duration+=dur;
+        if (myfriend.duration<this.duration)
         myfriend.duration+=dur;
+        if (this.duration<=0)
+        {
+            protector.remove(protector, this.hashcode, "normal");
+        }
     }
     @Override
     public String getimmunityname()
@@ -124,11 +291,13 @@ class ProtectE extends OtherEff
     public void onTurnEnd(Character hero) 
     {
         --this.duration; 
-        myfriend.lessprotected(616);
         if (this.duration<=0) 
         {
-            hero.remove(hero, this.hashcode, false);
+            removed=true;
+            hero.remove(hero, this.hashcode, "normal");
         }
+        else
+        myfriend.lessprotected();
     }
     public ProtectE (int chancce, int ndur) 
     {
@@ -144,36 +313,44 @@ class ProtectE extends OtherEff
     @Override
     public void onApply (Character hero) 
     {
-        boolean taunter=false;        
-        for (StatEff eff: weakling.effects)
+        boolean taunter=false, dupe=false;        
+        if (Character.CheckFor(weakling, "Taunt")==true||Character.CheckFor(protector, "Taunt")==true)
+        taunter=true;  
+        for (StatEff e: protector.effects)
         {
-            if (eff.getimmunityname().equalsIgnoreCase("Taunt"))
+            if (e.getimmunityname().equals("Protect")&&e.hashcode!=this.hashcode) //check if the protector has a protect other than this one; protect shouldn't stack with ProtectE
             {
-                taunter=true;
-                break;
+                dupe=true; break;
             }
         }
-        for (StatEff eff: protector.effects)
+        for (StatEff e: weakling.effects)
         {
-            if (eff.getimmunityname().equalsIgnoreCase("Taunt"))
+            if (e.getimmunityname().equals("Protect")&&e.hashcode!=this.hashcode)
             {
-                taunter=true;
-                break;
+                dupe=true; break;
             }
-        }
+        } 
         if (taunter==true)
         {
             System.out.println ("Taunting characters cannot be Protected.");
             myfriend=null;
-            hero.remove(hero, this.hashcode, true);
+            removed=true;
+            hero.remove(hero, this.hashcode, "silent");
+        }
+        else if (dupe==true)
+        {
+            System.out.println ("Characters who already have Protect cannot be Protected.");
+            myfriend=null;
+            removed=true;
+            hero.remove(hero, this.hashcode, "silent");
         }
         else 
         {
             ProtectedE pr= new ProtectedE(this.duration);
             myfriend=pr;
+            pr.myfriend=this;
             pr.PrepareProtect(protector, weakling);
             weakling.add(weakling, pr);
-            pr.lessprotected(this.hashcode); //send over the protect's hashcode in case the protected is nullified
             String s;
             if (duration>500)
             {
@@ -190,9 +367,10 @@ class ProtectE extends OtherEff
     @Override
     public void Nullified(Character target)
     {
-        if (myfriend!=null)
+        removed=true;
+        if (myfriend!=null&&myfriend.removed==false) 
         {
-            weakling.remove(weakling, myfriend.hashcode, false);
+            weakling.remove(weakling, myfriend.hashcode, "normal");
         }
     }
     @Override
@@ -205,15 +383,17 @@ class ProtectedE extends OtherEff
 {
     Character protector;
     Character weakling;
-    int procode; //hashcode of protector's Protect
+    ProtectE myfriend;
+    boolean removed=false;
     @Override
-    public void Extended (int dur)
+    public void Extended (int dur, Character ignore)
     {
+        this.duration+=dur;
         for (StatEff f: protector.effects)
         {
-            if (f.getimmunityname().equalsIgnoreCase("protect"))
+            if (f.getimmunityname().equalsIgnoreCase("protect")&&f.duration<this.duration)
             {
-                f.Extended(dur);
+                f.Extended(dur, null);
             }
         }
     }
@@ -263,22 +443,23 @@ class ProtectedE extends OtherEff
     public void onTurnEnd(Character hero)
     {
     }
-    public void lessprotected(int code)
+    public void lessprotected()
     {
-        if (code==616)
+        --this.duration;
+        if (this.duration<=0)
         {
-            --this.duration;
-        }
-        else
-        {
-            procode=code;
+            removed=true;
+            weakling.remove(weakling, this.hashcode, "normal");
         }
     }
     @Override
     public void Nullified(Character target)
     {
-        target.remove(target, this.hashcode, false); //target should be the one being protected     
-        protector.remove(protector, procode, false);
+        removed=true;
+        if (myfriend!=null&&myfriend.removed==false)
+        {
+            protector.remove(protector, myfriend.hashcode, "normal");
+        }
     }
 }
 class Redwing extends OtherEff
@@ -304,7 +485,7 @@ class Redwing extends OtherEff
     }
     public Redwing () 
     {
-        this.hashcode=Card_HashCode.RandomCode(); this.stackable=true;
+        this.hashcode=Card_HashCode.RandomCode(); 
     }
     @Override
     public void onApply (Character hero) 
@@ -339,12 +520,17 @@ class WMTarget extends OtherEff
     {
         target.DV+=power;
         target.immunities.add("Invisible");
+        ArrayList<StatEff> concurrentmodificationexception2electricboogaloo= new ArrayList<StatEff>();
         for (StatEff eff: target.effects)
         {
             if (eff.getimmunityname().equalsIgnoreCase("Invisible"))
             {
-                target.remove(target, eff.hashcode, false);
+                concurrentmodificationexception2electricboogaloo.add(eff);
             }
+        }
+        for (StatEff eff: concurrentmodificationexception2electricboogaloo)
+        {
+            target.remove(target, eff.hashcode, "normal");
         }
     }
     @Override

@@ -27,6 +27,11 @@ class Bleed extends DebuffEff
         return "Debuffs";
     }
     @Override
+    public String getalttype() 
+    {
+        return "damaging";
+    }
+    @Override
     public String geteffname()
     {
         String name;
@@ -64,7 +69,7 @@ class Bleed extends DebuffEff
         --this.duration;
         if (this.duration<=0)
         {
-            hero.remove(hero, this.hashcode, false);
+            hero.remove(hero, this.hashcode, "normal");
         }
     }
     @Override
@@ -74,10 +79,6 @@ class Bleed extends DebuffEff
     }
     @Override
     public void onApply (Character target)
-    {
-    }
-    @Override
-    public void Nullified (Character target)
     {
     }
 }
@@ -92,6 +93,11 @@ class Burn extends DebuffEff
     public String getefftype()
     {
         return "Debuffs";
+    }
+    @Override
+    public String getalttype() 
+    {
+        return "damaging";
     }
     @Override
     public String geteffname()
@@ -131,7 +137,7 @@ class Burn extends DebuffEff
         --this.duration;
         if (this.duration<=0)
         {
-            hero.remove(hero, this.hashcode, false);
+            hero.remove(hero, this.hashcode, "normal");
         }
     }
     @Override
@@ -150,6 +156,90 @@ class Burn extends DebuffEff
         target.DV-=5;
     }
 }
+class Countdown extends DebuffEff 
+{
+    ArrayList<String[]>statstrings= new ArrayList<String[]>();
+    ArrayList<String[]> specials= new ArrayList<String[]>(); //ricochet, extend, etc
+    @Override
+    public String getimmunityname()
+    {
+        return "Countdown";
+    }
+    @Override 
+    public String getefftype()
+    {
+        return "Debuffs";
+    }
+    @Override
+    public String getalttype() 
+    {
+        return "damaging";
+    }
+    @Override
+    public String geteffname()
+    {
+        String name="Countdown: "+this.power+", "+this.duration+" turn(s)";
+        return name;
+    }
+    public Countdown (int nchance, int pow, int ndur, String[] neff)
+    {
+        this.duration=ndur;
+        this.chance=nchance;
+        this.power=pow; 
+        this.oduration=ndur;
+        if (neff!=null)
+        {
+            if (neff[1]==null) //it's a one word array like ricochet, with the word in neff[0]
+            {
+                specials.add(neff);
+            }
+            else
+            {
+                statstrings.add(neff); 
+            }
+        }
+        this.hashcode=Card_HashCode.RandomCode();
+        this.stackable=true;
+    }
+    @Override
+    public void onTurnEnd (Character hero)
+    {
+        --this.duration;
+        if (this.duration<=0)
+        {
+            hero.remove(hero, this.hashcode, "normal");
+            int dmg=this.power; 
+            dmg=dmg-hero.ADR; //countdown dmg not affected by resistance
+            if (dmg<0)
+            dmg=0;
+            System.out.println("\n"+hero.Cname+" took "+dmg+" damage from their Countdown");
+            dmg=hero.TakeDamage(hero, dmg, true);       
+            if (specials.size()>0) 
+            {
+                for (String[] eff: specials)
+                {
+                    if (eff[0].equalsIgnoreCase("Ricochet")) 
+                    {
+                        Ability.DoRicochetDmg (dmg, hero, true);
+                    }
+                }
+            }
+            if (statstrings.size()>0&&hero.dead==false) //they survived the damage, so they can gain status effects from the countdown
+            {
+                for (String[] array: statstrings)
+                {  
+                    String[][] neweff=StatFactory.MakeParam(array, null);
+                    StatEff New=StatFactory.MakeStat(neweff); 
+                    StatEff.CheckApply(null, hero, New);
+                }
+            }
+        }
+    }
+    @Override
+    public void onApply (Character target)
+    {
+    }
+}
 class Daze extends DebuffEff 
 {
     @Override
@@ -161,6 +251,11 @@ class Daze extends DebuffEff
     public String getefftype()
     {
         return "Debuffs";
+    }
+    @Override
+    public String getalttype() 
+    {
+        return "nondamaging";
     }
     @Override
     public String geteffname()
@@ -199,14 +294,12 @@ class Daze extends DebuffEff
         target.Cchance+=50;
     }
 }
-class Countdown extends DebuffEff 
+class Debilitate extends DebuffEff
 {
-    ArrayList<String[]>statstrings= new ArrayList<String[]>();
-    ArrayList<String> specials= new ArrayList<String>(); //ricochet, extend, etc
     @Override
     public String getimmunityname()
     {
-        return "Countdown";
+        return "Debilitate";
     }
     @Override 
     public String getefftype()
@@ -214,61 +307,49 @@ class Countdown extends DebuffEff
         return "Debuffs";
     }
     @Override
-    public String geteffname()
+    public String getalttype() 
     {
-        String name="Countdown: "+this.power+", "+this.duration+" turn(s)";
-        return name;
-    }
-    public Countdown (int nchance, int pow, int ndur, String sp)
-    {
-        this.duration=ndur;
-        this.chance=nchance;
-        this.power=pow;
-        this.oduration=ndur;
-        if (sp!=null)
-        {
-            specials.add(sp);
-        }
-        this.hashcode=Card_HashCode.RandomCode();
-        this.stackable=true;
+        return "nondamaging";
     }
     @Override
-    public void onTurnEnd (Character hero)
+    public String geteffname()
     {
-        --this.duration;
-        if (this.duration<=0)
+        String name;
+        if (duration<100)
         {
-            hero.remove(hero, this.hashcode, false);
-            int dmg=this.power; dmg=Damage_Stuff.DamageDecrease(null, false, hero, dmg);
-            System.out.println("\n"+hero.Cname+" took "+dmg+" damage from their Countdown");
-            dmg=hero.TakeDamage(hero, dmg, true);            
-            if (statstrings.size()>0&&hero.dead==false) //they survived the damage, so they can gain status effects
-            {
-                for (String[] array: statstrings)
-                {  
-                    StatEff New=StatFactory.MakeStat(array); //this is how selfapply and other apply are populated
-                    hero.add(hero, New);
-                }
-            }
-            if (specials.size()>0) 
-            {
-                for (String eff: specials)
-                {
-                    if (eff.equalsIgnoreCase("Ricochet")) //the only special thing countdowns can do as of 3.1 is Ricochet, so an if statement is fine for now
-                    {
-                        Ability.DoRicochetDmg (dmg, hero, true);
-                    }
-                }
-            }
+            name="Debilitate: "+power+", "+duration+" turn(s)";
         }
+        else
+        {
+            name="Debilitate: "+power;
+        }
+        return name;
+    }
+    public Debilitate (int nchance, int npow, int ndur)
+    {
+        this.chance=nchance;
+        this.power=npow;
+        this.duration=ndur;
+        this.oduration=ndur;
+        this.hashcode=Card_HashCode.RandomCode();
+    }
+    public Debilitate (int nchance, int npow)
+    {
+        this.chance=nchance;
+        this.power=npow;
+        this.hashcode=Card_HashCode.RandomCode();
     }
     @Override
     public void onApply (Character target)
     {
     }
     @Override
-    public void Nullified (Character target)
+    public void Attacked (StatEff e)
     {
+        if (e.getefftype().equals("Debuffs")&&e.hashcode!=this.hashcode)
+        {
+            e.power+=this.power;
+        }
     }
 }
 class Disrupt extends DebuffEff 
@@ -282,6 +363,11 @@ class Disrupt extends DebuffEff
     public String getefftype()
     {
         return "Debuffs";
+    }
+    @Override
+    public String getalttype() 
+    {
+        return "nondamaging";
     }
     @Override
     public String geteffname()
@@ -320,6 +406,39 @@ class Disrupt extends DebuffEff
         target.immunities.remove("Buffs");
     }
 }
+class Neutralise extends DebuffEff
+{
+    @Override
+    public String getimmunityname()
+    {
+        return "Neutralise";
+    }
+    @Override 
+    public String getefftype()
+    {
+        return "Debuffs";
+    }
+    @Override
+    public String getalttype() 
+    {
+        return "nondamaging";
+    }
+    public void onApply (Character target)
+    {
+    }
+    public Neutralise (int nchance, int ndur)
+    {
+        this.chance=nchance;
+        this.duration=ndur;
+        this.oduration=ndur;
+        this.hashcode=Card_HashCode.RandomCode();
+    }
+    @Override
+    public String geteffname() 
+    {
+       return "Neutralise, "+duration+ " turn(s)"; 
+    }
+}
 class Shatter extends DebuffEff 
 {
     @Override
@@ -332,12 +451,17 @@ class Shatter extends DebuffEff
     {
         return "Debuffs";
     }
+    @Override
+    public String getalttype() 
+    {
+        return "nondamaging";
+    }
     public void onApply (Character target)
     {
         target.binaries.add("Shattered");
         target.SHLD=0;
         ArrayList<StatEff>modexception= new ArrayList<StatEff>();
-        if (target.effects.size()!=0)
+        if (target.effects.size()>0)
         {
             modexception.addAll(target.effects);
         }
@@ -345,7 +469,7 @@ class Shatter extends DebuffEff
         {
             if (eff.getefftype().equalsIgnoreCase("Defence"))
             {
-                target.remove(target, eff.hashcode, false);
+                target.remove(target, eff.hashcode, "normal");
             }
         }
     }
@@ -377,6 +501,60 @@ class Shatter extends DebuffEff
         target.binaries.remove("Shattered");
     }
 }
+class Snare extends DebuffEff 
+{
+    @Override
+    public String getimmunityname()
+    {
+        return "Snare";
+    }
+    @Override 
+    public String getefftype() 
+    {
+        return "Debuffs";
+    }
+    @Override
+    public String getalttype()
+    {
+        return "nondamaging";
+    }
+    @Override
+    public String geteffname()
+    {
+        String name;
+        if (this.duration<100)
+        {
+            name="Snare, "+this.duration+" turn(s)";
+            return name;
+        }
+        else
+        {
+            name="Snare";
+            return name;
+        }
+    }
+    public Snare (int nchance)
+    {
+        this.chance=nchance;
+        this.hashcode=Card_HashCode.RandomCode();
+    }
+    public Snare (int nchance, int nduration)
+    {
+        this.duration=nduration;
+        this.oduration=nduration;
+        this.chance=nchance;
+        this.hashcode=Card_HashCode.RandomCode();
+    }
+    public void onApply (Character target)
+    {
+        Battle.Snared(target);
+    }
+    @Override
+    public void Nullified (Character target)
+    {
+        Battle.Speeded(target);
+    }
+}
 class Stun extends DebuffEff
 {
     @Override
@@ -389,12 +567,17 @@ class Stun extends DebuffEff
     {
         return "Debuffs";
     }
+    @Override
+    public String getalttype() 
+    {
+        return "nondamaging";
+    }
     public void onApply (Character target)
     {
        target.binaries.add("Stunned");
-       if (target.activeability[0]!=null&&target.activeability[0].channelled==true)
+       if (target.activeability!=null&&target.activeability.channelled==true)
        {
-           target.activeability[0].InterruptChannelled();
+           target.activeability.InterruptChannelled(target, target.activeability);
        }
     }
     public Stun (int nchance)
@@ -426,6 +609,11 @@ class Target extends DebuffEff
     public String getefftype()
     {
         return "Debuffs";
+    }
+    @Override
+    public String getalttype() 
+    {
+        return "nondamaging";
     }
     @Override
     public String geteffname()
@@ -479,6 +667,11 @@ class Weakness extends DebuffEff
         return "Debuffs";
     }
     @Override
+    public String getalttype() 
+    {
+        return "nondamaging";
+    }
+    @Override
     public String geteffname()
     {
         String name;
@@ -528,6 +721,11 @@ class Wound extends DebuffEff
     public String getefftype()
     {
         return "Debuffs";
+    }
+    @Override
+    public String getalttype() 
+    {
+        return "nondamaging";
     }
     @Override
     public String geteffname()
