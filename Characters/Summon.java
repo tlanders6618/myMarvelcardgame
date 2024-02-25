@@ -14,6 +14,7 @@ public class Summon extends Character
     public Summon (int Sindex)
     {
         //Same as with characters
+        //Need to manually assign team affiliation when creating a summon
         index=Sindex;
         summoned=true;
         hash=Card_HashCode.RandomCode();
@@ -32,33 +33,33 @@ public class Summon extends Character
     }
     public void onSummon (Summon lad)
     {
-        //for triggering passives
-        switch (lad.index)
+        switch (lad.index) //for triggering on summon passives
         {
             case 1: SummonPassive.NickLMD(lad); break;
+            case 7: lad.binaries.add("Stunned"); break;
         }
-        int ahcounter=0; //number of duplicate summons
-        if (lad.team1==true) //this is so summons don't all have the same name (e.g. three enemies named "Thug")
+        int dupes=0; //number of duplicate summons
+        if (lad.team1==true) 
         {
             for (Character hero: Battle.team1)
             {
-                if (hero instanceof Summon)
+                if (hero!=null&&hero.summoned==true&&hero.index==lad.index)
                 {
-                    String name=Character.SetName(index, true);
+                    String name= hero.SetName(hero.index, true); //check the summoned hero's original name to compare with the new summon's original name
                     if (name.equals(lad.Cname))
                     {
-                        ++ahcounter;
+                        ++dupes;
                     }
                 }
             }
             for (Character hero: Battle.team1dead)
             {
-                if (hero instanceof Summon)
+                if (hero!=null&&hero.summoned==true&&hero.index==lad.index)
                 {
-                    String name=super.SetName(index, true);
+                    String name= hero.SetName(hero.index, true);
                     if (name.equals(lad.Cname))
                     {
-                        ++ahcounter;
+                        ++dupes;
                     }
                 }
             }            
@@ -67,33 +68,33 @@ public class Summon extends Character
         {
             for (Character hero: Battle.team2)
             {
-                if (hero instanceof Summon)
+                if (hero!=null&&hero.summoned==true&&hero.index==lad.index)
                 {
-                    String name=Summon.SetName(index, true);
+                    String name= hero.SetName(hero.index, true); 
                     if (name.equals(lad.Cname))
                     {
-                        ++ahcounter;
+                        ++dupes;
                     }
                 }
             }
             for (Character hero: Battle.team2dead)
             {
-                if (hero instanceof Summon)
+                if (hero!=null&&hero.summoned==true&&hero.index==lad.index)
                 {
-                    String name=SetName(index, true);
+                    String name= hero.SetName(hero.index, true);
                     if (name.equals(lad.Cname))
                     {
-                        ++ahcounter;
+                        ++dupes;
                     }
                 }
             }
         }
-        if (ahcounter>1)
+        if (dupes>1) //this is so summons don't all have the same name (e.g. three enemies named "Thug")
         {
-            lad.Cname=Summon.AlterSumName(lad.index, ahcounter);
+            lad.Cname=Summon.AlterSumName(lad.index, dupes);
         }
     }
-    public static String AlterSumName (int index, int counter)
+    public static String AlterSumName (int index, int counter) //adds a number to summon name to avoid confusion; e.g. Thug 1, Thug 2
     {
         String name;
         switch (index)
@@ -124,46 +125,121 @@ public class Summon extends Character
         }
         return index;
     }
+    //Below are overridden to avoid conflict between summmon and hero indexes
+    @Override
+    public void add (Character hero, StatEff eff) //adding a stateff
+    {
+        hero.effects.add(eff); 
+        String type=eff.getefftype();
+        for (StatEff e: hero.effects) //for stateffs that react to other stateffs
+        {
+            e.Attacked(eff);
+        }
+        eff.onApply(hero);
+        if (!(eff.getefftype().equals("Secret"))&&!(eff.getimmunityname().equalsIgnoreCase("Protect"))) 
+        //due to taunt/protect interaction; no point in announcing it being added if it's instantly removed
+        {
+            System.out.println ("\n"+hero.Cname+" gained a(n) "+eff.geteffname());
+        }
+    }
+    @Override
+    public void remove (Character hero, int removalcode, String how) //removes status effects
+    {
+        for (StatEff eff: hero.effects)
+        {
+            if (eff.hashcode==removalcode)
+            {
+                String name=eff.getimmunityname(); String type=eff.getefftype();
+                eff.Nullified(hero);
+                //redundant to print the message if something like nullify already does, so it's only printed if nullify is false
+                if (how.equals("normal")&&!(eff.getimmunityname().equals("Protect")||eff.getimmunityname().equals("Evade")))                 
+                {
+                    System.out.println (hero.Cname+"'s "+eff.getimmunityname()+" expired."); 
+                }      
+                hero.effects.remove(eff);
+                break; //end the for each loop
+            }
+        }
+    }
     @Override
     public void onTurn (Character hero, boolean notbonus)
     {
         boolean go=true;
-        if (!(hero.binaries.contains("Stunned")))
+        switch (index)
         {
-            if (go==true) //if they haven't already taken their turn
+            case 7: 
+            if (hero.team1==true) 
             {
-                ++hero.turn;
+                if (Battle.p1solo==true) //to prevent infinite turns if a decoy is the only ones left alive on its team
+                hero.binaries.remove("Stunned");
+                else //to prevent infinite turns if there is more than one hero on the team, but they're all decoys
+                {
+                    Character[] team=Battle.GetTeammates(hero, true); boolean solo=true;
+                    for (Character c: team)
+                    {
+                        if (c!=null&&(c.summoned==false||c.index!=7))
+                        {
+                            solo=false; break;
+                        }
+                    }
+                    if (solo==true)
+                    hero.binaries.remove("Stunned");
+                 }
             }
+            else
+            {
+                if (Battle.p2solo==true) 
+                hero.binaries.remove("Stunned");
+                else 
+                {
+                    Character[] team=Battle.GetTeammates(hero, false); boolean solo=true;
+                    for (Character c: team)
+                    {
+                        if (c!=null&&(c.summoned==false||c.index!=7))
+                        {
+                            solo=false; break;
+                        }
+                    }
+                    if (solo==true)
+                    hero.binaries.remove("Stunned");
+                }
+            }
+            break;
+        }
+        if (go==true)
+        ++hero.turn;
+        if (hero.dead==false)
+        {
             boolean team=hero.team1;
             Character[] friends=Battle.GetTeammates(hero, team);
             for (Character friend: friends)
             {
-                if (friend!=null&&friend.CheckFor(friend, "Banish")==false)
+                if (friend!=null&&!(friend.binaries.contains("Banished")))
                 {
-                    friend.onAllyTurn(hero, friend, false);
+                   friend.onAllyTurn(hero, friend, true);
                 }
             }
-            team=Card_CoinFlip.TeamFlip(team); //reverse team affiliation to get enemies
+            team=CoinFlip.TeamFlip(team); //reverse team affiliation to get enemies
             Character[] foes=Battle.GetTeammates(hero, team);
             for (Character foe: foes)
             {
-                if (foe!=null&&foe.CheckFor(foe, "Banish")==false)
+                if (foe!=null&&!(foe.binaries.contains("Banished")))
                 {
-                    foe.onEnemyTurn(hero, foe, false);
+                    foe.onEnemyTurn(hero, foe, true);
                 }
             }
             if (hero.team1==true) //potentially notify dead friends like Phoenix that it's time to revive
             {
                 for (Character deadlad: Battle.team1dead)
                 {
-                    deadlad.onAllyTurn (hero, deadlad, false);
+                    deadlad.onAllyTurn (hero, deadlad, true);
                 }
             }
             else
             {
                 for (Character deadlad: Battle.team2dead)
                 {
-                    deadlad.onAllyTurn (hero, deadlad, false);
+                    deadlad.onAllyTurn (hero, deadlad, true);
                 }
             }
         }
@@ -185,23 +261,93 @@ public class Summon extends Character
     {
     }
     @Override
+    public Character Attack (Character dealer, Character target, int dmg, boolean aoe)
+    {
+        //for normal damage from attack skills
+        target=target.onTargeted(dealer, target, dmg, aoe);
+        if ((!(dealer.binaries.contains("Missed"))&&!(dealer.immunities.contains("Missed")))) //only check if dealer isn't immune to miss and hasn't missed already; can't miss twice
+        {
+            Damage_Stuff.CheckEvade(dealer, target); //blind is checked when activating the ab; evade is checked here once the target has been selected
+        }
+        if ((dealer.binaries.contains("Missed")))
+        {
+            dmg=0;
+        }
+        if ((!(dealer.binaries.contains("Missed"))))
+        {
+            dmg=Damage_Stuff.DamageFormula(dealer, target, dmg);
+            dmg=Damage_Stuff.CheckGuard(dealer, target, dmg);      
+            for (SpecialAbility h: target.helpers) //for special things like redwing 
+            {
+                dmg=h.Use (target, dmg, dealer); 
+            }
+            dmg=target.TakeDamage(target, dealer, dmg, aoe);
+        }
+        dealer.activeability.ReturnDamage(dmg); //tells the ability how much dmg the attack did
+        if (target.dead==false)
+        {
+            target.onAttacked(target, dealer, dmg);
+        }
+        else
+        {
+            Character[] friends=Battle.GetTeammates(target, target.team1);
+            for (Character friend: friends)
+            {
+                if (friend!=null&&!(friend.binaries.contains("Banished")))
+                {
+                    friend.onAllyAttacked(friend, target, dealer, dmg);
+                }
+            }
+        }
+        if (dealer.dead==false)
+        {
+            dealer.CheckDrain(dealer, target, dmg);
+        }
+        dealer.onAttack(dealer, target); //activate relevant passives
+        return target;
+    }
+    @Override
+    public Character AttackNoDamage (Character dealer, Character target, boolean aoe)
+    {
+        //modified version of attack method since debuff skills do no damage
+        target=target.onTargeted(dealer, target, 0, aoe);
+        if ((!(dealer.binaries.contains("Missed"))&&!(dealer.immunities.contains("Missed"))))
+        {
+            Damage_Stuff.CheckEvade(dealer, target);
+        }
+        target.onAttacked(target, dealer, 0);
+        dealer.onAttack(dealer, target);
+        return target;
+    }
+    @Override
     public void onAttack (Character hero, Character victim)
     {
         //triggered after a hero attacks
     }
     @Override
+    public void OnCrit (Character target)
+    {
+    }
+    @Override
     public void onAttacked(Character attacked, Character attacker, int dmg)
     {
-        if (attacked.dead==false&&!(attacked.binaries.contains("Stunned"))&&!(attacker.ignores.contains("Counter")))
+        if (attacked.dead==false)
         {
+            if (!(attacked.binaries.contains("Stunned"))&&!(attacker.ignores.contains("Counter")))
+            {
+                for (StatEff eff: attacked.effects)
+                {
+                    if (eff.getimmunityname().equalsIgnoreCase("Counter"))
+                    {
+                        eff.UseCounter(attacked, attacker); 
+                        attacked.remove(attacked, eff.hashcode, "normal");
+                        break;
+                    }
+                }
+            }
             for (StatEff eff: attacked.effects)
             {
-                if (eff.getimmunityname().equalsIgnoreCase("Counter"))
-                {
-                    eff.UseCounter(attacked, attacker); 
-                    attacked.remove(attacked, eff.hashcode, false);
-                    break;
-                }
+                eff.Attacked(attacked);
             }
         } 
         Character[] friends=Battle.GetTeammates(attacked, attacked.team1);
@@ -325,15 +471,20 @@ public class Summon extends Character
     public void TookDamage (Character hero, boolean dot, int dmg) //true for dot and false for all other types
     { 
         hero.dmgtaken+=dmg;
-        if (hero.HP<=0&&dot==true)
+        int h=hero.HP; h+=dmg; //for tracking hp changes for passives
+        if (hero.HP<=0)
+        hero.HP=0;
+        if (hero.HP<=0&&dot==true&&!(hero.binaries.contains("Immortal")))
         {
-            hero.HP=0;
             hero.onLethalDamage(hero, true, "DOT");
         }
-        else if (hero.HP<=0&&dot==false)
+        else if (hero.HP<=0&&dot==false&&!(hero.binaries.contains("Immortal")))
         {
-            hero.HP=0;
             hero.onLethalDamage(hero, false, "other");
+        }
+        if (hero.dead==false)
+        {
+            //hero.HPChange(hero, h, hero.HP); //commented out for now since no summons use this method
         }
     }
     @Override
@@ -372,27 +523,30 @@ public class Summon extends Character
     @Override
     public void onDeath (Character hero, Character killer, String dmgtype)
     {
-        if (hero.activeability[0]!=null)
+        if (hero.activeability!=null&&hero.activeability.channelled==true)
         {
-            hero.activeability[0].InterruptChannelled();
+            hero.activeability.InterruptChannelled(hero, hero.activeability);
         }
         hero.HP=0;
         hero.dead=true;
         hero.dmgtaken=0;
-        ArrayList <StatEff> removeme= new ArrayList<StatEff>();
-        removeme.addAll(hero.effects);       
-        for (StatEff eff: removeme)
-        {
-            hero.remove(hero, eff.hashcode, true); 
-        }
         hero.turn=0;
+        ArrayList <StatEff> removeme= new ArrayList<StatEff>();
+        removeme.addAll(hero.effects);    
         if (killer!=null)
         {
-            System.out.println(killer.Cname+" has killed "+hero.Cname);
+            System.out.println(killer.Cname+" killed "+hero.Cname);
         }
         else
         {
             System.out.println(hero.Cname+" has died");
+        }
+        for (StatEff eff: removeme)
+        {
+            if (!(eff instanceof Tracker))
+            {
+                hero.remove(hero, eff.hashcode, "silent"); 
+            }
         }
         Character[] people=Battle.GetTeammates(hero, hero.team1);
         for (Character friend: people)
@@ -402,7 +556,7 @@ public class Summon extends Character
                 friend.onAllyDeath(friend, hero, killer);
             }
         }
-        boolean foe=Card_CoinFlip.TeamFlip(hero.team1); //to get their enemies
+        boolean foe=CoinFlip.TeamFlip(hero.team1); //to get their enemies
         Character[] enemies=Battle.GetTeammates(hero, foe);
         for (Character ant: enemies)
         {
@@ -411,15 +565,7 @@ public class Summon extends Character
                 ant.onEnemyDeath(ant, hero, killer);
             }
         }
-        if (hero.team1==true)
-        {
-            Battle.AddDead(hero);
-        }
-        else
-        {
-            Battle.AddDead(hero);
-        }
-        hero.Torder=616;
+        Battle.AddDead(hero);
     }
     @Override
     public void onAllyDeath (Character bystander, Character deadfriend, Character killer)
@@ -450,26 +596,6 @@ public class Summon extends Character
     }
     @Override
     public void onEnemySummon (Character summoner, Summon newfoe)
-    {
-    }
-    @Override
-    public void onBuffed(Character hero, StatEff buff, boolean add)
-    {
-    }
-    @Override
-    public void onDebuffed (Character hero, StatEff debuff, boolean add) //true if the stat is being added and false for removal
-    {
-    }
-    @Override
-    public void onHealEffed (Character hero, StatEff heal, boolean add)
-    {
-    }
-    @Override
-    public void onDefEffed (Character hero, StatEff def, boolean add)
-    {
-    }
-    @Override
-    public void onOtherEffed (Character hero, StatEff otr, boolean add)
     {
     }
     @Override

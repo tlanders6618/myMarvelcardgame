@@ -18,13 +18,13 @@ public abstract class Character
     int maxHP;
     int index;
     int turn=0; //++ at start of turn; which turn they are on
-    int DR=0; //damage reduction from hits from passives
-    int RDR=0; //resistance damage reduction
+    int DR=0; //damage reduction from hits from sources other than resistance (i.e. passives)
+    int PRDR=0; //damage reduction from Resistance Effects
+    int RDR=0; //damage reduction from Resistance
     int ADR=0; //damage reduction from all sources
-    int BuDR, BlDR, PoDR, ShDR=0; //dot damage reduction
+    int BuDR, BlDR, PoDR, ShDR, WiDR=0; //dot damage reduction; burn, bleed, poison, shock, and wither
     int DV=0; //damage vulnerability
     int BD=0; //bonus damage on attacks
-    int PBD=0; //bonus damage from passives
     int CC=0; //crit chance
     double critdmg=1.5; //default is crits do +50% dmg
     int SHLD=0; //shield
@@ -32,42 +32,39 @@ public abstract class Character
     int CritDR=0; //crit resistance
     int CritVul=0; //vulnerable
     double lifesteal=0; //drain
-    int Torder; //character's place in the turn order
-    boolean team1; //which team they're on, for determining who's an ally and who's an enemy
+    boolean team1=false; //which team they're on, for determining who's an ally and who's an enemy
     Ability[] abilities = new Ability[5];
     boolean dead=false; 
     boolean summoned=false;
     boolean targetable=true;
     int accuracy=100; //for blind
     int dmgtaken=0;
-    int hash; //identifier code
-    int passivecount; //counter for passives like Nitro's and Fury Jr's
-    Ability[] activeability= new Ability[1]; //last used ability     
-    Character[] passivefriend= new Character[1]; //for lads like venom
+    int hash; //identifier number
+    int passivecount; //for keeping track of passive stuff
+    Ability activeability=null; //last used ability     
+    Character[] passivefriend= new Character[6]; //for lads like eddie brock venom
     ArrayList<StatEff> effects= new ArrayList<StatEff>(); //holds status effects
     ArrayList<String> immunities= new ArrayList<String>(); 
     ArrayList<String> binaries=new ArrayList<String>(); //overlapping conditions like stunned and invisible
     ArrayList<String> ignores=new ArrayList<String>(); //ignore when attacking
-    ArrayList<SpecialAbility> helpers=new ArrayList<SpecialAbility>();
+    ArrayList<SpecialAbility> helpers=new ArrayList<SpecialAbility>(); //performs unique misc. functions like redwing
     public Character ()
     {
     }
     public static boolean CheckFor (Character hero, String eff)
     {
-        boolean h=false;
         for (StatEff effect: hero.effects)
         {
             if (eff.equalsIgnoreCase(effect.getimmunityname()))
             {
-                h=true;
-                break;
+                return true;
             }
         }
-        return h;
+        return false;
     }
     public abstract void onTurn (Character hero, boolean notbonus);
     public abstract void OnTurnEnd (Character hero, boolean notbonus);
-    public Ability ChooseAb (Character hero)
+    public Ability ChooseAb (Character hero) //called by turn in battle
     {
         if (hero.team1==true)
         {
@@ -84,7 +81,7 @@ public abstract class Character
             if (hero.abilities[i]!=null)
             {
                 System.out.println (a+": "+hero.abilities[i].GetAbName(hero, hero.abilities[i])); 
-                if (hero.abilities[i] instanceof AttackAb&&hero.abilities[i].CheckUse(hero, hero.abilities[i])==true)
+                if (skip==true&&hero.abilities[i] instanceof AttackAb&&hero.abilities[i].CheckUse(hero, hero.abilities[i])==true)
                 {
                     skip=false; //this prevents heroes from bypassing provoke, taunt, etc for balancing reasons; if they can attack the target, they must 
                 }
@@ -100,11 +97,21 @@ public abstract class Character
             choice=Damage_Stuff.GetInput(); 
             --choice; //to get the index number since the number entered was the ability number
             good=false;
-            if (choice==-1&&skip==true)
+            if (choice==-1&&skip==true) //skipped turn
             {
                 good=true;
             }
-            if (choice<5&&choice>=0&&!(hero.abilities[choice]==null)&&hero.abilities[choice].CheckUse(hero, hero.abilities[choice])==true) //needs to be a usable ability
+            else if (choice<5&&choice>=0&&!(hero.abilities[choice]==null)&&hero.abilities[choice].CheckUse(hero, hero.abilities[choice])==false)
+            {
+                good=false;
+                System.out.println("Selected ability is not currently usable. Pick another one.");
+            }
+            else if (choice<5&&choice>=0&&!(hero.abilities[choice]==null)&&hero.activeability!=null&&hero.activeability.unbound==true&&hero.abilities[choice].unbound==true)
+            {
+                good=false;
+                System.out.println("Unbound abilities may only be used once per turn.");
+            }
+            else if (choice<5&&choice>=0&&!(hero.abilities[choice]==null)&&hero.abilities[choice].CheckUse(hero, hero.abilities[choice])==true) 
             {
                 good=true;
             }
@@ -116,7 +123,7 @@ public abstract class Character
         }
         else
         {
-            hero.activeability[0]=hero.abilities[choice];
+            hero.activeability=hero.abilities[choice];
             return hero.abilities[choice];
         }
     }
@@ -127,65 +134,26 @@ public abstract class Character
     public abstract void onAttacked(Character attacked, Character attacker, int dmg);
     public abstract void onAllyAttacked(Character ally, Character hurtfriend, Character attacker, int dmg);
     public abstract void HPChange (Character hero, int oldhp, int newhp);
-    public static void Healed (Character healed, int regener) 
+    public static void Healed (Character healed, int regener, boolean passive) //passive refers to the "recover up to X missing health" type of healing abs
     {
         boolean nowound=true; int h=healed.HP;
-        if (healed.binaries.contains("Wounded")||healed.immunities.contains("Heal"))
+        if (passive==false&&healed.immunities.contains("Heal")) //passive healing isn't considered to be a heal ability
         {
+            System.out.println(healed.Cname+" could not be healed due to an immunity!");
+            nowound=false;
+        }
+        else if (healed.binaries.contains("Wounded"))
+        {
+            System.out.println(healed.Cname+" could not be healed due to being Wounded!");
             nowound=false;
         }
         if (nowound==true&&healed.HP<healed.maxHP)
         {
-            regener=healed.GetHealAmount(healed, regener);
+            regener=healed.GetHealAmount(healed, regener, passive);
             healed.HP+=regener;
+            if (passive==false)
             System.out.println("\n"+healed.Cname+" was healed for "+regener+" health!");
-            if (healed.HP>healed.maxHP)
-            {
-                healed.HP=healed.maxHP;
-            }
-            healed.HPChange(healed, h, healed.HP);
-        }
-    }
-    public static int GetHealAmount (Character hero, int amount)
-    {
-        for (StatEff eff: hero.effects)
-        {
-            if (eff.getimmunityname().equalsIgnoreCase("Poison"))
-            {
-                amount-=10;
-            }
-        }
-        for (StatEff eff: hero.effects)
-        {
-            if (eff.getimmunityname().equalsIgnoreCase("Recovery"))
-            {
-                int inc=eff.power;
-                amount+=inc;
-            }
-        }
-        if (amount<0)
-        {
-            amount=0;
-        }
-        return amount;
-    }
-    public static void PassiveHealed (Character healed, int regener) //passive healing, unaffected by Recovery
-    {
-        boolean nowound=true; int h=healed.HP;
-        if (healed.binaries.contains("Wounded"))
-        {
-            nowound=false;
-        }
-        if (nowound==true&&healed.HP<healed.maxHP)
-        {
-            for (StatEff eff: healed.effects)
-            {
-                if (eff.getimmunityname().equalsIgnoreCase("Poison"))
-                {
-                    regener-=10;
-                }
-            }
-            healed.HP+=regener;
+            else if (passive==true)
             System.out.println ("\n"+healed.Cname+" regained "+regener+" health!");
             if (healed.HP>healed.maxHP)
             {
@@ -194,10 +162,36 @@ public abstract class Character
             healed.HPChange(healed, h, healed.HP);
         }
     }
-    public static void CheckDrain (Character hero, int amount)
+    public static int GetHealAmount (Character hero, int amount, boolean passive)
+    {
+        for (StatEff eff: hero.effects)
+        {
+            if (eff.getimmunityname().equalsIgnoreCase("Poison"))
+            {
+                amount-=10;
+            }
+        }
+        if (passive==false) //passive healing is unaffected by recovery
+        {
+            for (StatEff eff: hero.effects)
+            {
+                if (eff.getimmunityname().equalsIgnoreCase("Recovery"))
+                {
+                    int inc=eff.power;
+                    amount+=inc;
+                }
+            }
+        }
+        if (amount<0)
+        {
+            amount=0;
+        }
+        return amount;
+    }
+    public static void CheckDrain (Character hero, Character target, int amount)
     {
         //this is now under the attack methods instead of each attackab and basicab
-        if (hero.lifesteal<=0||hero.binaries.contains("Wounded"))
+        if (hero.lifesteal<=0||hero.immunities.contains("Drain")||hero.binaries.contains("Wounded"))
         {
             //can't heal
         }
@@ -209,7 +203,7 @@ public abstract class Character
                 double dub=amount/2;
                 amount=5*(int)Math.ceil(dub/5.0); //drain half, rounded up
             }
-            amount=hero.GetHealAmount(hero, amount);
+            amount=hero.GetHealAmount(hero, amount, false);
             hero.HP+=amount;
             System.out.println("\n"+hero.Cname+" healed themself for "+amount+" health!");
             if (hero.HP>hero.maxHP)
@@ -221,9 +215,16 @@ public abstract class Character
     }
     public static void Shielded (Character hero, int amount) //hero is gaining shield
     {
-        if (hero.binaries.contains("Shattered")||hero.immunities.contains("Defence")||hero.SHLD>=amount)
+        if (hero.binaries.contains("Shattered"))
         {
-            //nothing happens; shield does not stack
+            System.out.println(hero.Cname+" could not be Shielded due to being Shattered!");
+        }
+        else if (hero.immunities.contains("Defence")||hero.immunities.contains("Shield"))
+        {
+            System.out.println(hero.Cname+" could not be Shielded due to an immunity!");
+        }
+        else if (hero.SHLD>=amount) //nothing happens; shield does not stack
+        {
         }
         else 
         {
@@ -231,52 +232,8 @@ public abstract class Character
             System.out.println("\n"+hero.Cname+" received "+amount+" shield!");
         }
     }
-    public static void add (Character hero, StatEff eff) //adding a stateff
-    {
-        if (!(hero.immunities.contains(eff.getimmunityname()))&&!(hero.immunities.contains(eff.getefftype())))
-        {
-            hero.effects.add(eff);
-            eff.onApply(hero);
-            switch (eff.getefftype())
-            {
-                case "Buffs": hero.onBuffed(hero, eff, true); break;
-                case "Heal": hero.onHealEffed(hero, eff, true); break;
-                case "Debuffs": hero.onDebuffed(hero, eff, true); break;
-                case "Defence": hero.onDefEffed(hero, eff, true); break;
-                case "Other": hero.onOtherEffed(hero, eff, true); break;
-                default: System.out.println ("Couldn't activate on-apply passive effects due to spelling error");
-            }
-            if (!(eff.getimmunityname().equalsIgnoreCase("Protect"))) //due to taunt/protect interaction; no point in announcing it being added if it's instantly removed
-            {
-                System.out.println ("\n"+hero.Cname+" gained a(n) "+eff.geteffname());
-            }
-        }
-    }
-    public static void remove (Character hero, int removalcode, boolean nullify) //removes status effects
-    {
-        for (StatEff eff: hero.effects)
-        {
-            if (eff.hashcode==removalcode)
-            {
-                hero.effects.remove(eff);
-                eff.Nullified(hero);
-                if (nullify==false&&!(eff.getimmunityname().equalsIgnoreCase("Protect"))) //redundant to print the message if something like nullify already does
-                {
-                    System.out.println ("\n"+hero.Cname+"'s "+eff.getimmunityname()+" expired."); 
-                }                
-                switch (eff.getefftype())
-                {
-                    case "Buffs": hero.onBuffed(hero, eff, false); break;
-                    case "Heal": hero.onHealEffed(hero, eff, false); break;
-                    case "Debuffs": hero.onDebuffed(hero, eff, false); break;
-                    case "Defence": hero.onDefEffed(hero, eff, false); break;
-                    case "Other": hero.onOtherEffed(hero, eff, false); break;
-                    default: System.out.println ("Couldn't activate on-apply passive effects due to spelling error");
-                }                
-                break;
-            }
-        }
-    }
+    public abstract void add (Character hero, StatEff eff); //adding a stateff    
+    public abstract void remove (Character hero, int removalcode, String nullify); //removes status effects
     public Character onTargeted (Character attacker, Character target, int dmg, boolean aoe)
     {
         Character ntarg=target;
@@ -333,124 +290,17 @@ public abstract class Character
             return target;
         }
     }
-    public abstract Character onAllyTargeted (Character hero, Character dealer, Character target, int dmg, boolean aoe);
-    public Character Attack (Character dealer, Character target, int dmg, boolean aoe)
-    {
-        //for normal damage from attack skills
-        target=target.onTargeted(dealer, target, dmg, aoe);
-        if (!(dealer.binaries.contains("Missed")))
-        {
-            Damage_Stuff.CheckBlind(dealer);
-            Damage_Stuff.CheckEvade(dealer, target);
-            dmg=Damage_Stuff.DamageFormula(dealer, target, dmg);
-        }
-        if (dealer.binaries.contains("Missed"))
-        {
-            dmg=0;
-        }
-        if (!(dealer.binaries.contains("Missed")))
-        {
-            dmg=Damage_Stuff.CheckGuard(dealer, target, dmg);      
-            for (SpecialAbility h: target.helpers) //for special things like redwing 
-            {
-                dmg=h.Use (target, dmg, dealer); 
-            }
-            dmg=target.TakeDamage(target, dealer, dmg, aoe);
-        }
-        dealer.activeability[0].ReturnDamage(dmg); //tells the ability how much dmg the attack did
-        if (target.dead==false)
-        {
-            target.onAttacked(target, dealer, dmg);
-        }
-        else
-        {
-            Character[] friends=Battle.GetTeammates(target, target.team1);
-            for (Character friend: friends)
-            {
-                if (friend!=null&&!(friend.binaries.contains("Banished")))
-                {
-                    friend.onAllyAttacked(friend, target, dealer, dmg);
-                }
-            }
-        }
-        if (dealer.dead==false)
-        {
-            dealer.CheckDrain(dealer, dmg);
-        }
-        return target;
-    }
-    public Character AttackNoDamage (Character dealer, Character target, boolean aoe)
-    {
-        //modified version of attack method since debuff skills do no damage
-        target=target.onTargeted(dealer, target, 0, aoe);
-        if (!(dealer.binaries.contains("Missed")))
-        {
-            Damage_Stuff.CheckBlind(dealer);
-            Damage_Stuff.CheckEvade(dealer, target);
-        }
-        target.onAttacked(target, dealer, 0);
-        return target;
-    }
-    public abstract int TakeDamage (Character target, Character dealer, int dmg, boolean aoe); 
-    public abstract int TakeDamage (Character target, int dmg, boolean dot); //true for dot and false for all other types of dmg
-    public abstract void TookDamage (Character hero, boolean dot, int dmg); //true for dot and false for all other types
-    public abstract void TookDamage (Character hero, Character dealer, int dmg);
-    public boolean TakeRicochetDamage (Character target, int dmg)
-    {
-        boolean evade=false;
-        if (target.CheckFor(target, "Stun")==false&&(target.CheckFor(target, "Shatter")==false)) //things that would allow the damage to ignore evade
-        {
-            for (StatEff effect: target.effects) 
-            {
-                if (effect.getimmunityname().equalsIgnoreCase("Evade"))
-                {
-                    target.remove(target, effect.hashcode, false); //evade is consumed and no damage is dealt
-                    evade=true;
-                    System.out.println ("\n"+target.Cname+" Evaded "+dmg+" Ricochet damage");
-                    break;
-                }
-                else if (effect.getimmunityname().equalsIgnoreCase("Evasion"))
-                {
-                    evade=Card_CoinFlip.Flip((50+target.Cchance));
-                    if (evade==true)
-                    {
-                        System.out.println ("\n"+target.Cname+" Evaded "+dmg+" Ricochet damage");
-                        break;
-                    } //else nothing
-                }
-            }
-        }
-        if (evade==false)
-        {
-            if (target.CheckFor(target, "Stun")==false)
-            {
-                for (StatEff eff: target.effects)
-                {
-                    if (eff.getimmunityname().equalsIgnoreCase("Guard"))
-                    {
-                        int odmg=dmg;
-                        dmg=eff.UseGuard(dmg);
-                        System.out.println ("\n"+target.Cname+"'s Guard reduced Ricochet damage by "+(odmg-dmg));
-                        if (dmg<=0)
-                        {
-                            break; //no point in wasting guards on nothing
-                        }
-                    }
-                }
-            }
-            dmg=(dmg+target.DV)-(target.ADR+target.RDR+target.DR);
-            if (dmg<0)
-            {
-                dmg=0;
-            }
-            System.out.println ("\n"+target.Cname+" took "+dmg+" Ricochet damage"); 
-            target.TakeDamage(target, dmg, false);
-        }
-        return evade;
-    }
+    public abstract Character onAllyTargeted (Character hero, Character dealer, Character target, int dmg, boolean aoe); //for protect and passives to change target hero
+    public abstract Character Attack (Character dealer, Character target, int dmg, boolean aoe);
+    public abstract Character AttackNoDamage (Character dealer, Character target, boolean aoe);
+    public abstract void OnCrit (Character target); //called after successful crit for passives
+    public abstract int TakeDamage (Character target, Character dealer, int dmg, boolean aoe); //takedamage checks hero shield and calls tookdamage
+    public abstract int TakeDamage (Character target, int dmg, boolean dot); 
+    public abstract void TookDamage (Character hero, Character dealer, int dmg); //triggers relevant passives and checks if hero should be dead
+    public abstract void TookDamage (Character hero, boolean dot, int dmg); 
     public void DOTdmg (Character target, int dmg, String type) //target is the one taking the damage
     {
-        int knull; //since the methods require return values, this will store them
+        int knull; //since the take damage methods require return values, this will store them
         if (type.equalsIgnoreCase("bleed"))
         {
             dmg=(dmg-target.ADR-target.BlDR); //factoring in damage resistance
@@ -491,7 +341,7 @@ public abstract class Character
         }
         else if (type.equalsIgnoreCase("Wither"))
         {
-            dmg-=target.ADR;
+            dmg-=(target.ADR+target.WiDR);
             if (dmg>0)
             {
                 target.HP-=dmg;
@@ -508,9 +358,8 @@ public abstract class Character
     {
         return hero.SHLD+"/0";
     }
-    public int InHP (int index, boolean summoned)
+    public int InHP (int index, boolean summoned) //Initialises HP
     {
-        //Initialises HP
         int health=0;
         if (summoned==false)
         {
@@ -519,13 +368,13 @@ public abstract class Character
                 //case
                 //health= 200; break;
             
-                case 6: case 7: case 9: case 10:
+                case 6: case 9: case 10: case 14:
                 health= 220; break;
             
-                case 1: case 2: case 3: case 5: case 4: case 8: case 11:
+                case 1: case 2: case 3: case 4: case 5: case 7: case 8: case 11:
                 health= 230;  break;
             
-                case 12: case 13:
+                case 12: case 13: case 15:
                 health= 240; break;
                     
                 //Special carrots
@@ -564,12 +413,12 @@ public abstract class Character
     public static String SetName (int index, boolean summoned)
     {
         String name;
-        if (summoned==false)
+        if (summoned==false) //hero names
         {
             switch (index)
             {
-                case 1: name= "Moon Knight (Classic)"; break;
-                case 2: name= "Gamora (Battle Armour)"; break;
+                case 1: name= "Moon Knight (Modern)"; break;
+                case 2: name= "Gamora (Modern)"; break;
                 case 3: name= "Punisher (Classic)"; break;
                 case 4: name= "Iron Man (Mark VII)"; break;
                 case 5: name= "War Machine (James Rhodes)"; break; 
@@ -581,11 +430,13 @@ public abstract class Character
                 case 11: name="Nick Fury (Modern)"; break;
                 case 12: name="Drax (Classic)"; break;
                 case 13: name="Drax (Modern)"; break;
+                case 14: name="X-23 (Modern)"; break;
+                case 15: name="Wolverine (Classic)"; break;
                 default: name= "ERROR. INDEX NUMBER NOT FOUND";
             }    
             return name;
         }
-        else
+        else //summon names
         {
             switch (index)
             {
@@ -615,11 +466,11 @@ public abstract class Character
     public abstract void Transform (Character hero, int newindex, boolean greater); //new index is the index number of the character being transformed into
     public abstract void onAllySummon (Character summoner, Summon newfriend);
     public abstract void onEnemySummon (Character summoner, Summon newfoe);
-    public abstract void onBuffed(Character hero, StatEff buff, boolean add);
+    /*public abstract void onBuffed(Character hero, StatEff buff, boolean add);
     public abstract void onDebuffed (Character hero, StatEff debuff, boolean add); //true if the stat is being added and false for removal
     public abstract void onHealEffed (Character hero, StatEff heal, boolean add);
     public abstract void onDefEffed (Character hero, StatEff def, boolean add);
-    public abstract void onOtherEffed (Character hero, StatEff otr, boolean add);
+    public abstract void onOtherEffed (Character hero, StatEff otr, boolean add);*/
     public abstract boolean onAllyControlled (Character hero, Character controlled, Character controller);
     public abstract boolean onEnemyControlled (Character hero, Character controlled, Character controller);
     public abstract boolean onSelfControlled (Character hero, Character controller);
