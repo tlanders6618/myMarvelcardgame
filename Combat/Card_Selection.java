@@ -4,31 +4,37 @@ package myMarvelcardgamepack;
  * Designer: Timothy Landers
  * Date: 20/6/22
  * Filename: Card_Selection
- * Purpose: Pre-fight character selection, as well as target and ability selection.
+ * Purpose: Pre-fight character selection and banning, as well as target selection.
  */
 import java.util.Scanner;
 import java.util.ArrayList;
 public class Card_Selection
 {
-    public static int Selection(int counter)
+    public static int Selection(int counter, boolean ban) //choosing heroes
     {
         int Cname=0;      
-        if (counter<6)
+        if (counter<6) //each player chooses 3 heroes
         {
             if (counter==0 || counter==2 || counter==4)
             {
-                System.out.println ("\nPlayer 1, choose a character. Type the character's index number, shown on the character list.");                       
+                if (ban==false)
+                System.out.println ("\nPlayer 1, choose a character. Type the character's index number, shown on the character list."); 
+                else
+                System.out.println ("\nPlayer 1, choose a character to ban. Type the character's index number, shown on the character list."); 
             }
             else
             {
+                if (ban==false)
                 System.out.println ("\nPlayer 2, choose a character. Type the character's index number, shown on the character list.");  
+                else
+                System.out.println ("\nPlayer 2, choose a character to ban. Type the character's index number, shown on the character list."); 
             }
             boolean good;
             do
             {
                 Cname=Damage_Stuff.GetInput(); 
                 good=false;
-                if (Cname==616||Cname<=0||(Cname==11||Cname>12)) //update with each version
+                if (Cname==616||Cname<=0||Cname>15) //updated as more characters are released in each version
                 {
                     System.out.println("Index number not found.");
                 }
@@ -42,46 +48,14 @@ public class Card_Selection
         }
         else 
         {
-            System.out.println ("Could not select a character due to counter error.");         
+            if (ban==false)
+            System.out.println ("Could not select a character due to counter error."); 
+            else
+            System.out.println ("Could not select a ban due to counter error.");  
             return 616;           
         }    
     }  
-    public static int Ban (int counter)
-    {
-        int ban;
-        boolean typo=true;
-        if (counter<6)
-        {
-            if (counter==0 || counter==2 || counter==4)
-            {
-                System.out.println ("\nPlayer 1, choose a character to ban. Type the character's index number, shown on the character list.");                        
-            }
-            else
-            {
-                System.out.println ("\nPlayer 2, choose a character to ban. Type the character's index number, shown on the character list.");     
-            }
-            do
-            {
-                ban=Damage_Stuff.GetInput();
-                if (ban==616||ban<=0||ban>10)
-                {
-                    System.out.println("Index number not found.");
-                }
-                else
-                {
-                    typo=false;
-                }
-            }
-            while (typo==true);
-            return ban;
-        }
-        else 
-        {
-            System.out.println ("Could not select a ban due to counter error.");          
-            return 616;            
-        }    
-    }
-    public static int Retry(boolean banned)
+    public static int Retry(boolean banned) //if player inputs duplicate or banned hero
     {
         int rename=0;
         boolean typo=true;
@@ -92,7 +66,7 @@ public class Card_Selection
         do
         {
             rename=Damage_Stuff.GetInput();
-            if (rename==616||rename<=0||(rename==11||rename>12))
+            if (rename==616||rename<=0||rename>15)
             {
                 System.out.println("Index number not found.");
             }
@@ -104,9 +78,9 @@ public class Card_Selection
         while (typo==true);
         return rename;            
     }
-    public static boolean OnlyOne (int chosen, int[] others)
+    public static boolean OnlyOne (int chosen, int[] others) //Ensures players cannot choose duplicate heroes. 
     { 
-        //This ensures players cannot choose duplicate characters. Chosen is the name the player entered; the other names are already chosen characters
+        //Chosen is the name the player entered; the other names are already chosen heroes
         boolean unique=true;  
         for (int i: others)
         {
@@ -118,7 +92,7 @@ public class Card_Selection
         }
         return unique;
     }
-    public static int ChooseTargetFriend (Character[] list)
+    public static int ChooseTargetFriend (Character[] list) //for targeting allies
     {
         int targ=616; boolean typo=true;
         for (int i=0; i<6; i++)
@@ -136,7 +110,7 @@ public class Card_Selection
                 ++available;
             }
         }
-        if (available>0) //the hero must have at least one person they can target to avoid an infinite loop
+        if (available>0) //the hero must have at least one person they can target, to avoid an infinite loop
         {
             for (int i=0; i<6; i++)
             {
@@ -163,10 +137,10 @@ public class Card_Selection
         }
         return targ;
     }
-    public static Character ChooseTargetFoe (Character hero, Character[] list)
+    public static Character ChooseTargetFoe (Character hero, Character[] list) //targeting an enemy
     {
         int targ=56; boolean typo=true;
-        ArrayList<Character> team=Card_CoinFlip.ToList(list);
+        ArrayList<Character> team=CoinFlip.ToList(list);
         ArrayList<Character> remove=new ArrayList<Character>();
         for (Character c: team)
         {
@@ -180,7 +154,6 @@ public class Card_Selection
             team.removeAll(remove);
             remove.removeAll(remove);
         }
-        //switch statement for kraven here
         ArrayList <Integer> afraid= new ArrayList <Integer>();
         if (hero.CheckFor(hero, "Terror")==true&&!(hero.ignores.contains("Terror")))
         {
@@ -197,7 +170,7 @@ public class Card_Selection
                 for (Integer ig: afraid)
                 {
                     int h=(int) ig;
-                    if (h==c.hash)
+                    if (h==c.hash&&team.size()>1)
                     {
                         remove.add(c); //the hero cannot target the one who terrified them
                     }
@@ -269,7 +242,7 @@ public class Card_Selection
             team.removeAll(remove);
             remove.removeAll(remove);
         }
-        if (Battle.GetNumOfHeroes(Card_CoinFlip.TeamFlip(hero.team1))>1) //the untargetable heroes are only untargetable if they are not alone on their team
+        if ((hero.team1==true&&Battle.p2solo!=true)||(hero.team1==false&&Battle.p1solo!=true)) //the untargetable enemies are not untargetable if they are alone on their team
         {
             for (Character c: team)
             {
@@ -306,7 +279,7 @@ public class Card_Selection
         {
             targ=Damage_Stuff.GetInput();
             --targ;
-            if (targ==616||targ<0||targ>i)
+            if (targ==616||targ<0||targ>=i)
             {
                 //try again
             }

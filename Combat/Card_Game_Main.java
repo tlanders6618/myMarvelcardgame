@@ -16,21 +16,20 @@ public class Card_Game_Main
     {
         //Variables    
         trash= new Scanner (System.in);
-        int Ccounter=0;
+        int Ccounter=0; //for keeping track of the character/ban array index
         int name=616;
         String ban="nope";
         String bane, bane1, bane2, bane3, bane4, bane5, bane6="F";
         boolean unique=false;
-        int[] bans= new int [10]; 
+        int[] bans= new int [11]; 
         int[] charnames= new int[6];
-        bans[6]=62; bans[7]=24; bans[8]=122; //players cannot pick gauntlet thanos, binary, etc
-        
+        bans[6]=62; bans[7]=24; bans[8]=122; bans[9]=170; bans[10]=184; //players cannot pick gauntlet thanos, binary, etc        
         //Selecting cards
-        System.out.print ("Welcome. The current version is 3.7. The latest playable character is Drax (Classic). "); 
+        System.out.print ("Welcome. The current version is 4.0.4. The latest playable character is Nick Fury (Modern). "); 
         System.out.println ("Please check the character overview list for the full list of playable characters.");
         System.out.println ("Remember, characters will take turns in the order they are picked.");
-        //System.out.println ("\nEnter draft mode (allows character banning and up to one character swap)? Type 'yes' or 'no'.");
-        boolean issue=true; //no draft mode until there are at least 16 heroes
+        //System.out.println ("\nEnter draft mode (allows character banning and up to one character swap)? Type yes or no.");
+        boolean issue=true; //no draft mode until there are at least ~16 heroes
         while (issue==true) //as in there's an issue with what they typed
         {
             ban="no"; //until draft mode is reenabled
@@ -49,7 +48,7 @@ public class Card_Game_Main
             { 
                 while (unique==false) //ensures there are no duplicate bans
                 {
-                    name=Card_Selection.Ban(i);
+                    name=Card_Selection.Selection(i, true);
                     unique=Card_Selection.OnlyOne(name, bans); 
                     if (unique==false)
                     {
@@ -72,18 +71,18 @@ public class Card_Game_Main
             bane4=Character.SetName(bans[3], false);
             bane5=Character.SetName(bans[4], false);
             bane6=Character.SetName(bans[5], false);
-            System.out.println ("Banned characters: "+bane1+", "+bane2+", "+bane3);
-            System.out.println ("Banned characters: "+bane4+", "+bane5+", "+bane6);
+            System.out.println ("Banned characters for this match: "+bane1+", "+bane2+", "+bane3);
+            System.out.println ("Banned characters for this match: "+bane4+", "+bane5+", "+bane6);
         }
         //Creating teams
-        unique=false;
-        boolean banned; boolean uncle;
+        unique=false; boolean uncle; //uncle also represents hero uniqueness
+        boolean banned; 
         System.out.println ("Now you will take turns choosing characters.");
         while (Ccounter<6)
         {
-            name=Card_Selection.Selection(Ccounter); //player picks their character 
-            unique=Card_Selection.OnlyOne(name, charnames);
-            uncle=Card_Selection.OnlyOne(name, bans);
+            name=Card_Selection.Selection(Ccounter, false); //player picks their character 
+            unique=Card_Selection.OnlyOne(name, charnames); //check for duplicates
+            uncle=Card_Selection.OnlyOne(name, bans); //check for bans
             while (unique==false||uncle==false) //ensures banned/duplicate characters cannot be used             
             {
                 if (unique==false)
@@ -120,17 +119,17 @@ public class Card_Game_Main
                 boolean typo=true;
                 if (i==0)
                 {
-                    System.out.println ("Player 1, do you want to change one of your characters? Type 'yes' or 'no'.");
+                    System.out.println ("Player 1, do you want to change one of your characters? Type yes or no.");
                 }
                 else if (i==1)
                 {
-                    System.out.println ("Player 2, do you want to change one of your characters? Type 'yes' or 'no'.");
+                    System.out.println ("Player 2, do you want to change one of your characters? Type yes or no.");
                 }
                 bane=trash.nextLine(); 
                 if (bane.equalsIgnoreCase("yes"))
                 {
                     System.out.println ("Which character would you like to add to your team?");
-                    while (unique==false||uncle==false)
+                    while (unique==false||uncle==false) //check for uniqueness again
                     {
                         name=trash.nextInt();
                         unique=Card_Selection.OnlyOne(name, charnames);
@@ -202,14 +201,14 @@ public class Card_Game_Main
                 }
             }
         }        
-        //Character creation 
+        //Creating character objects  
         Character Char11= new Hero (charnames[0]);
         Character Char12= new Hero (charnames[2]); 
         Character Char13= new Hero (charnames[4]); 
         Character Char21= new Hero (charnames[1]);
         Character Char22= new Hero (charnames[3]); 
         Character Char23= new Hero (charnames[5]); 
-        //The game itself
+        //The game itself begins
         boolean Pwinner;
         Pwinner=Battle.main(Char11, Char12, Char13, Char21, Char22, Char23);
         //Result

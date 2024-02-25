@@ -14,58 +14,44 @@ public class Battle
     static ArrayList <Character> team1dead= new ArrayList <Character>();
     static ArrayList <Character> team2dead= new ArrayList <Character>();
     static ArrayList <Character> transformed= new ArrayList <Character>(); //keep a copy of the transformed characters so their cooldowns aren't reset
-    static int p1teamsize=0, p2teamsize=0; //size of team
+    static int p1teamsize=0, p2teamsize=0; //size of team 
     static int p1heroes=3, p2heroes=3; //number of characters on the team
+    static boolean p1solo=false, p2solo=false;
     static int P1active=0, P2active=0; //active character's array index number
     final static int maxteamsize=6;
+    static int tturns=1; //keep track of which player's turn it is 
     public static boolean main (Character Char11, Character Char12, Character Char13, Character Char21, Character Char22, Character Char23)
     {
-        int tturns=1;  
         int round=0; //variable for keeping track of rounds for TTK sake
-        boolean gamewinner=false;
-        boolean Pwinner=true; //true for player 1, and false for player 2
+        boolean gamewinner=false; //game has been won
+        boolean Pwinner=true; //true for player 1 wins, and false for player 2 wins
         FightStart(Char11, Char12, Char13, Char21, Char22, Char23); //allows certain passives to take effect
         Scoreboard.main(team1, team2);
-        int winner=91;
+        int winner=616;
         while (gamewinner==false)
         {
-            if (tturns%2!=0)
+            if (tturns%2!=0) //odd number means player 1's turn
             {
-                PlayerTurn(team1, true);
-                Battle.CheckActive(true);
-                Scoreboard.UpdateScore(team1, team2); 
-                winner=CheckWin();
-                if (winner==1)
-                {
-                    Pwinner=true; gamewinner=true;
-                    break;
-                }
-                if (winner==2)
-                {
-                    Pwinner=false; gamewinner=true;
-                    break;
-                }
-                //also remove banish on any character who is alone on their team                               
+                PlayerTurn(team1, true, false);
+                Battle.CheckActive(true);               
             }
             else if (tturns%2==0)
             {
-                PlayerTurn(team2, false);
-                Battle.CheckActive(false);
-                Scoreboard.UpdateScore(team1, team2);
-                winner=CheckWin();
-                if (winner==1)
-                {
-                    Pwinner=true; gamewinner=true;
-                    break;
-                }
-                if (winner==2)
-                {
-                    Pwinner=false; gamewinner=true;
-                    break;
-                }                
-                //also remove banish on any character who is alone on their team                
+                PlayerTurn(team2, false, false);
+                Battle.CheckActive(false);        
+                ++round;
             }
-            ++tturns; 
+            ++tturns;
+            Scoreboard.UpdateScore(team1, team2); 
+            winner=CheckWin();
+            if (winner==1)
+            {
+                Pwinner=true; gamewinner=true;
+            }
+            if (winner==2)
+            {
+                Pwinner=false; gamewinner=true;
+            } 
         }
         /*
         System.out.println ("\nTotal turns taken: "+tturns); //for data gathering purposes; 28, 30
@@ -86,7 +72,7 @@ public class Battle
         //*/
         return Pwinner;
     }
-    public static void CheckActive(boolean team) //moves through the team array to determine whose turn it is
+    public static void CheckActive(boolean team) //determines which character's turn it should be
     {
         if (team==true)
         {
@@ -95,6 +81,10 @@ public class Battle
             {
                 P1active=0;
             }
+            if (p1heroes==1)
+            p1solo=true;
+            else
+            p1solo=false;
         }
         else
         {
@@ -103,6 +93,10 @@ public class Battle
             {
                 P2active=0;
             }
+            if (p2heroes==1)
+            p2solo=true;
+            else
+            p2solo=false;
         }
     }
     public static void FightStart(Character Char11, Character Char12, Character Char13, Character Char21, Character Char22, Character Char23)
@@ -114,7 +108,7 @@ public class Battle
         Char21.team1=false;
         Char22.team1=false;
         Char23.team1=false;
-        p1teamsize+=(Char11.size+Char12.size+Char13.size);
+        p1teamsize+=(Char11.size+Char12.size+Char13.size); //for extra big lads like Giganto who take up 2 spaces
         p2teamsize+=(Char21.size+Char22.size+Char23.size);
         team1=SetTurnOrder(Char11, Char12, Char13);
         team2=SetTurnOrder(Char21, Char22, Char23);
@@ -124,37 +118,94 @@ public class Battle
         Char22.onFightStart(Char22); 
         Char13.onFightStart(Char13); 
         Char23.onFightStart(Char23); 
+        //test
+        //Battle.SummonSomeone(Char21, new Summon(7)); Battle.SummonSomeone(Char21, new Summon(7)); Battle.SummonSomeone(Char21, new Summon(7));  
     }
-    public static Character[] SetTurnOrder (Character one, Character two, Character three)
+    public static Character[] SetTurnOrder (Character one, Character two, Character three) 
     {
         Character[] team= new Character[6];
-        team[0]=one; one.Torder=1;
-        team[1]=two; two.Torder=2;
-        team[2]=three; three.Torder=3;
+        team[0]=one; 
+        team[1]=two; 
+        team[2]=three;
         return team;
     }
-    public static void PlayerTurn (Character[] champions, boolean affil)
+    public static void PlayerTurn (Character[] champions, boolean affil, boolean bonus) //affiliation, or team, and whether it's a bonus turn or not
     {
         boolean fine=false; Character hero=null;
         while (affil==true&&fine==false) //ensures hero is usable
         {
-            if (champions[P1active]==null)
+            if (champions[P1active]==null) //change the P1 active value until it's a valid character
             {
                 Battle.CheckActive(affil); 
             }
-            else if (champions[P1active].binaries.contains("Banished"))
+            else if (champions[P1active].binaries.contains("Banished")) //turn skip or remove banish if alone
             {
-                System.out.println ("\n"+champions[P1active].Cname+" skips their turn due to being Banished.");
-                champions[P1active].BanishTick(champions[P1active]); //ensures banished heroes take no turns but still have their banish duration reduced 
-                Battle.CheckActive(affil);
+                if (p1solo==true)
+                {
+                    ArrayList<StatEff> concurrent= new ArrayList<StatEff>();
+                    for (StatEff e: champions[P1active].effects)
+                    {
+                        if (e.getimmunityname().equals("Banish"))
+                        {
+                            concurrent.add(e);
+                        }
+                    }
+                    for (StatEff e: concurrent)
+                    {
+                        champions[P1active].remove(champions[P1active], e.hashcode, "normal");
+                    }
+                    hero=champions[P1active];
+                    fine=true;
+                }
+                else
+                {
+                    System.out.println ("\n"+champions[P1active].Cname+" skips their turn due to being Banished.");
+                    champions[P1active].BanishTick(champions[P1active]); //ensures banished heroes take no turns but still have their banish duration reduced 
+                    Battle.CheckActive(affil);
+                }
             }
-            else if (champions[P1active]!=null)
+            else if (champions[P1active].binaries.contains("Stunned")) //turn skip if not alone, but stateffs still tick
+            {
+                System.out.println ("\n"+champions[P1active].Cname+" skips their turn due to being Stunned.");
+                champions[P1active].onTurn(champions[P1active], true);
+                ArrayList<StatEff> modificationexception= new ArrayList<StatEff>(); modificationexception.addAll(champions[P1active].effects);
+                for (StatEff e: modificationexception)
+                {
+                    e.onTurnStart(champions[P1active]);
+                }
+                if (champions[P1active].dead==false)
+                {
+                    for (StatEff e: modificationexception)
+                    {
+                        e.onTurnEnd(champions[P1active]);
+                    }
+                }
+                if (champions[P1active].dead==false)
+                {
+                    champions[P1active].OnTurnEnd(champions[P1active], true);
+                    for (Ability ab: champions[P1active].abilities)
+                    {
+                        if (ab!=null)
+                        {
+                            ab.CDReduction(1);
+                        }
+                    } 
+                }
+                if (p1solo==false)
+                Battle.CheckActive(affil);
+                else
+                {
+                    hero=champions[P1active];
+                    fine=true;
+                }
+            }
+            else if (champions[P1active]!=null) //can proceed to their turn
             {
                 hero=champions[P1active];
                 fine=true;
             }
         }
-        while (affil==false&&fine==false)
+        while (affil==false&&fine==false) //same thing, but for player 2's team
         {
             if (champions[P2active]==null)
             {  
@@ -162,9 +213,64 @@ public class Battle
             }
             else if (champions[P2active].CheckFor(champions[P2active], "Banished")==true)
             {
-                System.out.println ("\n"+champions[P2active].Cname+" skips their turn due to being Banished.");
-                champions[P2active].BanishTick(champions[P2active]); 
+                if (p2solo==true)
+                {
+                    ArrayList<StatEff> concurrent= new ArrayList<StatEff>();
+                    for (StatEff e: champions[P2active].effects)
+                    {
+                        if (e.getimmunityname().equals("Banish"))
+                        {
+                            concurrent.add(e);
+                        }
+                    }
+                    for (StatEff e: concurrent)
+                    {
+                        champions[P2active].remove(champions[P2active], e.hashcode, "normal");
+                    }
+                    hero=champions[P2active];
+                    fine=true;
+                }
+                else
+                {
+                    System.out.println ("\n"+champions[P1active].Cname+" skips their turn due to being Banished.");
+                    champions[P1active].BanishTick(champions[P1active]); //ensures banished heroes take no turns but still have their banish duration reduced 
+                    Battle.CheckActive(affil);
+                }
+            }
+            else if (champions[P2active].binaries.contains("Stunned"))
+            {
+                System.out.println ("\n"+champions[P2active].Cname+" skips their turn due to being Stunned.");
+                champions[P2active].onTurn(champions[P2active], true);
+                ArrayList<StatEff> modificationexception= new ArrayList<StatEff>(); modificationexception.addAll(champions[P2active].effects);
+                for (StatEff e: modificationexception)
+                {
+                    e.onTurnStart(champions[P2active]);
+                }
+                if (champions[P2active].dead==false)
+                {
+                    for (StatEff e: modificationexception)
+                    {
+                        e.onTurnEnd(champions[P2active]);
+                    }
+                }
+                if (champions[P2active].dead==false)
+                {
+                    champions[P2active].OnTurnEnd(champions[P2active], true);
+                    for (Ability ab: champions[P2active].abilities)
+                    {
+                        if (ab!=null)
+                        {
+                            ab.CDReduction(1);
+                        }
+                    } 
+                }
+                if (p2solo==false)
                 Battle.CheckActive(affil);
+                else
+                {
+                    hero=champions[P2active];
+                    fine=true;
+                }
             }
             else if (champions[P2active]!=null)
             {
@@ -172,154 +278,117 @@ public class Battle
                 fine=true;
             }
         }
-        if (hero.activeability[0]!=null)
-        {
-            hero.activeability[0].ActivateChannelled();
-        }
-        ArrayList<StatEff>concurrent= new ArrayList<StatEff>();
-        if (hero.effects.size()!=0)
-        {
-            concurrent.addAll(hero.effects);
-        }
-        for (StatEff eff: concurrent)
-        {
-            eff.onTurnStart(hero);
-        }         
-        if (hero.dead==false) //if they have not died from DoT damage
-        {
-            Ability activeAb=null;
-            ArrayList<Character> targets= new ArrayList<Character>();
-            ArrayList<StatEff> toapply= new ArrayList<StatEff>(); 
-            ArrayList<StatEff> selfadd= new ArrayList<StatEff>(); //status effects for hero to apply to self
-            if (!(hero.binaries.contains("Stunned")))
-            {
-                hero.onTurn(hero, true);
-                Scoreboard.UpdateScore(team1, team2);
-                activeAb=hero.ChooseAb(hero);
-                if (activeAb!=null)
-                {
-                    targets=Battle.ChooseTarget(hero, activeAb.friendly, activeAb.target);        
-                    selfadd=activeAb.UseAb(hero, activeAb, targets);
-                }
-            }
-            else
-            {
-                System.out.println("\n"+hero.Cname+" skips their turn due to being Stunned.");
-            }
-            ArrayList<StatEff>modexception= new ArrayList<StatEff>();
-            if (hero.effects.size()!=0)
-            {
-                modexception.addAll(hero.effects);
-            }
-            for (StatEff eff: modexception)
-            {
-                eff.onTurnEnd(hero);
-            } 
-            toapply.addAll(selfadd); //must be added after turn end so they don't prematurely tick
-            if (toapply.size()>0&&hero.dead==false) 
-            {
-                for (StatEff eff: toapply)
-                {
-                    eff.CheckApply(hero, hero, eff);
-                }
-            }
-            for (Character target: targets) 
-            {
-                ArrayList<SpecialAbility> exception= new ArrayList<SpecialAbility>();
-                if (target!=null)
-                {                    
-                    for (SpecialAbility h: target.helpers) //for special things like redwing; happens after the attack to prevent status effect application 
-                    {
-                        exception.add(h); 
-                    }
-                    for (SpecialAbility h: exception)
-                    {
-                        h.Undo (target); 
-                    }
-                }
-            }
-            for (Ability ab: hero.abilities)
-            {
-                if (ab!=null)
-                {
-                    ab.CDReduction(1);
-                }
-            } 
-            if (hero.dead==false)
-            {
-                hero.OnTurnEnd(hero, true);             
-            }
-            ArrayList<SpecialAbility> exceptional= new ArrayList<SpecialAbility>();
-            for (SpecialAbility h: hero.helpers)
-            {
-                exceptional.add(h); 
-            }
-            for (SpecialAbility h: exceptional)
-            {
-                h.Undo (hero); 
-            }
-        }
+        Battle.Turn(hero, bonus);
     }
-    public static void BonusTurn (Character hero)
-    { 
-        System.out.println ("\n"+hero.Cname+" takes a bonus turn");
-        if (hero.activeability[0]!=null)
+    public static void Turn (Character hero, boolean bonus) //what happens on a character's turn
+    {
+        if (hero.activeability!=null&&hero.activeability.channelled==true) //activeability set later/on previous turn, when chooseab is called
         {
-            hero.activeability[0].ActivateChannelled();
-        }
-        ArrayList<StatEff>concurrent= new ArrayList<StatEff>();
-        if (hero.effects.size()!=0)
-        {
-            concurrent.addAll(hero.effects);
-        }
-        for (StatEff eff: concurrent)
-        {
-            eff.onTurnStart(hero);
-        }         
-        if (hero.dead==false) //if they have not died from DoT damage
-        {
-            Ability activeAb=null; 
-            ArrayList<Character> targets= new ArrayList<Character>();
-            ArrayList<StatEff> toapply= new ArrayList<StatEff>(); //status effects for hero to apply to the target
-            ArrayList<StatEff> selfadd= new ArrayList<StatEff>(); //status effects for hero to apply to self
-            if (!(hero.binaries.contains("Stunned")))
+            ArrayList<StatEff> toadd= new ArrayList<StatEff>();
+            toadd=hero.activeability.ActivateChannelled(hero, hero.activeability); 
+            if (toadd!=null) //channelled abs return null if ab could not be used due to targets dying during channel
             {
-                hero.onTurn(hero, false);
-                Scoreboard.UpdateScore(team1, team2);
-                activeAb=hero.ChooseAb(hero);
-                if (activeAb!=null)
+                for (Character target: hero.activeability.ctargets) 
                 {
-                    targets=Battle.ChooseTarget(hero, activeAb.friendly, activeAb.target);        
-                    selfadd=activeAb.UseAb(hero, activeAb, targets);
+                    if (target!=null)
+                    {
+                        ArrayList<SpecialAbility> exception= new ArrayList<SpecialAbility>(); 
+                        for (SpecialAbility h: target.helpers) //for helpers like redwing; removed after an attack so it can prevent status effect application during it
+                        {
+                            exception.add(h); 
+                        }
+                        for (SpecialAbility h: exception)
+                        {
+                            h.Undo (target); 
+                        }
+                    }
                 }
             }
-            else
+            if (toadd!=null&&hero.dead==false) //if they didn't die from any reflect or counterattack
             {
-                System.out.println("\n"+hero.Cname+" skips their turn due to being Stunned.");
+                if (toadd.size()>0) //apply stateffs to self
+                {
+                    for (StatEff eff: toadd)
+                    {
+                        eff.CheckApply(hero, hero, eff);
+                    }
+                }
             }
-            ArrayList<StatEff>modexception= new ArrayList<StatEff>();
-            if (hero.effects.size()!=0)
+        }
+        ArrayList<StatEff>concurrent= new ArrayList<StatEff>(); //to avoid concurrent modification exception
+        if (hero.effects.size()!=0) //DoT effs tick if they have any
+        {
+            concurrent.addAll(hero.effects);
+            for (StatEff eff: concurrent)
+            {
+                eff.onTurnStart(hero); 
+            }  
+        }   
+        Ability activeAb=null;
+        ArrayList<Character> targets= new ArrayList<Character>(); //chars to hit with ab
+        ArrayList<StatEff> selfadd= new ArrayList<StatEff>(); //status effects for hero to apply to self
+        if (bonus==false) //makes distinction between bonus turns and normal turns to avoid quicksilver taking infinite turns
+        hero.onTurn(hero, true);
+        else
+        hero.onTurn(hero, false);
+        Scoreboard.UpdateScore(team1, team2);
+        if (hero.dead==false) //if they have not died from DoT damage
+        {
+            boolean flag=false;
+            ArrayList<StatEff> selfadd2= new ArrayList<StatEff>(); //to save unbound ab's stateffs to be applied at turn end
+            while (flag==false) 
+            {
+                activeAb=hero.ChooseAb(hero); //hero chooses an ab to use, which then becomes their activeability
+                if (activeAb==null) //hero chose to skip turn; end instantly since there's no ab to use
+                break;
+                else 
+                {
+                    targets=Battle.ChooseTarget(hero, activeAb.friendly, activeAb.target); //choose targets and use the ab
+                    selfadd2=activeAb.UseAb(hero, activeAb, targets);
+                    if (selfadd2!=null) //abs only return null if they can't be used due to a lack of targets; if null, restart the loop and choose something usable this time
+                    {
+                        selfadd.addAll(selfadd2);
+                        if (activeAb.unbound==false) //if unbound, loop to use a second ability; chooseab already prevents infinite unbound looping
+                        flag=true;
+                    }
+                }
+            }
+            ArrayList<StatEff>modexception= new ArrayList<StatEff>(); //to avoid concurrent modification exception
+            if (hero.effects.size()!=0) //if they have any non-DoT stateffs, they tick down
             {
                 modexception.addAll(hero.effects);
-            }
-            for (StatEff eff: modexception)
-            {
-                eff.onTurnEnd(hero);
-            } 
-            toapply.addAll(selfadd); //must be added after turn end so they don't prematurely tick
-            if (toapply.size()>0&&hero.dead==false) 
-            {
-                for (StatEff eff: toapply)
+                for (StatEff eff: modexception)
                 {
-                    eff.CheckApply(hero, hero, eff);
+                    eff.onTurnEnd(hero);
+                } 
+            }
+            for (Ability ab: hero.abilities) //after turn end, all the hero's cds tick down
+            {
+                if (ab!=null)
+                {
+                    ab.CDReduction(1);
+                }
+            } 
+            if (hero.dead==false) //finally, hero ends their turn
+            {
+                if (bonus==false)
+                hero.OnTurnEnd(hero, true);             
+                else
+                hero.OnTurnEnd(hero, false);   
+                if (selfadd.size()>0) //if the ab buffs the hero, the effs must be added after their turn end so they don't prematurely tick down
+                {
+                    for (StatEff eff: selfadd)
+                    {
+                        eff.CheckApply(hero, hero, eff);
+                    }
                 }
             }
             for (Character target: targets) 
             {
-                ArrayList<SpecialAbility> exception= new ArrayList<SpecialAbility>();
                 if (target!=null)
-                {                    
-                    for (SpecialAbility h: target.helpers) //for special things like redwing; happens after the attack to prevent status effect application 
+                {
+                    ArrayList<SpecialAbility> exception= new ArrayList<SpecialAbility>(); 
+                    for (SpecialAbility h: target.helpers) //for helpers like redwing; removed after an attack so it can prevent status effect application during it
                     {
                         exception.add(h); 
                     }
@@ -329,23 +398,12 @@ public class Battle
                     }
                 }
             }
-            for (Ability ab: hero.abilities)
-            {
-                if (ab!=null)
-                {
-                    ab.CDReduction(1);
-                }
-            } 
-            if (hero.dead==false)
-            {
-                hero.OnTurnEnd(hero, true);             
-            }
-            ArrayList<SpecialAbility> exceptional= new ArrayList<SpecialAbility>();
+            ArrayList<SpecialAbility> exceptions= new ArrayList<SpecialAbility>(); //then remove hero's used helpers too, or trigger a bonus turn
             for (SpecialAbility h: hero.helpers)
             {
-                exceptional.add(h); 
+                exceptions.add(h); 
             }
-            for (SpecialAbility h: exceptional)
+            for (SpecialAbility h: exceptions)
             {
                 h.Undo (hero); 
             }
@@ -353,7 +411,7 @@ public class Battle
     }
     public static ArrayList ChooseTarget (Character hero, String friendly, String type) 
     {
-        //friendly means ally, enemy, both, either, neither, self, ally inc, ally exc
+        //friendly means (single) ally, enemy, both, either, neither, self, ally inc(lusive), ally exc(lusive)
         //type is single, multi, random, or aoe, fixed
         Character[] targets= new Character[6];
         if (type.equalsIgnoreCase("Single")||type.equalsIgnoreCase("Multitarget"))
@@ -364,7 +422,7 @@ public class Battle
         {
             if (friendly.equalsIgnoreCase("enemy"))
             {
-                targets=Battle.GetTeammates(hero, Card_CoinFlip.TeamFlip(hero.team1));
+                targets=Battle.GetTeammates(hero, CoinFlip.TeamFlip(hero.team1));
             }
             else if (friendly.equalsIgnoreCase("ally inclusive"))
             {
@@ -401,19 +459,19 @@ public class Battle
             {
                 for (int i=0; i<6; i++)
                 {
-                    targets[i]=Ability.GetRandomEnemy(hero, false);
+                    targets[i]=Ability.GetRandomHero(hero, false);
                 }
             }
             else if (friendly.equalsIgnoreCase("ally exclusive"))
             {
                 for (int i=0; i<6; i++)
                 {
-                    targets[i]=Ability.GetRandomEnemy(hero, true);
+                    targets[i]=Ability.GetRandomHero(hero, true);
                 }
             }
         }
-        ArrayList toret=Card_CoinFlip.ToList(targets);
-        if (type.equalsIgnoreCase("none")||type.equalsIgnoreCase("self"))
+        ArrayList toret=CoinFlip.ToList(targets);
+        if (type.equalsIgnoreCase("self"))
         {
             ArrayList<Character> me= new ArrayList<Character>();
             me.add(hero);
@@ -431,7 +489,7 @@ public class Battle
         Character[] list= new Character[6]; //in future will need method to switch list into size 12 in case of friendly being both or either
         if (friendly.equalsIgnoreCase("enemy"))
         {
-            boolean meat=Card_CoinFlip.TeamFlip(hero.team1);
+            boolean meat=CoinFlip.TeamFlip(hero.team1);
             list=Battle.GetTeam(meat); 
         }
         else if (friendly.equalsIgnoreCase("ally inclusive"))
@@ -499,153 +557,202 @@ public class Battle
         }
         return targs;
     }
-    public static int GetTeamSize(boolean team)
-    {
-        if (team==true)
-        {
-            return p1teamsize;
-        }
-        else
-        {
-            return p2teamsize;
-        }
-    }
-    public static int GetNumOfHeroes (boolean team)
-    {
-        if (team==true)
-        {
-            return p1heroes;
-        }
-        else
-        {
-            return p2heroes;
-        }
-    }
-    public static Character[] GetTeammates (Character work, boolean team)
+    public static Character[] GetTeammates (Character self, boolean team) //returns all valid characters on a team, excluding the caller
     {
         if (team==true) //team1
         {
-            ArrayList <Character> friends= new ArrayList <Character>();
-            for (Character text:team1) 
-            {
-                if (text!=null&&text.hash!=work.hash&&(text.CheckFor(text, "Banish")==false)&&text.dead==false)
-                {
-                    friends.add(text);
-                }
-            }
-            Character[] foes= new Character[6];
+            Character[] friends= new Character[6];
             int i=0;
-            for (Character text:friends) 
+            for (Character hero:team1) 
             {
-                if (text!=null)
+                if (hero!=null&&hero.hash!=self.hash&&(hero.CheckFor(hero, "Banish")==false)&&hero.dead==false)
                 {
-                    foes[i]=text;
+                    friends[i]=hero;
                     ++i;
                 }
             }
-            return foes;
+            return friends;
         }
-        else 
+        else //team2
         {
-            ArrayList <Character> friends= new ArrayList <Character>();
-            for (Character text:team2) 
-            {
-                if (text!=null&&text.hash!=work.hash&&(text.CheckFor(text, "Banish")==false)&&text.dead==false) //excludes the caller, so they won't apply their ability to themself
-                {
-                    friends.add(text);
-                }
-            }
             Character[] foes= new Character[6];
             int i=0;
-            for (Character text:friends) 
+            for (Character hero:team2) 
             {
-                if (text!=null)
+                if (hero!=null&&hero.hash!=self.hash&&(hero.CheckFor(hero, "Banish")==false)&&hero.dead==false) 
                 {
-                    foes[i]=text;
+                    foes[i]=hero;
                     ++i;
                 }
             }
             return foes;
         }
     }
-    public static void SnareTime (Character snared) //losing speed and applying snare
+    public static void Snared (Character snared) //losing speed and applying snare
     {
-        //work in progress 
+        int index=0, oindex=0; 
+        if (snared.team1==true&&p1solo==false) //speed and snare are useless if there's only one hero
+        {
+            for (int i=0; i<6; i++) //need to find out hero's position in their team
+            {
+                if (team1[i]==snared)
+                {
+                    index=i; oindex=i; break;
+                }
+            }
+            if (index!=(p1heroes-1)) //the hero isn't already last in their turn order; move them down one in the new turn order
+            {
+                index+=1;
+                Character temp=team1[index];
+                team1[index]=snared;
+                team1[oindex]=temp;
+                team1=NullShift(team1);
+            }
+            else //the hero already goes last
+            {
+                if (Battle.tturns!=1||snared==team1[P1active]) //can't be first before their team's first character has taken a turn or else it would be like applying speed
+                {
+                    Character temp=team1[0];
+                    team1[0]=snared;
+                    team1[index]=temp;
+                    team1=NullShift(team1);
+                }
+            }
+        }
+        else if (snared.team1==false&&p2solo==false) 
+        {
+            for (int i=0; i<6; i++) 
+            {
+                if (team2[i]==snared)
+                {
+                    index=i; oindex=0; break;
+                }
+            }
+            if (index!=(p2heroes-1)) 
+            {
+                index+=1;
+                Character temp=team2[index];
+                team2[index]=snared;
+                team2[oindex]=temp;
+                team2=NullShift(team2);
+            }
+            else //the hero already goes last
+            {
+                if (Battle.tturns!=2||snared==team2[P2active]) //but if the one being snared is the one taking their turn, there's no problem since their turn is ending
+                {
+                    Character temp=team2[0];
+                    team2[0]=snared;
+                    team2[index]=temp;
+                    team2=NullShift(team2);
+                }
+            }
+        }
     }
-    public static void SpeedTime (Character sped) //losing snare and applying speed
+    public static void Speeded (Character sped) //losing snare and applying speed
     {
-        //work in progress
+        int index=0, oindex=0; 
+        if (sped.team1==true&&p1solo==false)
+        {
+            for (int i=0; i<6; i++) //need to find out hero's position in their team
+            {
+                if (team1[i]==sped)
+                {
+                    index=i; oindex=i; break;
+                }
+            }
+            if (index!=0) //then move them up one in the new turn order
+            {
+                index-=1;
+            }
+            else //the hero already goes first
+            {
+                index=p1heroes-1; //the number of characters is how many turns they have to wait until they take their next one; with speed, it's one less
+            }
+            Character temp=team1[index];
+            team1[index]=sped;
+            team1[oindex]=temp;
+            team1=NullShift(team1);
+        }
+        else if (sped.team1==false&&p2solo==false) //speed and snare are useless if there's only one hero
+        {
+            for (int i=0; i<6; i++) //need to find out hero's position in their team
+            {
+                if (team2[i]==sped)
+                {
+                    index=i; oindex=i; break;
+                }
+            }
+            if (index!=0) //then move them up one in the new turn order
+            {
+                index-=1;
+            }
+            else //the hero already goes first
+            {
+                index=p2heroes-1; //the number of characters is how many turns they have to wait until they take their next one; with speed, it's one less
+            }
+            Character temp=team2[index];
+            team2[index]=sped;
+            team2[oindex]=temp;
+            team2=NullShift(team2);
+        }
     }
-    public static void AddDead (Character dead)
+    public static void AddDead (Character dead) //altering team arrays to remove dead characters
     {
         if (dead.team1==true)
         {            
+            team1dead.add(dead); 
             for (int i=0; i<6; i++)
             {
-                if (team1[i]!=null&&team1[i].hash==dead.hash) 
+                if (team1[i]!=null&&team1[i]==dead) //make their spot in their team array null
                 {
                     team1[i]=null;
                     break;
                 }
             }
-            for (Character de: team1)
-            {
-                if (de!=null&&de.Torder>dead.Torder)
-                {
-                    de.Torder-=1; //e.g. if the character in front of them was second in turn order and they were third, they'd now be second (3-1)
-                }
-            }
-            team1dead.add(dead); team1=NullShift(team1); 
+            team1=NullShift(team1); 
             p1teamsize-=dead.size;
             p1heroes--;
         }
         else
-        {            
+        {         
+            team2dead.add(dead); 
             for (int i=0; i<6; i++)
             {
-                if (team2[i]!=null&&team2[i].hash==dead.hash)
+                if (team2[i]!=null&&team2[i]==dead)
                 {
                     team2[i]=null;
                     break;
                 }
             }
-            for (Character de: team2)
-            {
-                if (de!=null&&de.Torder>dead.Torder)
-                {
-                    de.Torder-=1;
-                }
-            }
-            team2dead.add(dead); team2=NullShift(team2);
+            team2=NullShift(team2);
             p2teamsize-=dead.size;
             p2heroes--;
         }
     }
-    public static Character[] NullShift (Character[] team)
+    public static Character[] NullShift (Character[] team) //after character dies, move others up in team array to put the nulls at the bottom/end
     {
-       Character[] newteam= new Character[6]; int ac=0;
-       for (int count=0; count<6; ++count) //fill the empty spaces in the array
+       Character[] newteam= new Character[6]; 
+       int index=0;
+       for (int count=0; count<6; ++count) 
        {
            if (team[count]!=null)
            { 
-               newteam[ac]=team[count];
-               ++ac;
+               newteam[index]=team[count];
+               ++index;
            }
        }
        return newteam;
     }
     public static void SummonSomeone (Character summoner, Summon friend) //checks if there's space on the team for a summon
     {
-        int size=friend.SetSizeSum(friend.index); 
-        friend.size=size;
-        if (summoner.team1==true) //they're on team 1
+        int size=friend.size; 
+        if (friend.team1==true) //should have been manually assigned when making the summon
         {
             if (p1teamsize<6&&(p1teamsize+size)<=6) //they cannot have more than 6 characters per team, or the equivalent
             {
-                friend.team1=true;
                 friend.mysummoner=summoner;
                 Battle.AddSummon(friend);
-                Character[] friends=Battle.GetTeammates(summoner, friend.team1);
+                Character[] friends=Battle.GetTeammates(summoner, friend.team1); //after they're summoned, allies and enemies apply relevant passives
                 for (Character prot: friends)
                 {
                     if (prot!=null&&!(prot.binaries.contains("Banished")))
@@ -653,7 +760,7 @@ public class Battle
                         prot.onAllySummon(summoner, friend);
                     }
                 }
-                Character[] enemies=Battle.GetTeammates(summoner, Card_CoinFlip.TeamFlip(friend.team1));
+                Character[] enemies=Battle.GetTeammates(summoner,CoinFlip.TeamFlip(friend.team1));
                 for (Character ant: enemies)
                 {
                     if (ant!=null&&!(ant.binaries.contains("Banished")))
@@ -664,17 +771,13 @@ public class Battle
             }
             else //if they are out of space, print error message
             {
-                if (friend.index!=9) //to prevent spam with Baron Strucker's legion of HYDRA troopers
-                {
-                    System.out.println ("Player 1 max team size reached. Summon failed."); 
-                }
+                System.out.println ("Player 1 max team size reached. Summon failed."); 
             }
         }
         else ///they are on team 2
         {
             if (p2teamsize<6&& (p2teamsize+size)<=6) 
             {
-                friend.team1=false;
                 friend.mysummoner=summoner;
                 Battle.AddSummon(friend);
                 Character[] friends=Battle.GetTeammates(summoner, friend.team1);
@@ -685,7 +788,7 @@ public class Battle
                         prot.onAllySummon(summoner, friend);
                     }
                 }
-                Character[] enemies=Battle.GetTeammates(summoner, Card_CoinFlip.TeamFlip(friend.team1));
+                Character[] enemies=Battle.GetTeammates(summoner, CoinFlip.TeamFlip(friend.team1));
                 for (Character ant: enemies)
                 {
                     if (ant!=null&&ant.CheckFor(ant, "Banish")==false)
@@ -696,23 +799,19 @@ public class Battle
             }
             else
             {
-                if (friend.index!=9)
-                {
-                    System.out.println ("Player 2 max team size reached. Summon failed."); 
-                }
+                System.out.println ("Player 2 max team size reached. Summon failed."); 
             }
         }
     }
-    public static void AddSummon (Summon friend) //add summon to the team and activate their on summon ability
+    public static void AddSummon (Summon friend) //add summon to the team array and activate their on summon ability
     {
         if (friend.team1==true)
         {
             for (int i=0; i<6; i++)
             {
-                if (team1[i]==null)
+                if (team1[i]==null) //add them to the first empty spot at the end of the turn order
                 {
                     team1[i]=friend;
-                    friend.Torder=i+1;
                     break;
                 }
             }
@@ -726,7 +825,6 @@ public class Battle
                 if (team2[i]==null)
                 {
                     team2[i]=friend;
-                    friend.Torder=i+1;
                     break;
                 }
             }

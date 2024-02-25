@@ -14,7 +14,7 @@ import java.awt.*;
 public class Scoreboard
 {   
     static JFrame frame; //holds everything
-    static JSplitPane MainPanel; //holds the two split panes; necessary for u4 tables to be shown at once
+    static JSplitPane MainPanel; //holds the two split panes; necessary for 4 tables to be shown at once
     static JPanel TopPanel; 
     static JPanel BottomPanel;
     static JTable table11; //for displaying info about player 1's first 3 characters    
