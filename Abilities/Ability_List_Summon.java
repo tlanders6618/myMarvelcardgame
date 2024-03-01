@@ -8,7 +8,7 @@ package myMarvelcardgamepack;
  * Purpose: Lists all summon abilities.
  */
 public class Ability_List_Summon
-{
+{ 
     public static Ability GetAb (int index, int counter, boolean copy) //copy is for characters like rogue
     {
         //attack abs construction: String name, String type, String friendly, int dmg, int cooldown
