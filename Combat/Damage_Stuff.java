@@ -12,7 +12,7 @@ public class Damage_Stuff
     {
         int CC=GetCC(dealer, chump);
         boolean crit=CoinFlip.Flip(CC);
-        dmg=GetCritdmg(dealer, dmg, crit);
+        dmg=GetCritdmg(dealer, dmg, crit, chump);
         dmg=DamageIncrease(dealer, chump, dmg);
         dmg=DamageDecrease(dealer, crit, chump, dmg);
         return dmg;
@@ -40,7 +40,7 @@ public class Damage_Stuff
         }
         return CC;
     }
-    public static int GetCritdmg (Character dealer, int dmg, boolean crit) 
+    public static int GetCritdmg (Character dealer, int dmg, boolean crit, Character chump) 
     {
         if (crit==true)
         {
@@ -48,6 +48,7 @@ public class Damage_Stuff
             System.out.println(dealer.Cname+"'s attack was critical!");
             double ndmg= dmg*dealer.critdmg;
             dmg=5*(int)(Math.floor(ndmg/5)); //crit damage rounded down to nearest 5
+            dealer.onCrit(dealer, chump);
         }
         return dmg;
     }
@@ -83,7 +84,7 @@ public class Damage_Stuff
     public static void CheckBlind (Character hero)
     {
         boolean nomiss=true; 
-        if (!(hero.binaries.contains("Missed"))&&!(hero.immunities.contains("Missed"))&&hero.CheckFor(hero, "Blind")==true&&!(hero.ignores.contains("Blind")))
+        if (!(hero.binaries.contains("Missed"))&&!(hero.immunities.contains("Missed"))&&hero.CheckFor(hero, "Blind", false)==true&&!(hero.ignores.contains("Blind")))
         {
             nomiss=CoinFlip.Flip(hero.accuracy);
             if (nomiss==false)
@@ -95,9 +96,9 @@ public class Damage_Stuff
     }
     public static void CheckEvade (Character dealer, Character target)
     {
-        if (!(dealer.binaries.contains("Missed"))&&!(dealer.immunities.contains("Missed"))&&(target.CheckFor(target, "Evade")==true||target.CheckFor(target, "Evasion")==true))
+        if (!(dealer.binaries.contains("Missed"))&&!(dealer.immunities.contains("Missed"))&&(target.CheckFor(target, "Evade", false)==true||target.CheckFor(target, "Evasion", false)==true))
         {
-            if (!(dealer.ignores.contains("Evade"))&&(target.CheckFor(target, "Shatter")==false)&&!(target.binaries.contains("Stunned")))
+            if (!(dealer.ignores.contains("Evade"))&&!(target.binaries.contains("Shattered"))&&!(target.binaries.contains("Stunned")))
             {
                 for (StatEff effect: target.effects)
                 {

@@ -34,7 +34,7 @@ public class Card_Selection
             {
                 Cname=Damage_Stuff.GetInput(); 
                 good=false;
-                if (Cname==616||Cname<=0||Cname>15) //updated as more characters are released in each version
+                if (Cname==616||Cname<=0||Cname>17) //updated as more characters are released in each version
                 {
                     System.out.println("Index number not found.");
                 }
@@ -66,7 +66,7 @@ public class Card_Selection
         do
         {
             rename=Damage_Stuff.GetInput();
-            if (rename==616||rename<=0||rename>15)
+            if (rename==616||rename<=0||rename>17)
             {
                 System.out.println("Index number not found.");
             }
@@ -142,9 +142,9 @@ public class Card_Selection
         int targ=56; boolean typo=true;
         ArrayList<Character> team=CoinFlip.ToList(list);
         ArrayList<Character> remove=new ArrayList<Character>();
-        for (Character c: team)
+        for (Character c: team) //can't target banished enemies
         {
-            if (c.CheckFor(c, "Banish")==true)
+            if (c.binaries.contains("Banished"))
             {
                 remove.add(c);
             }            
@@ -154,8 +154,8 @@ public class Card_Selection
             team.removeAll(remove);
             remove.removeAll(remove);
         }
-        ArrayList <Integer> afraid= new ArrayList <Integer>();
-        if (hero.CheckFor(hero, "Terror")==true&&!(hero.ignores.contains("Terror")))
+        ArrayList <Integer> afraid= new ArrayList <Integer>(); //terror only works if there are valid targets other than the enemy the hero is terrified of (if the enemy isn't alone)
+        if ((hero.team1==true&&Battle.p2solo!=true)||(hero.team1==false&&Battle.p1solo!=true)&&hero.CheckFor(hero, "Terror", false)==true&&!(hero.ignores.contains("Terror"))) 
         {
             for (StatEff eff: hero.effects)
             {
@@ -170,7 +170,7 @@ public class Card_Selection
                 for (Integer ig: afraid)
                 {
                     int h=(int) ig;
-                    if (h==c.hash&&team.size()>1)
+                    if (h==c.hash&&team.size()>1) //the enemy the hero is terrified of is only untargetable as long as there are other valid targets
                     {
                         remove.add(c); //the hero cannot target the one who terrified them
                     }
@@ -183,7 +183,7 @@ public class Card_Selection
             remove.removeAll(remove);
         }
         ArrayList <Integer> nafraid= new ArrayList <Integer>();
-        if (hero.CheckFor(hero, "Provoke")==true&&!(hero.ignores.contains("Provoke")))
+        if (hero.CheckFor(hero, "Provoke", false)==true&&!(hero.ignores.contains("Provoke")))
         {
             for (StatEff eff: hero.effects)
             {
@@ -194,21 +194,29 @@ public class Card_Selection
                 }
             } 
         }
-        ArrayList <Integer> priority= new ArrayList<Integer>();
-        if (!(hero.ignores.contains("Taunt"))&&!(hero.ignores.contains("Defence")))
+        ArrayList <Integer> priority= new ArrayList<Integer>(); //taunt takes priority over provoke
+        if (!(hero.ignores.contains("Taunt")))
         {
             for (Character target: team)
             {
-                if (target.CheckFor(target, "Taunt")==true)
+                for (StatEff e: target.effects)
                 {
-                    int h=target.hash;
-                    Integer a=h; priority.add(a);
+                    if (e.getimmunityname().equals("Taunt")&&e.getefftype().equals("Defence")&&!(hero.ignores.contains("Defence")))
+                    {
+                        int h=target.hash;
+                        Integer a=h; priority.add(a);
+                    }
+                    else if (e.getimmunityname().equals("Taunt")&&e.getefftype().equals("Other"))
+                    {
+                        int h=target.hash;
+                        Integer a=h; priority.add(a);
+                    }
                 }
             } 
         }
         if (priority.size()==0) //no taunt
         {
-            if (nafraid.size()>0) //provoke is only used is no one is taunting
+            if (nafraid.size()>0) //provoke is only taken into account if no one is taunting
             {
                 for (Character c: team)
                 {
@@ -217,7 +225,7 @@ public class Card_Selection
                         int h= (int) ig;
                         if (h!=c.hash)
                         {
-                            remove.add(c); 
+                            remove.add(c); //can only target the one who applied provoke
                         }
                     }
                 }
@@ -250,13 +258,6 @@ public class Card_Selection
                 {
                     remove.add(c);
                 }
-                else if (!(hero.ignores.contains("Invisible")))
-                {
-                    if (c.binaries.contains("Invisible"))
-                    {
-                        remove.add(c);
-                    }
-                }
             }
         }
         if (remove.size()>0)
@@ -264,8 +265,23 @@ public class Card_Selection
             team.removeAll(remove);
             remove.removeAll(remove);
         }
+        if ((hero.team1==true&&Battle.p2solo!=true)||(hero.team1==false&&Battle.p1solo!=true)) //finally, check invisibility
+        {
+            for (Character c: team)
+            {
+                if (!(hero.ignores.contains("Invisible"))&&c.binaries.contains("Invisible"))
+                {
+                    remove.add(c);
+                }
+            }
+        }
+        if (remove.size()>0&&remove.size()!=team.size()) //invisible has no effect if everyone on a team is invisible
+        {
+            team.removeAll(remove);
+            remove.removeAll(remove);
+        }
         int i=team.size();
-        Character[] nlist= new Character[i];
+        Character[] nlist= new Character[i]; //put all valid targets into new array
         for (int h=0; h<i; h++)
         {
             nlist[h]=team.get(h);

@@ -211,7 +211,7 @@ public class Battle
             {  
                 Battle.CheckActive(affil);
             }
-            else if (champions[P2active].CheckFor(champions[P2active], "Banished")==true)
+            else if (champions[P2active].binaries.contains("Banished"))
             {
                 if (p2solo==true)
                 {
@@ -411,7 +411,7 @@ public class Battle
     }
     public static ArrayList ChooseTarget (Character hero, String friendly, String type) 
     {
-        //friendly means (single) ally, enemy, both, either, neither, self, ally inc(lusive), ally exc(lusive)
+        //friendly means (single) ally, enemy, both, either, self, ally inc(lusive), ally exc(lusive)
         //type is single, multi, random, or aoe, fixed
         Character[] targets= new Character[6];
         if (type.equalsIgnoreCase("Single")||type.equalsIgnoreCase("Multitarget"))
@@ -422,11 +422,11 @@ public class Battle
         {
             if (friendly.equalsIgnoreCase("enemy"))
             {
-                targets=Battle.GetTeammates(hero, CoinFlip.TeamFlip(hero.team1));
+                targets=Battle.GetTeam(CoinFlip.TeamFlip(hero.team1));
             }
             else if (friendly.equalsIgnoreCase("ally inclusive"))
             {
-                targets=Battle.GetTeammates(hero, hero.team1);
+                targets=Battle.GetTeam(hero.team1);
                 for (int i=0; i<6; i++)
                 {
                     if (targets[i]==null)
@@ -438,13 +438,13 @@ public class Battle
             }
             else if (friendly.equalsIgnoreCase("ally exclusive"))
             {
-                if (hero.team1==true&&p1heroes>1)
+                if (hero.team1==true&&p1solo==false)
                 {
-                    targets=Battle.GetTeammates(hero, hero.team1);
+                    targets=Battle.GetTeammates(hero);
                 }
-                else if (hero.team1==false&&p2heroes>1)
+                else if (hero.team1==false&&p2solo==false)
                 {
-                    targets=Battle.GetTeammates(hero, hero.team1);
+                    targets=Battle.GetTeammates(hero);
                 }
                 else //there are no eligible targets so return nothing; ability is unsuable
                 {
@@ -453,21 +453,15 @@ public class Battle
                 }
             }
         }
-        else if (type.equalsIgnoreCase ("random target"))
+        else if (type.equalsIgnoreCase ("random"))
         {
             if (friendly.equalsIgnoreCase("enemy"))
             {
-                for (int i=0; i<6; i++)
-                {
-                    targets[i]=Ability.GetRandomHero(hero, false);
-                }
+                targets[0]=Ability.GetRandomHero(hero, false, false);
             }
             else if (friendly.equalsIgnoreCase("ally exclusive"))
             {
-                for (int i=0; i<6; i++)
-                {
-                    targets[i]=Ability.GetRandomHero(hero, true);
-                }
+                targets[0]=Ability.GetRandomHero(hero, true, false);
             }
         }
         ArrayList toret=CoinFlip.ToList(targets);
@@ -498,7 +492,7 @@ public class Battle
         }
         else if (friendly.equalsIgnoreCase("ally exclusive"))
         {
-            list=Battle.GetTeammates(hero, hero.team1);
+            list=Battle.GetTeammates(hero);
         }
         System.out.println ("\nChoose a target. Type the number that appears before their name.");
         if (!(friendly.equalsIgnoreCase("enemy"))) //choosing a teammate
@@ -557,15 +551,15 @@ public class Battle
         }
         return targs;
     }
-    public static Character[] GetTeammates (Character self, boolean team) //returns all valid characters on a team, excluding the caller
+    public static Character[] GetTeammates (Character self) //returns all valid characters on a team, excluding the caller
     {
-        if (team==true) //team1
+        if (self.team1==true) //team1
         {
             Character[] friends= new Character[6];
             int i=0;
             for (Character hero:team1) 
             {
-                if (hero!=null&&hero.hash!=self.hash&&(hero.CheckFor(hero, "Banish")==false)&&hero.dead==false)
+                if (hero!=null&&hero.hash!=self.hash&&!(hero.binaries.contains("Banished"))&&hero.dead==false)
                 {
                     friends[i]=hero;
                     ++i;
@@ -579,7 +573,7 @@ public class Battle
             int i=0;
             for (Character hero:team2) 
             {
-                if (hero!=null&&hero.hash!=self.hash&&(hero.CheckFor(hero, "Banish")==false)&&hero.dead==false) 
+                if (hero!=null&&hero.hash!=self.hash&&!(hero.binaries.contains("Banished"))&&hero.dead==false) 
                 {
                     foes[i]=hero;
                     ++i;
@@ -625,7 +619,7 @@ public class Battle
             {
                 if (team2[i]==snared)
                 {
-                    index=i; oindex=0; break;
+                    index=i; oindex=i; break;
                 }
             }
             if (index!=(p2heroes-1)) 
@@ -638,7 +632,7 @@ public class Battle
             }
             else //the hero already goes last
             {
-                if (Battle.tturns!=2||snared==team2[P2active]) //but if the one being snared is the one taking their turn, there's no problem since their turn is ending
+                if (Battle.tturns!=1||snared==team2[P2active]) //but if the one being snared is the one taking their turn, there's no problem since their turn is ending
                 {
                     Character temp=team2[0];
                     team2[0]=snared;
@@ -752,7 +746,7 @@ public class Battle
             {
                 friend.mysummoner=summoner;
                 Battle.AddSummon(friend);
-                Character[] friends=Battle.GetTeammates(summoner, friend.team1); //after they're summoned, allies and enemies apply relevant passives
+                Character[] friends=Battle.GetTeammates(summoner); //after they're summoned, allies and enemies apply relevant passives
                 for (Character prot: friends)
                 {
                     if (prot!=null&&!(prot.binaries.contains("Banished")))
@@ -760,7 +754,7 @@ public class Battle
                         prot.onAllySummon(summoner, friend);
                     }
                 }
-                Character[] enemies=Battle.GetTeammates(summoner,CoinFlip.TeamFlip(friend.team1));
+                Character[] enemies=Battle.GetTeam(CoinFlip.TeamFlip(friend.team1));
                 for (Character ant: enemies)
                 {
                     if (ant!=null&&!(ant.binaries.contains("Banished")))
@@ -780,18 +774,18 @@ public class Battle
             {
                 friend.mysummoner=summoner;
                 Battle.AddSummon(friend);
-                Character[] friends=Battle.GetTeammates(summoner, friend.team1);
+                Character[] friends=Battle.GetTeammates(summoner);
                 for (Character prot: friends)
                 {
-                    if (prot!=null&&prot.CheckFor(prot, "Banish")==false)
+                    if (prot!=null&&!(prot.binaries.contains("Banished")))
                     {
                         prot.onAllySummon(summoner, friend);
                     }
                 }
-                Character[] enemies=Battle.GetTeammates(summoner, CoinFlip.TeamFlip(friend.team1));
+                Character[] enemies=Battle.GetTeam(CoinFlip.TeamFlip(friend.team1));
                 for (Character ant: enemies)
                 {
-                    if (ant!=null&&ant.CheckFor(ant, "Banish")==false)
+                    if (ant!=null&&!(ant.binaries.contains("Banished")))
                     {
                         ant.onEnemySummon(summoner, friend);
                     }
