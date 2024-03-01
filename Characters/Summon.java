@@ -14,7 +14,7 @@ public class Summon extends Character
     public Summon (int Sindex)
     {
         //Same as with characters
-        //Need to manually assign team affiliation when creating a summon
+        //Need to manually assign team affiliation when creating a summon; not done in constructor
         index=Sindex;
         summoned=true;
         hash=Card_HashCode.RandomCode();
@@ -174,7 +174,7 @@ public class Summon extends Character
                 hero.binaries.remove("Stunned");
                 else //to prevent infinite turns if there is more than one hero on the team, but they're all decoys
                 {
-                    Character[] team=Battle.GetTeammates(hero, true); boolean solo=true;
+                    Character[] team=Battle.GetTeammates(hero); boolean solo=true;
                     for (Character c: team)
                     {
                         if (c!=null&&(c.summoned==false||c.index!=7))
@@ -192,7 +192,7 @@ public class Summon extends Character
                 hero.binaries.remove("Stunned");
                 else 
                 {
-                    Character[] team=Battle.GetTeammates(hero, false); boolean solo=true;
+                    Character[] team=Battle.GetTeammates(hero); boolean solo=true;
                     for (Character c: team)
                     {
                         if (c!=null&&(c.summoned==false||c.index!=7))
@@ -211,7 +211,7 @@ public class Summon extends Character
         if (hero.dead==false)
         {
             boolean team=hero.team1;
-            Character[] friends=Battle.GetTeammates(hero, team);
+            Character[] friends=Battle.GetTeammates(hero);
             for (Character friend: friends)
             {
                 if (friend!=null&&!(friend.binaries.contains("Banished")))
@@ -220,7 +220,7 @@ public class Summon extends Character
                 }
             }
             team=CoinFlip.TeamFlip(team); //reverse team affiliation to get enemies
-            Character[] foes=Battle.GetTeammates(hero, team);
+            Character[] foes=Battle.GetTeam(team);
             for (Character foe: foes)
             {
                 if (foe!=null&&!(foe.binaries.contains("Banished")))
@@ -269,11 +269,7 @@ public class Summon extends Character
         {
             Damage_Stuff.CheckEvade(dealer, target); //blind is checked when activating the ab; evade is checked here once the target has been selected
         }
-        if ((dealer.binaries.contains("Missed")))
-        {
-            dmg=0;
-        }
-        if ((!(dealer.binaries.contains("Missed"))))
+        if ((!(dealer.binaries.contains("Missed")))&&target.dead==false)
         {
             dmg=Damage_Stuff.DamageFormula(dealer, target, dmg);
             dmg=Damage_Stuff.CheckGuard(dealer, target, dmg);      
@@ -283,27 +279,26 @@ public class Summon extends Character
             }
             dmg=target.TakeDamage(target, dealer, dmg, aoe);
         }
+        else
+        dmg=0;
         dealer.activeability.ReturnDamage(dmg); //tells the ability how much dmg the attack did
+        dealer.onAttack(dealer, target); //activate relevant passives
         if (target.dead==false)
         {
             target.onAttacked(target, dealer, dmg);
         }
-        else
+        Character[] friends=Battle.GetTeammates(target);
+        for (Character friend: friends)
         {
-            Character[] friends=Battle.GetTeammates(target, target.team1);
-            for (Character friend: friends)
+            if (friend!=null&&!(friend.binaries.contains("Banished")))
             {
-                if (friend!=null&&!(friend.binaries.contains("Banished")))
-                {
-                    friend.onAllyAttacked(friend, target, dealer, dmg);
-                }
+                friend.onAllyAttacked(friend, target, dealer, dmg);
             }
         }
         if (dealer.dead==false)
         {
             dealer.CheckDrain(dealer, target, dmg);
         }
-        dealer.onAttack(dealer, target); //activate relevant passives
         return target;
     }
     @Override
@@ -325,7 +320,7 @@ public class Summon extends Character
         //triggered after a hero attacks
     }
     @Override
-    public void OnCrit (Character target)
+    public void onCrit (Character hero, Character target)
     {
     }
     @Override
@@ -333,31 +328,11 @@ public class Summon extends Character
     {
         if (attacked.dead==false)
         {
-            if (!(attacked.binaries.contains("Stunned"))&&!(attacker.ignores.contains("Counter")))
-            {
-                for (StatEff eff: attacked.effects)
-                {
-                    if (eff.getimmunityname().equalsIgnoreCase("Counter"))
-                    {
-                        eff.UseCounter(attacked, attacker); 
-                        attacked.remove(attacked, eff.hashcode, "normal");
-                        break;
-                    }
-                }
-            }
             for (StatEff eff: attacked.effects)
             {
-                eff.Attacked(attacked);
+                eff.Attacked(attacked, attacker, dmg);
             }
         } 
-        Character[] friends=Battle.GetTeammates(attacked, attacked.team1);
-        for (Character friend: friends)
-        {
-            if (friend!=null&&(friend.CheckFor(friend, "Banish")==false))
-            {
-                friend.onAllyAttacked(friend, attacked, attacker, dmg);
-            }
-        }
     }
     @Override
     public void onAllyAttacked(Character ally, Character hurtfriend, Character attacker, int dmg)
@@ -371,7 +346,7 @@ public class Summon extends Character
     public Character onTargeted (Character attacker, Character target, int dmg, boolean aoe)
     {
         Character ntarg=target;
-        if (aoe==false&&target.CheckFor(target, "Protect")==true&&!(attacker.ignores.contains("Protect")))
+        if (aoe==false&&target.CheckFor(target, "Protect", false)==true&&!(attacker.ignores.contains("Protect")))
         {
             for (StatEff eff: target.effects)
             {
@@ -399,7 +374,7 @@ public class Summon extends Character
         {
             for (Character friend: Battle.team1)
             {
-                if (friend!=null&&friend.CheckFor(friend, "Banish")==false)
+                if (friend!=null&&!(friend.binaries.contains("Banished")))
                 {
                     target=friend.onAllyTargeted(friend, attacker, target, dmg, aoe);
                 }
@@ -409,13 +384,13 @@ public class Summon extends Character
         {
             for (Character friend: Battle.team2)
             {
-                if (friend!=null&&friend.CheckFor(friend, "Banish")==false)
+                if (friend!=null&&!(friend.binaries.contains("Banished")))
                 {
                     target=friend.onAllyTargeted(friend, attacker, target, dmg, aoe);
                 }
             }
         }
-        if (ntarg!=null&&ntarg.CheckFor(ntarg, "Banish")==false)
+        if (ntarg!=null&&!(ntarg.binaries.contains("Banished")))
         {
             return ntarg;
         }
@@ -488,9 +463,8 @@ public class Summon extends Character
         }
     }
     @Override
-    public void TookDamage (Character hero, Character dealer, int dmg)
+    public void TookDamage (Character hero, Character dealer, int dmg) //for taking damage from a hero
     {
-        //for taking damage from a hero
         System.out.println ("\n"+dealer.Cname+" did "+dmg+" damage to "+hero.Cname);
         hero.dmgtaken+=dmg;
         if (hero.HP<=0)
@@ -500,14 +474,7 @@ public class Summon extends Character
         }
         else
         {
-            for (StatEff eff: hero.effects)
-            {
-               if (eff.getimmunityname().equalsIgnoreCase("Reflect"))
-               {
-                   eff.UseReflect(dealer, dmg);
-                   break;
-               }
-            }
+            //check passive
         }
     }
     @Override
@@ -548,19 +515,19 @@ public class Summon extends Character
                 hero.remove(hero, eff.hashcode, "silent"); 
             }
         }
-        Character[] people=Battle.GetTeammates(hero, hero.team1);
+        Character[] people=Battle.GetTeammates(hero);
         for (Character friend: people)
         {
-            if (friend!=null&&friend.CheckFor(friend, "Banish")==false)
+            if (friend!=null&&!(friend.binaries.contains("Banished")))
             {
                 friend.onAllyDeath(friend, hero, killer);
             }
         }
         boolean foe=CoinFlip.TeamFlip(hero.team1); //to get their enemies
-        Character[] enemies=Battle.GetTeammates(hero, foe);
+        Character[] enemies=Battle.GetTeam(foe);
         for (Character ant: enemies)
         {
-            if (ant!=null&&ant.CheckFor(ant, "Banish")==false)
+            if (ant!=null&&!(ant.binaries.contains("Banished")))
             {
                 ant.onEnemyDeath(ant, hero, killer);
             }
@@ -586,6 +553,10 @@ public class Summon extends Character
     public void onKill (Character killer, Character victim)
     {
     } 
+    @Override 
+    public void onRez (Character hero, Character healer)
+    {
+    }
     @Override
     public void Transform (Character hero, int newindex, boolean greater) //new index is the index number of the character being transformed into
     {
@@ -614,18 +585,18 @@ public class Summon extends Character
     public boolean onSelfControlled (Character hero, Character controller)
     {
         boolean ok=true;
-        Character[] people=Battle.GetTeammates(hero, hero.team1);
+        Character[] people=Battle.GetTeammates(hero); 
         for (Character friend: people)
         {
-            if (friend!=null&&friend.CheckFor(friend, "Banish")==false)
+            if (friend!=null&&!(friend.binaries.contains("Banished")))
             {
                 ok=friend.onAllyControlled(friend, hero, controller);
             }
         }
-        Character[] enemies=Battle.GetTeammates(hero, hero.team1);
+        Character[] enemies=Battle.GetTeam(CoinFlip.TeamFlip(hero.team1));
         for (Character ant: enemies)
         {
-            if (ant!=null&&ant.CheckFor(ant, "Banish")==false)
+            if (ant!=null&&!(ant.binaries.contains("Banished")))
             {
                 ok=ant.onEnemyControlled(ant, hero, controller);
             }

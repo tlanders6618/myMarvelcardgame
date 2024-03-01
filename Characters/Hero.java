@@ -38,7 +38,7 @@ public class Hero extends Character
         if (hero.dead==false)
         {
             boolean team=hero.team1;
-            Character[] friends=Battle.GetTeammates(hero, team);
+            Character[] friends=Battle.GetTeammates(hero);
             for (Character friend: friends)
             {
                 if (friend!=null&&!(friend.binaries.contains("Banished")))
@@ -47,7 +47,7 @@ public class Hero extends Character
                 }
             }
             team=CoinFlip.TeamFlip(team); //reverse team affiliation to get enemies
-            Character[] foes=Battle.GetTeammates(hero, team);
+            Character[] foes=Battle.GetTeam(team);
             for (Character foe: foes)
             {
                 if (foe!=null&&!(foe.binaries.contains("Banished")))
@@ -77,6 +77,7 @@ public class Hero extends Character
         switch (hero.index)
         {
             case 12: ActivePassive.DraxOG(hero, false, null, null); break;
+            case 13: StaticPassive.Drax (hero, null, false); break;
         }
     }
     @Override
@@ -104,18 +105,24 @@ public class Hero extends Character
             case 8: StaticPassive.Bucky(hero); break;
             case 12: StaticPassive.DraxOG(hero); break;
             case 15: StaticPassive.WolvieTracker(hero); break;
+            case 16: StaticPassive.OGVenom (hero); StaticPassive.Symbiote (hero, 0, true); break;
+            case 17: StaticPassive.Symbiote (hero, 0, true); break;
         }
     }
     @Override
     public void add (Character hero, StatEff eff) //adding a stateff
     {
         hero.effects.add(eff);        
-        String type=eff.getefftype();
+        String type=eff.getefftype(); String name=eff.getimmunityname();
         switch (hero.index)
         {
             case 2: 
-            if (type.equals("Buffs"))
+            if (name.equals("Intensify")&&type.equals("Buffs"))
             ActivePassive.Gamora(hero, eff, true); 
+            break;
+            case 16: case 17:
+            if (name.equals("Burn"))
+            StaticPassive.Symbiote(hero, 5, false);
             break;
         }
         for (StatEff e: hero.effects) //for stateffs that react to other stateffs like fortify
@@ -146,17 +153,21 @@ public class Hero extends Character
                 switch (hero.index)
                 {
                     case 2: 
-                    if (name.equals("Intensify"))
+                    if (name.equals("Intensify")&&type.equals("Buffs"))
                     {
                         ActivePassive.Gamora(hero, eff, false); 
                         break;
                     }
                     case 4:
-                    if (name.equals("Intensify")&&(how.equals("nullify")||how.equals("steal")))
+                    if (name.equals("Intensify")&&type.equals("Buffs")&&(how.equals("nullify")||how.equals("steal")))
                     {
                         ActivePassive.IM(hero, eff); 
                         break;
                     }
+                    case 16: case 17:
+                    if (name.equals("Burn"))
+                    StaticPassive.Symbiote(hero, -5, false);
+                    break;
                 }     
                 hero.effects.remove(eff);
                 break; //end the for each loop
@@ -164,19 +175,19 @@ public class Hero extends Character
         }
     }
     @Override
-    public Character Attack (Character dealer, Character target, int dmg, boolean aoe)
+    public Character Attack (Character dealer, Character target, int dmg, boolean aoe) //for attack skills
     {
-        //for normal damage from attack skills
         target=target.onTargeted(dealer, target, dmg, aoe);
         switch (dealer.index)
         {
-            case 14: ActivePassive.X23(dealer, target, true); break;
+            case 13: StaticPassive.Drax(dealer, target, false); break;
+            case 14: ActivePassive.X23(dealer, target, false); break;
         }
         if ((!(dealer.binaries.contains("Missed"))&&!(dealer.immunities.contains("Missed")))) //only check if dealer isn't immune to miss and hasn't missed already; can't miss twice 
         { 
             Damage_Stuff.CheckEvade(dealer, target); //blind is checked when activating the ab; evade is checked here once the target has been selected
         }
-        if ((!(dealer.binaries.contains("Missed")))&&target.dead==false) //check that they're alive for mulitihit attacks
+        if ((!(dealer.binaries.contains("Missed")))&&target.dead==false) //check that they're still alive for mulitihit attacks
         {
             dmg=Damage_Stuff.DamageFormula(dealer, target, dmg);
             dmg=Damage_Stuff.CheckGuard(dealer, target, dmg);      
@@ -189,25 +200,22 @@ public class Hero extends Character
         else
         dmg=0;
         dealer.activeability.ReturnDamage(dmg); //tells the ability how much dmg the attack did
+        dealer.onAttack(dealer, target); //activate relevant passives after attacking
         if (target.dead==false)
         {
             target.onAttacked(target, dealer, dmg);
         }
-        else
+        Character[] friends=Battle.GetTeammates(target);
+        for (Character friend: friends)
         {
-            Character[] friends=Battle.GetTeammates(target, target.team1);
-            for (Character friend: friends)
+            if (friend!=null&&!(friend.binaries.contains("Banished")))
             {
-                if (friend!=null&&!(friend.binaries.contains("Banished")))
-                {
-                    friend.onAllyAttacked(friend, target, dealer, dmg);
-                }
+                friend.onAllyAttacked(friend, target, dealer, dmg);
             }
         }
         if (dealer.dead==false)
         {
             dealer.CheckDrain(dealer, target, dmg);
-            dealer.onAttack(dealer, target); //activate relevant passives after attacking
         }
         return target;
     }
@@ -225,21 +233,20 @@ public class Hero extends Character
         return target;
     }
     @Override
-    public void onAttack (Character hero, Character victim)
+    public void onAttack (Character hero, Character victim) //triggered after a hero finishes attacking
     {
-        //triggered after a hero attacks
         switch (hero.index)
         {
             case 12: ActivePassive.DraxOG(hero, true, victim, null); break;
-            case 14: ActivePassive.X23(hero, victim, true); break;
+            case 14: ActivePassive.X23(hero, victim, false); break;
         }
     }
     @Override
-    public void OnCrit (Character target)
+    public void onCrit (Character hero, Character target) //called by damagestuff crit calc
     {
-        switch (this.index)
+        switch (hero.index)
         {
-            case 14: ActivePassive.X23(this, target, false); break;
+            case 14: ActivePassive.X23(hero, target, true); break;
         }
     }
     @Override
@@ -247,35 +254,15 @@ public class Hero extends Character
     {
         if (attacked.dead==false)
         {
-            if (!(attacked.binaries.contains("Stunned"))&&!(attacker.ignores.contains("Counter")))
-            {
-                for (StatEff eff: attacked.effects)
-                {
-                    if (eff.getimmunityname().equalsIgnoreCase("Counter"))
-                    {
-                        eff.UseCounter(attacked, attacker); 
-                        attacked.remove(attacked, eff.hashcode, "normal");
-                        break;
-                    }
-                }
-            }
             for (StatEff eff: attacked.effects)
             {
-                eff.Attacked(attacked);
+                eff.Attacked(attacked, attacker, dmg);
             }
             switch (attacked.index)
             {
                 case 15: ActivePassive.Wolvie(attacked, true); break;
             }
         } 
-        Character[] friends=Battle.GetTeammates(attacked, attacked.team1);
-        for (Character friend: friends)
-        {
-            if (friend!=null&&(friend.CheckFor(friend, "Banish")==false))
-            {
-                friend.onAllyAttacked(friend, attacked, attacker, dmg);
-            }
-        }
     }
     @Override
     public void onAllyAttacked(Character hero, Character hurtfriend, Character attacker, int dmg) 
@@ -285,6 +272,7 @@ public class Hero extends Character
             switch (hero.index)
             {
                 case 1: ActivePassive.MoonKnight(hero, hurtfriend, attacker); break;
+                case 16: ActivePassive.OGVenom (hero, hurtfriend, attacker); break;
             }
         }
     }
@@ -381,14 +369,6 @@ public class Hero extends Character
         else
         {
             hero.HPChange(hero, h, hero.HP);
-            for (StatEff eff: hero.effects)
-            {
-               if (eff.getimmunityname().equalsIgnoreCase("Reflect"))
-               {
-                   eff.UseReflect(dealer, dmg);
-                   break;
-               }
-            }
             switch (hero.index)
             {
                 case 15: ActivePassive.Wolvie(hero, false); break;
@@ -419,11 +399,17 @@ public class Hero extends Character
         switch (hero.index)
         {
             case 5:     
-            if (hero.passivefriend[0]!=null)
+            if (hero.passivefriend[0]!=null&&hero.passivefriend[0].dead==false)
             {
                 hero.passivefriend[0].remove(passivefriend[0], passivecount, "normal"); //remove war machine's heat signature detection
             }
             break;            
+            case 16:
+            if (hero.passivefriend[0]!=null&&hero.passivefriend[0].dead==false)
+            {
+                hero.passivefriend[0].remove(passivefriend[0], passivecount, "normal"); //remove war machine's heat signature detection
+            }
+            break;   
         }
         if (hero.activeability!=null&&hero.activeability.channelled==true)
         {
@@ -450,19 +436,18 @@ public class Hero extends Character
                 hero.remove(hero, eff.hashcode, "silent"); 
             }
         }
-        Character[] people=Battle.GetTeammates(hero, hero.team1);
+        Character[] people=Battle.GetTeammates(hero);
         for (Character friend: people)
         {
-            if (friend!=null&&friend.CheckFor(friend, "Banish")==false)
+            if (friend!=null&&!(friend.binaries.contains("Banished")))
             {
                 friend.onAllyDeath(friend, hero, killer);
             }
         }
-        boolean foe=CoinFlip.TeamFlip(hero.team1); //to get their enemies
-        Character[] enemies=Battle.GetTeammates(hero, foe);
+        Character[] enemies=Battle.GetTeam(CoinFlip.TeamFlip(hero.team1));
         for (Character ant: enemies)
         {
-            if (ant!=null&&ant.CheckFor(ant, "Banish")==false)
+            if (ant!=null&&!(ant.binaries.contains("Banished")))
             {
                 ant.onEnemyDeath(ant, hero, killer);
             }
@@ -487,8 +472,15 @@ public class Hero extends Character
     @Override
     public void onKill (Character killer, Character victim)
     {
-        //switch
+        switch (killer.index)
+        {
+            case 17: ActivePassive.Venom(killer); break;
+        }
     } 
+    @Override 
+    public void onRez (Character hero, Character healer)
+    {
+    }
     @Override
     public void Transform (Character hero, int newindex, boolean greater) //new index is the index number of the character being transformed into
     {
@@ -546,7 +538,7 @@ public class Hero extends Character
     public boolean onSelfControlled (Character hero, Character controller)
     {
         boolean ok=true;
-        Character[] people=Battle.GetTeammates(hero, hero.team1);
+        Character[] people=Battle.GetTeammates(hero);
         for (Character friend: people)
         {
             if (friend!=null)
@@ -554,7 +546,7 @@ public class Hero extends Character
                 ok=friend.onAllyControlled(friend, hero, controller);
             }
         }
-        Character[] enemies=Battle.GetTeammates(hero, hero.team1);
+        Character[] enemies=Battle.GetTeam(CoinFlip.TeamFlip(hero.team1));
         for (Character ant: enemies)
         {
             if (ant!=null)

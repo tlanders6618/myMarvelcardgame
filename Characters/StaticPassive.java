@@ -9,18 +9,92 @@ package myMarvelcardgamepack;
  */
 public class StaticPassive 
 {
+    public static void Symbiote (Character venom, int vuln, boolean start) //efficient since they all have the same passive
+    {
+        if (start==true)
+        venom.ignores.add("Evade");
+        else
+        venom.DV+=vuln;
+    }
+    public static void OGVenom (Character eddie) //choose ally to watch over
+    {
+        if (eddie.team1==true)
+        {
+            System.out.println ("\nPlayer 1, choose a character for Venom (Eddie Brock) to watch over. Type the number in front of their name.");
+        }
+        else
+        {
+            System.out.println ("\nPlayer 2, choose a character for Venom (Eddie Brock) to watch over. Type the number in front of their name.");
+        }
+        Character[] friends=null;
+        friends=Battle.GetTeammates(eddie);
+        ResistanceE res= new ResistanceE (500, 10, 616);
+        int index=Card_Selection.ChooseTargetFriend (friends);
+        StatEff.CheckApply(eddie, friends[index], res);
+        eddie.passivecount=res.hashcode;
+        eddie.passivefriend[0]=friends[index];
+        friends[index].add(friends[index], new Tracker ("Watched by Venom (Eddie Brock)"));
+    }
     public static void WolvieTracker (Character wolvie) //initialise tracker on fightstart
     {
         Tracker frenzy= new Tracker("Damage Taken: ");
         wolvie.effects.add(frenzy);
         frenzy.onApply(wolvie);
     }
+    public static void Drax (Character arthur, Character target, boolean knife) //in here bc I assume this'll be used once per fight due to its strict requirements
+    {
+        if (knife==true) //called by twin blades
+        {
+            arthur.passivecount=1;
+        }
+        else if (target==null) //called by hero.turnend; undoes passive after attack finished
+        {
+            if (arthur.passivecount==-2)
+            {
+                arthur.passivecount=0;
+                arthur.BD-=30;
+                StatEff bl=null;
+                for (StatEff e: arthur.effects)
+                {
+                    if (e.geteffname().equals("Twin Blades active"))
+                    {
+                        bl=e; break;
+                    }
+                }
+                arthur.remove(arthur, bl.hashcode, "silent");
+            }
+            else if (arthur.passivecount==-1)
+            {
+                arthur.passivecount=0;
+                arthur.BD-=15;
+            }
+        }
+        else //activate passive; called by both hero.attack and knife slash since debuffmod occurs before attacking
+        {
+            int HP=target.maxHP;
+            double tenth=HP*0.75; //75% of target maxhp
+            tenth=5*(int)Math.ceil(tenth/5); //rounded up to nearest multiple of 5
+            if (target.HP>=tenth) //then passive triggers
+            {
+                if (arthur.passivecount==1) //triggers twice
+                {
+                    arthur.passivecount=-2;
+                    arthur.BD+=30;
+                }
+                else if (arthur.passivecount==0)
+                {
+                    arthur.passivecount=-1;
+                    arthur.BD+=15;
+                }
+            }
+        }
+    }
     public static void DraxOG (Character drax) //choosing obsession at fight start
     {
         CoinFlip.IgnoreTargeting(drax, true);
         drax.immunities.add("Buffs");
         drax.immunities.add("Persuaded");
-        drax.ignores.add("Invisible");
+        drax.ignores.add("Invisible"); //so it doesn't interfere with choosing his obsession
         if (drax.team1==true)
         {
             System.out.println ("\nPlayer 1, choose Drax's Obsession.");
@@ -89,7 +163,7 @@ public class StaticPassive
             }
             Character[] foes=Battle.TargetFilter(machine, "enemy", "single");
             WMTarget bay= new WMTarget();
-            foes[0].add(foes[0], bay);
+            StatEff.CheckApply(machine, foes[0], bay);
             machine.passivefriend[0]=foes[0];
             machine.passivecount=bay.hashcode;
             CoinFlip.AddInescapable (machine, false);

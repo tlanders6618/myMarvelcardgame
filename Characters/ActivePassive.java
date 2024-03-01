@@ -7,71 +7,115 @@ package myMarvelcardgamepack;
  * Filename: ActivePassive
  * Purpose: Makes characters' passives since I now realise they're too different from abilities to be in the same class.
  */
+import java.util.ArrayList;
 public class ActivePassive 
 {
-    public static void Wolvie (Character wolvie, boolean regen)
+    public static void Venom (Character macdonald) //called by hero.onkill
     {
-        if (regen==true&&!(wolvie.binaries.contains("Stunned"))&&!(wolvie.binaries.contains("Afflicted"))) //gain regen after being attacked
+        boolean yes=CoinFlip.Flip(500+macdonald.Cchance);
+        Focus add= new Focus (500, 1);
+        if (yes==true)
+        StatEff.CheckApply(macdonald, macdonald, add);
+        else
+        StatEff.applyfail(macdonald, add, "chance");
+        add.duration+=1; //to prevent it from instantly expiring when the current turn ends
+    }
+    public static void OGVenom (Character eddie, Character attacked, Character attacker) //called by hero.onallyattacked
+    {
+        if (!(attacker.ignores.contains("Counter")))
         {
-            boolean yes=CoinFlip.Flip(50+wolvie.Cchance);
-            if (yes==true)
+            if (attacked==eddie.passivefriend[0])
             {
-                String[] heal= {"Regen", "500", "20", "1", "true"};
-                String[][] healme=StatFactory.MakeParam(heal, null);
-                StatEff add=StatFactory.MakeStat(healme);
-                StatEff.CheckApply(wolvie, wolvie, add);
+                int dmg=35;
+                System.out.println ("\nThis one is under our protection!");
+                Damage_Stuff.CheckBlind(eddie);
+                if ((!(eddie.binaries.contains("Missed"))||eddie.immunities.contains("Missed")))
+                {
+                    Damage_Stuff.CheckEvade(eddie, attacker);
+                    if (!(eddie.binaries.contains("Missed")))
+                    {
+                        dmg=Damage_Stuff.DamageFormula(eddie, attacker, dmg);
+                        dmg=Damage_Stuff.CheckGuard(eddie, attacker, dmg);
+                        attacker.TakeDamage(attacker, eddie, dmg, false);                         
+                    }
+                }
             }
         }
-        else //check berserker trigger after taking dmg
+        if (eddie.binaries.contains("Missed")) //if his counterattack was evaded before; needed since miss is normally only cleared after using an ab
+        eddie.binaries.remove("Missed");
+    }
+    public static void Wolvie (Character wolvie, boolean regen)
+    {
+        if (regen==true&&!(wolvie.binaries.contains("Stunned"))) //called by hero.onattacked
+        {
+            boolean yes=CoinFlip.Flip(500+wolvie.Cchance);
+            Regen volkya= new Regen (500, 15, 1);
+            if (yes==true)
+            StatEff.CheckApply(wolvie, wolvie, volkya);
+            else
+            StatEff.applyfail(wolvie, volkya, "chance");
+        }
+        else //called by hero.tookdamage
         {
             if (wolvie.passivecount==0&&wolvie.dmgtaken>=180)
             {
                 wolvie.passivecount=1;
                 System.out.println("\nWolverine has gone berserk!");
-                wolvie.ADR+=10;
-                wolvie.immunities.add("Persuaded"); wolvie.immunities.add("Control"); 
+                ArrayList<StatEff> removal= new ArrayList<StatEff>();
+                for (StatEff e: wolvie.effects)
+                {
+                    if (!(e.getefftype().equals("Secret"))&&!(e.getimmunityname().equals("Regen")))
+                    removal.add(e);
+                }
+                for (StatEff e: removal)
+                {
+                    wolvie.remove(wolvie, e.hashcode, "normal");
+                }
+                wolvie.ADR+=15;
+                wolvie.immunities.add("Persuaded"); wolvie.immunities.add("Control"); CoinFlip.IgnoreTargeting(wolvie, true);
                 boolean yes=CoinFlip.Flip(500+wolvie.Cchance);
+                StatEff d= new IntensifyE(500, 15, 616);
                 if (yes==true)
-                {
-                    StatEff d= new IntensifyE(500, 15, 616);
-                    StatEff.CheckApply(wolvie, wolvie, d);
-                }
+                StatEff.CheckApply(wolvie, wolvie, d);
+                else
+                StatEff.applyfail(wolvie, d, "chance");
                 yes=CoinFlip.Flip(500+wolvie.Cchance);
+                StatEff f= new FocusE(500, 616);
                 if (yes==true)
-                {
-                    StatEff f= new FocusE(500, 616);
-                    StatEff.CheckApply(wolvie, wolvie, f);
-                }
+                StatEff.CheckApply(wolvie, wolvie, f);
+                else
+                StatEff.applyfail(wolvie, f, "chance");
+                BasicAb slash= new BasicAb ("X-Slash", "random", "enemy", 35); 
+                String[] bleed= {"Bleed", "50", "20", "1", "false"}; String[][] real=StatFactory.MakeParam(bleed, null); slash.AddStatString(real);
+                BasicAb punch =new BasicAb ("Primal Punch", "random", "enemy", 45); 
+                wolvie.abilities[0]=slash;
+                wolvie.abilities[1]=punch;
             }
         }
     }
     public static void X23 (Character laura, Character victim, boolean crit)
     {
-        if (crit==true) //X23 is attacking
+        if (crit==false) //hero.attack and hero.onattack
         {
-            if (laura.passivecount==0&&victim.HP<100)
+            if (laura.passivecount==0&&victim.HP<90) //check before attacking
             {
-                laura.passivecount=1;
+                laura.passivecount=1; 
                 laura.CC+=50;
-                System.out.println("\nTEST X23 crit before attack: "+laura.CC);
             }
-            else if (laura.passivecount==1)
+            else if (laura.passivecount==1) //undo after attacking
             {
                 laura.CC-=50;
                 laura.passivecount=0;
-                System.out.println("TEST X23 crit after attack: "+laura.CC+"\n");
             }
         }
-        else //check regen
+        else //check regen on hero.oncrit
         {
             boolean yes=CoinFlip.Flip(50+laura.Cchance);
-            if (yes==true&&!(laura.binaries.contains("Afflicted")))
-            {
-                String[] reg= {"Regen", "500", "25", "1", "true"};
-                String[][] regen=StatFactory.MakeParam (reg, null);
-                StatEff add=StatFactory.MakeStat(regen);
-                StatEff.CheckApply(laura, laura, add);
-            }
+            Regen RV= new Regen (500, 15, 1);
+            if (yes==true)
+            StatEff.CheckApply(laura, laura, RV);
+            else
+            StatEff.applyfail(laura, RV, "chance");
         }
     }
     public static boolean DraxOG (Character drax, boolean attack, Character victim, String dmgtype) //called by onattack and turnend
@@ -108,17 +152,19 @@ public class ActivePassive
         }
         else if (attack==true) //add one more obsession to the target
         {
-            if (victim==drax.passivefriend[0]&&drax.passivecount<3&&(!(drax.binaries.contains("Missed"))||drax.immunities.contains("Missed")))
+            if (victim==drax.passivefriend[0]&&drax.passivecount<3&&(!(drax.binaries.contains("Missed"))))
             {
-                if (victim.CheckFor(victim, "Obsession")==true)
+                if (victim.CheckFor(victim, "Obsession", false)==true)
                 {
                     boolean yes=CoinFlip.Flip(500+drax.Cchance);
+                    Obsession obs= new Obsession ();
                     if (yes==true)
                     {
-                        Obsession obs= new Obsession ();
                         drax.passivefriend[0].add(drax.passivefriend[0], obs);
                         drax.passivecount++;
                     }
+                    else
+                    StatEff.applyfail(drax, obs, "chance");
                 }
             }
         }
@@ -179,7 +225,7 @@ public class ActivePassive
             {
                 Confidence heal= new Confidence (500, 15);
                 Character[] targets= new Character[6];
-                targets=Battle.GetTeammates(quill, quill.team1);
+                targets=Battle.GetTeam(quill.team1);
                 System.out.println ("\nDance break!");
                 for (Character me: targets)
                 {
@@ -188,7 +234,6 @@ public class ActivePassive
                         heal.Use(quill, me, 616);
                     }
                 }
-                heal.Use(quill, quill, 616);
             }
             return false; //so his turn counter does not increment twice
         }

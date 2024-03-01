@@ -51,13 +51,26 @@ public abstract class Character
     public Character ()
     {
     }
-    public static boolean CheckFor (Character hero, String eff)
+    public static boolean CheckFor (Character hero, String eff, boolean type)
     {
-        for (StatEff effect: hero.effects)
+        if (type==false)
         {
-            if (eff.equalsIgnoreCase(effect.getimmunityname()))
+            for (StatEff e: hero.effects)
             {
-                return true;
+                if (eff.equalsIgnoreCase(e.getimmunityname()))
+                {
+                    return true;
+                }
+            }
+        }
+        else //check type
+        {
+            for (StatEff e: hero.effects)
+            {
+                if (eff.equalsIgnoreCase(e.getefftype()))
+                {
+                    return true;
+                }
             }
         }
         return false;
@@ -147,7 +160,7 @@ public abstract class Character
             System.out.println(healed.Cname+" could not be healed due to being Wounded!");
             nowound=false;
         }
-        if (nowound==true&&healed.HP<healed.maxHP)
+        if (nowound==true&&healed.HP<healed.maxHP&&healed.dead==false)
         {
             regener=healed.GetHealAmount(healed, regener, passive);
             healed.HP+=regener;
@@ -237,11 +250,11 @@ public abstract class Character
     public Character onTargeted (Character attacker, Character target, int dmg, boolean aoe)
     {
         Character ntarg=target;
-        if (aoe==false&&target.CheckFor(target, "Protect")==true&&!(attacker.ignores.contains("Protect")))
+        if (aoe==false&&target.CheckFor(target, "Protect", false)==true&&!(attacker.ignores.contains("Protect"))) //check for protect
         {
             for (StatEff eff: target.effects)
             {
-                if (eff.getimmunityname().equalsIgnoreCase("Protect")&&!(eff.getProtector().equals(target)))
+                if (eff.getimmunityname().equalsIgnoreCase("Protect")&&!(eff.getProtector().equals(target))) //protect has no effect if the target isn't the one being protected
                 {
                     if (eff.getefftype().equalsIgnoreCase("Defence")&&!(attacker.ignores.contains("Defence"))) 
                     //if the target has protect and the attacker doesn't ignore it, their protector instead takes the hit
@@ -260,12 +273,12 @@ public abstract class Character
                 }
             }
         }
-        //switch goes down here, after target sorting
+        //switch goes down here, after target sorting 
         if (target.team1==true)
         {
             for (Character friend: Battle.team1)
             {
-                if (friend!=null&&friend.CheckFor(friend, "Banish")==false)
+                if (friend!=null&&!(friend.binaries.contains("Banished")))
                 {
                     target=friend.onAllyTargeted(friend, attacker, target, dmg, aoe);
                 }
@@ -275,13 +288,13 @@ public abstract class Character
         {
             for (Character friend: Battle.team2)
             {
-                if (friend!=null&&friend.CheckFor(friend, "Banish")==false)
+                if (friend!=null&&!(friend.binaries.contains("Banished")))
                 {
                     target=friend.onAllyTargeted(friend, attacker, target, dmg, aoe);
                 }
             }
         }
-        if (ntarg!=null&&ntarg.CheckFor(ntarg, "Banish")==false)
+        if (ntarg!=null&&!(ntarg.binaries.contains("Banished")))
         {
             return ntarg;
         }
@@ -293,7 +306,7 @@ public abstract class Character
     public abstract Character onAllyTargeted (Character hero, Character dealer, Character target, int dmg, boolean aoe); //for protect and passives to change target hero
     public abstract Character Attack (Character dealer, Character target, int dmg, boolean aoe);
     public abstract Character AttackNoDamage (Character dealer, Character target, boolean aoe);
-    public abstract void OnCrit (Character target); //called after successful crit for passives
+    public abstract void onCrit (Character hero, Character target); //called after successful crit; for passives
     public abstract int TakeDamage (Character target, Character dealer, int dmg, boolean aoe); //takedamage checks hero shield and calls tookdamage
     public abstract int TakeDamage (Character target, int dmg, boolean dot); 
     public abstract void TookDamage (Character hero, Character dealer, int dmg); //triggers relevant passives and checks if hero should be dead
@@ -374,7 +387,7 @@ public abstract class Character
                 case 1: case 2: case 3: case 4: case 5: case 7: case 8: case 11:
                 health= 230;  break;
             
-                case 12: case 13: case 15:
+                case 12: case 13: case 15: case 16: case 17:
                 health= 240; break;
                     
                 //Special carrots
@@ -432,6 +445,8 @@ public abstract class Character
                 case 13: name="Drax (Modern)"; break;
                 case 14: name="X-23 (Modern)"; break;
                 case 15: name="Wolverine (Classic)"; break;
+                case 16: name="Venom (Eddie Brock)"; break;
+                case 17: name="Venom (Mac Gargan)"; break;
                 default: name= "ERROR. INDEX NUMBER NOT FOUND";
             }    
             return name;
@@ -463,25 +478,26 @@ public abstract class Character
     public abstract void onAllyDeath (Character bystander, Character deadfriend, Character killer);
     public abstract void onEnemyDeath (Character bystander, Character deadfoe, Character killer);
     public abstract void onKill (Character killer, Character victim);
+    public abstract void onRez (Character hero, Character healer);
     public abstract void Transform (Character hero, int newindex, boolean greater); //new index is the index number of the character being transformed into
     public abstract void onAllySummon (Character summoner, Summon newfriend);
     public abstract void onEnemySummon (Character summoner, Summon newfoe);
-    /*public abstract void onBuffed(Character hero, StatEff buff, boolean add);
-    public abstract void onDebuffed (Character hero, StatEff debuff, boolean add); //true if the stat is being added and false for removal
-    public abstract void onHealEffed (Character hero, StatEff heal, boolean add);
-    public abstract void onDefEffed (Character hero, StatEff def, boolean add);
-    public abstract void onOtherEffed (Character hero, StatEff otr, boolean add);*/
     public abstract boolean onAllyControlled (Character hero, Character controlled, Character controller);
     public abstract boolean onEnemyControlled (Character hero, Character controlled, Character controller);
     public abstract boolean onSelfControlled (Character hero, Character controller);
     public static void BanishTick (Character hero)
     {
+        ArrayList <StatEff> ban= new ArrayList<StatEff>();
         for (StatEff eff: hero.effects)
         {
             if (eff.getimmunityname().equalsIgnoreCase("Banish"))
             {
-                eff.UseBanish();
+                ban.add(eff); 
             }
+        }
+        for (StatEff eff: ban)
+        {
+            eff.UseBanish();
         }
     }
     public static int GetStatCount (Character hero, String name, String type)
