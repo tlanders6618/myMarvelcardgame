@@ -313,9 +313,11 @@ class ProtectE extends OtherEff
     @Override
     public void onApply (Character hero) 
     {
-        boolean taunter=false, dupe=false;        
-        if (Character.CheckFor(weakling, "Taunt")==true||Character.CheckFor(protector, "Taunt")==true)
+        boolean taunter=false, invis=false, dupe=false;        
+        if (Character.CheckFor(weakling, "Taunt", false)==true||Character.CheckFor(protector, "Taunt", false)==true)
         taunter=true;  
+        if (Character.CheckFor(weakling, "Invisible", false)==true||Character.CheckFor(protector, "Invisible", false)==true)
+        invis=true;  
         for (StatEff e: protector.effects)
         {
             if (e.getimmunityname().equals("Protect")&&e.hashcode!=this.hashcode) //check if the protector has a protect other than this one; protect shouldn't stack with ProtectE
@@ -333,6 +335,13 @@ class ProtectE extends OtherEff
         if (taunter==true)
         {
             System.out.println ("Taunting characters cannot be Protected.");
+            myfriend=null;
+            removed=true;
+            hero.remove(hero, this.hashcode, "silent");
+        }
+        else if (invis==true)
+        {
+            System.out.println ("Invisible characters cannot be Protected.");
             myfriend=null;
             removed=true;
             hero.remove(hero, this.hashcode, "silent");
@@ -507,6 +516,57 @@ class Redwing extends OtherEff
         {
             target.helpers.remove(concurrentmodificationexception);
         }
+    }
+}
+class ResistanceE extends OtherEff
+{
+    @Override
+    public String getimmunityname()
+    {
+        return "Resistance";
+    }
+    @Override 
+    public String getefftype()
+    {
+        return "Other";
+    }
+    @Override
+    public String geteffname()
+    {
+        String name;
+        if (duration>500)
+        {
+            name="Resistance Effect: "+this.power;
+        }
+        else
+        {
+            name="Resistance Effect: "+this.power+", "+this.duration+" turn(s)";
+        }
+        return name;
+    }
+    public ResistanceE (int nchance, int npower, int ndur) 
+    {
+        this.chance=nchance;
+        this.power=npower;
+        this.duration=ndur;
+        this.oduration=ndur;
+        this.hashcode=Card_HashCode.RandomCode();
+    }
+    public ResistanceE (int nchance, int npower) 
+    {
+        this.chance=nchance;
+        this.power=npower;
+        this.hashcode=Card_HashCode.RandomCode();
+    }
+    @Override
+    public void onApply (Character hero) 
+    {
+        hero.PRDR+=power;
+    }
+    @Override
+    public void Nullified(Character hero)
+    {
+        hero.PRDR-=power;   
     }
 }
 class WMTarget extends OtherEff  

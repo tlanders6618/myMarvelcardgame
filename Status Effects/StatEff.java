@@ -52,21 +52,9 @@ public abstract class StatEff
     public void PrepareProtect (Character tank, Character weak)
     {
     }
-    public void UseCounter(Character hero, Character attacker) 
-    {
-        if (hero.binaries.contains("Missed")) //if his counterattack was evaded before; needed since miss is normally only cleared after using an ab
-        hero.binaries.remove("Missed");
-    }
     public int UseGuard (int dmg) //dmg -= guard strength and guard loses a charge
     {
         return dmg;
-    }
-    public void UseReflect(Character dealer, int dmg) //dealer takes dmg/2, using health loss method not take damage method
-    {
-        if (dealer.dead==false)
-        { //calc damage and do it to them
-            //dont forget to add activation text
-        }
     }
     public void UseBanish() //literally just --duration
     {
@@ -79,10 +67,12 @@ public abstract class StatEff
     {
         return 616;
     }
-    public void Attacked(Character hero) //used for paralyse, vapor's countdowns, etc
+    public void Attacked(Character hero, Character attacker, int dmg) //called when hero is attacked; used for paralyse, counter, reflect, etc
     {
+        if (hero.binaries.contains("Missed")) //if his counterattack was evaded before; needed since miss is normally only cleared after using an ab
+        hero.binaries.remove("Missed");
     }
-    public void Attacked(StatEff e) //used for vapor's countdowns and debilitate
+    public void Attacked(StatEff e) //called when hero gains a stateff; for debilitate, fortify, etc
     {
     }
     public static void applyfail (Character hero, StatEff eff, String cause) //error message for stateff application failure
@@ -107,11 +97,11 @@ public abstract class StatEff
         {
             StatEff.applyfail(hero, effect, "immune");
         }
-        else if (effect.getefftype().equalsIgnoreCase("Debuffs")&&hero.CheckFor(hero, "Neutralise")==true)
+        else if (effect.getefftype().equalsIgnoreCase("Debuffs")&&hero.CheckFor(hero, "Neutralise", false)==true)
         {
             StatEff.applyfail(hero, effect, "conflict");
         }
-        else if (effect.getefftype().equalsIgnoreCase("Buffs")&&hero.CheckFor(hero, "Undermine")==true)
+        else if (effect.getefftype().equalsIgnoreCase("Buffs")&&hero.CheckFor(hero, "Undermine", false)==true)
         { 
             StatEff.applyfail(hero, effect, "conflict");
         }
@@ -119,21 +109,56 @@ public abstract class StatEff
         {
             StatEff.applyfail(hero, effect, "conflict");
         }
-        else if (effect.getefftype().equalsIgnoreCase("Heal")&&hero.CheckFor(hero, "Afflicted")==true)
+        else if (effect.getefftype().equalsIgnoreCase("Heal")&&hero.CheckFor(hero, "Afflicted", false)==true)
         {
             StatEff.applyfail(hero, effect, "conflict");
+        }
+        else if (effect.getimmunityname().equals("Speed")||effect.getimmunityname().equals("Snare"))
+        {
+            boolean snare=false, speed=false;
+            if (effect.getimmunityname().equals("Speed"))
+            speed=true;
+            else if (effect.getimmunityname().equals("Snare"))
+            snare=true;
+            Character[] friends=Battle.GetTeammates(target);
+            boolean good=true;
+            for (int i=0; i<friends.length; i++) //can only apply if no teammates have it; max one per team
+            {
+                if (speed==true)
+                {
+                    if (friends[i]!=null&&friends[i].CheckFor(friends[i], "Speed", false)==true) //for no discernible reason, a for each loop here caused a nullexception 
+                    {
+                        good=false; break;
+                    }
+                }
+                else if (snare==true)
+                {
+                    if (friends[i]!=null&&friends[i].CheckFor(friends[i], "Snare", false)==true) //therefore it must stay as a regular for loop so it works properly
+                    {
+                        good=false; break;
+                    }
+                }
+            }
+            if (good==true) //no duplicates on teammates but still need to check for duplicates on self
+            {
+                boolean apple=effect.CheckStacking(target, effect, effect.stackable); 
+                if (apple==true)
+                {
+                    target.add(target, effect);
+                }
+                else
+                StatEff.applyfail(hero, effect, "dupe");
+            }
+            else
+            StatEff.applyfail(hero, effect, "dupe");
         }
         else if (target.dead==false)
         {
             boolean apple=effect.CheckStacking(target, effect, effect.stackable); 
             if (apple==true)
-            {
-                target.add(target, effect);
-            }
+            target.add(target, effect);
             else
-            {
-                StatEff.applyfail(hero, effect, "dupe");
-            }
+            StatEff.applyfail(hero, effect, "dupe");
         }
     }
     public boolean CheckStacking (Character target, StatEff effect, boolean stackable) //checks if a duplicate stateff may be applied

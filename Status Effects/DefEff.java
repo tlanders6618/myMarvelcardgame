@@ -7,6 +7,7 @@ package myMarvelcardgamepack;
  * Filename: DefEff
  * Purpose: To list all the Defence effects in one file.
  */
+import java.util.ArrayList;
 abstract class DefEff extends StatEff
 {
     public DefEff ()
@@ -108,9 +109,11 @@ class Protect extends DefEff
     @Override
     public void onApply (Character hero) 
     {
-        boolean taunter=false, dupe=false;        
-        if (Character.CheckFor(weakling, "Taunt")==true||Character.CheckFor(protector, "Taunt")==true)
+        boolean taunter=false, invis=false, dupe=false;        
+        if (Character.CheckFor(weakling, "Taunt", false)==true||Character.CheckFor(protector, "Taunt", false)==true)
         taunter=true;  
+        if (Character.CheckFor(weakling, "Invisible", false)==true||Character.CheckFor(protector, "Invisible", false)==true)
+        invis=true;  
         for (StatEff e: protector.effects)
         {
             if (e.getimmunityname().equals("Protect")&&e.hashcode!=this.hashcode) //check if the protector has a protect other than this one; protect shouldn't stack with ProtectE
@@ -128,6 +131,13 @@ class Protect extends DefEff
         if (taunter==true)
         {
             System.out.println ("Taunting characters cannot be Protected.");
+            myfriend=null;
+            removed=true;
+            hero.remove(hero, this.hashcode, "silent");
+        }
+        else if (invis==true)
+        {
+            System.out.println ("Invisible characters cannot be Protected.");
             myfriend=null;
             removed=true;
             hero.remove(hero, this.hashcode, "silent");
@@ -349,19 +359,19 @@ class Taunt extends DefEff
     @Override
     public void onApply (Character hero) 
     {
-        for (String binary: hero.binaries)
-        {
-            if (binary.equalsIgnoreCase("Untargetable"))
-            {
-                hero.binaries.remove(binary);
-            }
-        }
+        if (hero.targetable==false)
+        hero.targetable=true;
+        ArrayList<StatEff> effs= new ArrayList<StatEff>();
         for (StatEff eff: hero.effects) //taunting heroes cannot be protected or invisible
         {
             if (eff.getimmunityname().equals("Invisible")||eff.getimmunityname().equals("Protect"))
             {
-                hero.remove(hero, eff.hashcode, "normal");
+                effs.add(eff);
             }
+        }
+        for (StatEff eff: effs) //taunting heroes cannot be protected or invisible
+        {
+            hero.remove(hero, eff.hashcode, "normal");
         }
     }
 }

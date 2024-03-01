@@ -62,13 +62,19 @@ class Counter extends BuffEff
     {          
     }
     @Override
-    public void UseCounter(Character hero, Character attacker) //dmg based on status effects like damage up weakness and resistance
+    public void Attacked (Character hero, Character attacker, int ignore) //dmg based on status effects like damage up weakness and resistance
     {
-        int dmg=this.power;
-        Damage_Stuff.CheckBlind(hero);
-        Damage_Stuff.CheckEvade(hero, attacker);
-        if (!(hero.binaries.contains("Missed")))
+        if (hero.binaries.contains("Missed"))
+        hero.binaries.remove("Missed");
+        int dmg=this.power; 
+        if (!(attacker.ignores.contains("Counter"))&&!(hero.binaries.contains("Stunned")))
         {
+            Damage_Stuff.CheckBlind(hero);
+            if (!(hero.binaries.contains("Missed")))
+            Damage_Stuff.CheckEvade(hero, attacker);
+        }
+        if (!(attacker.ignores.contains("Counter"))&&!(hero.binaries.contains("Stunned"))&&!(hero.binaries.contains("Missed")))
+        {   
             dmg=Damage_Stuff.DamageFormula(hero, attacker, dmg);
             dmg=Damage_Stuff.CheckGuard(hero, attacker, dmg);
             System.out.println (hero.Cname+" counterattacks!");
@@ -78,7 +84,7 @@ class Counter extends BuffEff
                 for (String[] array: statstrings)
                 {
                     String[][] toapply=StatFactory.MakeParam(array, null);
-                    StatEff New=StatFactory.MakeStat(toapply); 
+                    StatEff New=StatFactory.MakeStat(toapply, hero); 
                     StatEff.CheckApply(hero, attacker, New);
                 }
             }
@@ -238,7 +244,7 @@ class Invisible extends BuffEff
         ArrayList<StatEff> r= new ArrayList<StatEff>();
         for (StatEff eff: target.effects)
         {
-            if (eff.getimmunityname().equalsIgnoreCase("taunt")) //cannot taunt and be invisible, so taunt is removed
+            if (eff.getimmunityname().equals("Taunt")||eff.getimmunityname().equals("Protect")) //cannot taunt and be invisible, so taunt is removed
             {
                 r.add(eff);
             }
@@ -280,6 +286,7 @@ class Precision extends BuffEff
     {
         this.chance=nchance;
         this.hashcode=Card_HashCode.RandomCode();
+        this.stackable=true;
     }
     public Precision (int nchance, int nduration)
     {
@@ -287,6 +294,7 @@ class Precision extends BuffEff
         this.oduration=nduration;
         this.chance=nchance;
         this.hashcode=Card_HashCode.RandomCode();
+        this.stackable=true;
     }
     public void onApply (Character target)
     {

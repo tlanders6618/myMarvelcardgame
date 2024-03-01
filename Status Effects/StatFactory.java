@@ -27,7 +27,7 @@ public class StatFactory
         arr[1]=null;
         return arr;
     }
-    public static StatEff MakeStat (String[][] param)
+    public static StatEff MakeStat (String[][] param, Character Q)
     {
         StatEff eff=null;
         //[0][0] is name, [0][1] is proc chance, [0][2] is strength, [0][3] is duration, [0][4] is whether the eff is applied to self or not
@@ -53,12 +53,14 @@ public class StatFactory
             case "Recovery": eff= new Recovery (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][2]), Integer.valueOf(param[0][3])); break;
             case "Regen": eff=new Regen (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][2]), Integer.valueOf(param[0][3])); break;
             case "Resistance": eff=new Resistance (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][2]), Integer.valueOf(param[0][3])); break;
+            case "ResistanceE": eff=new ResistanceE (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][2]), Integer.valueOf(param[0][3])); break;
             case "Shatter": eff= new Shatter (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3])); break;
             case "Snare": eff= new Snare (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3])); break;
             case "Speed": eff=new Speed(Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3])); break;
             case "Stun": eff=new Stun (Integer.valueOf(param[0][1])); break;
             case "Target": eff=new Target (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][2]), Integer.valueOf(param[0][3])); break;
             case "Taunt": eff=new Taunt (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3])); break;
+            case "Terror": eff=new Terror(Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3]), Q); break;
             case "Weakness": eff=new Weakness (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][2]), Integer.valueOf(param[0][3])); break;
             case "Wound": eff=new Wound (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3])); break;
             default: System.out.println("Spelling error in statfactory; no matching stateff found.");
@@ -74,6 +76,10 @@ class Tracker extends StatEff //displays a character's relevant personal statist
     public Tracker(String nname)
     {
         name=nname; oname=name;
+    }
+    public Tracker (String nname, int dur) //for the weaver and kang
+    {
+        name=nname; oname=name; this.duration=dur;
     }
     @Override
     public String geteffname()
@@ -121,7 +127,7 @@ class Tracker extends StatEff //displays a character's relevant personal statist
         }
     }
     @Override
-    public void Attacked(Character hero)
+    public void Attacked(Character hero, Character attacker, int dmg)
     {
         switch (oname)
         {

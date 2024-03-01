@@ -229,7 +229,7 @@ class Countdown extends DebuffEff
                 for (String[] array: statstrings)
                 {  
                     String[][] neweff=StatFactory.MakeParam(array, null);
-                    StatEff New=StatFactory.MakeStat(neweff); 
+                    StatEff New=StatFactory.MakeStat(neweff, hero); 
                     StatEff.CheckApply(null, hero, New);
                 }
             }
@@ -652,6 +652,71 @@ class Target extends DebuffEff
     public void Nullified (Character target)
     {
         target.DV-=power;
+    }
+}
+class Terror extends DebuffEff 
+{
+    Character progenitor;
+    @Override
+    public String getimmunityname()
+    {
+        return "Terror";
+    }
+    @Override 
+    public String getefftype()
+    {
+        return "Debuffs";
+    }
+    @Override
+    public String getalttype() 
+    {
+        return "nondamaging";
+    }
+    @Override
+    public String geteffname()
+    {
+        String name;
+        if (duration<500)
+        {
+            name="Terror: "+progenitor.Cname+", "+this.duration+" turn(s)";
+        }
+        else
+        {
+            name="Terror: "+progenitor.Cname;
+        }
+        return name;
+    }
+    public Terror (int nchance, int ndur, Character Q)
+    {
+        this.duration=ndur;
+        this.oduration=ndur;
+        this.chance=nchance;
+        this.hashcode=Card_HashCode.RandomCode();
+        progenitor=Q;
+    }
+    @Override
+    public void onApply (Character target)
+    {
+        ArrayList<StatEff> remove= new ArrayList<StatEff>();
+        for (StatEff e: target.effects)
+        {
+            if (e.getimmunityname().equals("Provoke")&&e.UseTerrorProvoke()==progenitor.hash) //can't be forced to both attack and not attack the same person
+            {
+                remove.add(e);
+            }
+        }
+        for (StatEff e: remove)
+        {
+            target.remove(target, e.hashcode, "normal");
+        }
+    }
+    @Override
+    public int UseTerrorProvoke ()
+    {
+        if (progenitor.CheckFor(progenitor, "Taunt", false)==false&&progenitor.CheckFor(progenitor, "Protect", false)==false) //taunt and protect supersede terror
+        return progenitor.hash;
+        else 
+        return 0;
     }
 }
 class Weakness extends DebuffEff 
