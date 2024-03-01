@@ -2,6 +2,9 @@ package myMarvelcardgamepack;
 public class Dev_Notes
 {
     /** 
+     * Edited (i.e. need to update):
+     * EVERYTHING
+     * 
      * ***FILES***
      * Abilities:
      * -Ability
@@ -58,7 +61,6 @@ public class Dev_Notes
      * fix turn skip criteria; think about elixir and chars with no attack abs
      * add altname for stateff and check for immunity to it when applying stateffs
      * double check glossary desc before doing assist and multitarget
-     * card selection doesnt distinguish between taunt def and taunt other (tauntE doesnt exist)
      * change counter and reflect to work with attacked method instead of manually checking for them
      * change untargetable to check for binaries instead of having no counter
      * rewrite lose hp attack option
@@ -71,35 +73,13 @@ public class Dev_Notes
      * 
      * Known issues   
      * using counter causes null exception, most likely due to checking for a stateff to apply and finding none
-     * x23 multichain doesn't do third hit or keeps going until 3 kills or hits two different enemies
-     * something wrong with x23 crit calc
-     * 
-     * Balance changes:
-     * x23 regen strength
-     * berserker frenzy and gamora and modern fury kill mode trigger while stunned update passive desc 
-     * 
-     * 
-     * Edited (i.e. need to update):
-     * EVERYTHING
      * 
      * to test:
      * counter attack must trigger the took damage method for the attacker, with boolean true
-     * does tracker display, update properly?
-     * berserker rage triggers once
-     * x23 crit chance triggers once
      * drain works
      * 
      * Always add ricochet before multichain in an ability's afterabs
      * always add ignore miss as an ability's first beforeab
-     * 
-     * Preparation for checkfor -> check binaries conversion
-     * ability
-     * character
-     * hero
-     * summon
-     * card selection
-     * stateff
-     * battle
      * 
      * */
 } 
