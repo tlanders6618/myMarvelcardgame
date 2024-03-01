@@ -106,7 +106,7 @@ public abstract class Ability
                     } 
                     for (String[][] array: tempstrings)
                     {  
-                        StatEff New=StatFactory.MakeStat(array); 
+                        StatEff New=StatFactory.MakeStat(array, user); 
                         if (array[0][4].equalsIgnoreCase("true"))
                         {
                             selfapply.add(New);
@@ -129,7 +129,7 @@ public abstract class Ability
                     }
                     for (String[][] array: statstrings)
                     {  
-                       StatEff New=StatFactory.MakeStat(array); //this is how selfapply and other apply are populated
+                       StatEff New=StatFactory.MakeStat(array, user); //this is how selfapply and other apply are populated
                        if (array[0][4].equalsIgnoreCase("true"))
                        {
                            selfapply.add(New);
@@ -196,7 +196,7 @@ public abstract class Ability
         }
         else
         {
-            dcd=cd;
+            dcd+=cd;
         }
         return toadd;
     }
@@ -269,7 +269,7 @@ public abstract class Ability
                 System.out.println(ab.oname+" could not be used due to a lack of eligible targets.");
                 for (String[][] array: tempstrings)
                 {  
-                    StatEff New=StatFactory.MakeStat(array); 
+                    StatEff New=StatFactory.MakeStat(array, user); 
                     if (!(array[0][4].equalsIgnoreCase("false")))
                     {
                         selfapply.add(New);
@@ -277,7 +277,7 @@ public abstract class Ability
                 }
                 for (String[][] array: statstrings)
                 {  
-                    StatEff New=StatFactory.MakeStat(array); //this is how selfapply and other apply are populated
+                    StatEff New=StatFactory.MakeStat(array, user); //this is how selfapply and other apply are populated
                     if (!(array[0][4].equalsIgnoreCase("false")))
                     {
                         selfapply.add(New);
@@ -325,7 +325,7 @@ public abstract class Ability
                     } 
                     for (String[][] array: tempstrings)
                     {  
-                        StatEff New=StatFactory.MakeStat(array); 
+                        StatEff New=StatFactory.MakeStat(array, user); 
                         if (array[0][4].equalsIgnoreCase("true"))
                         {
                             selfapply.add(New);
@@ -348,7 +348,7 @@ public abstract class Ability
                     }
                     for (String[][] array: statstrings)
                     {  
-                       StatEff New=StatFactory.MakeStat(array); //this is how selfapply and other apply are populated
+                       StatEff New=StatFactory.MakeStat(array, user); //this is how selfapply and other apply are populated
                        if (array[0][4].equalsIgnoreCase("true"))
                        {
                            selfapply.add(New);
@@ -402,7 +402,7 @@ public abstract class Ability
         }
         else
         {
-            dcd=cd;
+            dcd+=cd;
         }
         return toadd;
     }
@@ -414,12 +414,23 @@ public abstract class Ability
     {
         tempstrings.add(f);
     }
-    public int GetBaseDmg () //reckon this is for jean, thing, etc
+    public int GetBaseDmg () //for chain, and some hero passives
     {
         return 0;
     }
+    public int GetMultihit(boolean original) //for chain
+    {
+        return 0;
+    }
+    public void UseMultihit () //for multichain
+    {
+    }
     public void ReturnDamage(int dmg) //tells ab how much dmg it did for ricochet and whatnot to work properly
     {
+    }
+    public int GetDmgDealt () //for chain, and some hero passives
+    {
+        return 0;
     }
     public static Ability[] AssignAb (int index)
     {
@@ -466,7 +477,7 @@ public abstract class Ability
         //this both calculates and deals Ricochet damage to a random enemy
         double d=dmg/2; //dmg dealt divided by 2
         dmg=5*(int)(Math.floor(d/5)); //ricochet damage; rounded down
-        Character villain=Ability.GetRandomHero(user, shock); //random enemy, or teammate if the Ricochet is from a Shock
+        Character villain=Ability.GetRandomHero(user, shock, true); //random enemy, or teammate if the Ricochet is from a Shock
         if (villain!=null)
         {
             dmg-=villain.ADR;
@@ -477,11 +488,11 @@ public abstract class Ability
             }
         }
     }
-    public static Character GetRandomHero(Character hero, boolean shock) //hero is the character calling the method
+    public static Character GetRandomHero(Character hero, boolean shock, boolean ricochet) //hero is the character calling the method
     {
         //Determine team of the caller
         boolean team=hero.team1; 
-        if (shock==false) //get the opponent's team; but if shock is true, leave team as is and get the character's team for a random teammate
+        if (shock==false) //get the hero's enemies; but if shock is true, leave team as is and get the hero's team for a random teammate
         {
             team=CoinFlip.TeamFlip(team);
         }
@@ -490,29 +501,32 @@ public abstract class Ability
         solo=Battle.p1solo;
         else        
         solo=Battle.p2solo;
-        if (solo==false) //there must be more than one person on the target's team, or else there's no one to hurt with the ricochet
+        if ((ricochet==true&&solo==false)||ricochet==false) //there must be more than one person on the target's team, or else there's no one to hurt with the ricochet
         {
             //Determine the caller's enemies or teammates
             Character[] enemies= new Character[6];
-            enemies=Battle.GetTeammates(hero, team);
+            if (shock==false) //get a random enemy
+            enemies=Battle.GetTeam(team);
+            else //get a random teammate
+            enemies=Battle.GetTeammates(hero);
+            ArrayList<Character>nenemies= CoinFlip.ToList(enemies);
             boolean flag=true;
             Character villain=null; 
             //Randomly choose an enemy
-            while (flag==true)
+            if (nenemies.size()>0)
             {
-                int rando = (int)(Math.random()*enemies.length);
-                villain=enemies[rando];
-                if (villain!=null&&!(villain.binaries.contains("Banished")))
+                while (flag==true)
                 {
-                    flag=false;
+                    int rando = (int)(Math.random()*nenemies.size());
+                    villain=nenemies.get(rando);
+                    if (villain!=null&&!(villain.binaries.contains("Banished")))
+                    {
+                        return villain;
+                    }
                 }
             }
-            return villain;
         }
-        else
-        {
-            return null;
-        }
+        return null;
     }
     public static ArrayList<StatEff> ApplyStats (Character hero, Character target, boolean together, ArrayList<StatEff> selfapp, ArrayList<StatEff> otherapp)
     {
@@ -566,11 +580,11 @@ public abstract class Ability
                         {
                             StatEff.applyfail(hero, eff, "immune");
                         }
-                        else if (eff.getefftype().equalsIgnoreCase("Debuffs")&&hero.CheckFor(hero, "Neutralise")==true)
+                        else if (eff.getefftype().equalsIgnoreCase("Debuffs")&&hero.CheckFor(hero, "Neutralise", false)==true)
                         {
                             StatEff.applyfail(hero, eff, "conflict");
                         }
-                        else if (eff.getefftype().equalsIgnoreCase("Buffs")&&hero.CheckFor(hero, "Undermine")==true)
+                        else if (eff.getefftype().equalsIgnoreCase("Buffs")&&hero.CheckFor(hero, "Undermine", false)==true)
                         { 
                             StatEff.applyfail(hero, eff, "conflict");
                         }
@@ -578,7 +592,7 @@ public abstract class Ability
                         {
                             StatEff.applyfail(hero, eff, "conflict");
                         }
-                        else if (eff.getefftype().equalsIgnoreCase("Heal")&&hero.CheckFor(hero, "Afflicted")==true)
+                        else if (eff.getefftype().equalsIgnoreCase("Heal")&&hero.CheckFor(hero, "Afflicted", false)==true)
                         {
                             StatEff.applyfail(hero, eff, "conflict");
                         }
@@ -620,11 +634,11 @@ public abstract class Ability
                         {
                             StatEff.applyfail(hero, eff, "immune");
                         }
-                        else if (eff.getefftype().equalsIgnoreCase("Debuffs")&&hero.CheckFor(hero, "Neutralise")==true)
+                        else if (eff.getefftype().equalsIgnoreCase("Debuffs")&&hero.CheckFor(hero, "Neutralise", false)==true)
                         {
                             StatEff.applyfail(hero, eff, "conflict");
                         }
-                        else if (eff.getefftype().equalsIgnoreCase("Buffs")&&hero.CheckFor(hero, "Undermine")==true)
+                        else if (eff.getefftype().equalsIgnoreCase("Buffs")&&hero.CheckFor(hero, "Undermine", false)==true)
                         { 
                             StatEff.applyfail(hero, eff, "conflict");
                         }
@@ -632,7 +646,7 @@ public abstract class Ability
                         {
                             StatEff.applyfail(hero, eff, "conflict");
                         }
-                        else if (eff.getefftype().equalsIgnoreCase("Heal")&&hero.CheckFor(hero, "Afflicted")==true)
+                        else if (eff.getefftype().equalsIgnoreCase("Heal")&&hero.CheckFor(hero, "Afflicted", false)==true)
                         {
                             StatEff.applyfail(hero, eff, "conflict");
                         }

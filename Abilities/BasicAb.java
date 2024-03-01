@@ -47,7 +47,6 @@ class BasicAb extends AttackAb
             }
             while (typo==true);
         }
-        int multi=multihit; int omulti=multihit;
         while (uses>0) //repeat the attack for each multiuse
         {
             if (targets.size()<=0)
@@ -98,7 +97,7 @@ class BasicAb extends AttackAb
                         } 
                         for (String[][] array: tempstrings)
                         {  
-                            StatEff New=StatFactory.MakeStat(array); 
+                            StatEff New=StatFactory.MakeStat(array, user); 
                             if (array[0][4].equalsIgnoreCase("true"))
                             {
                                 selfapply.add(New);
@@ -121,7 +120,7 @@ class BasicAb extends AttackAb
                         }
                         for (String[][] array: statstrings)
                         {  
-                            StatEff New=StatFactory.MakeStat(array); //this is how selfapply and other apply are populated
+                            StatEff New=StatFactory.MakeStat(array, user); //this is how selfapply and other apply are populated
                             if (array[0][4].equalsIgnoreCase("true"))
                             {
                                 selfapply.add(New);
@@ -167,27 +166,21 @@ class BasicAb extends AttackAb
                         {
                             user.binaries.remove("Missed");
                         }
-                        --multi;
-                        damage=odamage; //reset damage 
+                        this.UseMultihit();
                         dmgdealt=0;
+                        for (SpecialAbility ob: special)
+                        {
+                            ob.Use(user, 616, chump); //for now this only activates chain
+                        }
+                        damage=odamage; //reset damage 
                     }
-                    while (multi>-1); //then repeat the attack for each multihit
-                    multi=omulti; //reset the multihit counter for the next use
+                    while (multihit>-1); //then repeat the attack for each multihit
+                    multihit=omulti; //reset the multihit counter for the next use
                 }
                 --uses;
             }
         }
         return toadd;
-    }
-    @Override 
-    public int GetBaseDmg ()
-    {
-        return odamage;
-    }
-    @Override
-    public void ReturnDamage (int d)
-    {
-        dmgdealt=d;
     }
     @Override 
     public void SetChannelled (Character hero, Ability ab, ArrayList<Character> targets)
@@ -218,7 +211,7 @@ class BasicAb extends AttackAb
     @Override
     public boolean CheckUse (Character user, Ability ab)
     {
-        if (user.CheckFor(user, "Disarm")==true)
+        if (user.CheckFor(user, "Disarm", false)==true)
         {
             return false;
         }

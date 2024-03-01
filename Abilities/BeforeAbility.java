@@ -14,7 +14,7 @@ public abstract class BeforeAbility extends SpecialAbility //used before a hero 
    {
    }
 }
-class ActivateP extends BeforeAbility //activate passive
+class ActivateP extends BeforeAbility //ability activates a hero's passive
 {
     int name;
     public ActivateP (int index)
@@ -27,6 +27,7 @@ class ActivateP extends BeforeAbility //activate passive
         switch (name)
         {
             case 11: ActivePassive.FuryJr(user, false, false, false, true); break;
+            case 13: StaticPassive.Drax(user, null, true); break;
         }
         return 0;
     }
@@ -41,16 +42,16 @@ class ApplyShatter extends BeforeAbility //shatter applies before attacking, as 
     @Override
     public int Use (Character user, Character target)
     {
-        if (user.CheckFor(user, "Neutralise")==false&&(!(user.binaries.contains("Missed"))||user.immunities.contains("Missed")))
+        if ((!(user.binaries.contains("Missed"))||user.immunities.contains("Missed")))
         {
+            String nchance=String.valueOf(chance);
+            String ndur=String.valueOf(duration);
+            String[] initial={"Shatter", nchance, "616", ndur, "false"};
+            String[][] sjatter=StatFactory.MakeParam(initial, null);
+            StatEff shatter=StatFactory.MakeStat(sjatter, user);
             boolean yes=CoinFlip.Flip(chance+user.Cchance); 
             if (debuff==true&&yes==true)
             {
-                String nchance=String.valueOf(chance);
-                String ndur=String.valueOf(duration);
-                String[] initial={"Shatter", nchance, "616", ndur, "false"};
-                String[][] sjatter=StatFactory.MakeParam(initial, null);
-                StatEff shatter=StatFactory.MakeStat(sjatter);
                 StatEff.CheckApply(user, target, shatter);
             }
             else if (debuff==false&&yes==true)
@@ -69,6 +70,8 @@ class ApplyShatter extends BeforeAbility //shatter applies before attacking, as 
                     }
                 }
             }
+            else if (yes==false)
+            StatEff.applyfail(user, shatter, "chance");
         }
         return 0;
     }
@@ -314,9 +317,13 @@ class ChooseStat extends BeforeAbility //choose one effect to apply with the abi
       return 0;
    }
 }
-class DamageCounter extends BeforeAbility //increase damage of attack based on number of target's stateffs of certain type; needed for characters like rogue 
+class DamageCounter extends BeforeAbility //increase damage of attack based on number of target's stateffs of certain type; for characters like rogue 
 {
-    int amount; boolean unique; String name; boolean type; boolean self;
+    int amount; //of bonus dmg per eff
+    boolean unique; //whether to count duplicate effs or not
+    String name; //of efftype/name to check for; e.g. debuffs or intensify
+    boolean type; //whether to check for efftype or effimmunityname
+    boolean self; //whether to check self or enemy for the effs
     public DamageCounter (String nname, boolean etype, int namount, boolean self, boolean unique) 
     {
         amount=namount; this.unique=unique; name=nname; type=etype; this.self=self;
@@ -349,7 +356,7 @@ class DamageCounter extends BeforeAbility //increase damage of attack based on n
                     }
                 }
             }
-            else //check name
+            else //check if immunityname matches name
             {
                 for (StatEff eff: target.effects)
                 {
@@ -379,13 +386,13 @@ class DamageCounter extends BeforeAbility //increase damage of attack based on n
                     }
                 }
             }
-            else
+            else //check if immunityname matches name
             {
                 for (StatEff eff: target.effects)
                 {
                     if (eff.getimmunityname().equalsIgnoreCase(name))
                     {
-                        dupe=eff.getimmunityname();
+                        dupe=eff.getefftype();
                         if (!(dupes.contains(dupe))) //it's unique; otherwise nothing happens
                         {
                             increase+=amount;
@@ -398,8 +405,8 @@ class DamageCounter extends BeforeAbility //increase damage of attack based on n
         return increase;
     }
 }
-class DamageCounterRemove extends BeforeAbility //increase damage based on number of target stat effs, and then remove all
-{ //needed for characters like carnage
+class DamageCounterRemove extends BeforeAbility //increase damage based on number of target stat effs, and then remove all; for characters like carnage
+{ 
     int amount; //how much extra dmg each stateff grants
     String name; //of stateff to check for and remove
     boolean type; //check for eff type or name
@@ -454,6 +461,39 @@ class DamageCounterRemove extends BeforeAbility //increase damage based on numbe
         return increase;
     }
 }
+class DamageCounterSimple extends BeforeAbility //just checks if the target has an eff, instead of how many of it they have; for miles morales, mac gargan, etc
+{
+    int amount; //of bonus dmg 
+    String name; //of efftype/name to check for; e.g. debuffs or intensify
+    boolean type; //whether to check for efftype or effimmunityname
+    boolean self; //whether to check self or enemy for the eff
+    public DamageCounterSimple (int namount, String nname, boolean etype, boolean self) 
+    {
+        amount=namount; name=nname; type=etype; this.self=self;
+    }
+    @Override
+    public int Use (Character user, Character target)
+    {
+        int send=0;
+        if (self==true)
+        {
+            boolean got=user.CheckFor(user, name, type);
+            if (got==true)
+            {
+                send=amount;
+            }
+        }
+        else
+        {
+            boolean got=target.CheckFor(target, name, type);
+            if (got==true)
+            {
+                send=amount;
+            }
+        }
+        return send;
+    }
+}
 class DebuffMod extends BeforeAbility //for altering the debuffs an ab applies, e.g. Superior Spidey and MODOK
 {
     int index=0; //exactly kind of debuff modification is needed depends based on the hero 
@@ -468,7 +508,7 @@ class DebuffMod extends BeforeAbility //for altering the debuffs an ab applies, 
         switch (index)
         {
             case 2: //gamora's second passive
-            if (target.CheckFor(target, "Protect")==true) //protected enemies have +1 bleed dur
+            if (target.CheckFor(target, "Protect", false)==true) //protected enemies have +1 bleed dur
             {
                 if (ab==1)
                 {
@@ -493,6 +533,21 @@ class DebuffMod extends BeforeAbility //for altering the debuffs an ab applies, 
                     String[] near={"Bleed", "50", "30", "1", "false"}; String[][] fin=StatFactory.MakeParam(near, null); 
                     user.activeability.AddTempString(fin); 
                 }
+            }
+            break;
+            case 13: //modern drax
+            StaticPassive.Drax(user, target, false); //check with debuff to apply
+            if (user.passivecount==-2) //double passive proc
+            {
+                String[] bloody= {"Bleed", "100", "65", "2", "false"}; String[][] gore= StatFactory.MakeParam(bloody, null); user.activeability.AddTempString(gore);
+            }
+            else if (user.passivecount==-1) //passive proc
+            {
+                String[] bloody= {"Bleed", "100", "50", "2", "false"}; String[][] gore= StatFactory.MakeParam(bloody, null); user.activeability.AddTempString(gore);
+            }
+            else //no passive
+            {
+                String[] bloody= {"Bleed", "100", "35", "2", "false"}; String[][] gore= StatFactory.MakeParam(bloody, null); user.activeability.AddTempString(gore);
             }
             break;
         }

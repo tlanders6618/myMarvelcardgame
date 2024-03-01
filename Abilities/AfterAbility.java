@@ -64,6 +64,33 @@ class Activate extends AfterAbility //forcibly ticks all stateffs of a given typ
             }
         }
     }
+}  
+class ActivatePassive extends AfterAbility //ability activates a hero's passive or does something otherwise too difficult/specific for another afterab
+{
+    int name;
+    public ActivatePassive (int index)
+    {
+        name=index;
+    }
+    @Override
+    public void Use (Character user, Character target, int ignore)
+    {
+        switch (name)
+        {
+            case 17:
+            if (target.dead==true)
+            {
+                boolean yes=CoinFlip.Flip(500+user.Cchance);
+                user.activeability.dcd-=2;
+                Regen drugs= new Regen (500, 45, 2);
+                if (yes==true)
+                StatEff.CheckApply(user, user, drugs);
+                else
+                StatEff.applyfail(user, drugs, "chance");
+            }
+            break;
+        }
+    }
 }
 class Confidence extends AfterAbility
 {
@@ -76,7 +103,7 @@ class Confidence extends AfterAbility
     @Override 
     public void Use(Character caller, Character target, int ignore) 
     {
-        if (caller.CheckFor(caller, "Afflicted")==false) //confidence is a heal ability
+        if (caller.CheckFor(caller, "Afflicted", false)==false) //confidence is a heal ability
         {
             boolean success=CoinFlip.Flip(chance+caller.Cchance);
             if (success==true&&target.dead==false)
@@ -289,7 +316,7 @@ class Mend extends AfterAbility
     @Override 
     public void Use(Character caller, Character target, int ignore) 
     {
-        if (caller.CheckFor(caller, "Afflicted")==false) 
+        if (caller.CheckFor(caller, "Afflicted", false)==false) 
         {
             boolean success=CoinFlip.Flip(chance+caller.Cchance);
             if (success==true&&target.dead==false)
@@ -301,142 +328,6 @@ class Mend extends AfterAbility
         System.out.println (caller.Cname+"'s Mend failed to apply due to a conflicting status effect.");
     }
 }
-class Multichain extends AfterAbility //continue multihit attack on another target
-//might need to disable after an attack to ensure it cant trigger more than once
-{ 
-    int multis; //number of hits in attack
-    int current=0; //current hit of attack
-    AttackAb ability; 
-    boolean used=false;
-    public Multichain(int multiply, AttackAb ability)
-    {
-        multis=multiply; this.ability=ability;
-    }
-    @Override 
-    public void Use(Character caller, Character target, int ignore) 
-    {
-        if (current<multis)
-        {
-            ++current;
-            if (used==false&&target.dead==true) //doesn't activate on final hit because there's no more dmg to deal
-            {
-                used=true;
-                UseMultichain(caller);
-            }
-        }
-        if (current>multis)
-        {
-            current=0; //reset counter because attack is over
-            used=false;
-        }
-    }
-    public void UseMultichain (Character user) //similar to chain; precondition of ability's aoe being false; code is copied from attackab.use()
-    {
-        int uses=multis-current; 
-        int odamage=ability.odamage; int damage=odamage;
-        ArrayList<StatEff> chumpapply= new ArrayList<StatEff>(); //to apply to the new, random target
-        //continue functions from last hit since they were cut off
-        for (String[][] array: ability.tempstrings)
-        {  
-            StatEff New=StatFactory.MakeStat(array); 
-            if (array[0][4].equalsIgnoreCase("true"))
-            {
-                ability.selfapply.add(New);
-            }
-            //doesn't change otherapply since attack's original target is dead and these effects are from that
-        }
-        for (String[][] array: ability.statstrings)
-        {  
-            StatEff New=StatFactory.MakeStat(array); 
-            if (array[0][4].equalsIgnoreCase("true"))
-            {
-                ability.selfapply.add(New);
-            }
-        }
-        for (StatEff eff: user.effects) //undo empowerments
-        {
-            if (eff.getimmunityname().equalsIgnoreCase("Empower"))
-            {
-                //int n=eff.UseEmpower(user, ability, damage, false);
-            }
-        }
-        if (user.binaries.contains("Missed"))
-        {
-            user.binaries.remove("Missed");
-        }
-        ability.damage=odamage; //reset damage 
-        ability.dmgdealt=0;
-        //then start attack on new target
-        Character chump=Ability.GetRandomHero (user, false);
-        while (uses>0) 
-        {
-            int change=0; 
-            if (chump.dead==true)
-            chump=Ability.GetRandomHero (user, false);
-            if (chump!=null)
-            {
-                for (StatEff eff: user.effects) //get empowerments for the rest of the attack
-                {
-                    if (eff.getimmunityname().equalsIgnoreCase("Empower"))
-                    {
-                        //change=eff.UseEmpower(user, ability, damage, true);
-                    }
-                } 
-                for (SpecialAbility ob: ability.special)
-                {
-                    change=ob.Use(user, chump); //apply before abs
-                } 
-                damage+=change;
-                chump=user.Attack(user, chump, damage, false); //damage formula is calculated here
-                for (SpecialAbility ob: ability.special)
-                {
-                    ob.Use(user, chump, ability.dmgdealt); //activates after abs
-                } 
-                for (String[][] array: ability.tempstrings) 
-                {  
-                    StatEff New=StatFactory.MakeStat(array); 
-                    if (array[0][4].equalsIgnoreCase("true"))
-                    {
-                        ability.selfapply.add(New);
-                    }
-                    else if (!(user.binaries.contains("Missed"))&&array[0][4].equalsIgnoreCase("false")) 
-                    {
-                        chumpapply.add(New);
-                    }
-                }
-                for (String[][] array: ability.statstrings)
-                {  
-                    StatEff New=StatFactory.MakeStat(array); 
-                    if (array[0][4].equalsIgnoreCase("true"))
-                    {
-                        ability.selfapply.add(New);
-                    }
-                    else if (!(user.binaries.contains("Missed"))&&array[0][4].equalsIgnoreCase("false")) 
-                    {
-                        chumpapply.add(New);
-                    }
-                }
-                ArrayList<StatEff> emptylist= new ArrayList<StatEff>(); //empty list in order to meet parameters
-                emptylist=Ability.ApplyStats(user, chump, ability.together, emptylist, chumpapply);
-                for (StatEff eff: user.effects) //undo empowerments
-                {
-                    if (eff.getimmunityname().equalsIgnoreCase("Empower"))
-                    {
-                        //change=eff.UseEmpower(user, ability, damage, false);
-                    }
-                }
-                if (user.binaries.contains("Missed"))
-                {
-                    user.binaries.remove("Missed");
-                }
-                damage=odamage; //reset damage 
-                ability.dmgdealt=0;
-            }
-            --uses;
-            --ability.multihit;
-        }
-    }
-}        
 class Nullify extends AfterAbility
 {
     String effname;
@@ -822,6 +713,32 @@ class Ricochet extends AfterAbility //do ricochet damage
             {
                 Ability.DoRicochetDmg (dmg, target, true);            
             }
+        }
+    }
+}
+class Update extends AfterAbility //adds tracker to hero to make it clear that their otherwise silent otherab took effect; for drax modern, mephisto, the weaver, unstoppable colossus
+{
+    int index=0;
+    public Update (int ind)
+    {
+        index=ind;
+    }
+    @Override
+    public void Use (Character hero, Character ignored, int ignore)
+    {
+        switch (index)
+        {
+            case 13: boolean ok=true;
+            for (StatEff e: hero.effects)
+            {
+                if (e instanceof Tracker&&e.geteffname().equals("Twin Blades active"))
+                {
+                    ok=false; break;
+                }
+            }
+            if (ok==true) //although unlikely, still pointless to let this show twice since its effect doesn't stack
+            hero.effects.add(new Tracker ("Twin Blades active")); 
+            break;
         }
     }
 }

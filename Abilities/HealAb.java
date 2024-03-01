@@ -31,7 +31,7 @@ class HealAb extends Ability
     @Override
     public boolean CheckUse (Character user, Ability ab)
     {
-        if (user.CheckFor(user, "Afflicted")==true||user.CheckFor(user, "Suppression")==true)
+        if (user.CheckFor(user, "Afflicted", false)==true||user.CheckFor(user, "Suppression", false)==true)
         {
             return false;
         }

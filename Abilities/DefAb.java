@@ -31,7 +31,7 @@ class DefAb extends Ability
     @Override
     public boolean CheckUse (Character user, Ability ab)
     {
-        if (user.CheckFor(user, "Suppression")==true)
+        if (user.CheckFor(user, "Suppression", false)==true)
         {
             return false;
         }

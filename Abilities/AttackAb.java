@@ -13,7 +13,8 @@ class AttackAb extends Ability
     int damage=616; //dmg after empowerment, beforeab, etc
     int odamage=616; //base dmg
     int dmgdealt=0; //for ricochet; determined by the hero.attack method where damagecalc is down
-    int multihit=0; //how many times to repeat the attack; the number of + signs
+    int multihit=0; //how many hits are left in a multihit attack
+    int omulti=0; //how many times to repeat the attack; the number of + signs
     boolean lose=false; //whether the target directly loses health instead of taking damage
     public AttackAb ()
     {
@@ -32,13 +33,28 @@ class AttackAb extends Ability
             this.aoe=true;
         }
     }
+    public AttackAb (String aname, String atype, String afriendly, int dmg, int cooldown, int mult)
+    {
+        this.oname=aname;
+        this.friendly=afriendly;
+        this.target=atype;
+        this.damage=dmg;
+        this.odamage=damage;
+        this.cd=cooldown;
+        this.attack=true;
+        this.multihit=mult;
+        this.omulti=mult;
+        if (atype.equalsIgnoreCase("aoe"))
+        {
+            this.aoe=true;
+        }
+    }
     @Override
     public ArrayList<StatEff> UseAb (Character user, Ability ab, ArrayList<Character> targets)
-    {
+    { 
         boolean typo=true; int uses=1;  
-        System.out.println ("\n"+user.Cname+" used "+oname);
         ArrayList<StatEff> toadd= new ArrayList<StatEff>();    
-        if (user.binaries.contains("Missed")) //to prevent a miss if the hero's assist/counterattack was evaded after they last attacked (miss is otherwise cleared after attacking)
+        if (user.binaries.contains("Missed")) //to prevent a miss if the hero's assist/counterattack was evaded after they last attacked 
         user.binaries.remove("Missed");
         if (multiuse>0)
         {
@@ -54,7 +70,6 @@ class AttackAb extends Ability
             }
             while (typo==true);
         }
-        int omulti=multihit;
         if (channelled==true)
         {
             ab.SetChannelled(user, ab, targets);
@@ -116,7 +131,7 @@ class AttackAb extends Ability
                         } 
                         for (String[][] array: tempstrings)
                         {  
-                            StatEff New=StatFactory.MakeStat(array); 
+                            StatEff New=StatFactory.MakeStat(array, user); 
                             if (array[0][4].equalsIgnoreCase("true"))
                             {
                                 selfapply.add(New);
@@ -128,7 +143,7 @@ class AttackAb extends Ability
                         }
                         for (String[][] array: statstrings)
                         {  
-                            StatEff New=StatFactory.MakeStat(array); //this is how selfapply and other apply are populated
+                            StatEff New=StatFactory.MakeStat(array, user); //this is how selfapply and other apply are populated
                             if (array[0][4].equalsIgnoreCase("true"))
                             {
                                 selfapply.add(New);
@@ -165,9 +180,13 @@ class AttackAb extends Ability
                         {
                             user.binaries.remove("Missed");
                         }
-                        --multihit;
-                        damage=odamage; //reset damage 
+                        this.UseMultihit();
                         dmgdealt=0;
+                        for (SpecialAbility ob: special)
+                        {
+                            ob.Use(user, 616, chump); //for now this only activates chain
+                        }
+                        damage=odamage; //reset damage 
                     }
                     while (multihit>-1); //then repeat the attack for each multihit
                     multihit=omulti; //reset the multihit counter for the next use
@@ -181,7 +200,7 @@ class AttackAb extends Ability
         }
         else
         {
-            dcd=cd;
+            dcd+=cd;
         }
         return toadd;
     }
@@ -191,9 +210,27 @@ class AttackAb extends Ability
         return odamage;
     }
     @Override
+    public int GetMultihit(boolean original) //for chain
+    {
+        if (original==true)
+        return omulti;
+        else
+        return multihit;
+    }
+    @Override
+    public void UseMultihit () //for multichain
+    {
+        --multihit;
+    }
+    @Override
     public void ReturnDamage (int d)
     {
         dmgdealt=d;
+    }
+    @Override
+    public int GetDmgDealt () //for chain, and some hero passives
+    {
+        return dmgdealt;
     }
     @Override 
     public ArrayList<StatEff> ActivateChannelled(Character user, Ability ab)
@@ -225,7 +262,7 @@ class AttackAb extends Ability
                 System.out.println(oname+" could not be used due to a lack of eligible targets."); //but can still apply stateffs to self
                 for (String[][] array: tempstrings)
                 {  
-                    StatEff New=StatFactory.MakeStat(array); 
+                    StatEff New=StatFactory.MakeStat(array, user); 
                     if (array[0][4].equalsIgnoreCase("true"))
                     {
                         selfapply.add(New);
@@ -233,7 +270,7 @@ class AttackAb extends Ability
                 }
                 for (String[][] array: statstrings)
                 {  
-                    StatEff New=StatFactory.MakeStat(array); //this is how selfapply and other apply are populated
+                    StatEff New=StatFactory.MakeStat(array, user); //this is how selfapply and other apply are populated
                     if (array[0][4].equalsIgnoreCase("true"))
                     {
                         selfapply.add(New);
@@ -300,7 +337,7 @@ class AttackAb extends Ability
                         } 
                         for (String[][] array: tempstrings)
                         {  
-                            StatEff New=StatFactory.MakeStat(array); 
+                            StatEff New=StatFactory.MakeStat(array, user); 
                             if (array[0][4].equalsIgnoreCase("true"))
                             {
                                 selfapply.add(New);
@@ -312,7 +349,7 @@ class AttackAb extends Ability
                         }
                         for (String[][] array: statstrings)
                         {  
-                            StatEff New=StatFactory.MakeStat(array); //this is how selfapply and other apply are populated
+                            StatEff New=StatFactory.MakeStat(array, user); //this is how selfapply and other apply are populated
                             if (array[0][4].equalsIgnoreCase("true"))
                             {
                                 selfapply.add(New);
@@ -364,7 +401,7 @@ class AttackAb extends Ability
         }
         else
         {
-            dcd=cd;
+            dcd+=cd;
         }
         return toadd;
     }
@@ -389,7 +426,7 @@ class AttackAb extends Ability
     public boolean CheckUse (Character user, Ability ab)
     {
         boolean okay=true;
-        if (user.CheckFor(user, "Disarm")==true||user.CheckFor(user, "Suppression")==true)
+        if (user.CheckFor(user, "Disarm", false)==true||user.CheckFor(user, "Suppression", false)==true)
         {
             okay=false;
         }

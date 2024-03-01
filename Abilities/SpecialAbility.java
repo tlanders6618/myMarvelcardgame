@@ -8,10 +8,10 @@ package myMarvelcardgamepack;
 import java.util.ArrayList; 
 public abstract class SpecialAbility 
 {
-   int identifier;
+   int hashcode;
    public SpecialAbility()
    {
-       identifier=Card_HashCode.RandomCode();
+       hashcode=Card_HashCode.RandomCode();
    }
    public int Use(Character hero, Character target) //for before abs
    {
@@ -20,11 +20,11 @@ public abstract class SpecialAbility
    public void Use (Character caller, Character target, int dmg) //for after abs
    {
    }
-   public int Use (Character victim, int dmg, Character attacker) //only for special abs; not before or after abs
+   public int Use (Character victim, int dmg, Character attacker) //only for helpers and chain; not before or after abs
    {
        return dmg;
    }
-   public void Undo (Character victim) //only for special abs; not before or after abs
+   public void Undo (Character victim) //only for helpers; not before or after abs
    {
    }
 }
@@ -48,12 +48,140 @@ class BonusTurnHelper extends SpecialAbility
             for (SpecialAbility h: hero.helpers)
             {
                 System.out.println(h.toString());
-                if (h.identifier==identifier)
+                if (h.hashcode==this.hashcode)
                 {
                     hero.helpers.remove(h); System.out.println ("test: turn helper successfully removed"); break; 
                 }
             }
         }
+    }
+}
+class Chain extends SpecialAbility //both chain and multichain have been merged into one afterab
+{
+    boolean multi=false; int damage;
+    public Chain (boolean multi, Ability ability)
+    {
+        this.multi=multi; damage=ability.GetBaseDmg();
+    }
+    @Override
+    public int Use (Character user, int ignore, Character victim)
+    {
+        Ability ab=user.activeability;
+        ArrayList<Character> targets= new ArrayList<Character>();
+        if (ab.aoe==true)
+        {
+            Character[] targets1= new Character[6];
+            targets1=Battle.GetTeam(CoinFlip.TeamFlip(user.team1));
+            targets=CoinFlip.ToList(targets1);
+        }
+        else
+        {
+            targets.add(Ability.GetRandomHero (user, false, false));
+        }
+        if ((multi==true&&victim.dead==true&&user.dead==false&&targets.size()>0&&ab.GetMultihit(false)>-1)||(multi==false&&victim.dead==true&&user.dead==false&&targets.size()>0))
+        { 
+            if (multi==false)
+            {
+                System.out.println ("\n"+user.Cname+" used "+ab.oname);
+                double d=damage/2;
+                damage=5*(int)Math.floor(d/5);
+            }
+            if (user.binaries.contains("Missed")) 
+            user.binaries.remove("Missed");
+            int change=0;
+            ArrayList<StatEff> toadd= new ArrayList<StatEff>();   
+            for (Character chump: targets) //use the ability on its target
+            {
+                if (chump!=null) 
+                {
+                    while (ab.GetMultihit(false)>-1)
+                    {
+                        if (ab.aoe==false)
+                        {
+                            for (StatEff eff: user.effects) //get empowerments
+                            {
+                                if (eff.getimmunityname().equalsIgnoreCase("Empower"))
+                                {
+                                    change=eff.UseEmpower(user, ab, true);
+                                    damage+=change;
+                                }
+                            }
+                        }
+                        Damage_Stuff.CheckBlind(user);
+                        for (SpecialAbility ob: ab.special)
+                        {
+                            change=ob.Use(user, chump); //apply unique ability functions before attacking; this only affects before abs
+                            damage+=change;
+                        } 
+                        //removed attack options for ignoring status and causing health loss since they're so rare and so far don't overlap with chain; add back if needed
+                        chump=user.Attack(user, chump, damage, ab.aoe);
+                        for (SpecialAbility ob: ab.special)
+                        {
+                            ob.Use(user, chump, ab.GetDmgDealt()); //apply unique ability functions after attacking; this only activates after abs
+                        } 
+                        for (String[][] array: ab.tempstrings)
+                        {  
+                            StatEff New=StatFactory.MakeStat(array, user); 
+                            if (array[0][4].equalsIgnoreCase("true"))
+                            {
+                                ab.selfapply.add(New);
+                            }
+                            else if (!(user.binaries.contains("Missed"))&&array[0][4].equalsIgnoreCase("false")) 
+                            {
+                                ab.otherapply.add(New);
+                            }
+                        }
+                        for (String[][] array: ab.statstrings)
+                        {  
+                            StatEff New=StatFactory.MakeStat(array, user); 
+                            if (array[0][4].equalsIgnoreCase("true"))
+                            {
+                                ab.selfapply.add(New);
+                            }
+                            else if (!(user.binaries.contains("Missed"))&&array[0][4].equalsIgnoreCase("false")) //they cannot apply effects if the target evaded/they are blind
+                            {
+                                ab.otherapply.add(New);
+                            }
+                        }
+                        toadd=Ability.ApplyStats(user, chump, ab.together, ab.selfapply, ab.otherapply); 
+                        if (ab.aoe==false)
+                        {
+                            for (StatEff eff: user.effects) //undo empowerments
+                            {
+                                if (eff.getimmunityname().equalsIgnoreCase("Empower"))
+                                {
+                                    int irrelevant=eff.UseEmpower(user, ab, false);
+                                }
+                            }
+                        }
+                        if (ab.selfapply.size()!=0)
+                        {
+                            ab.selfapply.removeAll(ab.selfapply); 
+                        }
+                        if (ab.otherapply.size()!=0)
+                        {
+                            ab.otherapply.removeAll(ab.otherapply);
+                        }
+                        if (ab.tempstrings.size()!=0) 
+                        {
+                            ab.tempstrings.removeAll(ab.tempstrings);
+                        }
+                        if (user.binaries.contains("Missed"))
+                        {
+                            user.binaries.remove("Missed");
+                        }
+                        ab.UseMultihit();
+                        ab.ReturnDamage(0);
+                        for (SpecialAbility ob: ab.special)
+                        {
+                            ob.Use(user, 616, chump); //for now this only activates chain
+                        }
+                        damage=ab.GetBaseDmg(); //reset damage 
+                    }
+                }
+            }
+        }
+        return 616;
     }
 }
 class RedwingHelper extends SpecialAbility
