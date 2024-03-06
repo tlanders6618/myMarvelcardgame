@@ -13,7 +13,6 @@ public class Battle
     static Character[] team2= new Character[6];
     static ArrayList <Character> team1dead= new ArrayList <Character>();
     static ArrayList <Character> team2dead= new ArrayList <Character>();
-    static ArrayList <Character> transformed= new ArrayList <Character>(); //keep a copy of the transformed characters so their cooldowns aren't reset
     static int p1teamsize=0, p2teamsize=0; //size of team 
     static int p1heroes=3, p2heroes=3; //number of characters on the team
     static boolean p1solo=false, p2solo=false;
@@ -173,14 +172,14 @@ public class Battle
                 {
                     e.onTurnStart(champions[P1active]);
                 }
-                if (champions[P1active].dead==false)
+                if (champions[P1active]!=null) //since dying makes their spot in the team array null, a null check and an alive check are the same thing
                 {
                     for (StatEff e: modificationexception)
                     {
                         e.onTurnEnd(champions[P1active]);
                     }
                 }
-                if (champions[P1active].dead==false)
+                if (champions[P1active]!=null)
                 {
                     champions[P1active].OnTurnEnd(champions[P1active], true);
                     for (Ability ab: champions[P1active].abilities)
@@ -246,14 +245,14 @@ public class Battle
                 {
                     e.onTurnStart(champions[P2active]);
                 }
-                if (champions[P2active].dead==false)
+                if (champions[P2active]!=null)
                 {
                     for (StatEff e: modificationexception)
                     {
                         e.onTurnEnd(champions[P2active]);
                     }
                 }
-                if (champions[P2active].dead==false)
+                if (champions[P2active]!=null)
                 {
                     champions[P2active].OnTurnEnd(champions[P2active], true);
                     for (Ability ab: champions[P2active].abilities)

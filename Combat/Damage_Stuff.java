@@ -106,15 +106,15 @@ public class Damage_Stuff
                     {
                         if (effect.getefftype().equalsIgnoreCase("Defence")&&!(dealer.ignores.contains("Defence"))) //evade is a defence effect
                         {
-                            target.remove(target, effect.hashcode, "normal");
                             System.out.println ("\n"+target.Cname+" Evaded "+dealer.Cname+"'s attack!");
+                            target.remove(target, effect.hashcode, "normal");
                             dealer.binaries.add("Missed");
                             break;
                         }
                         else if (effect.getefftype().equalsIgnoreCase("Other")) //evade Effects cannot be stopped
                         {
-                            target.remove(target, effect.hashcode, "normal");
                             System.out.println ("\n"+target.Cname+" Evaded "+dealer.Cname+"'s attack!");
+                            target.remove(target, effect.hashcode, "normal");
                             dealer.binaries.add("Missed");
                             break;
                         }
@@ -124,10 +124,12 @@ public class Damage_Stuff
                         boolean evade=CoinFlip.Flip((50+target.Cchance));
                         if (evade==true)
                         {
-                            System.out.println ("\n"+target.Cname+" Evaded "+dealer.Cname+"'s attack!");
+                            System.out.println ("\n"+target.Cname+" successfully Evaded "+dealer.Cname+"'s attack!");
                             dealer.binaries.add("Missed");
                             break;
                         } 
+                        else
+                        System.out.println (target.Cname+" failed to Evade "+dealer.Cname+"'s attack.");
                     }
                 }
             }

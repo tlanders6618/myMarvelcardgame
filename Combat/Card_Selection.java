@@ -34,7 +34,7 @@ public class Card_Selection
             {
                 Cname=Damage_Stuff.GetInput(); 
                 good=false;
-                if (Cname==616||Cname<=0||Cname>17) //updated as more characters are released in each version
+                if (Cname==616||Cname<=0||Cname>20) //updated as more characters are released in each version
                 {
                     System.out.println("Index number not found.");
                 }
@@ -66,7 +66,7 @@ public class Card_Selection
         do
         {
             rename=Damage_Stuff.GetInput();
-            if (rename==616||rename<=0||rename>17)
+            if (rename==616||rename<=0||rename>20)
             {
                 System.out.println("Index number not found.");
             }
@@ -141,7 +141,18 @@ public class Card_Selection
     {
         int targ=56; boolean typo=true;
         ArrayList<Character> team=CoinFlip.ToList(list);
+        ArrayList<Character> safe=new ArrayList<Character>();
         ArrayList<Character> remove=new ArrayList<Character>();
+        switch (hero.index) //for heroes like kraven and superior spidey who only conditionally ignore targeting effects 
+        {
+            case 20: //inescapable
+            for (Character c: list)
+            {
+                if (c!=null&&c.CheckFor(c, "Tracer", false)==true&&c.targetable==true&&!(c.binaries.contains("Banished")))
+                safe.add(c);
+            }
+            break;
+        }
         for (Character c: team) //can't target banished enemies
         {
             if (c.binaries.contains("Banished"))
@@ -154,25 +165,62 @@ public class Card_Selection
             team.removeAll(remove);
             remove.removeAll(remove);
         }
-        ArrayList <Integer> afraid= new ArrayList <Integer>(); //terror only works if there are valid targets other than the enemy the hero is terrified of (if the enemy isn't alone)
-        if ((hero.team1==true&&Battle.p2solo!=true)||(hero.team1==false&&Battle.p1solo!=true)&&hero.CheckFor(hero, "Terror", false)==true&&!(hero.ignores.contains("Terror"))) 
+        if (team.size()>1&&((hero.team1==true&&Battle.p2solo!=true)||(hero.team1==false&&Battle.p1solo!=true))) //untargetable enemies are not untargetable if they are alone
         {
-            for (StatEff eff: hero.effects)
-            {
-                if (eff.getimmunityname().equalsIgnoreCase("Terror"))
-                {
-                    int h=eff.UseTerrorProvoke();
-                    Integer a=h; afraid.add(a); //getting and storing the hash of the character who applied terror
-                }
-            } 
             for (Character c: team)
             {
-                for (Integer ig: afraid)
+                if (c.targetable==false)
                 {
-                    int h=(int) ig;
-                    if (h==c.hash&&team.size()>1) //the enemy the hero is terrified of is only untargetable as long as there are other valid targets
+                    remove.add(c);
+                }
+            }
+        }
+        if (remove.size()>0)
+        {
+            team.removeAll(remove);
+            remove.removeAll(remove);
+        }
+        if (team.size()>1&&((hero.team1==true&&Battle.p2solo!=true)||(hero.team1==false&&Battle.p1solo!=true))) 
+        {
+            for (Character c: team)
+            {
+                if (!(hero.ignores.contains("Invisible"))&&c.binaries.contains("Invisible"))
+                {
+                    remove.add(c);
+                }
+            }
+        }
+        if (remove.size()>0&&remove.size()!=team.size()) //invisible has no effect if everyone on a team is invisible
+        {
+            team.removeAll(remove);
+            remove.removeAll(remove);
+        }
+        if (team.size()>1&&((hero.team1==true&&Battle.p2solo!=true)||(hero.team1==false&&Battle.p1solo!=true))) 
+        {
+            if (hero.CheckFor(hero, "Terror", false)==true&&!(hero.ignores.contains("Terror")))
+            {
+                ArrayList <Integer> afraid= new ArrayList <Integer>(); //terror only works if the one the hero is terrified of isn't alone
+                for (StatEff eff: hero.effects)
+                {
+                    if (eff.getimmunityname().equalsIgnoreCase("Terror"))
                     {
-                        remove.add(c); //the hero cannot target the one who terrified them
+                        int h=eff.UseTerrorProvoke();
+                        if (h!=0)
+                        {
+                            Integer a=h; afraid.add(a); //getting and storing the hash of the character who applied terror
+                        }
+                    }
+                } 
+                for (Character c: team)
+                {
+                    for (Integer ig: afraid)
+                    {
+                        int h=(int) ig;
+                        if (h==c.hash) //the enemy the hero is terrified of is only untargetable as long as there are other valid targets
+                        {
+                            remove.add(c); //the hero cannot target the one who terrified them 
+                            break;
+                        }
                     }
                 }
             }
@@ -190,7 +238,10 @@ public class Card_Selection
                 if (eff.getimmunityname().equalsIgnoreCase("Provoke"))
                 {
                     int h=eff.UseTerrorProvoke();
-                    Integer a=h; nafraid.add(a);
+                    if (h!=0)
+                    {
+                        Integer a=h; nafraid.add(a);
+                    }
                 }
             } 
         }
@@ -250,35 +301,10 @@ public class Card_Selection
             team.removeAll(remove);
             remove.removeAll(remove);
         }
-        if ((hero.team1==true&&Battle.p2solo!=true)||(hero.team1==false&&Battle.p1solo!=true)) //the untargetable enemies are not untargetable if they are alone on their team
+        for (Character c: safe)
         {
-            for (Character c: team)
-            {
-                if (c.targetable==false)
-                {
-                    remove.add(c);
-                }
-            }
-        }
-        if (remove.size()>0)
-        {
-            team.removeAll(remove);
-            remove.removeAll(remove);
-        }
-        if ((hero.team1==true&&Battle.p2solo!=true)||(hero.team1==false&&Battle.p1solo!=true)) //finally, check invisibility
-        {
-            for (Character c: team)
-            {
-                if (!(hero.ignores.contains("Invisible"))&&c.binaries.contains("Invisible"))
-                {
-                    remove.add(c);
-                }
-            }
-        }
-        if (remove.size()>0&&remove.size()!=team.size()) //invisible has no effect if everyone on a team is invisible
-        {
-            team.removeAll(remove);
-            remove.removeAll(remove);
+            if (!(team.contains(c)))
+            team.add(c); //characters who the hero can target due to their conditional inescapable or whatever; simpler to add them back at end than rewrite the normal process
         }
         int i=team.size();
         Character[] nlist= new Character[i]; //put all valid targets into new array

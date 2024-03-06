@@ -97,7 +97,7 @@ public class CoinFlip
             hero.ignores.remove ("Provoke");
         }
     }
-    public static void AddInescapable (Character hero, boolean add)
+    public static void AddInescapable (Character hero, boolean add) //can ignore everything except untargetable and banish
     {
         if (add==true)
         {
@@ -118,12 +118,22 @@ public class CoinFlip
             hero.ignores.remove ("Blind");
         }
     }
-    public static void RobotImmunities (Character hero)
+    public static void RobotImmunities (Character hero, boolean add)
     {
-        hero.immunities.add ("Bleed");
-        hero.immunities.add ("Poison");
-        hero.immunities.add ("Copy");
-        hero.WiDR=999;
+        if (add==true)
+        {
+            hero.immunities.add ("Bleed");
+            hero.immunities.add ("Poison");
+            hero.immunities.add ("Copy");
+            hero.WiDR=+999;
+        }
+        else
+        {
+            hero.immunities.remove ("Bleed");
+            hero.immunities.remove ("Poison");
+            hero.immunities.remove ("Copy");
+            hero.WiDR=-999;
+        }
     }
     public static void DOTImmune (Character hero, boolean add)
     {

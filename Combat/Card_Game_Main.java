@@ -25,7 +25,7 @@ public class Card_Game_Main
         int[] charnames= new int[6];
         bans[6]=62; bans[7]=24; bans[8]=122; bans[9]=170; bans[10]=184; //players cannot pick gauntlet thanos, binary, etc        
         //Selecting cards
-        System.out.println ("Welcome. The current version is 4.0.9. The latest playable character is Venom (Mac Gargan). "); 
+        System.out.println ("Welcome. The current version is 4.0.10. The latest playable character is Spider-Man (Superior). "); 
         System.out.println ("Please check the character overview list for the full list of playable characters.");
         System.out.println ("Remember, characters will take turns in the order they are picked.");
         //System.out.println ("\nEnter draft mode (allows character banning and up to one character swap)? Type yes or no.");
