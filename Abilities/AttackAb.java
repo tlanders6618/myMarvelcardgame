@@ -99,12 +99,13 @@ class AttackAb extends Ability
                                 }
                             }
                         }
-                        Damage_Stuff.CheckBlind(user);
                         for (SpecialAbility ob: special)
                         {
                             change=ob.Use(user, chump); //apply unique ability functions before attacking; this only affects before abs
                             damage+=change;
                         } 
+                        if (blind==false) //only check blind once per attack
+                        Damage_Stuff.CheckBlind(user);
                         if (user.ignores.contains("Status effects")) //for now this won't trigger on attacked; if it causes problems, I'll change it
                         {
                             chump.HP-=damage;
@@ -180,6 +181,7 @@ class AttackAb extends Ability
                         {
                             user.binaries.remove("Missed");
                         }
+                        this.blind=false;
                         this.UseMultihit();
                         dmgdealt=0;
                         for (SpecialAbility ob: special)
@@ -255,6 +257,16 @@ class AttackAb extends Ability
         {
             System.out.println (oname+"'s channelling finished.");
             System.out.println (user.Cname+" used "+oname+"!");
+            StatEff remove= null;
+            for (StatEff e: user.effects)
+            {
+                if (e instanceof Tracker&&e.geteffname().equals("Channelling "+ab.oname))
+                {
+                    remove=e; break;
+                }
+            }
+            if (remove!=null)
+            user.effects.remove(remove);  
             int omulti=multihit;
             int change=0;
             if (ctargets.size()<=0)
@@ -305,12 +317,13 @@ class AttackAb extends Ability
                                 }
                             }
                         }
-                        Damage_Stuff.CheckBlind(user);
                         for (SpecialAbility ob: special)
                         {
                            change=ob.Use(user, chump); //apply unique ability functions before attacking; this only affects before abs
                            damage+=change;
                         } 
+                        if (blind==false) //only check blind once per attack
+                        Damage_Stuff.CheckBlind(user);
                         if (user.ignores.contains("Status effects")) //for now this won't trigger on attacked; if it causes problems, I'll change it
                         {
                             chump.HP-=damage;
@@ -386,7 +399,8 @@ class AttackAb extends Ability
                         {
                             user.binaries.remove("Missed");
                         }
-                        --multihit;
+                        this.blind=false;
+                        this.UseMultihit();
                         damage=odamage; //reset damage 
                         dmgdealt=0;
                     }
@@ -426,7 +440,7 @@ class AttackAb extends Ability
     public boolean CheckUse (Character user, Ability ab)
     {
         boolean okay=true;
-        if (user.CheckFor(user, "Disarm", false)==true||user.CheckFor(user, "Suppression", false)==true)
+        if ((user.CheckFor(user, "Disarm", false)==true&&ab.ignore==false)||user.CheckFor(user, "Suppression", false)==true)
         {
             okay=false;
         }

@@ -12,13 +12,15 @@ public abstract class Ability
 {
     boolean channelled=false; boolean interrupt=false; boolean usable=true; 
     boolean singleuse=false; boolean used=false; //used is only for keeeping track of single use
-    boolean unbound=false;
-    boolean together=true; //whether status effects are applied separately or together
+    boolean unbound=false; 
+    boolean ignore=false; //for ignoring disable debuffs but not suppression
+    boolean together=false; //whether status effects are applied separately or together
     String oname; 
     String target; String friendly; 
     //friendly means ally, enemy, both, either, neither, self, ally inc, ally exc
     //target is single, self, multitarg, random, or aoe 
     boolean aoe=false; boolean attack=false;
+    boolean blind=false; //blind is usually checked after beforeabs but not in all cases; keeps track of whether blind was checked to avoid checking it twice
     int multiuse=0; int cd=0; int dcd=0; //all abilities are initially displayed with 0 cooldown (dcd) and switch to their listed cooldowns after use 
     ArrayList <Character> ctargets; //for channelled abs
     ArrayList<SpecialAbility> special= new ArrayList<SpecialAbility>(); 
@@ -154,6 +156,7 @@ public abstract class Ability
                     {
                         if (chump.team1!=user.team1) //hitting an enemy
                         {
+                            if (blind==false) //only check blind once per attack
                             Damage_Stuff.CheckBlind(user);
                             user.AttackNoDamage(user, chump, aoe); //let chump know he's been attacked
                         }
@@ -185,6 +188,11 @@ public abstract class Ability
                     if (user.binaries.contains("Missed"))
                     {
                         user.binaries.remove("Missed");
+                    }
+                    this.blind=false;
+                    for (SpecialAbility ob: special)
+                    {
+                        ob.Use(user, 616, chump); 
                     }
                 }
                 --uses;
@@ -224,9 +232,9 @@ public abstract class Ability
         ctargets=targets;
         hero.effects.add(new Tracker ("Channelling "+ab.oname)); //so you don't forget someone is channelling
     }
-    public void InterruptChannelled (Character hero, Ability ab)
+    public void InterruptChannelled (Character hero, Ability ab) //same for all non basicabs
     {
-        if (interrupt==false)
+        if (!(hero.immunities.contains("Interrupt"))&&interrupt==false)
         {
             interrupt=true;
             System.out.println(hero.Cname+"'s Channelling was interrupted!");
@@ -263,7 +271,17 @@ public abstract class Ability
         else if (channelled==true&&interrupt==false)
         {
             System.out.println ("\n"+oname+"'s channelling finished.");
-            System.out.println (user.Cname+" used "+oname+"!"); 
+            System.out.println (user.Cname+" used "+oname+"!");
+            StatEff remove= null;
+            for (StatEff e: user.effects)
+            {
+                if (e instanceof Tracker&&e.geteffname().equals("Channelling "+ab.oname))
+                {
+                    remove=e; break;
+                }
+            }
+            if (remove!=null)
+            user.effects.remove(remove);  
             if (ctargets.size()<=0)
             {
                 System.out.println(ab.oname+" could not be used due to a lack of eligible targets.");
@@ -315,6 +333,7 @@ public abstract class Ability
                     {
                         if (chump.team1!=user.team1) //hitting an enemy
                         {
+                            if (blind==false) //only check blind once per attack
                             Damage_Stuff.CheckBlind(user);
                             user.AttackNoDamage(user, chump, aoe); //let chump know he's been attacked
                         }
@@ -393,6 +412,11 @@ public abstract class Ability
                     {
                         user.binaries.remove("Missed");
                     }
+                    this.blind=false;
+                    for (SpecialAbility ob: special)
+                    {
+                        ob.Use(user, 616, chump); //for now this only activates chain
+                    }
                 }
             }
         }
@@ -435,41 +459,21 @@ public abstract class Ability
     public static Ability[] AssignAb (int index)
     {
         Ability[] abilities = new Ability[5];
-        int counter=0;
-        Ability ab1=Ability_List_Player.GetAb(index, counter, false);
-        ++counter;
-        Ability ab2=Ability_List_Player.GetAb(index, counter, false);
-        ++counter;
-        Ability ab3=Ability_List_Player.GetAb(index, counter, false);
-        ++counter;
-        Ability ab4=Ability_List_Player.GetAb(index, counter, false);
-        ++counter;
-        Ability ab5=Ability_List_Player.GetAb(index, counter, false);
-        abilities[0]=ab1;
-        abilities[1]=ab2;
-        abilities[2]=ab3;
-        abilities[3]=ab4;
-        abilities[4]=ab5;
+        for (int i=0; i<5; i++)
+        {
+            Ability ab=Ability_List_Player.GetAb(index, i, false);
+            abilities[i]=ab;
+        }
         return abilities;
     }
     public static Ability[] AssignAbSum (int index)
     {
         Ability[] abilities = new Ability[5];
-        int counter=0;
-        Ability ab1=Ability_List_Summon.GetAb(index, counter, false);
-        ++counter;
-        Ability ab2=Ability_List_Summon.GetAb(index, counter, false);
-        ++counter;
-        Ability ab3=Ability_List_Summon.GetAb(index, counter, false);
-        ++counter;
-        Ability ab4=Ability_List_Summon.GetAb(index, counter, false);
-        ++counter;
-        Ability ab5=Ability_List_Summon.GetAb(index, counter, false);
-        abilities[0]=ab1;
-        abilities[1]=ab2;
-        abilities[2]=ab3;
-        abilities[3]=ab4;
-        abilities[4]=ab5;
+        for (int i=0; i<5; i++)
+        {
+            Ability ab=Ability_List_Summon.GetAb(index, i, false);
+            abilities[i]=ab;
+        }
         return abilities;
     }
     public static void DoRicochetDmg (int dmg, Character user, boolean shock)
@@ -580,11 +584,11 @@ public abstract class Ability
                         {
                             StatEff.applyfail(hero, eff, "immune");
                         }
-                        else if (eff.getefftype().equalsIgnoreCase("Debuffs")&&hero.CheckFor(hero, "Neutralise", false)==true)
+                        else if (eff.getefftype().equalsIgnoreCase("Debuffs")&&hero.CheckFor(hero, "Neutralise", false)==true&&!(hero.ignores.contains("Neutralise")))
                         {
                             StatEff.applyfail(hero, eff, "conflict");
                         }
-                        else if (eff.getefftype().equalsIgnoreCase("Buffs")&&hero.CheckFor(hero, "Undermine", false)==true)
+                        else if (eff.getefftype().equalsIgnoreCase("Buffs")&&hero.CheckFor(hero, "Undermine", false)==true&&!(hero.ignores.contains("Undermine")))
                         { 
                             StatEff.applyfail(hero, eff, "conflict");
                         }
@@ -592,7 +596,7 @@ public abstract class Ability
                         {
                             StatEff.applyfail(hero, eff, "conflict");
                         }
-                        else if (eff.getefftype().equalsIgnoreCase("Heal")&&hero.CheckFor(hero, "Afflicted", false)==true)
+                        else if (eff.getefftype().equalsIgnoreCase("Heal")&&hero.CheckFor(hero, "Afflicted", false)==true&&!(hero.ignores.contains("Afflicted")))
                         {
                             StatEff.applyfail(hero, eff, "conflict");
                         }
@@ -634,11 +638,11 @@ public abstract class Ability
                         {
                             StatEff.applyfail(hero, eff, "immune");
                         }
-                        else if (eff.getefftype().equalsIgnoreCase("Debuffs")&&hero.CheckFor(hero, "Neutralise", false)==true)
+                        else if (eff.getefftype().equalsIgnoreCase("Debuffs")&&hero.CheckFor(hero, "Neutralise", false)==true&&!(hero.ignores.contains("Neutralise")))
                         {
                             StatEff.applyfail(hero, eff, "conflict");
                         }
-                        else if (eff.getefftype().equalsIgnoreCase("Buffs")&&hero.CheckFor(hero, "Undermine", false)==true)
+                        else if (eff.getefftype().equalsIgnoreCase("Buffs")&&hero.CheckFor(hero, "Undermine", false)==true&&!(hero.ignores.contains("Undermine")))
                         { 
                             StatEff.applyfail(hero, eff, "conflict");
                         }
@@ -646,7 +650,7 @@ public abstract class Ability
                         {
                             StatEff.applyfail(hero, eff, "conflict");
                         }
-                        else if (eff.getefftype().equalsIgnoreCase("Heal")&&hero.CheckFor(hero, "Afflicted", false)==true)
+                        else if (eff.getefftype().equalsIgnoreCase("Heal")&&hero.CheckFor(hero, "Afflicted", false)==true&&!(hero.ignores.contains("Afflicted")))
                         {
                             StatEff.applyfail(hero, eff, "conflict");
                         }
@@ -665,7 +669,7 @@ public abstract class Ability
                     }
                     else 
                     {
-                        System.out.println (hero.Cname+"'s effect(s) failed to apply due to chance"); //(Test) The application chance was "+chance);
+                        System.out.println (hero.Cname+"'s "+eff.geteffname()+" failed to apply due to chance"); //(Test) The application chance was "+chance);
                     }
                 }
             }
@@ -682,7 +686,7 @@ public abstract class Ability
                     }
                     else
                     {
-                        System.out.println (hero.Cname+"'s effect(s) failed to apply due to chance"); //(Test) The application chance was "+chance);
+                        System.out.println (hero.Cname+"'s "+eff.geteffname()+" failed to apply due to chance"); //(Test) The application chance was "+chance);
                     }
                 }
             }

@@ -716,6 +716,35 @@ class Ricochet extends AfterAbility //do ricochet damage
         }
     }
 }
+class Summoning extends AfterAbility
+{
+    int sindex;
+    public Summoning (int ind)
+    {
+        sindex=ind;
+    }
+    @Override
+    public void Use (Character hero, Character target, int ignore)
+    {
+        Summon friend= new Summon(sindex);
+        friend.team1=hero.team1; //add if statement to change this when needed in the future
+        Battle.SummonSomeone(hero, friend);
+    }
+}
+class Transformation extends AfterAbility
+{
+    int index;
+    boolean great;
+    public Transformation (int n, boolean g)
+    {
+        index=n; great=g;
+    }
+    @Override
+    public void Use (Character hero, Character ignored, int ignore)
+    {
+        hero.Transform(hero, index, great);
+    }
+}
 class Update extends AfterAbility //adds tracker to hero to make it clear that their otherwise silent otherab took effect; for drax modern, mephisto, the weaver, unstoppable colossus
 {
     int index=0;

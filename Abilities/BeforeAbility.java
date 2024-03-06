@@ -42,7 +42,8 @@ class ApplyShatter extends BeforeAbility //shatter applies before attacking, as 
     @Override
     public int Use (Character user, Character target)
     {
-        if ((!(user.binaries.contains("Missed"))||user.immunities.contains("Missed")))
+        Damage_Stuff.CheckBlind(user); user.activeability.blind=true;
+        if (!(user.binaries.contains("Missed")))
         {
             String nchance=String.valueOf(chance);
             String ndur=String.valueOf(duration);
@@ -91,6 +92,7 @@ class BeforeNullify extends BeforeAbility //same as nullify but before doing dmg
     @Override
     public int Use (Character user, Character target)
     {
+        Damage_Stuff.CheckBlind(user); user.activeability.blind=true;
         if (!(target.immunities.contains("Nullify"))&&!(target.immunities.contains("Other"))&&(!(user.binaries.contains("Missed"))||user.immunities.contains("Missed"))) 
         {
             String[] neffname= new String [efftype.length]; 
@@ -419,7 +421,8 @@ class DamageCounterRemove extends BeforeAbility //increase damage based on numbe
     public int Use(Character hero, Character target)
     {
         int dmgincrease=0;
-        if (!(hero.binaries.contains("Missed"))||hero.immunities.contains("Missed"))
+        Damage_Stuff.CheckBlind(hero); hero.activeability.blind=true;
+        if (!(hero.binaries.contains("Missed")))
         {
             if (self==true)
             dmgincrease=UseDamageCounterRemove(hero, amount, name);
@@ -497,7 +500,7 @@ class DamageCounterSimple extends BeforeAbility //just checks if the target has 
 class DebuffMod extends BeforeAbility //for altering the debuffs an ab applies, e.g. Superior Spidey and MODOK
 {
     int index=0; //exactly kind of debuff modification is needed depends based on the hero 
-    int ab=0; //also varies based on the ab the hero uses
+    int ab=0; //also may vary based on the ab the hero uses
     public DebuffMod (int windex, int ability)
     {
         index=windex; ab=ability;
@@ -508,7 +511,7 @@ class DebuffMod extends BeforeAbility //for altering the debuffs an ab applies, 
         switch (index)
         {
             case 2: //gamora's second passive
-            if (target.CheckFor(target, "Protect", false)==true) //protected enemies have +1 bleed dur
+            if (user.index==2&&target.CheckFor(target, "Protect", false)==true) //protected enemies have +1 bleed dur; make sure rogue and adaptoid don't copy her passive
             {
                 if (ab==1)
                 {
@@ -536,6 +539,7 @@ class DebuffMod extends BeforeAbility //for altering the debuffs an ab applies, 
             }
             break;
             case 13: //modern drax
+            if (user.index==13)
             StaticPassive.Drax(user, target, false); //check with debuff to apply
             if (user.passivecount==-2) //double passive proc
             {
@@ -548,6 +552,34 @@ class DebuffMod extends BeforeAbility //for altering the debuffs an ab applies, 
             else //no passive
             {
                 String[] bloody= {"Bleed", "100", "35", "2", "false"}; String[][] gore= StatFactory.MakeParam(bloody, null); user.activeability.AddTempString(gore);
+            }
+            break;
+            case 19: //miles
+            if (target.CheckFor(target, "Shock", false)==true)
+            {
+                String[] horseson={"Undermine", "500", "616", "1", "false"}; String[][] albert=StatFactory.MakeParam(horseson, null); user.activeability.AddTempString(albert);
+            }
+            break;
+            case 20: //superior
+            if (target.CheckFor(target, "Tracer", false)==true)
+            {
+                String []akaban={"Countdown", "100", "80", "1", "false"}; String[][] niharu=StatFactory.MakeParam(akaban, null); user.activeability.AddTempString(niharu);
+            }
+            else
+            {
+                String []akaban={"Countdown", "100", "70", "1", "false"}; String[][] niharu=StatFactory.MakeParam(akaban, null); user.activeability.AddTempString(niharu);
+            }
+            break;
+            case 28: //arachnaught
+            if (target.summoned==true)
+            {
+                String []akaban={"Weakness", "100", "5", "2", "false"}; String[][] niharu=StatFactory.MakeParam(akaban, null); user.activeability.AddTempString(niharu);
+                String[] temper={"Provoke", "100", "616", "2", "false"}; String[][] invasion=StatFactory.MakeParam(temper, null); user.activeability.AddTempString(invasion);
+            }
+            else
+            {
+                String []akaban={"Weakness", "100", "5", "1", "false"}; String[][] niharu=StatFactory.MakeParam(akaban, null); user.activeability.AddTempString(niharu);
+                String[] temper={"Provoke", "100", "616", "1", "false"}; String[][] invasion=StatFactory.MakeParam(temper, null); user.activeability.AddTempString(invasion);
             }
             break;
         }
@@ -565,7 +597,7 @@ class Ignore extends BeforeAbility
       toig=toignore; condition=cond; condnumber=number;
    }
    @Override
-   public int Use (Character hero, Character target)
+   public int Use (Character hero, Character target) //beforeab
    {
       switch (condition) //if conditions are met, add whatever needs to be ignored to the hero's ignore arraylist
       {
@@ -586,13 +618,14 @@ class Ignore extends BeforeAbility
       return 0;
    }
    @Override
-   public void Use (Character hero, Character target, int noodle) //afterability to undo effects after attack
+   public int Use (Character hero, int noodle, Character target) //specialability to undo effects after attack; not an afterab to ensure bonus stays active when applying stateffs
    {
       if (success==true)
       {
          success=false;
          Ignore.Execute(hero, toig, false);
       }
+      return 0;
    }
    public static void Execute (Character hero, String todo, boolean add) //add or remove thing to be ignored
    {
@@ -601,10 +634,13 @@ class Ignore extends BeforeAbility
           switch (todo)
           {
               case "targeting effects": CoinFlip.IgnoreTargeting (hero, true); break;
-              case "defence": hero.ignores.add("Defence"); break;
-              case "blind": hero.ignores.add("Blind"); break; 
-              case "inescapable": CoinFlip.AddInescapable (hero, true); break;
+              case "Defence": hero.ignores.add("Defence"); break;
+              case "Blind": hero.ignores.add("Blind"); break; 
+              case "Inescapable": CoinFlip.AddInescapable (hero, true); break;
               case "Missed": hero.immunities.add("Missed"); break;
+              case "Afflicted": hero.ignores.add("Afflicted"); break;
+              case "Neutralise": hero.ignores.add("Neutralise"); break;
+              case "Undermine": hero.ignores.add("Undermine"); break;
           }
       }
       else
@@ -612,10 +648,13 @@ class Ignore extends BeforeAbility
           switch (todo)
           {
               case "targeting effects": CoinFlip.IgnoreTargeting (hero, false); break;
-              case "defence": hero.ignores.remove("Defence"); break;
-              case "blind": hero.ignores.remove("Blind"); break;
-              case "inescapable": CoinFlip.AddInescapable (hero, false); break;
+              case "Defence": hero.ignores.remove("Defence"); break;
+              case "Blind": hero.ignores.remove("Blind"); break;
+              case "Inescapable": CoinFlip.AddInescapable (hero, false); break;
               case "Missed": hero.immunities.remove("Missed"); break;
+              case "Afflicted": hero.ignores.remove("Afflicted"); break;
+              case "Neutralise": hero.ignores.remove("Neutralise"); break;
+              case "Undermine": hero.ignores.remove("Undermine"); break;
           }
       }
    }
@@ -646,21 +685,6 @@ class SelfDMG extends BeforeAbility
             hero.HP=0;
             hero.onLethalDamage(hero, null, "other");
         }
-        return 0;
-    }
-}
-class Summoning extends BeforeAbility
-{
-    int index;
-    public Summoning (int inl)
-    {
-        index=inl;
-    }
-    @Override
-    public int Use (Character hero, Character ignored)
-    {
-        Summon sum= new Summon (index);
-        Battle.SummonSomeone(hero, sum);
         return 0;
     }
 }

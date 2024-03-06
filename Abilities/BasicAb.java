@@ -69,12 +69,13 @@ class BasicAb extends AttackAb
                                 damage+=change;
                             }
                         }
-                        Damage_Stuff.CheckBlind(user);
                         for (SpecialAbility ob: special)
                         {
                             change=ob.Use(user, chump); //apply unique ability functions before attacking
                             damage+=change;
-                        }                         
+                        }       
+                        if (blind==false) //only check blind once per attack
+                        Damage_Stuff.CheckBlind(user);
                         if (user.ignores.contains("Status effects"))
                         {
                             chump.HP-=damage;
@@ -166,6 +167,7 @@ class BasicAb extends AttackAb
                         {
                             user.binaries.remove("Missed");
                         }
+                        this.blind=false;
                         this.UseMultihit();
                         dmgdealt=0;
                         for (SpecialAbility ob: special)
@@ -211,7 +213,7 @@ class BasicAb extends AttackAb
     @Override
     public boolean CheckUse (Character user, Ability ab)
     {
-        if (user.CheckFor(user, "Disarm", false)==true)
+        if (user.CheckFor(user, "Disarm", false)==true&&ab.ignore==false)
         {
             return false;
         }

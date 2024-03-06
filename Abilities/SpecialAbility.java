@@ -20,7 +20,7 @@ public abstract class SpecialAbility
    public void Use (Character caller, Character target, int dmg) //for after abs
    {
    }
-   public int Use (Character victim, int dmg, Character attacker) //only for helpers and chain; not before or after abs
+   public int Use (Character user, int dmg, Character target) //only for helpers, ignore, and chain; not before or after abs
    {
        return dmg;
    }
@@ -38,7 +38,7 @@ class BonusTurnHelper extends SpecialAbility
     @Override
     public void Undo (Character hero) //bonus turn triggers at the end of a hero turn
     {
-        if (used==false&&hero.dead==false&&hero.activeability.channelled==false)  //since helpers are triggered after using a channelled ability, right before hero starts their turn
+        if (used==false&&hero.dead==false&&hero.activeability.channelled==false) //since helpers are triggered after using a channelled ability, right before hero starts their turn
         {
             Battle.Turn(hero, true); //hero can only take a bonus turn after finishing their turn, so it cannot be triggered after using a channelled skill
             used=true;
@@ -56,7 +56,7 @@ class BonusTurnHelper extends SpecialAbility
         }
     }
 }
-class Chain extends SpecialAbility //both chain and multichain have been merged into one afterab
+class Chain extends SpecialAbility //both chain and multichain have been merged into one; in here since it's technically not an afterab
 {
     boolean multi=false; int damage;
     public Chain (boolean multi, Ability ability)

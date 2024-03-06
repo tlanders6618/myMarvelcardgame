@@ -18,28 +18,32 @@ public class Ability_List_Player
         Ability toret=null;
         switch (index) //since making a giant array of dozens of elements was very slow, this should be faster, albeit longer
         {
-            case 1: toret=Ability_List_Player.MakeAbMK(counter); break;
-            case 2: toret=Ability_List_Player.MakeAbGam(counter, copy); break;
-            case 3: toret=Ability_List_Player.MakeAbPun(counter); break;
-            case 4: toret=Ability_List_Player.MakeAbIM(counter); break;
-            case 5: toret=Ability_List_Player.MakeAbWM(counter); break;
-            case 6: toret=Ability_List_Player.MakeAbCap(counter); break;
-            case 7: toret=Ability_List_Player.MakeAbFalc(counter); break;
-            case 8: toret=Ability_List_Player.MakeAbBucky(counter); break;
-            case 9: toret=Ability_List_Player.MakeAbStarLord(counter); break;
-            case 10: toret=Ability_List_Player.MakeAbNickSr(counter); break;
-            case 11: toret=Ability_List_Player.MakeAbNickJr(counter); break;
-            case 12: toret=Ability_List_Player.MakeAbOGDrax(counter); break;
-            case 13: toret=Ability_List_Player.MakeAbDrax(counter, copy); break;
-            case 14: toret=Ability_List_Player.MakeAbX23(counter); break;
-            case 15: toret=Ability_List_Player.MakeAbWolvie(counter); break;
-            case 16: toret=Ability_List_Player.MakeAbOGVenom(counter); break;
-            case 17: toret=Ability_List_Player.MakeAbVenom(counter); break;
+            case 1: toret=MakeAbMK(counter); break;
+            case 2: toret=MakeAbGam(counter, copy); break;
+            case 3: toret=MakeAbPun(counter); break;
+            case 4: toret=MakeAbIM(counter); break;
+            case 5: toret=MakeAbWM(counter); break;
+            case 6: toret=MakeAbCap(counter); break;
+            case 7: toret=MakeAbFalc(counter); break;
+            case 8: toret=MakeAbBucky(counter); break;
+            case 9: toret=MakeAbStarLord(counter); break;
+            case 10: toret=MakeAbNickSr(counter); break;
+            case 11: toret=MakeAbNickJr(counter); break;
+            case 12: toret=MakeAbOGDrax(counter); break;
+            case 13: toret=MakeAbDrax(counter, copy); break;
+            case 14: toret=MakeAbX23(counter); break;
+            case 15: toret=MakeAbWolvie(counter); break;
+            case 16: toret=MakeAbOGVenom(counter); break;
+            case 17: toret=MakeAbVenom(counter); break;
+            case 18: toret=MakeAbSpidey(counter); break;
+            case 19: toret=MakeAbMiles(counter); break;
+            case 20: toret=MakeAbSuperior(counter); break;
             default: System.out.println ("Problem getting hero abilities");
         }
         return toret;
     }    
-    public static Ability MakeAbName (int counter) //template
+    //template
+    public static Ability MakeAbName (int counter)
     {
         switch (counter)
         {
@@ -48,6 +52,61 @@ public class Ability_List_Player
             case 2: 
             case 3: 
             case 4: 
+            default: return null;
+        }
+    }
+    public static Ability MakeAbSuperior (int counter)
+    {
+        switch (counter)
+        {
+            case 0: BasicAb talon= new BasicAb("Talon Slash", "single", "enemy", 35); 
+            String[] sorek={"Bleed", "100", "5", "2", "false"}; String [][] veda=StatFactory.MakeParam(sorek, null); talon.AddStatString(veda);
+            String[] vikta={"Tracer", "100", "616", "2", "false"}; String[][] ahiid=StatFactory.MakeParam(vikta, null); talon.AddStatString(ahiid);
+            return talon;
+            case 1: AttackAb assault= new AttackAb("Web Assault", "single", "enemy", 75, 2); assault.special.add(new DamageCounterSimple(15, "Tracer", false, false));
+            return assault;
+            case 2: DebuffAb swarm=new DebuffAb ("Spider-Bot Swarm", "AoE", "enemy", 3); swarm.special.add(new DebuffMod(20, 616));
+            return swarm;
+            case 3: OtherAb summon=new OtherAb("Superior Spider", "self", "self", 0); summon.special.add(new Summoning(27));
+            return summon;
+            default: return null;
+        }
+    }
+    public static Ability MakeAbMiles (int counter)
+    {
+        switch (counter)
+        {
+            case 0: BasicAb venom=new BasicAb("Venom Blast", "single", "enemy", 35); 
+            String[] shockinghuh= {"Shock", "100", "5", "3", "false"}; String[][] hahadie=StatFactory.MakeParam(shockinghuh, null); venom.AddStatString(hahadie);
+            return venom;
+            case 1: BuffAb camo= new BuffAb("Spider Camouflage", "self", "self", 2); camo.together=true;
+            String[] swift={"Invisible", "100", "616", "2", "true"}; String[][] sand=StatFactory.MakeParam(swift, null); camo.AddStatString(sand);
+            String[] taylor={"Evasion", "100", "616", "2", "true"}; String[][] bold=StatFactory.MakeParam(taylor, null); camo.AddStatString(bold);
+            return camo;
+            case 2: AttackAb sneak= new AttackAb("Sneak Attack", "single", "enemy", 90, 3);
+            sneak.special.add(new DamageCounterSimple(20, "Invisible", false, true));
+            return sneak;
+            case 3: AttackAb thing= new AttackAb("Anything a Spider Can", "single", "enemy", 90, 3);
+            thing.special.add(new DebuffMod (19, 616));
+            return thing;
+            case 4: AttackAb ultimate= new AttackAb("Ultimate Spider-Man", "single", "enemy", 110, 5);
+            ultimate.special.add(new DamageCounterSimple(20, "Invisible", false, true)); ultimate.special.add(new DamageCounterSimple(20, "Shock", false, false));
+            return ultimate;
+            default: return null;
+        }
+    }
+    public static Ability MakeAbSpidey (int counter) 
+    {
+        switch (counter)
+        {
+            case 0: BasicAb swing= new BasicAb ("Web Swing", "single", "enemy", 45);
+            return swing;
+            case 1: DebuffAb quip= new DebuffAb ("Distracting Quip", "single", "enemy", 0); quip.special.add(new Ignore("Neutralise", "always", 616)); quip.ignore=true;
+            String[] braindrain= {"Daze", "500", "616", "1", "false"}; String[][] scat=StatFactory.MakeParam(braindrain, null); quip.AddStatString(scat); 
+            return quip;
+            case 3: AttackAb barrage= new AttackAb("Web Barrage", "single", "enemy", 90, 3); 
+            String[] breaker={"Snare", "100", "616", "2", "false"}; String[][] gatling=StatFactory.MakeParam(breaker, null); barrage.AddStatString(gatling);
+            return barrage;
             default: return null;
         }
     }
@@ -159,7 +218,7 @@ public class Ability_List_Player
             case 1: BasicAb slash= new BasicAb ("Combat Knife", "single", "enemy", 35); 
             String[] bleed= {"Bleed", "50", "20", "1", "false"}; String[][] red=StatFactory.MakeParam(bleed, null); slash.AddStatString(red);
             return slash;
-            case 2: BuffAb cloak= new BuffAb ("Cloaking Tech", "self", "self", 3); 
+            case 2: BuffAb cloak= new BuffAb ("Cloaking Tech", "self", "self", 3); cloak.together=true;
             String[] tech={"Invisible", "100", "616", "2", "true"}; String[][] redo=StatFactory.MakeParam(tech, null); 
             String[] fast= {"Speed", "100", "616", "2", "true"}; String[][] sped=StatFactory.MakeParam(fast, null); 
             cloak.AddStatString(redo); cloak.AddStatString(sped);
@@ -242,14 +301,14 @@ public class Ability_List_Player
             String[] weak= {"Weakness", "100", "10", "1", "false"}; String[][] redo=StatFactory.MakeParam(weak, null); 
             bomb.AddStatString(redo);
             return bomb;
-            case 3: DebuffAb eagle= new DebuffAb ("Eagle Eyed", "single", "enemy", 3); 
+            case 3: DebuffAb eagle= new DebuffAb ("Eagle Eyed", "single", "enemy", 3); eagle.together=true;
             String[] targ={"Target", "100", "20", "1", "false"}; String[][] target=StatFactory.MakeParam(targ, null); 
             String[] sexy= {"Neutralise", "100", "616", "1", "false"}; String[][] charming=StatFactory.MakeParam(sexy, null);
             eagle.AddStatString (target); eagle.AddStatString (charming);
             return eagle;
             case 4: AttackAb swarm= new AttackAb ("Bird Swarm", "AoE", "enemy", 70, 4); 
             String[] scary={"Daze", "50", "616", "1", "false"}; String[][] fred=StatFactory.MakeParam(scary, null); 
-            swarm.AddStatString(fred); swarm.together=false;
+            swarm.AddStatString(fred); 
             return swarm;
             default: return null;
         }
@@ -318,19 +377,19 @@ public class Ability_List_Player
             case 0: AttackAb molotov= new AttackAb ("Molotov Cocktail", "single", "enemy", 75, 3); 
             String[] rend={"Burn", "50", "10", "2", "false"}; String[][] fry=StatFactory.MakeParam(rend, null); 
             String[] bright= {"Disrupt", "50", "616", "1", "false"}; String[][] light=StatFactory.MakeParam(bright, null);
-            molotov.AddStatString (fry); molotov.AddStatString (light); molotov.together=false;
+            molotov.AddStatString (fry); molotov.AddStatString (light); 
             return molotov;
             case 1: AttackAb punished= new AttackAb ("Punished", "single", "enemy", 75, 3); 
             String[] shred= {"Bleed", "50", "10", "2", "false"}; String[][] heat=StatFactory.MakeParam(shred, null); 
             String[] dead= {"Neutralise", "50", "616", "1", "false"}; String[][] head=StatFactory.MakeParam(dead, null);
-            punished.AddStatString (heat); punished.AddStatString(head); punished.together=false;
+            punished.AddStatString (heat); punished.AddStatString(head); 
             return punished;
             case 2: AttackAb supfire= new AttackAb ("Suppressing Fire", "AoE", "enemy", 65, 3); 
             return supfire;
             case 3: BuffAb punwep= new BuffAb ("Weapons Expert", "self", "self", 0); 
             String[] asunder={"FocusE", "100", "616", "2", "true"}; String[][] me=StatFactory.MakeParam(asunder, null); 
             String[] evie={"Intensify", "100", "15", "2", "true"}; String[][] redo=StatFactory.MakeParam(evie, null);             
-            punwep.AddStatString (redo); punwep.AddStatString (me); punwep.together=false; 
+            punwep.AddStatString (redo); punwep.AddStatString (me); 
             return punwep;
             case 4: AttackAb retri= new AttackAb ("Retribution", "single", "enemy", 120, 5);
             String [] naught= {"Wound", "50", "616", "1", "false"}; String[][] brought=StatFactory.MakeParam(naught, null);
