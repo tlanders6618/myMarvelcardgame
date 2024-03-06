@@ -54,7 +54,6 @@ public class Dev_Notes
      * 
      * all new methods go under cardhashcode which is empty for some reason
      * 
-     * Snared 3rd in turn order gets moved to first and everyone else moves down one in array
      * daredevil blindside empowerment has to add an obj to beforeab that makes the ab miss; cannot add missed without letting beforeab make char immune to miss
      * 
      * To Do

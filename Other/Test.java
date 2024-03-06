@@ -7,15 +7,15 @@ public class Test
    public static void main (String[] args)
    {
        //System.out.println(System.getProperty("java.class.version")); //55 means 11, 56 means 12, etc
-       Character Char11= new Hero (16); //Char11.add(Char11, new Taunt (0, 90)); //Char11.binaries.add("Stunned");
-       Character Char12= new Hero (1); Char12.binaries.add("Stunned");
-       Character Char13= new Summon (7); Char13.binaries.add("Stunned");
-       Character Char21= new Hero (3); //Char21.binaries.add("Stunned");  //Char21.add(Char21, new Countdown (100, 250, 1, null)); 
-       Character Char22= new Summon (12); Char22.binaries.add("Stunned"); 
-       Character Char23= new Summon (7); Char23.binaries.add("Stunned");
+       Character Char11= new Summon (28); //Char11.binaries.add("Stunned"); //Char11.add(Char11, new Taunt (0, 90)); 
+       Character Char12= new Summon (27); Char11.add(Char12, new Tracer (100, 616)); Char12.binaries.add("Stunned"); //Char12.add(Char12, new Invisible(66, 66));
+       Character Char13= new Summon (12); Char13.binaries.add("Stunned");
+       Character Char21= new Hero (20); //Char21.binaries.add("Stunned"); 
+       Character Char22= new Summon (7); Char22.binaries.add("Stunned"); 
+       Character Char23= new Summon (12); Char23.binaries.add("Stunned"); 
        boolean Pwinner=false; 
+       System.out.println("\nDonut forget to update card selection indexes");
        Pwinner=Battle.main(Char11, Char12, Char13, Char21, Char22, Char23);
-       System.out.println("Donut forget to update card selection indexes");
        if (Pwinner==true)
        {
            System.out.println ("\nPlayer 1 wins!");
@@ -29,6 +29,10 @@ public class Test
         * To do/to test today:
         * make empowerments work with aoe for both regular and channelled abs; change chain method too
         * test shatter interact with protect
+        * do draft mode soon
+        * update github files
+        * buff eddie
+        * nerf x23 and parker
         */
        
        /** 
