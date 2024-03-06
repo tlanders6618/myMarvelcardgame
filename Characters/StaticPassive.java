@@ -112,7 +112,7 @@ public class StaticPassive
     }
     public static void FurySr (Character fury, int hp) //after an hpchange
     {
-        if (hp<=90&&fury.passivecount==0&&!(fury.binaries.contains("Stunned")))
+        if (fury.passivecount==0&&hp<=90&&!(fury.binaries.contains("Stunned")))
         {
             Summon lmd= new Summon(1);
             lmd.team1=fury.team1;

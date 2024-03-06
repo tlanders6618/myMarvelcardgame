@@ -23,7 +23,7 @@ public class Hero extends Character
         abilities=Ability.AssignAb(index);     
     }
     @Override
-    public void onTurn (Character hero, boolean notbonus)
+    public void onTurn (Character hero, boolean notbonus) 
     {
         boolean go=true;
         switch (hero.index)
@@ -32,44 +32,11 @@ public class Hero extends Character
             case 6: ActivePassive.CaptainA(hero); break;
             case 9: go=ActivePassive.StarLord(hero); break; 
             case 11: ActivePassive.FuryJr (hero, true, false, false, false); break;
+            case 18: ActivePassive.Spidey(hero, null, false, false); break;
         }
         if (go==true)
         ++hero.turn;
-        if (hero.dead==false)
-        {
-            boolean team=hero.team1;
-            Character[] friends=Battle.GetTeammates(hero);
-            for (Character friend: friends)
-            {
-                if (friend!=null&&!(friend.binaries.contains("Banished")))
-                {
-                   friend.onAllyTurn(hero, friend, false);
-                }
-            }
-            team=CoinFlip.TeamFlip(team); //reverse team affiliation to get enemies
-            Character[] foes=Battle.GetTeam(team);
-            for (Character foe: foes)
-            {
-                if (foe!=null&&!(foe.binaries.contains("Banished")))
-                {
-                    foe.onEnemyTurn(hero, foe, false);
-                }
-            }
-            if (hero.team1==true) //potentially notify dead friends like Phoenix that it's time to revive
-            {
-                for (Character deadlad: Battle.team1dead)
-                {
-                    deadlad.onAllyTurn (hero, deadlad, false);
-                }
-            }
-            else
-            {
-                for (Character deadlad: Battle.team2dead)
-                {
-                    deadlad.onAllyTurn (hero, deadlad, false);
-                }
-            }
-        }
+        super.onTurn(hero, notbonus);
     }
     @Override
     public void OnTurnEnd (Character hero, boolean notbonus)
@@ -177,6 +144,10 @@ public class Hero extends Character
     @Override
     public Character Attack (Character dealer, Character target, int dmg, boolean aoe) //for attack skills
     {
+        switch (dealer.index) //for passives that let the dealer ignore protect or miss or etc against certain targets 
+        {
+            case 20: ActivePassive.Superior(dealer, target, true); break;
+        }
         target=target.onTargeted(dealer, target, dmg, aoe);
         switch (dealer.index)
         {
@@ -233,12 +204,64 @@ public class Hero extends Character
         return target;
     }
     @Override
+    public Character onTargeted (Character attacker, Character target, int dmg, boolean aoe)
+    {
+        Character ntarg=target;
+        if (aoe==false&&target.CheckFor(target, "Protect", false)==true&&!(attacker.ignores.contains("Protect"))) //check for protect
+        {
+            for (StatEff eff: target.effects)
+            {
+                if (eff.getimmunityname().equalsIgnoreCase("Protect")&&!(eff.getProtector().equals(target))) //protect has no effect if the target isn't the one being protected
+                {
+                    if (eff.getefftype().equalsIgnoreCase("Defence")&&!(attacker.ignores.contains("Defence"))) 
+                    //if the target has protect and the attacker doesn't ignore it, their protector instead takes the hit
+                    {
+                        ntarg=eff.getProtector();
+                        System.out.println(ntarg.Cname+" protected "+target.Cname+"!");
+                        break;
+                    } 
+                    else if (eff.getefftype().equalsIgnoreCase("Other")) 
+                    //if the target has a protect Effect, their protector always takes the hit
+                    {
+                        ntarg=eff.getProtector();
+                        System.out.println(ntarg.Cname+" protected "+target.Cname+"!");
+                        break;
+                    }            
+                }
+            }
+        }
+        switch (target.index) //for passives like howard the duck's that apply when attacked but take place before damage is dealt; mainly for avoidance
+        {
+            //no need to trigger some of these passives if protect was activated since protect changes the attack's target
+            case 18: ActivePassive.Spidey(target, attacker, true, aoe); break;
+        }
+        if (ntarg!=target&&!(ntarg.binaries.contains("Banished"))) //if the character is protected, no one else needs to do anything bc they're safe now
+        {
+            return ntarg;
+        }
+        if (ntarg==target) //only need to notify allies if the character is still vulnerable
+        {
+            Character[] friends=Battle.GetTeammates(target);
+            for (Character friend: friends) //this is where spidey, thing, etc do their thing
+            {
+                if (friend!=null&&!(friend.binaries.contains("Banished")))
+                {
+                    ntarg=friend.onAllyTargeted(friend, attacker, target, dmg, aoe);
+                    if (ntarg!=target)
+                    return ntarg;
+                }
+            }
+        } 
+        return ntarg;
+    }
+    @Override
     public void onAttack (Character hero, Character victim) //triggered after a hero finishes attacking
     {
         switch (hero.index)
         {
             case 12: ActivePassive.DraxOG(hero, true, victim, null); break;
             case 14: ActivePassive.X23(hero, victim, false); break;
+            case 20: ActivePassive.Superior(hero, victim, false); break;
         }
     }
     @Override
@@ -285,14 +308,23 @@ public class Hero extends Character
         }
     }
     @Override
-    public Character onAllyTargeted (Character hero, Character dealer, Character target, int dmg, boolean aoe)
+    public Character onAllyTargeted (Character hero, Character dealer, Character ally, int dmg, boolean aoe)
     {
-        Character ntarget=target;
-        if (!(hero.binaries.contains("Stunned"))&&!(hero.binaries.contains("Banished")))
+        if (!(hero.binaries.contains("Stunned"))&&aoe==false)
         {
-            //do spidey, thing, jean switch here   
+            switch (hero.index)
+            {
+                case 18: 
+                if (ally.HP<=140&&hero.CheckFor(hero, "Evade", false)==true)
+                {
+                    System.out.println("With great power, there must also come great responsibility."); 
+                    System.out.println(hero.Cname+" took the attack for "+ally.Cname+"!");
+                    return hero;
+                }
+                break;
+            }
         }
-        return ntarget;
+        return ally;
     }
     @Override
     public int TakeDamage (Character target, Character dealer, int dmg, boolean aoe) //true for aoe, false for single target
@@ -484,23 +516,72 @@ public class Hero extends Character
     @Override
     public void Transform (Character hero, int newindex, boolean greater) //new index is the index number of the character being transformed into
     {
-        Ability[] newabilities = new Ability[5];
-        newabilities=Ability.AssignAb(newindex);
-        hero.abilities=newabilities;
-        hero.Cname=SetName(newindex, false); 
-        hero.index=newindex; 
-        hero.dmgtaken=0;
-        if (greater==true) //greater transformation is ocurring
+        if (!(hero.immunities.contains("Other")))
         {
-            hero.maxHP=InHP(newindex, false); 
-            hero.HP=maxHP;
-            ArrayList <StatEff> removeme= new ArrayList<StatEff>();
-            removeme.addAll(hero.effects);        
-            for (StatEff eff: removeme)
+            String old=hero.Cname; 
+            String New=SetName(newindex, false); 
+            if (greater==false)
+            System.out.println(old+" Transformed into "+New+"!");
+            else
+            System.out.println(old+" Transformed (Greater) into "+New+"!");
+            hero.Cname=New; 
+            if ((hero.index<113||hero.index>115)&&hero.transabs[0][0]==null) //transforming for the first time, not counting legion since he's special
             {
-                hero.remove(hero, eff.hashcode, "normal"); 
+                hero.transabs[0]=hero.abilities;
+                Ability[] newabilities=Ability.AssignAb(newindex);
+                hero.abilities=newabilities;
             }
+            else if (hero.index<113||hero.index>115&&hero.transabs[0][0]!=null) //already transformed earlier and now transforming back
+            {
+                Ability[] temp=hero.transabs[0];
+                hero.transabs[0]=hero.abilities;
+                hero.abilities=temp;
+            }
+            else //hero is legion
+            {
+                if (hero.index==113)
+                {
+                    hero.transabs[0]=hero.abilities;
+                }
+                else if (hero.index==114)
+                {
+                    hero.transabs[1]=hero.abilities;
+                }
+                else if (hero.index==115)
+                {
+                    hero.transabs[2]=hero.abilities;
+                }
+                if (newindex==113)
+                {
+                    hero.abilities=hero.transabs[0];
+                }
+                else if (newindex==114)
+                {
+                    hero.abilities=hero.transabs[1];
+                }
+                else if (newindex==115)
+                {
+                    hero.abilities=hero.transabs[2];
+                }
+            }
+            if (greater==true) //greater transformation is ocurring
+            {
+                hero.maxHP=InHP(newindex, false); 
+                hero.HP=maxHP;
+                hero.SHLD=0;
+                ArrayList <StatEff> removeme= new ArrayList<StatEff>();
+                removeme.addAll(hero.effects);        
+                for (StatEff eff: removeme)
+                {
+                    if (!(eff instanceof Tracker))
+                    hero.remove(hero, eff.hashcode, "normal"); 
+                }
+                //add switch statement for heroes like binary and emma frost who gain/lose immunities or ignores when transforming
+            }
+            hero.index=newindex; 
         }
+        else
+        System.out.println(hero.Cname+"'s Transformation failed due to an immunity.");
     }
     @Override
     public void onAllySummon (Character hero, Summon newfriend)

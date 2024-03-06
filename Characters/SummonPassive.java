@@ -12,7 +12,7 @@ public class SummonPassive
 {
     public static void NickLMD (Summon lmd)
     {
-        CoinFlip.RobotImmunities(lmd);
+        CoinFlip.RobotImmunities(lmd, true);
         StatEff prot= new ProtectE (500, 616);
         prot.PrepareProtect(lmd, lmd.mysummoner);
         StatEff.CheckApply(lmd, lmd, prot);

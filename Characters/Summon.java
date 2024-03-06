@@ -1,6 +1,5 @@
 package myMarvelcardgamepack;
 
-
 /**
  * Designer: Timothy Landers
  * Date: 26/7/22
@@ -18,14 +17,14 @@ public class Summon extends Character
         index=Sindex;
         summoned=true;
         hash=Card_HashCode.RandomCode();
-        Cname=SetName(index, true);
         size=SetSizeSum(index);
         if (Sindex==13)
         {
-            //clone health and abilities depend on who they're a clone of
+            //clone health, name, and abilities depend on who they're a clone of
         }
         else
         {
+            Cname=SetName(index, true);
             HP=InHP (index, true);
             abilities=Ability.AssignAbSum(index);
         }
@@ -38,6 +37,10 @@ public class Summon extends Character
             case 1: SummonPassive.NickLMD(lad); break;
             case 7: lad.binaries.add("Stunned"); break;
         }
+        CheckSumDupes(lad);
+    }
+    public void CheckSumDupes (Character lad)
+    {
         int dupes=0; //number of duplicate summons
         if (lad.team1==true) 
         {
@@ -111,6 +114,8 @@ public class Summon extends Character
             case 10: name="Thug "+counter+" (Summon)"; break;
             case 11: name="Mirror Image "+counter+" (Summon)"; break;
             case 12: name="Giganto "+counter+" (Summon)"; break;
+            case 27: name="Spiderling "+counter+" (Summon)"; break;
+            case 28: name="Arachnaught "+counter+" (Summon)"; break;
             default: name="Error altering Summon name";
         }    
         return name;
@@ -208,41 +213,7 @@ public class Summon extends Character
         }
         if (go==true)
         ++hero.turn;
-        if (hero.dead==false)
-        {
-            boolean team=hero.team1;
-            Character[] friends=Battle.GetTeammates(hero);
-            for (Character friend: friends)
-            {
-                if (friend!=null&&!(friend.binaries.contains("Banished")))
-                {
-                   friend.onAllyTurn(hero, friend, true);
-                }
-            }
-            team=CoinFlip.TeamFlip(team); //reverse team affiliation to get enemies
-            Character[] foes=Battle.GetTeam(team);
-            for (Character foe: foes)
-            {
-                if (foe!=null&&!(foe.binaries.contains("Banished")))
-                {
-                    foe.onEnemyTurn(hero, foe, true);
-                }
-            }
-            if (hero.team1==true) //potentially notify dead friends like Phoenix that it's time to revive
-            {
-                for (Character deadlad: Battle.team1dead)
-                {
-                    deadlad.onAllyTurn (hero, deadlad, true);
-                }
-            }
-            else
-            {
-                for (Character deadlad: Battle.team2dead)
-                {
-                    deadlad.onAllyTurn (hero, deadlad, true);
-                }
-            }
-        }
+        super.onTurn(hero, notbonus);
     }
     @Override
     public void OnTurnEnd (Character hero, boolean notbonus)
@@ -341,63 +312,6 @@ public class Summon extends Character
     @Override
     public void HPChange (Character hero, int oldhp, int newhp)
     {
-    }
-    @Override
-    public Character onTargeted (Character attacker, Character target, int dmg, boolean aoe)
-    {
-        Character ntarg=target;
-        if (aoe==false&&target.CheckFor(target, "Protect", false)==true&&!(attacker.ignores.contains("Protect")))
-        {
-            for (StatEff eff: target.effects)
-            {
-                if (eff.getimmunityname().equalsIgnoreCase("Protect")&&!(eff.getProtector().equals(target)))
-                {
-                    if (eff.getefftype().equalsIgnoreCase("Defence")&&!(attacker.ignores.contains("Defence"))) 
-                    //if the target has protect and the attacker doesn't ignore it, their protector instead takes the hit
-                    {
-                        ntarg=eff.getProtector();
-                        System.out.println(ntarg.Cname+" protected "+target.Cname+"!");
-                        break;
-                    } 
-                    else if (eff.getefftype().equalsIgnoreCase("Other")) 
-                    //if the target has a protect Effect, their protector always takes the hit
-                    {
-                        ntarg=eff.getProtector();
-                        System.out.println(ntarg.Cname+" protected "+target.Cname+"!");
-                        break;
-                    }            
-                }
-            }
-        }
-        //switch goes down here, after target sorting
-        if (target.team1==true)
-        {
-            for (Character friend: Battle.team1)
-            {
-                if (friend!=null&&!(friend.binaries.contains("Banished")))
-                {
-                    target=friend.onAllyTargeted(friend, attacker, target, dmg, aoe);
-                }
-            }
-        }
-        else if (target.team1==false)
-        {
-            for (Character friend: Battle.team2)
-            {
-                if (friend!=null&&!(friend.binaries.contains("Banished")))
-                {
-                    target=friend.onAllyTargeted(friend, attacker, target, dmg, aoe);
-                }
-            }
-        }
-        if (ntarg!=null&&!(ntarg.binaries.contains("Banished")))
-        {
-            return ntarg;
-        }
-        else
-        {
-            return target;
-        }
     }
     @Override
     public Character onAllyTargeted (Character hero, Character dealer, Character target, int dmg, boolean aoe)
@@ -560,6 +474,53 @@ public class Summon extends Character
     @Override
     public void Transform (Character hero, int newindex, boolean greater) //new index is the index number of the character being transformed into
     {
+        if (!(hero.immunities.contains("Other")))
+        {
+            String old=hero.Cname; 
+            String New=SetName(newindex, true); 
+            if (greater==false)
+            System.out.println(old+" Transformed into "+New+"!");
+            else
+            System.out.println(old+" Transformed (Greater) into "+New+"!");
+            hero.Cname=New; 
+            if (hero.transabs[0][0]==null) //transforming for the first time, not counting legion since he's special
+            {
+                hero.transabs[0]=hero.abilities;
+                Ability[] newabilities=Ability.AssignAbSum(newindex);
+                hero.abilities=newabilities;
+            }
+            else //already transformed earlier and now transforming back
+            {
+                Ability[] temp=hero.transabs[0];
+                hero.transabs[0]=hero.abilities;
+                hero.abilities=temp;
+            }
+            if (greater==true) //greater transformation is ocurring
+            {
+                hero.maxHP=InHP(newindex, true); 
+                hero.HP=maxHP;
+                hero.SHLD=0;
+                ArrayList <StatEff> removeme= new ArrayList<StatEff>();
+                removeme.addAll(hero.effects);        
+                for (StatEff eff: removeme)
+                {
+                    if (!(eff instanceof Tracker))
+                    hero.remove(hero, eff.hashcode, "normal"); 
+                }
+                if (hero.index==28) //if statement since there are only 2 summons with transform right now
+                {
+                    CoinFlip.RobotImmunities(hero, false); //if arachnaught is transforming into someone else, it loses its immunities
+                }
+                else if (newindex==28)
+                {
+                    CoinFlip.RobotImmunities(hero, true); //when transforming into an arachnaught, gain its immunities
+                }
+            }
+            hero.index=newindex; 
+            CheckSumDupes(hero);
+        }
+        else
+        System.out.println(hero.Cname+"'s Transformation failed due to an immunity.");
     }
     @Override
     public void onAllySummon (Character summoner, Summon newfriend)

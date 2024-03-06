@@ -10,6 +10,42 @@ package myMarvelcardgamepack;
 import java.util.ArrayList;
 public class ActivePassive 
 {
+    public static void Superior (Character tolliver, Character evildoer, boolean attack) //attack and onattack; cardselection lets him select targets with tracers
+    {
+        if (attack==true&&evildoer.CheckFor(evildoer, "Tracer", false)==true)
+        {
+            CoinFlip.AddInescapable(tolliver, true);
+            tolliver.passivecount=1;
+        }
+        else if (attack==false&&tolliver.passivecount==1) //don't want to remove bonuses if they weren't gained in the first place
+        {
+            CoinFlip.AddInescapable(tolliver, false);
+            tolliver.passivecount=0;
+        }
+    }
+    public static void Spidey (Character peter, Character villain, boolean attack, boolean aoe) //his second passive is an if statement under onallytargeted since it's so simple
+    {
+        if (attack==false&&!(peter.binaries.contains("Stunned"))) //called onturn
+        {
+            Evade numb= new Evade(500);
+            boolean yes=CoinFlip.Flip(500+peter.Cchance);
+            if (yes==true)
+            StatEff.CheckApply(peter, peter, numb);
+            else
+            StatEff.applyfail(peter, numb, "chance");
+        }
+        else if (aoe==true) //called by hero.ontargeted, before he can take dmg
+        {
+            if (!(villain.binaries.contains("Missed"))&&!(villain.immunities.contains("Missed"))&&!(villain.ignores.contains("Evade")))
+            {
+                if (!(peter.binaries.contains("Shattered"))&&!(peter.binaries.contains("Stunned"))) //conditions that would prevent him from evading
+                {
+                    System.out.println ("\n"+peter.Cname+" Evaded "+villain.Cname+"'s attack!");
+                    villain.binaries.add("Missed");
+                }
+            }   
+        }
+    }
     public static void Venom (Character macdonald) //called by hero.onkill
     {
         boolean yes=CoinFlip.Flip(500+macdonald.Cchance);

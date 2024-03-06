@@ -34,6 +34,7 @@ public abstract class Character
     double lifesteal=0; //drain
     boolean team1=false; //which team they're on, for determining who's an ally and who's an enemy
     Ability[] abilities = new Ability[5];
+    Ability[][] transabs= new Ability[3][5];
     boolean dead=false; 
     boolean summoned=false;
     boolean targetable=true;
@@ -75,7 +76,41 @@ public abstract class Character
         }
         return false;
     }
-    public abstract void onTurn (Character hero, boolean notbonus);
+    public void onTurn (Character hero, boolean notbonus) //onturn passives present in both overridden subclasses; this just notifies allies and enemies the hero took their turn
+    {
+        boolean team=hero.team1;
+        Character[] friends=Battle.GetTeammates(hero); 
+        for (Character friend: friends)
+        {
+            if (friend!=null&&!(friend.binaries.contains("Banished")))
+            {
+                friend.onAllyTurn(hero, friend, hero.summoned);
+            }
+        }
+        team=CoinFlip.TeamFlip(team); //reverse team affiliation to get enemies
+        Character[] foes=Battle.GetTeam(team);
+        for (Character foe: foes)
+        {
+            if (foe!=null&&!(foe.binaries.contains("Banished")))
+            {
+                foe.onEnemyTurn(hero, foe, hero.summoned);
+            }
+        }
+        if (hero.team1==true) //potentially notify dead friends like Phoenix that it's time to revive
+        {
+            for (Character deadlad: Battle.team1dead)
+            {
+                deadlad.onAllyTurn (hero, deadlad, hero.summoned);
+            }
+        } 
+        else
+        {
+            for (Character deadlad: Battle.team2dead)
+            {
+                deadlad.onAllyTurn (hero, deadlad, hero.summoned);
+            }
+        }
+    }
     public abstract void OnTurnEnd (Character hero, boolean notbonus);
     public Ability ChooseAb (Character hero) //called by turn in battle
     {
@@ -273,37 +308,26 @@ public abstract class Character
                 }
             }
         }
-        //switch goes down here, after target sorting 
-        if (target.team1==true)
-        {
-            for (Character friend: Battle.team1)
-            {
-                if (friend!=null&&!(friend.binaries.contains("Banished")))
-                {
-                    target=friend.onAllyTargeted(friend, attacker, target, dmg, aoe);
-                }
-            }
-        }
-        else if (target.team1==false)
-        {
-            for (Character friend: Battle.team2)
-            {
-                if (friend!=null&&!(friend.binaries.contains("Banished")))
-                {
-                    target=friend.onAllyTargeted(friend, attacker, target, dmg, aoe);
-                }
-            }
-        }
-        if (ntarg!=null&&!(ntarg.binaries.contains("Banished")))
+        if (ntarg!=target&&!(ntarg.binaries.contains("Banished"))) //if the character is protected, no one else needs to do anything bc they're safe now
         {
             return ntarg;
         }
-        else
+        if (ntarg==target) //only need to notify allies if the character is still vulnerable
         {
-            return target;
+            Character[] friends=Battle.GetTeammates(target);
+            for (Character friend: friends) //this is where spidey, thing, etc do their thing
+            {
+                if (friend!=null&&!(friend.binaries.contains("Banished")))
+                {
+                    ntarg=friend.onAllyTargeted(friend, attacker, target, dmg, aoe);
+                    if (ntarg!=target)
+                    return ntarg;
+                }
+            }
         }
+        return ntarg;
     }
-    public abstract Character onAllyTargeted (Character hero, Character dealer, Character target, int dmg, boolean aoe); //for protect and passives to change target hero
+    public abstract Character onAllyTargeted (Character hero, Character dealer, Character target, int dmg, boolean aoe); //for passives to change target hero
     public abstract Character Attack (Character dealer, Character target, int dmg, boolean aoe);
     public abstract Character AttackNoDamage (Character dealer, Character target, boolean aoe);
     public abstract void onCrit (Character hero, Character target); //called after successful crit; for passives
@@ -348,8 +372,8 @@ public abstract class Character
             if (dmg>0)
             {
                 System.out.println ("\n"+target.Cname+" took "+dmg+" Shock damage"); 
-                Ability.DoRicochetDmg(dmg, target, true);
                 knull=target.TakeDamage(target, dmg, true);
+                Ability.DoRicochetDmg(dmg, target, true);
             }
         }
         else if (type.equalsIgnoreCase("Wither"))
@@ -381,10 +405,10 @@ public abstract class Character
                 //case
                 //health= 200; break;
             
-                case 6: case 9: case 10: case 14:
+                case 6: case 9: case 10: case 14: case 19:
                 health= 220; break;
             
-                case 1: case 2: case 3: case 4: case 5: case 7: case 8: case 11:
+                case 1: case 2: case 3: case 4: case 5: case 7: case 8: case 11: case 18: case 20:
                 health= 230;  break;
             
                 case 12: case 13: case 15: case 16: case 17:
@@ -408,11 +432,14 @@ public abstract class Character
                 case 5: case 9:
                 health= 50; break;
             
-                case 2: case 3: case 6:
+                case 2: case 3: case 6: case 27:
                 health= 60; break;   
-            
+                
                 case 8:
                 health= 70; break;
+                
+                case 28:
+                health= 80; break;
             
                 case 4: 
                 health= 100; break;
@@ -447,6 +474,9 @@ public abstract class Character
                 case 15: name="Wolverine (Classic)"; break;
                 case 16: name="Venom (Eddie Brock)"; break;
                 case 17: name="Venom (Mac Gargan)"; break;
+                case 18: name="Spider-Man (Peter Parker)"; break;
+                case 19: name="Spider-Man (Miles Morales)"; break;
+                case 20: name="Spider-Man (Superior)"; break;
                 default: name= "ERROR. INDEX NUMBER NOT FOUND";
             }    
             return name;
@@ -467,6 +497,8 @@ public abstract class Character
                 case 10: name="Thug (Summon)"; break;
                 case 11: name="Mirror Image (Summon)"; break;
                 case 12: name="Giganto (Summon)"; break;
+                case 27: name="Spiderling (Summon)"; break;
+                case 28: name="Arachnaught (Summon)"; break;
                 default: name="Error with Summon index";
             }    
             return name;
@@ -514,7 +546,7 @@ public abstract class Character
     }
     public static StatEff GetRandomStatEff (Character hero, String name, String type) //ensure size is appropriate before calling this and whatnot
     {
-        int go=hero.GetStatCount (hero, name, type);
+        int go=hero.GetStatCount (hero, name, type); //gets random stateffs of a specific type, e.g. debuffs
         if (go>0)
         {
             if (name.equalsIgnoreCase("any")&&!(type.equalsIgnoreCase("any")))
