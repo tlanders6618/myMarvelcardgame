@@ -569,6 +569,36 @@ class ResistanceE extends OtherEff
         hero.PRDR-=power;   
     }
 }
+class Tracer extends OtherEff
+{
+    @Override
+    public String getimmunityname()
+    {
+        return "Tracer";
+    }
+    @Override 
+    public String getefftype()
+    {
+        return "Other"; 
+    }
+    @Override
+    public String geteffname()
+    {
+        return "Tracer Effect, "+this.duration+" turn(s)";
+    }
+    public Tracer (int c, int d) 
+    {
+        this.hashcode=Card_HashCode.RandomCode(); 
+        this.chance=c;
+        this.duration=d;
+        this.oduration=d;
+        this.stackable=true;
+    }
+    @Override
+    public void onApply (Character hero) 
+    {
+    }
+}
 class WMTarget extends OtherEff  
 { 
     public WMTarget () 

@@ -97,11 +97,11 @@ public abstract class StatEff
         {
             StatEff.applyfail(hero, effect, "immune");
         }
-        else if (effect.getefftype().equalsIgnoreCase("Debuffs")&&hero.CheckFor(hero, "Neutralise", false)==true)
+        else if (effect.getefftype().equalsIgnoreCase("Debuffs")&&hero.CheckFor(hero, "Neutralise", false)==true&&!(hero.ignores.contains("Neutralise")))
         {
             StatEff.applyfail(hero, effect, "conflict");
         }
-        else if (effect.getefftype().equalsIgnoreCase("Buffs")&&hero.CheckFor(hero, "Undermine", false)==true)
+        else if (effect.getefftype().equalsIgnoreCase("Buffs")&&hero.CheckFor(hero, "Undermine", false)==true&&!(hero.ignores.contains("Undermine")))
         { 
             StatEff.applyfail(hero, effect, "conflict");
         }
@@ -109,7 +109,7 @@ public abstract class StatEff
         {
             StatEff.applyfail(hero, effect, "conflict");
         }
-        else if (effect.getefftype().equalsIgnoreCase("Heal")&&hero.CheckFor(hero, "Afflicted", false)==true)
+        else if (effect.getefftype().equalsIgnoreCase("Heal")&&hero.CheckFor(hero, "Afflicted", false)==true&&!(hero.ignores.contains("Afflicted")))
         {
             StatEff.applyfail(hero, effect, "conflict");
         }
@@ -126,14 +126,14 @@ public abstract class StatEff
             {
                 if (speed==true)
                 {
-                    if (friends[i]!=null&&friends[i].CheckFor(friends[i], "Speed", false)==true) //for no discernible reason, a for each loop here caused a nullexception 
+                    if (friends[i]!=null&&friends[i].CheckFor(friends[i], "Speed", false)==true) 
                     {
                         good=false; break;
                     }
                 }
                 else if (snare==true)
                 {
-                    if (friends[i]!=null&&friends[i].CheckFor(friends[i], "Snare", false)==true) //therefore it must stay as a regular for loop so it works properly
+                    if (friends[i]!=null&&friends[i].CheckFor(friends[i], "Snare", false)==true)
                     {
                         good=false; break;
                     }

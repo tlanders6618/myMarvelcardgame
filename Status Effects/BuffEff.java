@@ -91,6 +91,49 @@ class Counter extends BuffEff
         }
     }
 }
+class Evasion extends BuffEff 
+{
+    @Override
+    public String getimmunityname()
+    {
+        return "Evasion";
+    }
+    @Override 
+    public String getefftype() 
+    {
+        return "Buffs";
+    }
+    @Override
+    public String geteffname()
+    {
+        String name;
+        if (this.duration<100)
+        {
+            name="Evasion, "+this.duration+" turn(s)";
+            return name;
+        }
+        else
+        {
+            name="Evasion";
+            return name;
+        }
+    }
+    public Evasion (int nchance)
+    {
+        this.chance=nchance;
+        this.hashcode=Card_HashCode.RandomCode();
+    }
+    public Evasion (int nchance, int nduration)
+    {
+        this.duration=nduration;
+        this.oduration=nduration;
+        this.chance=nchance;
+        this.hashcode=Card_HashCode.RandomCode();
+    }
+    public void onApply (Character target)
+    {     
+    }
+}
 class Focus extends BuffEff 
 {
     @Override

@@ -439,6 +439,71 @@ class Neutralise extends DebuffEff
        return "Neutralise, "+duration+ " turn(s)"; 
     }
 }
+class Provoke extends DebuffEff 
+{
+    Character progenitor;
+    @Override
+    public String getimmunityname()
+    {
+        return "Provoke";
+    }
+    @Override 
+    public String getefftype()
+    {
+        return "Debuffs";
+    }
+    @Override
+    public String getalttype() 
+    {
+        return "nondamaging";
+    }
+    @Override
+    public String geteffname()
+    {
+        String name;
+        if (duration<500)
+        {
+            name="Provoke: "+progenitor.Cname+", "+this.duration+" turn(s)";
+        }
+        else
+        {
+            name="Provoke: "+progenitor.Cname;
+        }
+        return name;
+    }
+    public Provoke (int nchance, int ndur, Character Q)
+    {
+        this.duration=ndur;
+        this.oduration=ndur;
+        this.chance=nchance;
+        this.hashcode=Card_HashCode.RandomCode();
+        progenitor=Q;
+    }
+    @Override
+    public void onApply (Character target)
+    {
+        ArrayList<StatEff> remove= new ArrayList<StatEff>();
+        for (StatEff e: target.effects)
+        {
+            if (e.getimmunityname().equals("Terror")&&e.UseTerrorProvoke()==progenitor.hash) //can't be forced to both attack and not attack the same person
+            {
+                remove.add(e);
+            }
+        }
+        for (StatEff e: remove)
+        {
+            target.remove(target, e.hashcode, "normal");
+        }
+    }
+    @Override
+    public int UseTerrorProvoke ()
+    {
+        if (!(progenitor.binaries.contains("Invisible"))&&progenitor.targetable==true&&!(progenitor.binaries.contains("Banished"))) 
+        return progenitor.hash; //if they're taunting, protecting, or protected, provoke still applies; they just need to be targetable 
+        else 
+        return 0;
+    }
+}
 class Shatter extends DebuffEff 
 {
     @Override
@@ -499,6 +564,74 @@ class Shatter extends DebuffEff
     public void Nullified (Character target)
     {
         target.binaries.remove("Shattered");
+    }
+}
+class Shock extends DebuffEff 
+{
+    @Override
+    public String getimmunityname()
+    {
+        return "Shock";
+    }
+    @Override 
+    public String getefftype()
+    {
+        return "Debuffs";
+    }
+    @Override
+    public String getalttype() 
+    {
+        return "damaging";
+    }
+    @Override
+    public String geteffname()
+    {
+        String name;
+        if (duration<100)
+        {
+            name="Shock: "+this.power+", "+this.duration+" turn(s)";
+            return name;
+        }
+        else
+        {
+            name="Shock: "+this.power;
+            return name;
+        }
+    }
+    public Shock (int nchance, int nstrength)
+    {
+        this.power=nstrength;
+        this.chance=nchance;
+        this.hashcode=Card_HashCode.RandomCode();
+        this.stackable=true;
+    }
+    public Shock (int nchance, int nstrength, int nduration)
+    {
+        this.power=nstrength;
+        this.duration=nduration;
+        this.oduration=nduration;
+        this.chance=nchance;
+        this.hashcode=Card_HashCode.RandomCode();
+        this.stackable=true;
+    }
+    @Override
+    public void onTurnStart (Character hero)
+    {
+        hero.DOTdmg(hero, this.power, "shock");
+        --this.duration;
+        if (this.duration<=0)
+        {
+            hero.remove(hero, this.hashcode, "normal");
+        }
+    }
+    @Override
+    public void onTurnEnd (Character hero)
+    {
+        //do nothing
+    }
+    @Override
+    public void onApply (Character target)
+    {
     }
 }
 class Snare extends DebuffEff 
@@ -717,6 +850,54 @@ class Terror extends DebuffEff
         return progenitor.hash;
         else 
         return 0;
+    }
+}
+class Undermine extends DebuffEff 
+{
+    @Override
+    public String getimmunityname()
+    {
+        return "Undermine";
+    }
+    @Override 
+    public String getefftype() 
+    {
+        return "Debuffs";
+    }
+    @Override
+    public String getalttype()
+    {
+        return "nondamaging";
+    }
+    @Override
+    public String geteffname()
+    {
+        String name;
+        if (this.duration<100)
+        {
+            name="Undermine, "+this.duration+" turn(s)";
+            return name;
+        }
+        else
+        {
+            name="Undermine";
+            return name;
+        }
+    }
+    public Undermine (int nchance)
+    {
+        this.chance=nchance;
+        this.hashcode=Card_HashCode.RandomCode();
+    }
+    public Undermine (int nchance, int nduration)
+    {
+        this.duration=nduration;
+        this.oduration=nduration;
+        this.chance=nchance;
+        this.hashcode=Card_HashCode.RandomCode();
+    }
+    public void onApply (Character target)
+    {
     }
 }
 class Weakness extends DebuffEff 

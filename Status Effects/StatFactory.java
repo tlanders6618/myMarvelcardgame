@@ -9,7 +9,7 @@ public class StatFactory
 {
     //if I don't make a new instance of a status effect when I want to apply it, the program shares the same instance between everyone who has it, 
     //causing issues like negative duration; this prevents that by making a new stateff object eah ab use
-    public static String[][] MakeParam (String[] eff, String[] eff2)
+    public static String[][] MakeParam (String[] eff, String[] eff2) //turns two String[]s into one String[][] so it can become a StatEff later
     {
         String[][] arr= new String[2][6];
         for (int i=0; i<eff.length; i++) //row 0 is for eff stats (e.g. counter) and row 1 is for stats of secondary eff (e.g. shock applied on counter)
@@ -31,7 +31,7 @@ public class StatFactory
     {
         StatEff eff=null;
         //[0][0] is name, [0][1] is proc chance, [0][2] is strength, [0][3] is duration, [0][4] is whether the eff is applied to self or not
-        switch (param[0][0]) //param[1] is secondary stat for effs like counter and ctd to apply
+        switch (param[0][0]) //param[1] is secondary stat for effs like counter and countdown to apply, e.g. a debuff or ricochet
         {
             case "Bleed": eff=new Bleed (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][2]), Integer.valueOf(param[0][3])); break;
             case "Burn": eff=new Burn (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][2]), Integer.valueOf(param[0][3])); break;    
@@ -42,6 +42,8 @@ public class StatFactory
             case "Disrupt": eff=new Disrupt (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3])); break;
             case "Drain": eff=new Drain (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][2]), Integer.valueOf(param[0][3])); break;
             case "Evade": eff= new Evade (Integer.valueOf(param[0][1])); break;
+            case "EvadeE": eff= new EvadeE (Integer.valueOf(param[0][1])); break;
+            case "Evasion": eff= new Evasion (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3])); break;
             case "Focus": eff=new Focus (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3])); break;
             case "FocusE": eff=new FocusE (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3])); break;
             case "Intensify": eff=new Intensify (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][2]), Integer.valueOf(param[0][3])); break;
@@ -50,17 +52,21 @@ public class StatFactory
             case "Neutralise": eff= new Neutralise (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3])); break;
             case "Precision": eff=new Precision (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3])); break;
             case "Protect": eff=new Protect (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3])); break;
+            case "Provoke": eff =new Provoke(Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3]), Q); break;
             case "Recovery": eff= new Recovery (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][2]), Integer.valueOf(param[0][3])); break;
             case "Regen": eff=new Regen (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][2]), Integer.valueOf(param[0][3])); break;
             case "Resistance": eff=new Resistance (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][2]), Integer.valueOf(param[0][3])); break;
             case "ResistanceE": eff=new ResistanceE (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][2]), Integer.valueOf(param[0][3])); break;
             case "Shatter": eff= new Shatter (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3])); break;
+            case "Shock": eff= new Shock (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][2]), Integer.valueOf(param[0][3])); break;
             case "Snare": eff= new Snare (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3])); break;
             case "Speed": eff=new Speed(Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3])); break;
             case "Stun": eff=new Stun (Integer.valueOf(param[0][1])); break;
             case "Target": eff=new Target (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][2]), Integer.valueOf(param[0][3])); break;
             case "Taunt": eff=new Taunt (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3])); break;
             case "Terror": eff=new Terror(Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3]), Q); break;
+            case "Tracer": eff= new Tracer (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3])); break;
+            case "Undermine": eff= new Undermine (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3])); break;
             case "Weakness": eff=new Weakness (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][2]), Integer.valueOf(param[0][3])); break;
             case "Wound": eff=new Wound (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3])); break;
             default: System.out.println("Spelling error in statfactory; no matching stateff found.");
