@@ -5,11 +5,64 @@ package myMarvelcardgamepack;
  * Designer: Timothy Landers
  * Date: 24/7/22
  * Filename: ActivePassive
- * Purpose: Makes characters' passives since I now realise they're too different from abilities to be in the same class.
+ * Purpose: Makes characters' passives since I now realise they're too different from abilities to be in the same class; for passives activated repeatedly in a fight.
  */
 import java.util.ArrayList;
 public class ActivePassive 
 {
+    public static void Binary (Character binary) //for consuming energy; onturn, onallyturn, onenemyturn
+    {
+        if (binary.dead==false&&!(binary.binaries.contains("Banished"))&&!(binary.binaries.contains("Stunned")))
+        {
+            binary.passivecount--;
+            System.out.println(binary.Cname+" lost 1 Energy.");
+            Character[] enemies=Battle.GetTeam(CoinFlip.TeamFlip(binary.team1));
+            for (Character n: enemies)
+            {
+                if (n!=null)
+                {
+                    int damage=5;
+                    damage-=n.ADR;
+                    if (damage<0)
+                    damage=0;
+                    n.TakeDamage(n, binary, damage, true);
+                }
+            }
+            for (StatEff e: binary.effects) //update displayed energy count
+            {
+                if (e instanceof Tracker)
+                {
+                    e.Attacked(binary, null, 616);
+                }
+            }
+        }
+        if (binary.dead==false&&binary.passivecount<=0)
+        {
+            System.out.println(binary.Cname+" ran out of Energy."); binary.Transform(binary, 23, false);
+        }
+    }
+    public static void CM (Character carol, boolean turn, int dmg)
+    {
+        if (turn==true&&!(carol.binaries.contains("Stunned"))&&!(carol.binaries.contains("Banished"))) //onturn
+        {
+            System.out.println(carol.Cname+" gained 1 Energy.");
+            ++carol.passivecount;
+        }
+        else if (dmg>80&&!(carol.binaries.contains("Stunned")))
+        {
+            System.out.println(carol.Cname+" gained 1 Energy.");
+            ++carol.passivecount;
+        }
+        for (StatEff e: carol.effects) //update displayed energy count
+        {
+            if (e instanceof Tracker)
+            {
+                e.Attacked(carol, null, 616);
+            }
+        }
+        if (carol.passivecount>=5) 
+        carol.Transform(carol, 24, false);
+    }
     public static void Superior (Character tolliver, Character evildoer, boolean attack) //attack and onattack; cardselection lets him select targets with tracers
     {
         if (attack==true&&evildoer.CheckFor(evildoer, "Tracer", false)==true)
@@ -58,11 +111,11 @@ public class ActivePassive
     }
     public static void OGVenom (Character eddie, Character attacked, Character attacker) //called by hero.onallyattacked
     {
-        if (!(attacker.ignores.contains("Counter")))
+        if (!(attacker.ignores.contains("Counter"))&&!(eddie.binaries.contains("Stunned")))
         {
             if (attacked==eddie.passivefriend[0])
             {
-                int dmg=35;
+                int dmg=40;
                 System.out.println ("\nThis one is under our protection!");
                 Damage_Stuff.CheckBlind(eddie);
                 if ((!(eddie.binaries.contains("Missed"))||eddie.immunities.contains("Missed")))
@@ -129,19 +182,17 @@ public class ActivePassive
             }
         }
     }
-    public static void X23 (Character laura, Character victim, boolean crit)
+    public static void X23 (Character laura, Character victim, boolean crit, boolean before)
     {
         if (crit==false) //hero.attack and hero.onattack
         {
-            if (laura.passivecount==0&&victim.HP<90) //check before attacking
+            if (before==true&&laura.passivecount==0&&victim.HP<90) //check before attacking
             {
-                laura.passivecount=1; 
-                laura.CC+=50;
+                laura.passivecount=1; laura.CC+=50; 
             }
-            else if (laura.passivecount==1) //undo after attacking
+            else if (before==false&&laura.passivecount==1) //undo after attacking
             {
-                laura.CC-=50;
-                laura.passivecount=0;
+                laura.passivecount=0; laura.CC-=50; 
             }
         }
         else //check regen on hero.oncrit
@@ -253,11 +304,11 @@ public class ActivePassive
             }
         }
     }
-    public static boolean StarLord (Character quill)
+    public static void StarLord (Character quill)
     {
         if (!(quill.binaries.contains("Stunned"))) //called onturn
         {
-            if (quill.turn!=0&&quill.turn%2==0) //even numbers only; every other turn
+            if (quill.turn%2!=0) //odd numbers only since the first turn is turn 0; every other turn
             {
                 Confidence heal= new Confidence (500, 15);
                 Character[] targets= new Character[6];
@@ -271,9 +322,7 @@ public class ActivePassive
                     }
                 }
             }
-            return false; //so his turn counter does not increment twice
         }
-        return true;
     }
     public static void CaptainA (Character cap)
     {
@@ -304,7 +353,7 @@ public class ActivePassive
     }
     public static void MoonKnight(Character knight, Character attacked, Character attacker) //called by onallyattacked
     { 
-        if (!(attacker.ignores.contains("Counter")))
+        if (!(attacker.ignores.contains("Counter"))&&!(knight.binaries.contains("Stunned")))
         {
             for (StatEff eff: attacked.effects)
             {

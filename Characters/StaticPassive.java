@@ -7,16 +7,54 @@ package myMarvelcardgamepack;
  * Filename: StaticPassive
  * Purpose: Split passives into two files because of its length; this is for passives that trigger only once per fight.
  */
+import java.util.ArrayList;
 public class StaticPassive 
 {
-    public static void Symbiote (Character venom, int vuln, boolean start) //efficient since they all have the same passive
+    public static void Symbiote (Character venom, int vuln, boolean start) //efficient since they all have the same passive; fightstart and add/remove
     {
         if (start==true)
         venom.ignores.add("Evade");
         else
         venom.DV+=vuln;
     }
-    public static void OGVenom (Character eddie) //choose ally to watch over
+    public static void Binary (Character binary, boolean in) //when transforming into binary; in is whether transform is into binary or out of binary
+    {
+        if (in==true)
+        {
+            binary.passivecount=10;
+            System.out.println(binary.Cname+" gained 10 Energy.");
+            for (StatEff e: binary.effects) //update displayed energy count
+            {
+                if (e instanceof Tracker)
+                {
+                    e.Attacked(binary, null, 616);
+                }
+            }
+            binary.immunities.add("Buffs"); binary.immunities.add("Debuffs"); binary.immunities.add("Heal"); binary.immunities.add("Defence");
+            ArrayList<StatEff> r= new ArrayList<StatEff>();
+            for (StatEff e: binary.effects)
+            {
+                if (!(e instanceof Tracker)&&!(e.getefftype().equals("Other")))
+                r.add(e);
+            }
+            for (StatEff e: r)
+            {
+                binary.remove(binary, e.hashcode, "normal");
+            }
+        }
+        else //leaving binary state
+        {
+            binary.immunities.remove("Buffs"); binary.immunities.remove("Debuffs"); binary.immunities.remove("Heal"); binary.immunities.remove("Defence");
+        }
+    }
+    public static void CM (Character carol) //fightstart
+    {
+        carol.immunities.add("Poison");
+        Tracker NRG= new Tracker("Energy: ");
+        carol.effects.add(NRG);
+        NRG.onApply(carol);
+    }
+    public static void OGVenom (Character eddie) //choose ally to watch over at fight start
     {
         if (eddie.team1==true)
         {

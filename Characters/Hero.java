@@ -25,21 +25,21 @@ public class Hero extends Character
     @Override
     public void onTurn (Character hero, boolean notbonus) 
     {
-        boolean go=true;
-        switch (hero.index)
+        switch (hero.index) //first turn is turn 0
         {
             case 5: StaticPassive.WM(hero); break;
             case 6: ActivePassive.CaptainA(hero); break;
-            case 9: go=ActivePassive.StarLord(hero); break; 
+            case 9: ActivePassive.StarLord(hero); break; 
             case 11: ActivePassive.FuryJr (hero, true, false, false, false); break;
             case 18: ActivePassive.Spidey(hero, null, false, false); break;
+            case 23: ActivePassive.CM(hero, true, 0); break;
+            case 24: ActivePassive.Binary(hero); break;
         }
-        if (go==true)
         ++hero.turn;
         super.onTurn(hero, notbonus);
     }
     @Override
-    public void OnTurnEnd (Character hero, boolean notbonus)
+    public void onTurnEnd (Character hero, boolean notbonus)
     {
         switch (hero.index)
         {
@@ -50,17 +50,25 @@ public class Hero extends Character
     @Override
     public void onAllyTurn (Character ally, Character hero, boolean summoned) //ally is the one triggering call and hero is one reacting; true if teammate is a summon
     {
-        if (!(hero.binaries.contains("Banished")))
+        if (!(hero.binaries.contains("Banished"))) //remember that this triggers for dead heroes too
         {
             switch (index)
             {
                 case 11: ActivePassive.FuryJr(hero, false, true, summoned, false); break;
+                case 24: ActivePassive.Binary(hero); break;
             }
         }
     }
     @Override
     public void onEnemyTurn (Character enemy, Character hero, boolean summoned)
     {
+        if (!(hero.binaries.contains("Banished")))
+        {
+            switch (index)
+            {
+                case 24: ActivePassive.Binary(hero); break;
+            }
+        }
     }
     @Override
     public void onFightStart(Character hero)
@@ -74,6 +82,7 @@ public class Hero extends Character
             case 15: StaticPassive.WolvieTracker(hero); break;
             case 16: StaticPassive.OGVenom (hero); StaticPassive.Symbiote (hero, 0, true); break;
             case 17: StaticPassive.Symbiote (hero, 0, true); break;
+            case 23: StaticPassive.CM(hero); break;
         }
     }
     @Override
@@ -96,12 +105,12 @@ public class Hero extends Character
         {
             e.Attacked(eff);
         }
-        eff.onApply(hero);
         if (!(eff.getefftype().equals("Secret"))&&!(eff.getimmunityname().equalsIgnoreCase("Protect"))) 
         //due to taunt/protect interaction; no point in announcing it being added if it's instantly removed
         {
             System.out.println ("\n"+hero.Cname+" gained a(n) "+eff.geteffname());
         }
+        eff.onApply(hero);
     }
     @Override
     public void remove (Character hero, int removalcode, String how) //removes status effects; how is how it was removed, meaning purify or nullify or steal or normal (i.e. expiry)
@@ -148,11 +157,11 @@ public class Hero extends Character
         {
             case 20: ActivePassive.Superior(dealer, target, true); break;
         }
-        target=target.onTargeted(dealer, target, dmg, aoe);
+        target=target.onTargeted(dealer, target, dmg, aoe); 
         switch (dealer.index)
         {
             case 13: StaticPassive.Drax(dealer, target, false); break;
-            case 14: ActivePassive.X23(dealer, target, false); break;
+            case 14: ActivePassive.X23(dealer, target, false, true); break;
         }
         if ((!(dealer.binaries.contains("Missed"))&&!(dealer.immunities.contains("Missed")))) //only check if dealer isn't immune to miss and hasn't missed already; can't miss twice 
         { 
@@ -194,13 +203,25 @@ public class Hero extends Character
     public Character AttackNoDamage (Character dealer, Character target, boolean aoe)
     {
         //modified version of attack method since debuff skills cannot do damage
+        switch (dealer.index) //for passives that let the dealer ignore protect or miss or etc against certain targets 
+        {
+            case 20: ActivePassive.Superior(dealer, target, true); break;
+        }
         target=target.onTargeted(dealer, target, 0, aoe);
         if ((!(dealer.binaries.contains("Missed"))&&!(dealer.immunities.contains("Missed"))))
         {
             Damage_Stuff.CheckEvade(dealer, target);
         }
-        target.onAttacked(target, dealer, 0);
         dealer.onAttack(dealer, target);
+        target.onAttacked(target, dealer, 0);
+        Character[] friends=Battle.GetTeammates(target);
+        for (Character friend: friends)
+        {
+            if (friend!=null&&!(friend.binaries.contains("Banished")))
+            {
+                friend.onAllyAttacked(friend, target, dealer, 0);
+            }
+        }
         return target;
     }
     @Override
@@ -260,8 +281,9 @@ public class Hero extends Character
         switch (hero.index)
         {
             case 12: ActivePassive.DraxOG(hero, true, victim, null); break;
-            case 14: ActivePassive.X23(hero, victim, false); break;
+            case 14: ActivePassive.X23(hero, victim, false, false); break;
             case 20: ActivePassive.Superior(hero, victim, false); break;
+            case 23: ActivePassive.CM(hero, false, 0); break; //after attacking, see if she can go binary; to avoid bugs with her transforming mid attack
         }
     }
     @Override
@@ -269,7 +291,7 @@ public class Hero extends Character
     {
         switch (hero.index)
         {
-            case 14: ActivePassive.X23(hero, target, true); break;
+            case 14: ActivePassive.X23(hero, target, true, false); break;
         }
     }
     @Override
@@ -290,7 +312,7 @@ public class Hero extends Character
     @Override
     public void onAllyAttacked(Character hero, Character hurtfriend, Character attacker, int dmg) 
     {
-        if (!(hero.binaries.contains("Stunned"))&&!(hero.binaries.contains("Banished")))
+        if (!(hero.binaries.contains("Banished")))
         {
             switch (hero.index)
             {
@@ -310,12 +332,12 @@ public class Hero extends Character
     @Override
     public Character onAllyTargeted (Character hero, Character dealer, Character ally, int dmg, boolean aoe)
     {
-        if (!(hero.binaries.contains("Stunned"))&&aoe==false)
+        if (!(hero.binaries.contains("Banished"))&&aoe==false)
         {
             switch (hero.index)
             {
                 case 18: 
-                if (ally.HP<=140&&hero.CheckFor(hero, "Evade", false)==true)
+                if (!(hero.binaries.contains("Stunned"))&&ally.HP<ally.maxHP&&hero.CheckFor(hero, "Evade", false)==true)
                 {
                     System.out.println("With great power, there must also come great responsibility."); 
                     System.out.println(hero.Cname+" took the attack for "+ally.Cname+"!");
@@ -327,9 +349,8 @@ public class Hero extends Character
         return ally;
     }
     @Override
-    public int TakeDamage (Character target, Character dealer, int dmg, boolean aoe) //true for aoe, false for single target
+    public int TakeDamage (Character target, Character dealer, int dmg, boolean aoe) //this checks if shield is strong enough to prevent health damage from an enemy attack
     {
-        //this checks if shield is strong enough to prevent health damage from an enemy attack
         if (dealer.ignores.contains("Shield")||dealer.ignores.contains("Defence"))
         {
             target.HP-=dmg; 
@@ -349,7 +370,7 @@ public class Hero extends Character
     @Override
     public int TakeDamage (Character target, int dmg, boolean dot) //true for dot and false for all other types of dmg
     {
-        //for taking sourceless damage
+        //same as above but for taking sourceless damage
         if (dmg>0&&SHLD>=dmg) 
         {
             target.SHLD-=dmg; 
@@ -371,11 +392,11 @@ public class Hero extends Character
         hero.HP=0;
         if (hero.HP<=0&&dot==true&&!(hero.binaries.contains("Immortal")))
         {
-            hero.onLethalDamage(hero, true, "DOT");
+            hero.onLethalDamage(hero, null, "DOT");
         }
         else if (hero.HP<=0&&dot==false&&!(hero.binaries.contains("Immortal")))
         {
-            hero.onLethalDamage(hero, false, "other");
+            hero.onLethalDamage(hero, null, "other");
         }
         if (hero.dead==false)
         {
@@ -404,16 +425,12 @@ public class Hero extends Character
             switch (hero.index)
             {
                 case 15: ActivePassive.Wolvie(hero, false); break;
+                case 23: ActivePassive.CM(hero, false, dmg); break;
             }
         }
     }
     @Override
     public void onLethalDamage (Character hero, Character killer, String dmgtype)
-    {
-        hero.onDeath(hero, killer, dmgtype);
-    }
-    @Override
-    public void onLethalDamage (Character hero, boolean killer, String dmgtype)
     {
         boolean die=true;
         switch (hero.index)
@@ -422,7 +439,7 @@ public class Hero extends Character
         }
         if (die==true)
         {
-            hero.onDeath(hero, null, dmgtype);
+            hero.onDeath(hero, killer, dmgtype);
         }
     }
     @Override
@@ -430,18 +447,12 @@ public class Hero extends Character
     {
         switch (hero.index)
         {
-            case 5:     
+            case 5: case 16:    
             if (hero.passivefriend[0]!=null&&hero.passivefriend[0].dead==false)
             {
-                hero.passivefriend[0].remove(passivefriend[0], passivecount, "normal"); //remove war machine's heat signature detection
+                hero.passivefriend[0].remove(passivefriend[0], passivecount, "normal"); //remove heat signature detection/lethal protector's resistance
             }
-            break;            
-            case 16:
-            if (hero.passivefriend[0]!=null&&hero.passivefriend[0].dead==false)
-            {
-                hero.passivefriend[0].remove(passivefriend[0], passivecount, "normal"); //remove war machine's heat signature detection
-            }
-            break;   
+            break;     
         }
         if (hero.activeability!=null&&hero.activeability.channelled==true)
         {
@@ -576,9 +587,16 @@ public class Hero extends Character
                     if (!(eff instanceof Tracker))
                     hero.remove(hero, eff.hashcode, "normal"); 
                 }
-                //add switch statement for heroes like binary and emma frost who gain/lose immunities or ignores when transforming
+            }
+            switch (hero.index) //for getting rid of immunities when undoing transformation
+            {
+                case 24: StaticPassive.Binary(hero, false); break;
             }
             hero.index=newindex; 
+            switch (hero.index) //for gaining immunities when transforming
+            {
+                case 24: StaticPassive.Binary(hero, true); break;
+            }
         }
         else
         System.out.println(hero.Cname+"'s Transformation failed due to an immunity.");

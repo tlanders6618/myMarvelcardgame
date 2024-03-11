@@ -140,12 +140,12 @@ public class Summon extends Character
         {
             e.Attacked(eff);
         }
-        eff.onApply(hero);
         if (!(eff.getefftype().equals("Secret"))&&!(eff.getimmunityname().equalsIgnoreCase("Protect"))) 
         //due to taunt/protect interaction; no point in announcing it being added if it's instantly removed
         {
             System.out.println ("\n"+hero.Cname+" gained a(n) "+eff.geteffname());
         }
+        eff.onApply(hero);
     }
     @Override
     public void remove (Character hero, int removalcode, String how) //removes status effects
@@ -216,7 +216,7 @@ public class Summon extends Character
         super.onTurn(hero, notbonus);
     }
     @Override
-    public void OnTurnEnd (Character hero, boolean notbonus)
+    public void onTurnEnd (Character hero, boolean notbonus)
     {
     }
     @Override
@@ -365,11 +365,11 @@ public class Summon extends Character
         hero.HP=0;
         if (hero.HP<=0&&dot==true&&!(hero.binaries.contains("Immortal")))
         {
-            hero.onLethalDamage(hero, true, "DOT");
+            hero.onLethalDamage(hero, null, "DOT");
         }
         else if (hero.HP<=0&&dot==false&&!(hero.binaries.contains("Immortal")))
         {
-            hero.onLethalDamage(hero, false, "other");
+            hero.onLethalDamage(hero, null, "other");
         }
         if (hero.dead==false)
         {
@@ -395,11 +395,6 @@ public class Summon extends Character
     public void onLethalDamage (Character hero, Character killer, String dmgtype)
     {
         hero.onDeath(hero, killer, dmgtype);
-    }
-    @Override
-    public void onLethalDamage (Character hero, boolean killer, String dmgtype)
-    {
-        hero.onDeath(hero, null, dmgtype);
     }
     @Override
     public void onDeath (Character hero, Character killer, String dmgtype)

@@ -34,7 +34,7 @@ public abstract class Character
     double lifesteal=0; //drain
     boolean team1=false; //which team they're on, for determining who's an ally and who's an enemy
     Ability[] abilities = new Ability[5];
-    Ability[][] transabs= new Ability[3][5];
+    Ability[][] transabs= new Ability[3][5]; //storing abilities of characters they transformed into
     boolean dead=false; 
     boolean summoned=false;
     boolean targetable=true;
@@ -111,7 +111,7 @@ public abstract class Character
             }
         }
     }
-    public abstract void OnTurnEnd (Character hero, boolean notbonus);
+    public abstract void onTurnEnd (Character hero, boolean notbonus);
     public Ability ChooseAb (Character hero) //called by turn in battle
     {
         if (hero.team1==true)
@@ -122,17 +122,13 @@ public abstract class Character
         {
             System.out.println ("\nPlayer 2, choose an ability for "+hero.Cname+" to use. Type its number, not its name.");
         } 
-        boolean skip=true; //allows heroes with no usable abilities to skip their turn
+        boolean skip=Card_HashCode.CheckSkip(hero); //allows heroes with no usable abilities to skip their turn
         for (int i=0; i<5; i++)
         {
             int a=i+1;
             if (hero.abilities[i]!=null)
             {
-                System.out.println (a+": "+hero.abilities[i].GetAbName(hero, hero.abilities[i])); 
-                if (skip==true&&hero.abilities[i] instanceof AttackAb&&hero.abilities[i].CheckUse(hero, hero.abilities[i])==true)
-                {
-                    skip=false; //this prevents heroes from bypassing provoke, taunt, etc for balancing reasons; if they can attack the target, they must 
-                }
+                System.out.println (a+": "+hero.abilities[i].GetAbName(hero, hero.abilities[i]));  
             }
         }
         if (skip==true)
@@ -265,11 +261,11 @@ public abstract class Character
     {
         if (hero.binaries.contains("Shattered"))
         {
-            System.out.println(hero.Cname+" could not be Shielded due to being Shattered!");
+            System.out.println(hero.Cname+" could not be Shielded due to being Shattered.");
         }
         else if (hero.immunities.contains("Defence")||hero.immunities.contains("Shield"))
         {
-            System.out.println(hero.Cname+" could not be Shielded due to an immunity!");
+            System.out.println(hero.Cname+" could not be Shielded due to an immunity.");
         }
         else if (hero.SHLD>=amount) //nothing happens; shield does not stack
         {
@@ -359,7 +355,7 @@ public abstract class Character
         else if (type.equalsIgnoreCase("poison"))
         {
             dmg=(dmg-target.ADR-target.PoDR);
-            if (dmg>0) //poison damage ignores shields
+            if (dmg>0&&!(target.immunities.contains("Lose"))) //poison damage ignores shields
             {
                 HP-=dmg;
                 System.out.println ("\n"+target.Cname+" took "+dmg+" Poison damage"); 
@@ -376,7 +372,7 @@ public abstract class Character
                 Ability.DoRicochetDmg(dmg, target, true);
             }
         }
-        else if (type.equalsIgnoreCase("Wither"))
+        else if (type.equalsIgnoreCase("Wither")&&!(target.immunities.contains("Lose")))
         {
             dmg-=(target.ADR+target.WiDR);
             if (dmg>0)
@@ -405,13 +401,13 @@ public abstract class Character
                 //case
                 //health= 200; break;
             
-                case 6: case 9: case 10: case 14: case 19:
+                case 6: case 9: case 10: case 14: case 19: case 21:
                 health= 220; break;
             
-                case 1: case 2: case 3: case 4: case 5: case 7: case 8: case 11: case 18: case 20:
+                case 1: case 2: case 3: case 4: case 5: case 7: case 8: case 11: case 18: case 20: case 23: case 24:
                 health= 230;  break;
             
-                case 12: case 13: case 15: case 16: case 17:
+                case 12: case 13: case 15: case 16: case 17: case 22:
                 health= 240; break;
                     
                 //Special carrots
@@ -477,6 +473,10 @@ public abstract class Character
                 case 18: name="Spider-Man (Peter Parker)"; break;
                 case 19: name="Spider-Man (Miles Morales)"; break;
                 case 20: name="Spider-Man (Superior)"; break;
+                case 21: name="Storm (Modern)"; break;
+                case 22: name="Ms. Marvel (Kamala Khan)"; break;
+                case 23: name="Captain Marvel (Carol Danvers)"; break;
+                case 24: name="Binary (Carol Danvers)"; break;
                 default: name= "ERROR. INDEX NUMBER NOT FOUND";
             }    
             return name;
@@ -505,7 +505,6 @@ public abstract class Character
         }
     }
     public abstract void onLethalDamage (Character hero, Character killer, String dmgtype);
-    public abstract void onLethalDamage (Character hero, boolean killer, String dmgtype);
     public abstract void onDeath (Character hero, Character killer, String dmgtype);
     public abstract void onAllyDeath (Character bystander, Character deadfriend, Character killer);
     public abstract void onEnemyDeath (Character bystander, Character deadfoe, Character killer);
