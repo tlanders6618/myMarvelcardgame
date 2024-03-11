@@ -7,11 +7,11 @@ public class Test
    public static void main (String[] args)
    {
        //System.out.println(System.getProperty("java.class.version")); //55 means 11, 56 means 12, etc
-       Character Char11= new Summon (28); //Char11.binaries.add("Stunned"); //Char11.add(Char11, new Taunt (0, 90)); 
-       Character Char12= new Summon (27); Char11.add(Char12, new Tracer (100, 616)); Char12.binaries.add("Stunned"); //Char12.add(Char12, new Invisible(66, 66));
+       Character Char11= new Hero (23); Char11.HP=100; //Char11.CC=50; //Char11.binaries.add("Stunned"); 
+       Character Char12= new Hero (22); Char12.binaries.add("Stunned"); //Char12.add(Char12, new Invisible(66, 66));
        Character Char13= new Summon (12); Char13.binaries.add("Stunned");
-       Character Char21= new Hero (20); //Char21.binaries.add("Stunned"); 
-       Character Char22= new Summon (7); Char22.binaries.add("Stunned"); 
+       Character Char21= new Hero (9); //Char21.binaries.add("Stunned"); 
+       Character Char22= new Hero (6); Char22.binaries.add("Stunned"); 
        Character Char23= new Summon (12); Char23.binaries.add("Stunned"); 
        boolean Pwinner=false; 
        System.out.println("\nDonut forget to update card selection indexes");
@@ -27,12 +27,9 @@ public class Test
        Card_Game_Main.trash.close();
        /*
         * To do/to test today:
-        * make empowerments work with aoe for both regular and channelled abs; change chain method too
-        * test shatter interact with protect
+        * make sure empowerments work as intended
         * do draft mode soon
-        * update github files
-        * buff eddie
-        * nerf x23 and parker
+        * check how army of one works with evasion
         */
        
        /** 
