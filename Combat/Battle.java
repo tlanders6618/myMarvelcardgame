@@ -181,7 +181,7 @@ public class Battle
                 }
                 if (champions[P1active]!=null)
                 {
-                    champions[P1active].OnTurnEnd(champions[P1active], true);
+                    champions[P1active].onTurnEnd(champions[P1active], true);
                     for (Ability ab: champions[P1active].abilities)
                     {
                         if (ab!=null)
@@ -254,7 +254,7 @@ public class Battle
                 }
                 if (champions[P2active]!=null)
                 {
-                    champions[P2active].OnTurnEnd(champions[P2active], true);
+                    champions[P2active].onTurnEnd(champions[P2active], true);
                     for (Ability ab: champions[P2active].abilities)
                     {
                         if (ab!=null)
@@ -371,9 +371,9 @@ public class Battle
             if (hero.dead==false) //finally, hero ends their turn
             {
                 if (bonus==false)
-                hero.OnTurnEnd(hero, true);             
+                hero.onTurnEnd(hero, true);             
                 else
-                hero.OnTurnEnd(hero, false);   
+                hero.onTurnEnd(hero, false);   
                 if (selfadd.size()>0) //if the ab buffs the hero, the effs must be added after their turn end so they don't prematurely tick down
                 {
                     for (StatEff eff: selfadd)
@@ -426,14 +426,6 @@ public class Battle
             else if (friendly.equalsIgnoreCase("ally inclusive"))
             {
                 targets=Battle.GetTeam(hero.team1);
-                for (int i=0; i<6; i++)
-                {
-                    if (targets[i]==null)
-                    {
-                        targets[i]=hero;
-                        break;
-                    }
-                }
             }
             else if (friendly.equalsIgnoreCase("ally exclusive"))
             {

@@ -19,6 +19,7 @@ public class CoinFlip
             int heads=(int)(Math.round(Math.random())); //random number between 1 and 0, rounded to the nearest whole number, i.e. 1 or 0
             if (heads==0)
             {
+                //System.out.println("FAIL");
                 return true;
             }
             else if (heads==1)
@@ -38,7 +39,6 @@ public class CoinFlip
         {
             return false;
         }
-        System.out.println ("TeamFlip error, somehow.");
         return team;
     }
     public static ArrayList GetEffs (Character hero, String effname, String efftype) //for getting all debuffs, buffs, etc on a target
@@ -151,25 +151,6 @@ public class CoinFlip
             hero.immunities.remove ("Shock");
             hero.immunities.remove ("Burn");
         }
-    }
-    public static void DMGDebImmune (Character hero, boolean add)
-    {
-       if (add==true)
-       {
-            hero.immunities.add ("Bleed");
-            hero.immunities.add ("Poison");
-            hero.immunities.add ("Shock");
-            hero.immunities.add ("Burn");
-            hero.immunities.add ("Countdown");
-       }
-       else
-       {
-            hero.immunities.remove ("Bleed");
-            hero.immunities.remove ("Poison");
-            hero.immunities.remove ("Shock");
-            hero.immunities.remove ("Burn");
-            hero.immunities.remove ("Countdown");
-       }
     }
     public static ArrayList ToList (Character[] list) //converts array to arraylist and returns arraylist
     {
