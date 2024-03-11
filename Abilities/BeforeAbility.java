@@ -28,11 +28,25 @@ class ActivateP extends BeforeAbility //ability activates a hero's passive
         {
             case 11: ActivePassive.FuryJr(user, false, false, false, true); break;
             case 13: StaticPassive.Drax(user, null, true); break;
+            case 23: ++user.passivecount; ++user.passivecount; System.out.println(user.Cname+" gained 2 Energy.");
+            for (StatEff e: user.effects) //update displayed energy count
+            {
+                if (e instanceof Tracker)
+                e.Attacked(user, null, 616);
+            }
+            break;
+            case 24: ++user.passivecount; System.out.println(user.Cname+" gained 1 Energy."); //since binary doesn't use it; gives marvel 1 energy instead of 2 
+            for (StatEff e: user.effects) 
+            {
+                if (e instanceof Tracker)
+                e.Attacked(user, null, 616);
+            }
+            break;
         }
         return 0;
     }
 }
-class ApplyShatter extends BeforeAbility //shatter applies before attacking, as stated in the glossary
+class ApplyShatter extends BeforeAbility //shatter applies before attacking, and thus cannot simply be added to statstrings; this is used for mighty blows too for the same reason
 {
     int chance; int duration; boolean debuff;
     public ApplyShatter (int chancer, int dur, boolean deb)
@@ -42,37 +56,76 @@ class ApplyShatter extends BeforeAbility //shatter applies before attacking, as 
     @Override
     public int Use (Character user, Character target)
     {
-        Damage_Stuff.CheckBlind(user); user.activeability.blind=true;
-        if (!(user.binaries.contains("Missed")))
+        boolean ok=true;
+        StatEff shatter=null;
+        if (debuff==true)
         {
             String nchance=String.valueOf(chance);
             String ndur=String.valueOf(duration);
             String[] initial={"Shatter", nchance, "616", ndur, "false"};
             String[][] sjatter=StatFactory.MakeParam(initial, null);
-            StatEff shatter=StatFactory.MakeStat(sjatter, user);
+            shatter=StatFactory.MakeStat(sjatter, user);
+        }
+        if (user.activeability.blind=false)
+        {
+            Damage_Stuff.CheckBlind(user); user.activeability.blind=true;
+        }
+        if (user.binaries.contains("Missed")||target.team1==user.team1) //to avoid shattering an ally due to mighty blows adding this to all the user's abs
+        {
+            ok=false;
+        }
+        if (ok==true&&(target.immunities.contains("Debuffs")||target.immunities.contains("Shatter")))
+        {
+            ok=false; String start=null;
+            if (debuff==true)
+            start=user.Cname+"'s "+shatter.geteffname();
+            else
+            start=user.Cname+"'s Shatter";
+            System.out.println(start+" failed to apply due to an immunity.");
+        }
+        if (ok==true&&(user.CheckFor(user, "Neutralise", false)==true&&!(user.ignores.contains("Neutralise"))))
+        {
+            ok=false; String start=null;
+            if (debuff==true)
+            start=user.Cname+"'s "+shatter.geteffname();
+            else
+            start=user.Cname+"'s Shatter";
+            System.out.println(start+" could not be applied due to a conflicting status effect.");
+        }
+        if (ok==true)
+        {
             boolean yes=CoinFlip.Flip(chance+user.Cchance); 
-            if (debuff==true&&yes==true)
+            if (yes==true)
             {
-                StatEff.CheckApply(user, target, shatter);
-            }
-            else if (debuff==false&&yes==true)
-            {
+                if (debuff==false)
+                System.out.println(target.Cname+" was Shattered!");
                 target.SHLD=0;
                 ArrayList<StatEff>modexception= new ArrayList<StatEff>();
                 if (target.effects.size()>0)
                 {
                     modexception.addAll(target.effects);
-                }
-                for (StatEff eff: modexception)
-                {
-                    if (eff.getefftype().equalsIgnoreCase("Defence"))
+                    for (StatEff eff: modexception)
                     {
-                        target.remove(target, eff.hashcode, "normal");
+                        if (eff.getefftype().equalsIgnoreCase("Defence"))
+                        {
+                            target.remove(target, eff.hashcode, "normal");
+                        }
                     }
                 }
+                if (debuff==true)
+                {
+                    StatEff.CheckApply(user, target, shatter);
+                }
             }
-            else if (yes==false)
-            StatEff.applyfail(user, shatter, "chance");
+            else 
+            {
+                String start;
+                if (debuff==true)
+                start=user.Cname+"'s "+shatter.geteffname();
+                else
+                start=user.Cname+"'s Shatter";
+                System.out.println(start+" failed to apply due to chance.");
+            }
         }
         return 0;
     }
@@ -570,6 +623,44 @@ class DebuffMod extends BeforeAbility //for altering the debuffs an ab applies, 
                 String []akaban={"Countdown", "100", "70", "1", "false"}; String[][] niharu=StatFactory.MakeParam(akaban, null); user.activeability.AddTempString(niharu);
             }
             break;
+            case 22: //KK
+            if (user.CheckFor(user, "Evasion", false)==true) 
+            {
+                if (ab==2)
+                {
+                    String[] light={"Provoke", "100", "616", "1", "false"}; String[][] baby=StatFactory.MakeParam(light, null); 
+                    user.activeability.AddTempString(baby);
+                }
+                if (ab==5)
+                {
+                    String[] kira={"Disarm", "100", "616", "1", "false"}; String[][] fin=StatFactory.MakeParam(kira, null); 
+                    user.activeability.AddTempString(fin); 
+                }
+            }
+            if (user.CheckFor(user, "Mighty Blows", false)==true) 
+            {
+                if (ab==2)
+                {
+                    String[] mello={"Terror", "100", "616", "1", "false"}; String[][] baby=StatFactory.MakeParam(mello, null); 
+                    user.activeability.AddTempString(baby);
+                }
+                if (ab==5) //shatter is applied before attacking
+                {
+                    if (user.activeability.blind==false)
+                    {
+                        Damage_Stuff.CheckBlind(user); user.activeability.blind=true;
+                    }
+                    if (!(user.binaries.contains("Missed")))
+                    {
+                        Shatter s= new Shatter (100, 1); boolean yes=CoinFlip.Flip(100+user.Cchance);
+                        if (yes==true)
+                        StatEff.CheckApply(user, target, s);
+                        else
+                        StatEff.applyfail(user, s, "chance");
+                    }
+                }
+            }
+            break;
             case 28: //arachnaught
             if (target.summoned==true)
             {
@@ -636,6 +727,8 @@ class Ignore extends BeforeAbility
               case "targeting effects": CoinFlip.IgnoreTargeting (hero, true); break;
               case "Defence": hero.ignores.add("Defence"); break;
               case "Blind": hero.ignores.add("Blind"); break; 
+              case "Evade": hero.ignores.add("Evade"); break;
+              case "Counter": hero.ignores.add("Counter"); break;
               case "Inescapable": CoinFlip.AddInescapable (hero, true); break;
               case "Missed": hero.immunities.add("Missed"); break;
               case "Afflicted": hero.ignores.add("Afflicted"); break;
@@ -650,6 +743,8 @@ class Ignore extends BeforeAbility
               case "targeting effects": CoinFlip.IgnoreTargeting (hero, false); break;
               case "Defence": hero.ignores.remove("Defence"); break;
               case "Blind": hero.ignores.remove("Blind"); break;
+              case "Evade": hero.ignores.remove("Evade"); break;
+              case "Counter": hero.ignores.remove("Counter"); break;
               case "Inescapable": CoinFlip.AddInescapable (hero, false); break;
               case "Missed": hero.immunities.remove("Missed"); break;
               case "Afflicted": hero.ignores.remove("Afflicted"); break;

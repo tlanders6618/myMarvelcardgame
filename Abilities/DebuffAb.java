@@ -19,7 +19,7 @@ class DebuffAb extends Ability
         this.friendly=afriendly;
         this.target=atarget;
         this.cd=cod;
-        if (afriendly.equalsIgnoreCase("enemy"))
+        if (afriendly.equalsIgnoreCase("enemy")||afriendly.equalsIgnoreCase("both")||afriendly.equalsIgnoreCase("either")) //anything other than ally or self
         {
             this.attack=true;
         }

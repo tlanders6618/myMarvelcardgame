@@ -79,7 +79,7 @@ class Chain extends SpecialAbility //both chain and multichain have been merged 
             targets.add(Ability.GetRandomHero (user, false, false));
         }
         if ((multi==true&&victim.dead==true&&user.dead==false&&targets.size()>0&&ab.GetMultihit(false)>-1)||(multi==false&&victim.dead==true&&user.dead==false&&targets.size()>0))
-        { 
+        { //usability check
             if (multi==false)
             {
                 System.out.println ("\n"+user.Cname+" used "+ab.oname);
@@ -90,6 +90,17 @@ class Chain extends SpecialAbility //both chain and multichain have been merged 
             user.binaries.remove("Missed");
             int change=0;
             ArrayList<StatEff> toadd= new ArrayList<StatEff>();   
+            if (ab.aoe==true)
+            {
+                for (StatEff eff: user.effects) //get empowerments
+                {
+                    if (eff.getimmunityname().equalsIgnoreCase("Empower"))
+                    {
+                        change=eff.UseEmpower(user, ab, true);
+                        damage+=change;
+                    }
+                }
+            }
             for (Character chump: targets) //use the ability on its target
             {
                 if (chump!=null) 
@@ -110,14 +121,14 @@ class Chain extends SpecialAbility //both chain and multichain have been merged 
                         Damage_Stuff.CheckBlind(user);
                         for (SpecialAbility ob: ab.special)
                         {
-                            change=ob.Use(user, chump); //apply unique ability functions before attacking; this only affects before abs
+                            change=ob.Use(user, chump); 
                             damage+=change;
                         } 
-                        //removed attack options for ignoring status and causing health loss since they're so rare and so far don't overlap with chain; add back if needed
+                        //removed attack options for elusive and causing health loss since they're so rare and so far don't overlap with chain; add back if needed
                         chump=user.Attack(user, chump, damage, ab.aoe);
                         for (SpecialAbility ob: ab.special)
                         {
-                            ob.Use(user, chump, ab.GetDmgDealt()); //apply unique ability functions after attacking; this only activates after abs
+                            ob.Use(user, chump, ab.GetDmgDealt()); 
                         } 
                         for (String[][] array: ab.tempstrings)
                         {  
@@ -177,6 +188,16 @@ class Chain extends SpecialAbility //both chain and multichain have been merged 
                             ob.Use(user, 616, chump); //for now this only activates chain
                         }
                         damage=ab.GetBaseDmg(); //reset damage 
+                    }
+                }
+            }
+            if (ab.aoe==true)
+            {
+                for (StatEff eff: user.effects) //undo empowerments
+                {
+                    if (eff.getimmunityname().equalsIgnoreCase("Empower"))
+                    {
+                        int irrelevant=eff.UseEmpower(user, ab, false);
                     }
                 }
             }

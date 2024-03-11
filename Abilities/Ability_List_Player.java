@@ -13,7 +13,7 @@ public class Ability_List_Player
     {
         //abs construction: String name, String type, String friendly, int dmg, int cooldown
         //check MakeStatString for stateff array format
-        //friendly means ally, enemy, both, either, neither, self, ally inc, ally exc
+        //friendly means ally inc, ally exc, enemy, both, either, or self 
         //type is single, self, multitarg, random, or aoe 
         Ability toret=null;
         switch (index) //since making a giant array of dozens of elements was very slow, this should be faster, albeit longer
@@ -38,6 +38,10 @@ public class Ability_List_Player
             case 18: toret=MakeAbSpidey(counter); break;
             case 19: toret=MakeAbMiles(counter); break;
             case 20: toret=MakeAbSuperior(counter); break;
+            case 21: toret=MakeAbStorm(counter); break;
+            case 22: toret=MakeAbKK(counter); break;
+            case 23: toret=MakeAbCM(counter); break;
+            case 24: toret=MakeAbBinary(counter); break;
             default: System.out.println ("Problem getting hero abilities");
         }
         return toret;
@@ -52,6 +56,74 @@ public class Ability_List_Player
             case 2: 
             case 3: 
             case 4: 
+            default: return null;
+        }
+    }
+    public static Ability MakeAbBinary (int counter)
+    {
+        switch (counter)
+        {
+            case 0: BasicAb punch= new BasicAb("Megaton Punch", "single", "enemy", 60);
+            return punch;
+            case 1: BasicAb wave= new BasicAb("Photonic Wave", "AoE", "enemy", 40); 
+            return wave;
+            default: return null;
+        }
+    }
+    public static Ability MakeAbCM (int counter)
+    {
+        switch (counter)
+        {
+            case 0: BasicAb mighty= new BasicAb("Mighty Punch", "single", "enemy", 45); mighty.special.add(new ActivateP(24));
+            return mighty;
+            case 1: AttackAb photonic= new AttackAb("Photonic Blast", "single", "enemy", 60, 2); photonic.special.add(new ApplyShatter(50, 0, false));
+            photonic.special.add(new ActivateP(23)); 
+            return photonic;
+            case 3: AttackAb photon= new AttackAb("Photon Barrage", "single", "enemy", 80, 3); photon.special.add(new ApplyShatter(100, 0, false));
+            photon.special.add(new ActivateP(23)); 
+            return photon;
+            default: return null;
+        }
+    }
+    public static Ability MakeAbKK (int counter)
+    {
+        switch (counter)
+        {
+            case 0: BasicAb talon= new BasicAb("Morpho Punch", "single", "enemy", 45); 
+            return talon;
+            case 1: AttackAb bash= new AttackAb("Embiggened Bash", "single", "enemy", 80, 2); bash.special.add(new DebuffMod (22, 2));
+            return bash;
+            case 2: BuffAb grow= new BuffAb("Grow", "self", "self", 3); grow.together=true;
+            String[] bam={"Mighty Blows", "100", "616", "2", "true"}; String[][]bang=StatFactory.MakeParam(bam, null); grow.AddStatString(bang);
+            String[] pew={"Focus", "100", "616", "2", "true"}; String[][] pewpew=StatFactory.MakeParam(pew, null); grow.AddStatString(pewpew);
+            return grow;
+            case 3: BuffAb shrink= new BuffAb("Shrink", "self", "self", 3); shrink.together=true;
+            String[] bamf={"Evasion", "100", "616", "2", "true"}; String[][]banged=StatFactory.MakeParam(bamf, null); shrink.AddStatString(banged);
+            String[] pewer={"Focus", "100", "616", "2", "true"}; String[][] pewpewer=StatFactory.MakeParam(pewer, null); shrink.AddStatString(pewpewer);
+            return shrink;
+            case 4: AttackAb smash= new AttackAb("Marvellous Finish", "single", "enemy", 120, 4); smash.special.add(new DebuffMod (22, 5));
+            return smash;
+            default: return null;
+        }
+    }
+    public static Ability MakeAbStorm (int counter)
+    {
+        switch (counter)
+        {
+            case 0: DebuffAb storke= new DebuffAb ("Lightning Strike", "single", "enemy", 0); 
+            String[] talon= {"Shock", "100", "35", "1", "false"}; String[][] coffee=StatFactory.MakeParam(talon, null); storke.AddStatString(coffee);
+            return storke;
+            case 1: DebuffAb stunner= new DebuffAb ("Flash Freeze", "single", "enemy", 2); 
+            String[] covfefe= {"Stun", "100", "616", "616", "false"}; String[][] press=StatFactory.MakeParam(covfefe, null); stunner.AddStatString(press);
+            return stunner;
+            case 2: DebuffAb hailstorm= new DebuffAb("Hail Barrage", "single", "enemy", 3); hailstorm.special.add(new Ignore("Counter", "always", 616));
+            String[] snare={"Bleed", "100", "55", "2", "false"}; String[][] incoming=StatFactory.MakeParam(snare, null); hailstorm.AddStatString(incoming);
+            return hailstorm;
+            case 3: DebuffAb rain= new DebuffAb ("Acid Rain", "AoE", "enemy", 3); rain.special.add(new Ignore("Evade", "always", 616));
+            String[] cresht= {"Poison", "100", "40", "2", "false"}; String[][] peaks=StatFactory.MakeParam(cresht, null); rain.AddStatString(peaks);
+            return rain;
+            case 4: AttackAb tornado= new AttackAb("Tornado", "AoE", "enemy", 100, 0); tornado.elusive=true; tornado.channelled=true; tornado.singleuse=true; tornado.dcd=1;
+            return tornado;
             default: return null;
         }
     }
@@ -99,7 +171,7 @@ public class Ability_List_Player
     {
         switch (counter)
         {
-            case 0: BasicAb swing= new BasicAb ("Web Swing", "single", "enemy", 45);
+            case 0: BasicAb swing= new BasicAb ("Web Swing", "single", "enemy", 40);
             return swing;
             case 1: DebuffAb quip= new DebuffAb ("Distracting Quip", "single", "enemy", 0); quip.special.add(new Ignore("Neutralise", "always", 616)); quip.ignore=true;
             String[] braindrain= {"Daze", "500", "616", "1", "false"}; String[][] scat=StatFactory.MakeParam(braindrain, null); quip.AddStatString(scat); 
@@ -165,7 +237,7 @@ public class Ability_List_Player
             case 1: AttackAb out= new AttackAb ("Bleed Them Out", "single", "enemy", 35, 3); 
             String[] bleed= {"Bleed", "100", "35", "2", "false"}; String[][] bleeding=StatFactory.MakeParam(bleed, null); out.AddStatString(bleeding);
             return out;
-            case 4: AttackAb triple= new AttackAb("Triple Slash", "single", "enemy", 30, 3, 2); triple.special.add (new Chain(true, triple));
+            case 4: AttackAb triple= new AttackAb("Triple Slash", "single", "enemy", 30, 4, 2); triple.special.add (new Chain(true, triple));
             return triple;
             default: return null;
         }
@@ -441,7 +513,7 @@ public class Ability_List_Player
             return cdart; 
             case 1: BasicAb mbarr= new BasicAb("Mooncopter Barrage", "AoE", "enemy", 30);   
             return mbarr; 
-            case 2: DefAb lunarp= new DefAb ("Lunar Protector", "single", "Ally exclusive", 2); 
+            case 2: DefAb lunarp= new DefAb ("Lunar Protector", "single", "ally exclusive", 2); 
             String[] gloom={"Protect", "500", "616", "1", "true"}; String[][] chic=StatFactory.MakeParam(gloom, null); lunarp.AddStatString(chic); 
             String[] doom= {"Evade", "500", "616", "616", "true"}; String[][] chicken=StatFactory.MakeParam(doom, null); lunarp.AddStatString(chicken);
             return lunarp; 

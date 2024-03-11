@@ -17,7 +17,7 @@ public abstract class Ability
     boolean together=false; //whether status effects are applied separately or together
     String oname; 
     String target; String friendly; 
-    //friendly means ally, enemy, both, either, neither, self, ally inc, ally exc
+    //friendly means ally, enemy, both, either, self, ally inc, ally exc
     //target is single, self, multitarg, random, or aoe 
     boolean aoe=false; boolean attack=false;
     boolean blind=false; //blind is usually checked after beforeabs but not in all cases; keeps track of whether blind was checked to avoid checking it twice
@@ -51,7 +51,7 @@ public abstract class Ability
         }
         else if (useable==false&&dcd>0)
         {
-            return this.oname+", usable again in "+this.dcd+" turn(s)";
+            return this.oname+", usable in "+this.dcd+" turn(s)";
         }
         else
         {
@@ -90,16 +90,29 @@ public abstract class Ability
                 uses=-1;
                 System.out.println(ab.oname+" could not be used due to a lack of eligible targets.");
             }
+            if (this.aoe==true)//attack is empowered against all enemies
+            {
+                for (StatEff eff: user.effects) //get empowerments
+                {
+                    if (eff.getimmunityname().equalsIgnoreCase("Empower"))
+                    {
+                        int ignore=eff.UseEmpower(user, ab, true);
+                    }
+                }
+            }
             for (Character chump: targets) //use the ability on its target
             {
                 if (chump!=null) //if null, skip entirely
                 {
                     int change=0; 
-                    for (StatEff eff: user.effects) //get empowerments
+                    if (this.aoe==false) //only empowered against the attack's target
                     {
-                        if (eff.getimmunityname().equalsIgnoreCase("Empower"))
+                        for (StatEff eff: user.effects) //get empowerments
                         {
-                            change=eff.UseEmpower(user, ab, true);
+                            if (eff.getimmunityname().equalsIgnoreCase("Empower"))
+                            {
+                                change=eff.UseEmpower(user, ab, true);
+                            }
                         }
                     }
                     for (SpecialAbility ob: special)
@@ -166,11 +179,14 @@ public abstract class Ability
                         ob.Use(user, chump, 0); //apply unique ability functions after attacking; this only activates after abs
                     } 
                     toadd=Ability.ApplyStats(user, chump, together, selfapply, otherapply);
-                    for (StatEff eff: user.effects) //undo empowerments
+                    if (aoe==false)
                     {
-                        if (eff.getimmunityname().equalsIgnoreCase("Empower"))
+                        for (StatEff eff: user.effects) //undo empowerments
                         {
-                            change=eff.UseEmpower(user, ab, false);
+                            if (eff.getimmunityname().equalsIgnoreCase("Empower"))
+                            {
+                                int irrelevant=eff.UseEmpower(user, ab, false);
+                            }
                         }
                     }
                     if (selfapply.size()!=0)
@@ -197,6 +213,16 @@ public abstract class Ability
                 }
                 --uses;
             }
+            if (aoe==true)
+            {
+                for (StatEff eff: user.effects) //undo empowerments
+                {
+                    if (eff.getimmunityname().equalsIgnoreCase("Empower"))
+                    {
+                        int irrelevant=eff.UseEmpower(user, ab, false);
+                    }
+                }
+            }
         }
         if (singleuse==true)
         {
@@ -210,20 +236,16 @@ public abstract class Ability
     }
     public void CDReduction(int amount)
     {
-        if (singleuse==true)
+        if (dcd<=0)
         {
-            //it doesn't have a cooldown
-        }
-        else if (dcd<=0)
-        {
-            //no negative cooldowns
+            dcd=0; //no negative cooldowns
         }
         else 
         {
             dcd-=amount;
             if (dcd<0)
             {
-                dcd=0; //no negative cooldowns
+                dcd=0; 
             }
         } 
     }
@@ -313,16 +335,29 @@ public abstract class Ability
                 }
                 return toadd;
             }
+            if (this.aoe==true)
+            {
+                for (StatEff eff: user.effects) //get empowerments
+                {
+                    if (eff.getimmunityname().equalsIgnoreCase("Empower"))
+                    {
+                        int ignore=eff.UseEmpower(user, ab, true);
+                    }
+                }
+            }
             for (Character chump: ctargets) //use the ability on its target
             {
                 if (chump!=null) 
                 {
                     int change=0; 
-                    for (StatEff eff: user.effects) //get empowerments
+                    if (this.aoe==false)
                     {
-                        if (eff.getimmunityname().equalsIgnoreCase("Empower"))
+                        for (StatEff eff: user.effects) //get empowerments
                         {
-                            change=eff.UseEmpower(user, ab, true);
+                            if (eff.getimmunityname().equalsIgnoreCase("Empower"))
+                            {
+                                change=eff.UseEmpower(user, ab, true);
+                            }
                         }
                     }
                     for (SpecialAbility ob: special)
@@ -389,11 +424,14 @@ public abstract class Ability
                         }
                     }
                     toadd=Ability.ApplyStats(user, chump, together, selfapply, otherapply);
-                    for (StatEff eff: user.effects) //undo empowerments
+                    if (aoe==false)
                     {
-                        if (eff.getimmunityname().equalsIgnoreCase("Empower"))
+                        for (StatEff eff: user.effects) //undo empowerments
                         {
-                            change=eff.UseEmpower(user, ab, false);
+                            if (eff.getimmunityname().equalsIgnoreCase("Empower"))
+                            {
+                                int irrelevant=eff.UseEmpower(user, ab, false);
+                            }
                         }
                     }
                     if (selfapply.size()!=0)
@@ -419,15 +457,18 @@ public abstract class Ability
                     }
                 }
             }
+            if (aoe==true)
+            {
+                for (StatEff eff: user.effects) //undo empowerments
+                {
+                    if (eff.getimmunityname().equalsIgnoreCase("Empower"))
+                    {
+                        int irrelevant=eff.UseEmpower(user, ab, false);
+                    }
+                }
+            }
         }
-        if (singleuse==true)
-        {
-            used=true;
-        }
-        else
-        {
-            dcd+=cd;
-        }
+        //don't go on cooldown bc useab already took care of it
         return toadd;
     }
     public void AddStatString(String[][] f)

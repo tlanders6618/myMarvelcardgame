@@ -49,10 +49,22 @@ class BasicAb extends AttackAb
         }
         while (uses>0) //repeat the attack for each multiuse
         {
+            int change=0;
             if (targets.size()<=0)
             {
                 uses=-1;
                 System.out.println(ab.oname+" could not be used due to a lack of eligible targets.");
+            }
+            if (this.aoe==true)
+            {
+                for (StatEff eff: user.effects) //get empowerments
+                {
+                    if (eff.getimmunityname().equalsIgnoreCase("Empower"))
+                    {
+                        change=eff.UseEmpower(user, ab, true);
+                        damage+=change;
+                    }
+                }
             }
             for (Character chump: targets) //use the ability on its target
             {
@@ -60,33 +72,58 @@ class BasicAb extends AttackAb
                 {
                     do 
                     {
-                        int change=0; 
-                        for (StatEff eff: user.effects) //get empowerments
+                        if (this.aoe==false)
                         {
-                            if (eff.getimmunityname().equalsIgnoreCase("Empower"))
+                            for (StatEff eff: user.effects) //get empowerments
                             {
-                                change=eff.UseEmpower(user, ab, true);
-                                damage+=change;
+                                if (eff.getimmunityname().equalsIgnoreCase("Empower"))
+                                {
+                                    change=eff.UseEmpower(user, ab, true);
+                                    damage+=change;
+                                }
                             }
                         }
+                        if (elusive==true)
+                        blind=true; //no need to check blind for elusive abs since they aren't attacks
                         for (SpecialAbility ob: special)
                         {
-                            change=ob.Use(user, chump); //apply unique ability functions before attacking
+                            change=ob.Use(user, chump); //apply unique ability functions before attacking; this only affects before abs
                             damage+=change;
-                        }       
+                        } 
                         if (blind==false) //only check blind once per attack
                         Damage_Stuff.CheckBlind(user);
-                        if (user.ignores.contains("Status effects"))
+                        if (elusive==true) 
                         {
-                            chump.HP-=damage;
+                            damage-=chump.ADR;
+                            if (damage<0)
+                            damage=0;
+                            chump.TakeDamage(chump, user, damage, this.aoe);
                         }
-                        else if (lose==true)
+                        else if (lose==true) //modified version of attacknodamage method
                         {
-                            if ((!(user.binaries.contains("Missed"))||user.immunities.contains("Missed")))
-                            {
-                                chump.HP-=damage; //need to rewrite this to account for protect
+                            //add switch for user's passives to trigger before attacking if needed
+                            chump=chump.onTargeted(user, chump, 0, aoe);
+                            if ((!(user.binaries.contains("Missed"))&&!(user.immunities.contains("Missed"))))
+                            { 
+                                Damage_Stuff.CheckEvade(user, chump); //blind is checked when activating the ab; evade is checked here once the target has been selected
                             }
-                            chump.onAttacked(chump, user, 0);
+                            if (!(user.binaries.contains("Missed"))&&!(chump.immunities.contains("Lose"))) 
+                            {
+                                chump.HP-=damage; chump.TookDamage(chump, user, damage);
+                            }
+                            user.onAttack(user, chump); //activate relevant passives after attacking
+                            if (chump.dead==false)
+                            {
+                                chump.onAttacked(chump, user, 0);
+                            }
+                            Character[] friends=Battle.GetTeammates(chump);
+                            for (Character friend: friends)
+                            {
+                                if (friend!=null&&!(friend.binaries.contains("Banished")))
+                                {
+                                    friend.onAllyAttacked(friend, chump, user, damage);
+                                }
+                            }
                         }
                         else 
                         {
@@ -144,13 +181,16 @@ class BasicAb extends AttackAb
                             }
                         }
                         toadd=Ability.ApplyStats(user, chump, together, selfapply, otherapply);  
-                        for (StatEff eff: user.effects) //undo empowerments
+                        if (aoe==false) 
                         {
-                            if (eff.getimmunityname().equalsIgnoreCase("Empower"))
+                            for (StatEff eff: user.effects) //undo empowerments
                             {
-                                int useless=eff.UseEmpower(user, ab, false);
+                                if (eff.getimmunityname().equalsIgnoreCase("Empower"))
+                                {
+                                    int irrelevant=eff.UseEmpower(user, ab, false);
+                                }
                             }
-                        } 
+                        }
                         if (selfapply.size()!=0)
                         {
                             selfapply.removeAll(selfapply); //ensures every status effect is unique, to avoid bugs
@@ -170,16 +210,26 @@ class BasicAb extends AttackAb
                         this.blind=false;
                         this.UseMultihit();
                         dmgdealt=0;
+                        damage=odamage; //reset damage 
                         for (SpecialAbility ob: special)
                         {
                             ob.Use(user, 616, chump); //for now this only activates chain
                         }
-                        damage=odamage; //reset damage 
                     }
                     while (multihit>-1); //then repeat the attack for each multihit
                     multihit=omulti; //reset the multihit counter for the next use
                 }
-                --uses;
+            }
+            --uses;
+            if (aoe==true)
+            {
+                for (StatEff eff: user.effects) //undo empowerments
+                {
+                    if (eff.getimmunityname().equalsIgnoreCase("Empower"))
+                    {
+                        int irrelevant=eff.UseEmpower(user, ab, false);
+                    }
+                }
             }
         }
         return toadd;
