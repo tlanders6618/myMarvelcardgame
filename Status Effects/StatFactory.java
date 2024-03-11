@@ -39,6 +39,7 @@ public class StatFactory
             case "Counter": eff=new Counter (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][2]), Integer.valueOf(param[0][3]), param[1]); break; 
             case "Daze": eff=new Daze (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3])); break;  
             case "Debilitate": eff= new Debilitate (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][2]), Integer.valueOf(param[0][3])); break;
+            case "Disarm": eff=new Disarm (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3])); break;
             case "Disrupt": eff=new Disrupt (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3])); break;
             case "Drain": eff=new Drain (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][2]), Integer.valueOf(param[0][3])); break;
             case "Evade": eff= new Evade (Integer.valueOf(param[0][1])); break;
@@ -49,7 +50,9 @@ public class StatFactory
             case "Intensify": eff=new Intensify (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][2]), Integer.valueOf(param[0][3])); break;
             case "IntensifyE": eff=new IntensifyE (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][2]), Integer.valueOf(param[0][3])); break;
             case "Invisible": eff= new Invisible (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3])); break;
+            case "Mighty Blows": eff= new MightyBlows (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3])); break;
             case "Neutralise": eff= new Neutralise (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3])); break;
+            case "Poison": eff=new Poison (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][2]), Integer.valueOf(param[0][3])); break;
             case "Precision": eff=new Precision (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3])); break;
             case "Protect": eff=new Protect (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3])); break;
             case "Provoke": eff =new Provoke(Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3]), Q); break;
@@ -102,6 +105,7 @@ class Tracker extends StatEff //displays a character's relevant personal statist
         switch (oname)
         {
             case "Damage Taken: ": info=target.dmgtaken; name+=info; break;
+            case "Energy: ": info=target.passivecount; name+=info; break;
         }
     }
     @Override
@@ -148,6 +152,7 @@ class Tracker extends StatEff //displays a character's relevant personal statist
                 name=(oname+info);
             }
             break;
+            case "Energy: ": info=hero.passivecount; name=(oname+info); break;
         }
     }
 }

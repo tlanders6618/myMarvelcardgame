@@ -38,7 +38,7 @@ public abstract class StatEff
     {
         return "knull";
     }
-    public void Nullified(Character target) //triggered when a stateff is removed to undo its effects; not necessarily meant for only when nullified
+    public void Nullified(Character target) //triggered when a stateff is removed to undo its effects; not necessarily meant for only when Nullified
     {
     }
     public void Extended (int d, Character hero)
@@ -59,7 +59,7 @@ public abstract class StatEff
     public void UseBanish() //literally just --duration
     {
     }
-    public int UseEmpower(Character user, Ability b, boolean a) //buff stat chance/attack or add stats to apply, then --uses; if uses=0, remove from user
+    public int UseEmpower(Character user, Ability b, boolean a) //buff stat chance/attack or add tempstrings to apply
     {
         return 0;
     }

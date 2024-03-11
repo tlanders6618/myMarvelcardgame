@@ -298,6 +298,88 @@ class Invisible extends BuffEff
         }
     }
 }
+class MightyBlows extends BuffEff 
+{
+    ApplyShatter n= new ApplyShatter(50, 0, false);
+    @Override
+    public String getimmunityname()
+    {
+        return "Mighty Blows";
+    }
+    @Override 
+    public String getefftype() 
+    {
+        return "Buffs";
+    }
+    @Override
+    public String geteffname()
+    {
+        String name;
+        if (this.duration<100)
+        {
+            name="Mighty Blows, "+this.duration+" turn(s)";
+            return name;
+        }
+        else
+        {
+            name="Mighty Blows";
+            return name;
+        }
+    }
+    public MightyBlows (int nchance)
+    {
+        this.chance=nchance;
+        this.hashcode=Card_HashCode.RandomCode();
+    }
+    public MightyBlows (int nchance, int nduration)
+    {
+        this.duration=nduration;
+        this.oduration=nduration;
+        this.chance=nchance;
+        this.hashcode=Card_HashCode.RandomCode();
+    }
+    public void onApply (Character target)
+    {   
+        for (Ability a: target.abilities)
+        {
+            if (a!=null&&a.attack==true)
+            {
+                a.special.add(n);
+            }
+        }
+        for (Ability[] arr: target.transabs) //to avoid bugs if a character gains the eff and then transforms
+        {
+            for (Ability a: arr)
+            {
+                if (a!=null&&a.attack==true)
+                {
+                    a.special.add(n);
+                }
+            }
+        }
+    }
+    @Override
+    public void Nullified (Character target)
+    {
+        for (Ability a: target.abilities)
+        {
+            if (a!=null&&a.attack==true)
+            {
+                a.special.remove(n);
+            }
+        }
+        for (Ability[] arr: target.transabs)
+        {
+            for (Ability a: arr)
+            {
+                if (a!=null&&a.attack==true)
+                {
+                    a.special.remove(n);
+                }
+            }
+        }
+    }
+}
 class Precision extends BuffEff 
 {
     @Override

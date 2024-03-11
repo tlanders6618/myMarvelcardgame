@@ -352,6 +352,39 @@ class Debilitate extends DebuffEff
         }
     }
 }
+class Disarm extends DebuffEff
+{
+    @Override
+    public String getimmunityname()
+    {
+        return "Disarm";
+    }
+    @Override 
+    public String getefftype()
+    {
+        return "Debuffs";
+    }
+    @Override
+    public String getalttype() 
+    {
+        return "nondamaging";
+    }
+    public void onApply (Character target)
+    {
+    }
+    public Disarm (int nchance, int ndur)
+    {
+        this.chance=nchance;
+        this.duration=ndur;
+        this.oduration=ndur;
+        this.hashcode=Card_HashCode.RandomCode();
+    }
+    @Override
+    public String geteffname() 
+    {
+       return "Disarm, "+duration+ " turn(s)"; 
+    }
+}
 class Disrupt extends DebuffEff 
 {
     @Override
@@ -437,6 +470,78 @@ class Neutralise extends DebuffEff
     public String geteffname() 
     {
        return "Neutralise, "+duration+ " turn(s)"; 
+    }
+}
+class Poison extends DebuffEff 
+{
+    @Override
+    public String getimmunityname()
+    {
+        return "Poison";
+    }
+    @Override 
+    public String getefftype()
+    {
+        return "Debuffs";
+    }
+    @Override
+    public String getalttype() 
+    {
+        return "damaging";
+    }
+    @Override
+    public String geteffname()
+    {
+        String name;
+        if (duration<100)
+        {
+            name="Poison: "+this.power+", "+this.duration+" turn(s)";
+            return name;
+        }
+        else
+        {
+            name="Poison: "+this.power;
+            return name;
+        }
+    }
+    public Poison (int nchance, int nstrength)
+    {
+        this.power=nstrength;
+        this.chance=nchance;
+        this.hashcode=Card_HashCode.RandomCode();
+        this.stackable=true;
+    }
+    public Poison (int nchance, int nstrength, int nduration)
+    {
+        this.power=nstrength;
+        this.duration=nduration;
+        this.oduration=nduration;
+        this.chance=nchance;
+        this.hashcode=Card_HashCode.RandomCode();
+        this.stackable=true;
+    }
+    @Override
+    public void onTurnStart (Character hero)
+    {
+        hero.DOTdmg(hero, this.power, "poison");
+        --this.duration;
+        if (this.duration<=0)
+        {
+            hero.remove(hero, this.hashcode, "normal");
+        }
+    }
+    @Override
+    public void onTurnEnd (Character hero)
+    {
+        //do nothing
+    }
+    @Override
+    public void onApply (Character target)
+    {
+    }
+    @Override
+    public void Nullified (Character target)
+    {
     }
 }
 class Provoke extends DebuffEff 
