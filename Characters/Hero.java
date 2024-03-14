@@ -44,7 +44,6 @@ public class Hero extends Character
         switch (hero.index)
         {
             case 12: ActivePassive.DraxOG(hero, false, null, null); break;
-            case 13: StaticPassive.Drax (hero, null, false); break;
         }
     }
     @Override
@@ -83,6 +82,9 @@ public class Hero extends Character
             case 16: StaticPassive.OGVenom (hero); StaticPassive.Symbiote (hero, 0, true); break;
             case 17: StaticPassive.Symbiote (hero, 0, true); break;
             case 23: StaticPassive.CM(hero); break;
+            case 25: hero.passivecount=10; hero.Cchance+=50; Tracker t=new Tracker("Control Points: "); hero.effects.add(t); t.onApply(hero); 
+            StaticPassive.Symbiote (hero, 0, true); break;
+            case 26: int ignore=StaticPassive.MODOC(hero, null, false, true, 0); break;
         }
     }
     @Override
@@ -96,7 +98,7 @@ public class Hero extends Character
             if (name.equals("Intensify")&&type.equals("Buffs"))
             ActivePassive.Gamora(hero, eff, true); 
             break;
-            case 16: case 17:
+            case 16: case 17: case 25:
             if (name.equals("Burn"))
             StaticPassive.Symbiote(hero, 5, false);
             break;
@@ -140,7 +142,7 @@ public class Hero extends Character
                         ActivePassive.IM(hero, eff); 
                         break;
                     }
-                    case 16: case 17:
+                    case 16: case 17: case 25:
                     if (name.equals("Burn"))
                     StaticPassive.Symbiote(hero, -5, false);
                     break;
@@ -281,6 +283,7 @@ public class Hero extends Character
         switch (hero.index)
         {
             case 12: ActivePassive.DraxOG(hero, true, victim, null); break;
+            case 13: StaticPassive.Drax (hero, null, false); break;
             case 14: ActivePassive.X23(hero, victim, false, false); break;
             case 20: ActivePassive.Superior(hero, victim, false); break;
             case 23: ActivePassive.CM(hero, false, 0); break; //after attacking, see if she can go binary; to avoid bugs with her transforming mid attack
@@ -297,6 +300,10 @@ public class Hero extends Character
     @Override
     public void onAttacked(Character attacked, Character attacker, int dmg)
     {
+        switch (attacked.index) //for passives that trigger even if the hero died from the attack
+        {
+            case 25: ActivePassive.Flash(attacked, -3); break;
+        }
         if (attacked.dead==false)
         {
             for (StatEff eff: attacked.effects)
@@ -351,6 +358,10 @@ public class Hero extends Character
     @Override
     public int TakeDamage (Character target, Character dealer, int dmg, boolean aoe) //this checks if shield is strong enough to prevent health damage from an enemy attack
     {
+        switch (target.index)
+        {
+            case 26: dmg=StaticPassive.MODOC(target, dealer, true, false, dmg); break;
+        }
         if (dealer.ignores.contains("Shield")||dealer.ignores.contains("Defence"))
         {
             target.HP-=dmg; 
@@ -368,9 +379,8 @@ public class Hero extends Character
         return dmg;
     }
     @Override
-    public int TakeDamage (Character target, int dmg, boolean dot) //true for dot and false for all other types of dmg
+    public int TakeDamage (Character target, int dmg, boolean dot) //same as above but for taking sourceless damage
     {
-        //same as above but for taking sourceless damage
         if (dmg>0&&SHLD>=dmg) 
         {
             target.SHLD-=dmg; 

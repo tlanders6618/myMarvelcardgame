@@ -35,6 +35,7 @@ public class Summon extends Character
         switch (lad.index) //for triggering on summon passives
         {
             case 1: SummonPassive.NickLMD(lad); break;
+            case 3: SummonPassive.Crushbot(lad, true); break;
             case 7: lad.binaries.add("Stunned"); break;
         }
         CheckSumDupes(lad);
@@ -172,10 +173,11 @@ public class Summon extends Character
         boolean go=true;
         switch (index)
         {
+            case 3: SummonPassive.Crushbot(hero, false); break;
             case 7: 
             if (hero.team1==true) 
             {
-                if (Battle.p1solo==true) //to prevent infinite turns if a decoy is the only ones left alive on its team
+                if (Battle.p1solo==true) //to prevent infinite turns if a decoy is the only one left alive on its team
                 hero.binaries.remove("Stunned");
                 else //to prevent infinite turns if there is more than one hero on the team, but they're all decoys
                 {

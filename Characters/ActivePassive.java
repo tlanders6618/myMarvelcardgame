@@ -10,6 +10,31 @@ package myMarvelcardgamepack;
 import java.util.ArrayList;
 public class ActivePassive 
 {
+    public static void Flash (Character eugene, int change) //called by activatep and onattacked
+    {
+        int old=eugene.passivecount; 
+        if (change<0)
+        System.out.println(eugene.Cname+" lost "+Math.abs(change)+" Control Points.");
+        else
+        System.out.println(eugene.Cname+" gained "+change+" Control Points.");
+        eugene.passivecount+=change; 
+        if (eugene.passivecount>10)
+        eugene.passivecount=10;
+        if (eugene.passivecount<0)
+        eugene.passivecount=0;
+        int New=eugene.passivecount;
+        if (old<=5&&New>5) //losing control when at or under 5 C; this is for changing to in check
+        {
+            System.out.println(eugene.Cname+" is In Check.");
+            eugene.BD-=15; eugene.Cchance+=50;
+        }
+        else if (old>5&&New<=5) //in check while at or above 6 C; this is for changing to losing control
+        {
+            System.out.println(eugene.Cname+" is Losing Control!");
+            eugene.BD+=15; eugene.Cchance-=50;
+        }
+        //otherwise do nothing since flash's current state hasn't changed
+    }
     public static void Binary (Character binary) //for consuming energy; onturn, onallyturn, onenemyturn
     {
         if (binary.dead==false&&!(binary.binaries.contains("Banished"))&&!(binary.binaries.contains("Stunned")))
@@ -263,6 +288,7 @@ public class ActivePassive
         {
             marcus.passivecount=1; marcus.Cchance+=50; marcus.BD+=15;
             System.out.println ("Kill Mode enabled.");
+            Tracker a= new Tracker ("Kill Mode active"); marcus.effects.add(a);
         }
         else if (selfturn==true) //called onturn
         {
@@ -279,7 +305,15 @@ public class ActivePassive
                 if (choice==2)
                 {
                     marcus.passivecount=0; marcus.Cchance-=50; marcus.BD-=15;
-                    System.out.println ("Kill Mode disabled.");
+                    System.out.println ("Kill Mode disabled."); StatEff t=null;
+                    for (StatEff e: marcus.effects)
+                    {
+                        if (e instanceof Tracker&&e.geteffname().equals("Kill Mode active"))
+                        {
+                            t=e; break;
+                        }
+                    }
+                    marcus.remove(marcus, t.hashcode, "silent");
                 }
                 else
                 {

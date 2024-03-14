@@ -17,6 +17,87 @@ public class StaticPassive
         else
         venom.DV+=vuln;
     }
+    public static int MODOC (Character george, Character target, boolean shield, boolean start, int dmg)
+    {
+        if (start==true) //onfightstart
+        {
+            CoinFlip.IgnoreTargeting(george, true); george.SHLD=100; george.passivecount=1; george.immunities.add("Debuffs");
+        }
+        else if (shield==false) //apply debuffs when attacking; called by his only attack ability's activatep
+        {
+            boolean stop=false;
+            for (int i=0; i<5; i++)
+            {
+                if (stop==true) //stop checking for other kinds of abilities
+                break;
+                for (Ability a: target.abilities)
+                {
+                    if (a!=null&&!(a instanceof OtherAb))
+                    {
+                        switch (i)
+                        {
+                            case 0:
+                            if (a instanceof DefAb)
+                            {
+                                String[] choochoo={"Shatter", "500", "616", "1", "false"}; String[][] nuclear=StatFactory.MakeParam(choochoo, null); 
+                                george.activeability.AddTempString(nuclear); stop=true;
+                            }
+                            break;
+                            case 1:
+                            if (a instanceof HealAb)
+                            {
+                                String[] choochoo={"Afflicted", "500", "616", "1", "false"}; String[][] nuclear=StatFactory.MakeParam(choochoo, null); 
+                                george.activeability.AddTempString(nuclear); stop=true;
+                            }
+                            break;
+                            case 2:
+                            if (a instanceof DebuffAb)
+                            {
+                                String[] choochoo={"Neutralise", "500", "616", "1", "false"}; String[][] nuclear=StatFactory.MakeParam(choochoo, null); 
+                                george.activeability.AddTempString(nuclear); stop=true;
+                            }
+                            break;
+                            case 3:
+                            if (a instanceof BuffAb)
+                            {
+                                String[] choochoo={"Undermine", "500", "616", "1", "false"}; String[][] nuclear=StatFactory.MakeParam(choochoo, null); 
+                                george.activeability.AddTempString(nuclear); stop=true;
+                            }
+                            break;
+                            case 4: 
+                            if (a instanceof AttackAb)
+                            {
+                                String[] choochoo={"Disarm", "500", "616", "1", "false"}; String[][] nuclear=StatFactory.MakeParam(choochoo, null); 
+                                george.activeability.AddTempString(nuclear); stop=true;
+                            }
+                            break;
+                        }
+                        if (stop==true) //stop going through other abilities
+                        break;
+                    }
+                }
+            }
+        }
+        else if (george.passivecount==1) //shield is true; called at start of takedamage; passive only applies until shield is broken
+        {
+            if (!(target.ignores.contains("Shield"))&&!(target.ignores.contains("Defence"))) 
+            {
+                if (dmg>=100)
+                {
+                    System.out.println("You fool! You cannot penetrate MODOK's superior defences!");
+                    dmg-=100;
+                    if (dmg<0)
+                    dmg=0;
+                }
+                if (george.SHLD-dmg<=0)
+                {
+                    george.immunities.remove("Debuffs"); george.passivecount=0;
+                }
+                return dmg;
+            }
+        }
+        return dmg;
+    }
     public static void Binary (Character binary, boolean in) //when transforming into binary; in is whether transform is into binary or out of binary
     {
         if (in==true)
@@ -85,7 +166,7 @@ public class StaticPassive
         {
             arthur.passivecount=1;
         }
-        else if (target==null) //called by hero.turnend; undoes passive after attack finished
+        else if (target==null) //called by hero.onattack; undoes passive after attack finished; onturnend would cause bugs by applying bd to all aoe instead of those with high hp
         {
             if (arthur.passivecount==-2)
             {

@@ -404,7 +404,7 @@ public abstract class Character
                 case 6: case 9: case 10: case 14: case 19: case 21:
                 health= 220; break;
             
-                case 1: case 2: case 3: case 4: case 5: case 7: case 8: case 11: case 18: case 20: case 23: case 24:
+                case 1: case 2: case 3: case 4: case 5: case 7: case 8: case 11: case 18: case 20: case 23: case 24: case 25:
                 health= 230;  break;
             
                 case 12: case 13: case 15: case 16: case 17: case 22:
@@ -477,6 +477,8 @@ public abstract class Character
                 case 22: name="Ms. Marvel (Kamala Khan)"; break;
                 case 23: name="Captain Marvel (Carol Danvers)"; break;
                 case 24: name="Binary (Carol Danvers)"; break;
+                case 25: name="Venom (Flash Thompson)"; break;
+                case 26: name="MODOK (Classic)"; break;
                 default: name= "ERROR. INDEX NUMBER NOT FOUND";
             }    
             return name;
