@@ -125,14 +125,14 @@ public class CoinFlip
             hero.immunities.add ("Bleed");
             hero.immunities.add ("Poison");
             hero.immunities.add ("Copy");
-            hero.WiDR=+999;
+            hero.WiDR+=999;
         }
         else
         {
             hero.immunities.remove ("Bleed");
             hero.immunities.remove ("Poison");
             hero.immunities.remove ("Copy");
-            hero.WiDR=-999;
+            hero.WiDR-=999;
         }
     }
     public static void DOTImmune (Character hero, boolean add)

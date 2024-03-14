@@ -455,6 +455,35 @@ public class Battle
                 targets[0]=Ability.GetRandomHero(hero, true, false);
             }
         }
+        else if (type.equals("lowest"))
+        {
+            Character[] foes=null;
+            if (friendly.equalsIgnoreCase("enemy"))
+            {
+                foes=Battle.GetTeam(CoinFlip.TeamFlip(hero.team1));
+            }
+            else if (friendly.equalsIgnoreCase("ally exclusive"))
+            {
+                foes=Battle.GetTeammates(hero);
+            }
+            else if (friendly.equalsIgnoreCase("ally inclusive"))
+            {
+                foes=Battle.GetTeam(hero.team1);
+            }            
+            int hp=6666; Character low=null;
+            for (Character i: foes)
+            {
+                if (i!=null)
+                {
+                    int n=i.HP; 
+                    if (n<hp)
+                    {
+                        hp=n; low=i;
+                    }
+                }
+            }
+            targets[0]=low;
+        }
         ArrayList toret=CoinFlip.ToList(targets);
         if (type.equalsIgnoreCase("self"))
         {
