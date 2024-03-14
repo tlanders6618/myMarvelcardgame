@@ -14,6 +14,54 @@ public abstract class DebuffEff extends StatEff
     {
     }
 }
+class Afflicted extends DebuffEff 
+{
+    @Override
+    public String getimmunityname()
+    {
+        return "Afflicted";
+    }
+    @Override 
+    public String getefftype()
+    {
+        return "Debuffs";
+    }
+    @Override
+    public String getalttype() 
+    {
+        return "nondamaging";
+    }
+    @Override
+    public String geteffname()
+    {
+        String name;
+        if (this.duration<100)
+        {
+            name="Afflicted, "+this.duration+" turn(s)";
+        }
+        else
+        {
+            name="Afflicted";
+        }
+        return name;
+    }
+    public Afflicted (int nchance, int ndur)
+    {
+        this.duration=ndur;
+        this.oduration=ndur;
+        this.chance=nchance;
+        this.hashcode=Card_HashCode.RandomCode();
+    }
+    public Afflicted (int nchance)
+    {
+        this.chance=nchance;
+        this.hashcode=Card_HashCode.RandomCode();
+    }
+    @Override
+    public void onApply (Character target)
+    {
+    }
+}
 class Bleed extends DebuffEff 
 {
     @Override

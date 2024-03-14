@@ -33,6 +33,7 @@ public class StatFactory
         //[0][0] is name, [0][1] is proc chance, [0][2] is strength, [0][3] is duration, [0][4] is whether the eff is applied to self or not
         switch (param[0][0]) //param[1] is secondary stat for effs like counter and countdown to apply, e.g. a debuff or ricochet
         {
+            case "Afflicted": eff=new Afflicted (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3])); break;  
             case "Bleed": eff=new Bleed (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][2]), Integer.valueOf(param[0][3])); break;
             case "Burn": eff=new Burn (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][2]), Integer.valueOf(param[0][3])); break;    
             case "Countdown": eff=new Countdown (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][2]), Integer.valueOf(param[0][3]), param[1]); break;
@@ -106,6 +107,7 @@ class Tracker extends StatEff //displays a character's relevant personal statist
         {
             case "Damage Taken: ": info=target.dmgtaken; name+=info; break;
             case "Energy: ": info=target.passivecount; name+=info; break;
+            case "Control Points: ": info=target.passivecount; name+=info; break;
         }
     }
     @Override
@@ -134,6 +136,7 @@ class Tracker extends StatEff //displays a character's relevant personal statist
                 name=(oname+info);
             }
             break;
+            case "Control Points: ": info=hero.passivecount; name=(oname+info); break;
         }
     }
     @Override
@@ -153,6 +156,7 @@ class Tracker extends StatEff //displays a character's relevant personal statist
             }
             break;
             case "Energy: ": info=hero.passivecount; name=(oname+info); break;
+            case "Control Points: ": info=hero.passivecount; name=(oname+info); break;
         }
     }
 }
