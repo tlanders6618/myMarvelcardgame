@@ -67,17 +67,20 @@ class Activate extends AfterAbility //forcibly ticks all stateffs of a given typ
 }  
 class ActivatePassive extends AfterAbility //ability activates a hero's passive or does something otherwise too difficult/specific for another afterab
 {
-    int name;
-    public ActivatePassive (int index)
+    int num=0;
+    public ActivatePassive ()
     {
-        name=index;
+    }
+    public ActivatePassive (int n)
+    {
+        num=n;
     }
     @Override
     public void Use (Character user, Character target, int ignore)
     {
-        switch (name)
+        switch (user.index)
         {
-            case 17:
+            case 17: //macdonald eating 
             if (target.dead==true)
             {
                 boolean yes=CoinFlip.Flip(500+user.Cchance);
@@ -89,6 +92,7 @@ class ActivatePassive extends AfterAbility //ability activates a hero's passive 
                 StatEff.applyfail(user, drugs, "chance");
             }
             break;
+            case 25: ActivePassive.Flash(user, num); break;
         }
     }
 }
@@ -333,7 +337,7 @@ class Nullify extends AfterAbility
     String effname;
     int chance; 
     int number; //of buffs to nullify
-    String type; //whether all buffs are nullified or some; chosen orr andom
+    String type; //whether all buffs are nullified or only a few; chosen or andom
     String efftype="Buffs";
     boolean together; //true for together and false for separate
     boolean self;
@@ -713,20 +717,61 @@ class Ricochet extends AfterAbility //do ricochet damage
             {
                 Ability.DoRicochetDmg (dmg, target, true);            
             }
+            else
+            System.out.println(user.Cname+"'s Ricochet failed to apply due to chance.");
         }
     }
 }
 class Summoning extends AfterAbility
 {
-    int sindex;
+    int sindex=616; int in2=0; int in3=0;
     public Summoning (int ind)
     {
         sindex=ind;
     }
+    public Summoning (int ind, int c)
+    {
+        sindex=ind; in2=c;
+    }
+    public Summoning (int ind, int c, int t)
+    {
+        sindex=ind; in2=c; in3=t;
+    }
     @Override
     public void Use (Character hero, Character target, int ignore)
     {
-        Summon friend= new Summon(sindex);
+        int i=sindex; //by default, abs only summon one Summon
+        if (in2!=0) //but if there is more than one option, player chooses and change the i value
+        {
+            if (hero.team1==true)
+            System.out.println ("\nPlayer 1, choose a character for "+hero.Cname+" to Summon. Type their number, not their name.");
+            else
+            System.out.println ("\nPlayer 2, choose a character for "+hero.Cname+" to Summon. Type their number, not their name.");
+            System.out.println ("1. "+Character.SetName(sindex, true));
+            System.out.println ("2. "+Character.SetName(in2, true));
+            if (in3!=0)
+            System.out.println ("3. "+Character.SetName(in3, true));
+            int choice=0; boolean good=false;
+            do
+            {
+                choice=Damage_Stuff.GetInput(); 
+                if (choice==1)
+                {
+                    choice=sindex; good=true;
+                }
+                else if (choice==2)
+                {
+                    choice=in2; good=true;
+                }
+                else if (in3!=0&&choice==3)
+                {
+                    choice=in3; good=true;
+                }
+            }
+            while (good==false);
+            i=choice;
+        }
+        Summon friend= new Summon(i);
         friend.team1=hero.team1; //add if statement to change this when needed in the future
         Battle.SummonSomeone(hero, friend);
     }

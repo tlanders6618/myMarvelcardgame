@@ -16,32 +16,42 @@ public abstract class BeforeAbility extends SpecialAbility //used before a hero 
 }
 class ActivateP extends BeforeAbility //ability activates a hero's passive
 {
-    int name;
-    public ActivateP (int index)
+    int num=616;
+    public ActivateP ()
     {
-        name=index;
+    }
+    public ActivateP (int c)
+    {
+        num=c;
     }
     @Override
     public int Use (Character user, Character target)
     {
-        switch (name)
+        switch (user.index)
         {
             case 11: ActivePassive.FuryJr(user, false, false, false, true); break;
             case 13: StaticPassive.Drax(user, null, true); break;
-            case 23: ++user.passivecount; ++user.passivecount; System.out.println(user.Cname+" gained 2 Energy.");
-            for (StatEff e: user.effects) //update displayed energy count
+            case 23: 
+            if (num==2)
             {
-                if (e instanceof Tracker)
-                e.Attacked(user, null, 616);
+                ++user.passivecount; ++user.passivecount; System.out.println(user.Cname+" gained 2 Energy.");
+                for (StatEff e: user.effects) //update displayed energy count
+                {
+                    if (e instanceof Tracker)
+                    e.Attacked(user, null, 616);
+                }
+            }
+            else if (num==1)
+            {
+                ++user.passivecount; System.out.println(user.Cname+" gained 1 Energy."); 
+                for (StatEff e: user.effects) 
+                {
+                    if (e instanceof Tracker)
+                    e.Attacked(user, null, 616);
+                }
             }
             break;
-            case 24: ++user.passivecount; System.out.println(user.Cname+" gained 1 Energy."); //since binary doesn't use it; gives marvel 1 energy instead of 2 
-            for (StatEff e: user.effects) 
-            {
-                if (e instanceof Tracker)
-                e.Attacked(user, null, 616);
-            }
-            break;
+            case 26: int ignore=StaticPassive.MODOC(user, target, false, false, 0); break;
         }
         return 0;
     }
@@ -552,19 +562,18 @@ class DamageCounterSimple extends BeforeAbility //just checks if the target has 
 }
 class DebuffMod extends BeforeAbility //for altering the debuffs an ab applies, e.g. Superior Spidey and MODOK
 {
-    int index=0; //exactly kind of debuff modification is needed depends based on the hero 
     int ab=0; //also may vary based on the ab the hero uses
-    public DebuffMod (int windex, int ability)
+    public DebuffMod (int ability)
     {
-        index=windex; ab=ability;
+        ab=ability;
     }
     @Override
     public int Use (Character user, Character target)
     {
-        switch (index)
+        switch (user.index)
         {
             case 2: //gamora's second passive
-            if (user.index==2&&target.CheckFor(target, "Protect", false)==true) //protected enemies have +1 bleed dur; make sure rogue and adaptoid don't copy her passive
+            if (target.CheckFor(target, "Protect", false)==true) //protected enemies have +1 bleed dur; make sure rogue and adaptoid don't copy her passive
             {
                 if (ab==1)
                 {
@@ -592,7 +601,6 @@ class DebuffMod extends BeforeAbility //for altering the debuffs an ab applies, 
             }
             break;
             case 13: //modern drax
-            if (user.index==13)
             StaticPassive.Drax(user, target, false); //check with debuff to apply
             if (user.passivecount==-2) //double passive proc
             {
@@ -659,6 +667,19 @@ class DebuffMod extends BeforeAbility //for altering the debuffs an ab applies, 
                         StatEff.applyfail(user, s, "chance");
                     }
                 }
+            }
+            break;
+            case 25: //agent venom
+            if (user.passivecount<=5) //attacking while losing control 
+            {
+                int amount=15-user.ADR; 
+                System.out.println (user.Cname+" took "+amount+" damage");
+                user.TakeDamage(user, amount, false);
+                String[]akaban={"Bleed", "100", "10", "1", "false"}; String[][] niharu=StatFactory.MakeParam(akaban, null); user.activeability.AddTempString(niharu);
+            }
+            else if (user.passivecount>5&&ab==5) //shock in awe while in control
+            {
+                String[]akaban={"Undermine", "100", "616", "1", "false"}; String[][] niharu=StatFactory.MakeParam(akaban, null); user.activeability.AddTempString(niharu);
             }
             break;
             case 28: //arachnaught
@@ -765,21 +786,8 @@ class SelfDMG extends BeforeAbility
     public int Use (Character hero, Character ignored)
     {
         amount-=hero.ADR; 
-        if (hero.SHLD>=amount) 
-        {
-            hero.SHLD-=amount; 
-        }
-        else if (hero.SHLD<amount) //shield broken; can't absorb all the damage
-        {
-            hero.HP=(hero.HP+hero.SHLD)-amount; 
-            hero.SHLD=0;
-        }
         System.out.println (hero.Cname+" took "+amount+" damage");
-        if (hero.HP<=0)
-        {
-            hero.HP=0;
-            hero.onLethalDamage(hero, null, "other");
-        }
+        hero.TakeDamage(hero, amount, false);
         return 0;
     }
 }

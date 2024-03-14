@@ -18,6 +18,8 @@ public class Ability_List_Summon
         switch (index) 
         {
             case 1: toret=MakeAbNickLMD(counter); break;
+            case 2: toret=MakeAbRTrooper(counter); break;
+            case 3: toret=MakeAbCrushbot(counter); break;
             case 7: return null;
             case 27: toret=MakeAbSpiderling(counter); break;
             case 28: toret=MakeAbNaught(counter); break;
@@ -37,6 +39,28 @@ public class Ability_List_Summon
         }
         return null; 
     }
+    public static Ability MakeAbCrushbot (int counter)
+    {
+        switch (counter)
+        {
+            case 0: BasicAb d= new BasicAb("Crush", "single", "enemy", 35);
+            return d;
+            case 1: BasicAb c= new BasicAb("Destroy", "lowest", "enemy", 25);
+            return c;
+        }
+        return null; 
+    }
+    public static Ability MakeAbRTrooper (int counter)
+    {
+        switch (counter)
+        {
+            case 0: BasicAb rpg= new BasicAb("RPG", "single", "enemy", 30); rpg.special.add(new Ricochet(500));
+            return rpg;
+            case 1: BasicAb aoe= new BasicAb("Rocket Barrage", "AoE", "enemy", 25); 
+            return aoe;
+        }
+        return null; 
+    }
     public static Ability MakeAbNaught (int counter)
     {
         switch (counter)
@@ -46,7 +70,7 @@ public class Ability_List_Summon
             String[] hungry={"Bleed", "100", "5", "2", "false"}; String[][] revenge=StatFactory.MakeParam(hungry, null);
             rail.AddStatString(anger); rail.AddStatString(revenge);
             return rail;
-            case 1: BasicAb mortar= new BasicAb("Mortar Fire", "single", "enemy", 25); mortar.special.add(new DebuffMod(28, 616)); mortar.together=true;
+            case 1: BasicAb mortar= new BasicAb("Mortar Fire", "single", "enemy", 30); mortar.special.add(new DebuffMod(616)); mortar.together=true;
             return mortar;
             case 3: OtherAb leo= new OtherAb ("Ejector Seat", "self", "self", 0); leo.singleuse=true; leo.channelled=true; leo.special.add(new Transformation(27, true));
             return leo;
@@ -57,12 +81,12 @@ public class Ability_List_Summon
     {
         switch (counter)
         {
-            case 0: BasicAb deploy= new BasicAb("Deploy Spider-Tracers", "single", "enemy", 25); 
+            case 0: BasicAb deploy= new BasicAb("Deploy Spider-Tracers", "single", "enemy", 30); 
             String[] watermelon={"Tracer", "100", "616", "2", "false"}; String[][] anger=StatFactory.MakeParam(watermelon, null); 
             String[] hungry={"Debilitate", "100", "5", "2", "false"}; String[][] revenge=StatFactory.MakeParam(hungry, null);
             deploy.AddStatString(anger); deploy.AddStatString(revenge);
             return deploy;
-            case 1: BasicAb duty= new BasicAb("Anti-Symbiote Duty", "single", "enemy", 15); 
+            case 1: BasicAb duty= new BasicAb("Anti-Symbiote Duty", "single", "enemy", 20); 
             String[] twofer={"Burn", "100", "5", "2", "false"}; String[][] twoface=StatFactory.MakeParam(twofer, null);
             duty.AddStatString(twoface); duty.AddStatString(twoface);
             return duty;
@@ -75,7 +99,7 @@ public class Ability_List_Summon
     { 
         switch (counter)
         {
-            case 0: BasicAb pistol= new BasicAb ("Concealed Pistol", "single", "enemy", 30); return pistol;
+            case 0: BasicAb pistol= new BasicAb ("Concealed Pistol", "single", "enemy", 35); return pistol;
             case 1: BuffAb cache= new BuffAb ("Hidden Weapons Cache", "single", "ally inclusive", 0); 
             String[] sword= {"Intensify", "100", "10", "1", "knull"}; 
             String[][] redo=StatFactory.MakeParam(sword, null); cache.AddStatString(redo);
