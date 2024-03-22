@@ -1,3 +1,4 @@
+
 package myMarvelcardgamepack;
 
         
@@ -23,20 +24,21 @@ public class Hero extends Character
         abilities=Ability.AssignAb(index);     
     }
     @Override
-    public void onTurn (Character hero, boolean notbonus) 
+    public void onTurn (boolean notbonus) 
     {
-        switch (hero.index) //first turn is turn 0
+        switch (this.index) //first turn is turn 0
         {
-            case 5: StaticPassive.WM(hero); break;
-            case 6: ActivePassive.CaptainA(hero); break;
-            case 9: ActivePassive.StarLord(hero); break; 
-            case 11: ActivePassive.FuryJr (hero, true, false, false, false); break;
-            case 18: ActivePassive.Spidey(hero, null, false, false); break;
-            case 23: ActivePassive.CM(hero, true, 0); break;
-            case 24: ActivePassive.Binary(hero); break;
+            case 5: StaticPassive.WM(this); break;
+            case 6: ActivePassive.CaptainA(this); break;
+            case 9: ActivePassive.StarLord(this); break; 
+            case 11: ActivePassive.FuryJr (this, true, false, false, false); break;
+            case 18: ActivePassive.Spidey(this, null, false, false); break;
+            case 23: ActivePassive.CM(this, true, 0); break;
+            case 24: ActivePassive.Binary(this); break;
+            case 28: StaticPassive.DOOM(this, "turn", this); break;
         }
-        ++hero.turn;
-        super.onTurn(hero, notbonus);
+        ++this.turn;
+        super.onTurn(notbonus);
     }
     @Override
     public void onTurnEnd (Character hero, boolean notbonus)
@@ -70,167 +72,114 @@ public class Hero extends Character
         }
     }
     @Override
-    public void onFightStart(Character hero)
+    public void onFightStart()
     {
-        switch (hero.index)
+        switch (this.index)
         {
-            case 6: ActivePassive.CaptainA(hero); break;
-            case 7: StaticPassive.Falcon(hero); break;
-            case 8: StaticPassive.Bucky(hero); break;
-            case 12: StaticPassive.DraxOG(hero); break;
-            case 15: StaticPassive.WolvieTracker(hero); break;
-            case 16: StaticPassive.OGVenom (hero); StaticPassive.Symbiote (hero, 0, true); break;
-            case 17: StaticPassive.Symbiote (hero, 0, true); break;
-            case 23: StaticPassive.CM(hero); break;
-            case 25: hero.passivecount=10; hero.Cchance+=50; Tracker t=new Tracker("Control Points: "); hero.effects.add(t); t.onApply(hero); 
-            StaticPassive.Symbiote (hero, 0, true); break;
-            case 26: int ignore=StaticPassive.MODOC(hero, null, false, true, 0); break;
+            case 6: ActivePassive.CaptainA(this); break;
+            case 7: StaticPassive.Falcon(this); break;
+            case 8: StaticPassive.Bucky(this); break;
+            case 12: StaticPassive.DraxOG(this); break;
+            case 15: StaticPassive.WolvieTracker(this); break;
+            case 16: StaticPassive.OGVenom (this); StaticPassive.Symbiote (this, 0, true); break;
+            case 17: StaticPassive.Symbiote (this, 0, true); break;
+            case 23: StaticPassive.CM(this); break;
+            case 25: this.passivecount=10; this.Cchance+=50; Tracker t=new Tracker("Control Points: "); this.effects.add(t); t.onApply(this); 
+            StaticPassive.Symbiote (this, 0, true); break;
+            case 26: int ignore=StaticPassive.MODOC(this, null, false, true, 0); break;
+            case 27: StaticPassive.Ultron(this); break;
+            case 28: StaticPassive.DOOM(this, "start", this); break;
         }
     }
     @Override
-    public void add (Character hero, StatEff eff) //adding a stateff
+    public void add (StatEff eff) //adding a stateff
     {
-        hero.effects.add(eff);        
+        this.effects.add(eff);        
         String type=eff.getefftype(); String name=eff.getimmunityname();
-        switch (hero.index)
+        switch (this.index)
         {
             case 2: 
             if (name.equals("Intensify")&&type.equals("Buffs"))
-            ActivePassive.Gamora(hero, eff, true); 
+            ActivePassive.Gamora(this, eff, true); 
             break;
             case 16: case 17: case 25:
             if (name.equals("Burn"))
-            StaticPassive.Symbiote(hero, 5, false);
+            StaticPassive.Symbiote(this, 5, false);
             break;
         }
-        for (StatEff e: hero.effects) //for stateffs that react to other stateffs like fortify
+        for (StatEff e: this.effects) //for stateffs that react to other stateffs like fortify
         {
             e.Attacked(eff);
         }
         if (!(eff.getefftype().equals("Secret"))&&!(eff.getimmunityname().equalsIgnoreCase("Protect"))) 
         //due to taunt/protect interaction; no point in announcing it being added if it's instantly removed
         {
-            System.out.println ("\n"+hero.Cname+" gained a(n) "+eff.geteffname());
+            System.out.println ("\n"+this.Cname+" gained a(n) "+eff.geteffname());
         }
-        eff.onApply(hero);
+        eff.onApply(this);
     }
     @Override
-    public void remove (Character hero, int removalcode, String how) //removes status effects; how is how it was removed, meaning purify or nullify or steal or normal (i.e. expiry)
+    public void remove (int removalcode, String how) //removes status effects; how is how it was removed, meaning purify or nullify or steal or normal (i.e. expiry)
     {
-        for (StatEff eff: hero.effects)
+        for (StatEff eff: this.effects)
         {
             if (eff.hashcode==removalcode)
             {
                 String name=eff.getimmunityname(); String type=eff.getefftype();
-                eff.Nullified(hero);
+                eff.Nullified(this);
                 //redundant to print the message if something like nullify already does, so it's only printed if the stateff wasn't nullified or stolen or purified
                 if (how.equals("normal"))           
                 {
-                    System.out.println (hero.Cname+"'s "+eff.getimmunityname()+" expired."); 
+                    System.out.println (this.Cname+"'s "+eff.getimmunityname()+" expired."); 
                 }                
-                switch (hero.index)
+                switch (this.index)
                 {
                     case 2: 
                     if (name.equals("Intensify")&&type.equals("Buffs"))
                     {
-                        ActivePassive.Gamora(hero, eff, false); 
+                        ActivePassive.Gamora(this, eff, false); 
                         break;
                     }
                     case 4:
                     if (name.equals("Intensify")&&type.equals("Buffs")&&(how.equals("nullify")||how.equals("steal")))
                     {
-                        ActivePassive.IM(hero, eff); 
+                        ActivePassive.IM(this, eff); 
                         break;
                     }
                     case 16: case 17: case 25:
                     if (name.equals("Burn"))
-                    StaticPassive.Symbiote(hero, -5, false);
+                    StaticPassive.Symbiote(this, -5, false);
                     break;
                 }     
-                hero.effects.remove(eff);
+                this.effects.remove(eff);
                 break; //end the for each loop
             }
         }
     }
     @Override
-    public Character Attack (Character dealer, Character target, int dmg, boolean aoe) //for attack skills
+    public void BeforeAttack (Character dealer, Character victim, boolean target)
     {
-        switch (dealer.index) //for passives that let the dealer ignore protect or miss or etc against certain targets 
+        if (target==true)
         {
-            case 20: ActivePassive.Superior(dealer, target, true); break;
-        }
-        target=target.onTargeted(dealer, target, dmg, aoe); 
-        switch (dealer.index)
-        {
-            case 13: StaticPassive.Drax(dealer, target, false); break;
-            case 14: ActivePassive.X23(dealer, target, false, true); break;
-        }
-        if ((!(dealer.binaries.contains("Missed"))&&!(dealer.immunities.contains("Missed")))) //only check if dealer isn't immune to miss and hasn't missed already; can't miss twice 
-        { 
-            Damage_Stuff.CheckEvade(dealer, target); //blind is checked when activating the ab; evade is checked here once the target has been selected
-        }
-        if ((!(dealer.binaries.contains("Missed")))&&target.dead==false) //check that they're still alive for mulitihit attacks
-        {
-            dmg=Damage_Stuff.DamageFormula(dealer, target, dmg);
-            dmg=Damage_Stuff.CheckGuard(dealer, target, dmg);      
-            for (SpecialAbility h: target.helpers) //for redwing 
+            switch (dealer.index) //for passives that let the dealer ignore protect or miss or etc against certain targets; called before checking for protect 
             {
-                dmg=h.Use (target, dmg, dealer); 
-            }
-            dmg=target.TakeDamage(target, dealer, dmg, aoe);
-        }
-        else
-        dmg=0;
-        dealer.activeability.ReturnDamage(dmg); //tells the ability how much dmg the attack did
-        dealer.onAttack(dealer, target); //activate relevant passives after attacking
-        if (target.dead==false)
-        {
-            target.onAttacked(target, dealer, dmg);
-        }
-        Character[] friends=Battle.GetTeammates(target);
-        for (Character friend: friends)
-        {
-            if (friend!=null&&!(friend.binaries.contains("Banished")))
-            {
-                friend.onAllyAttacked(friend, target, dealer, dmg);
+                case 20: ActivePassive.Superior(dealer, victim, true); break;
             }
         }
-        if (dealer.dead==false)
+        else //once target is determined, check if passive activates against them
         {
-            dealer.CheckDrain(dealer, target, dmg);
-        }
-        return target;
-    }
-    @Override
-    public Character AttackNoDamage (Character dealer, Character target, boolean aoe)
-    {
-        //modified version of attack method since debuff skills cannot do damage
-        switch (dealer.index) //for passives that let the dealer ignore protect or miss or etc against certain targets 
-        {
-            case 20: ActivePassive.Superior(dealer, target, true); break;
-        }
-        target=target.onTargeted(dealer, target, 0, aoe);
-        if ((!(dealer.binaries.contains("Missed"))&&!(dealer.immunities.contains("Missed"))))
-        {
-            Damage_Stuff.CheckEvade(dealer, target);
-        }
-        dealer.onAttack(dealer, target);
-        target.onAttacked(target, dealer, 0);
-        Character[] friends=Battle.GetTeammates(target);
-        for (Character friend: friends)
-        {
-            if (friend!=null&&!(friend.binaries.contains("Banished")))
+            switch (dealer.index)
             {
-                friend.onAllyAttacked(friend, target, dealer, 0);
+                case 13: StaticPassive.Drax(dealer, victim, false); break;
+                case 14: ActivePassive.X23(dealer, victim, false, true); break;
             }
         }
-        return target;
     }
     @Override
     public Character onTargeted (Character attacker, Character target, int dmg, boolean aoe)
     {
         Character ntarg=target;
-        if (aoe==false&&target.CheckFor(target, "Protect", false)==true&&!(attacker.ignores.contains("Protect"))) //check for protect
+        if (aoe==false&&target.CheckFor("Protect", false)==true&&!(attacker.ignores.contains("Protect"))) //check for protect
         {
             for (StatEff eff: target.effects)
             {
@@ -303,6 +252,7 @@ public class Hero extends Character
         switch (attacked.index) //for passives that trigger even if the hero died from the attack
         {
             case 25: ActivePassive.Flash(attacked, -3); break;
+            case 28: StaticPassive.DOOM(attacked, "attacked", attacker); break;
         }
         if (attacked.dead==false)
         {
@@ -344,7 +294,7 @@ public class Hero extends Character
             switch (hero.index)
             {
                 case 18: 
-                if (!(hero.binaries.contains("Stunned"))&&ally.HP<ally.maxHP&&hero.CheckFor(hero, "Evade", false)==true)
+                if (!(hero.binaries.contains("Stunned"))&&ally.HP<ally.maxHP&&hero.CheckFor("Evade", false)==true)
                 {
                     System.out.println("With great power, there must also come great responsibility."); 
                     System.out.println(hero.Cname+" took the attack for "+ally.Cname+"!");
@@ -362,36 +312,43 @@ public class Hero extends Character
         {
             case 26: dmg=StaticPassive.MODOC(target, dealer, true, false, dmg); break;
         }
+        int odmg=dmg;
         if (dealer.ignores.contains("Shield")||dealer.ignores.contains("Defence"))
         {
-            target.HP-=dmg; 
-        }
-        else if (SHLD>=dmg&&dmg>0) 
+        } 
+        else if (SHLD>=dmg) 
         {
             target.SHLD-=dmg; 
+            dmg=0;
         }
-        else if (SHLD<dmg&&dmg>0) //shield broken; can't absorb all the damage
+        else if (SHLD<dmg) //shield broken; can't absorb all the damage
         {
-            target.HP=(target.HP+target.SHLD)-dmg; 
+            int s=target.SHLD;
+            dmg-=s;
             target.SHLD=0;
         }
-        target.TookDamage(target, dealer, dmg);
-        return dmg;
+        Damage_Stuff.CheckBarrier(target, dealer, dmg);
+        target.TookDamage(target, dealer, odmg);
+        return odmg;
     }
     @Override
     public int TakeDamage (Character target, int dmg, boolean dot) //same as above but for taking sourceless damage
     {
-        if (dmg>0&&SHLD>=dmg) 
+        int odmg=dmg;
+        if (SHLD>=dmg) 
         {
             target.SHLD-=dmg; 
+            dmg=0;
         }
-        else if (dmg>0&&SHLD<dmg)
+        else if (SHLD<dmg) 
         {
-            target.HP=(target.HP+target.SHLD)-dmg; 
+            int s=target.SHLD;
+            dmg-=s;
             target.SHLD=0;
         }
+        Damage_Stuff.CheckBarrier(target, null, dmg);
         target.TookDamage(target, dot, dmg);
-        return dmg;
+        return odmg;
     }
     @Override
     public void TookDamage (Character hero, boolean dot, int dmg) //true for dot and false for all other types
@@ -449,63 +406,63 @@ public class Hero extends Character
         }
         if (die==true)
         {
-            hero.onDeath(hero, killer, dmgtype);
+            hero.onDeath(killer, dmgtype);
         }
     }
     @Override
-    public void onDeath (Character hero, Character killer, String dmgtype)
+    public void onDeath (Character killer, String dmgtype)
     {
-        switch (hero.index)
+        switch (this.index)
         {
             case 5: case 16:    
-            if (hero.passivefriend[0]!=null&&hero.passivefriend[0].dead==false)
+            if (this.passivefriend[0]!=null&&this.passivefriend[0].dead==false)
             {
-                hero.passivefriend[0].remove(passivefriend[0], passivecount, "normal"); //remove heat signature detection/lethal protector's resistance
+                this.passivefriend[0].remove(passivecount, "normal"); //remove heat signature detection/lethal protector's resistance
             }
             break;     
         }
-        if (hero.activeability!=null&&hero.activeability.channelled==true)
+        if (this.activeability!=null&&this.activeability.channelled==true)
         {
-            hero.activeability.InterruptChannelled(hero, hero.activeability);
+            this.activeability.InterruptChannelled(this, this.activeability);
         }
-        hero.HP=0;
-        hero.dead=true;
-        hero.dmgtaken=0;
-        hero.turn=0;
+        this.HP=0;
+        this.dead=true;
+        this.dmgtaken=0;
+        this.turn=0;
         ArrayList <StatEff> removeme= new ArrayList<StatEff>();
-        removeme.addAll(hero.effects);   
+        removeme.addAll(this.effects);   
         if (killer!=null)
         {
-            System.out.println(killer.Cname+" killed "+hero.Cname);
+            System.out.println(killer.Cname+" killed "+this.Cname);
         }
         else
         {
-            System.out.println(hero.Cname+" has died");
+            System.out.println(this.Cname+" has died");
         }
         for (StatEff eff: removeme)
         {
             if (!(eff instanceof Tracker))
             {
-                hero.remove(hero, eff.hashcode, "silent"); 
+                this.remove(eff.hashcode, "silent"); 
             }
         }
-        Character[] people=Battle.GetTeammates(hero);
+        Character[] people=Battle.GetTeammates(this);
         for (Character friend: people)
         {
             if (friend!=null&&!(friend.binaries.contains("Banished")))
             {
-                friend.onAllyDeath(friend, hero, killer);
+                friend.onAllyDeath(friend, this, killer);
             }
         }
-        Character[] enemies=Battle.GetTeam(CoinFlip.TeamFlip(hero.team1));
+        Character[] enemies=Battle.GetTeam(CoinFlip.TeamFlip(this.team1));
         for (Character ant: enemies)
         {
             if (ant!=null&&!(ant.binaries.contains("Banished")))
             {
-                ant.onEnemyDeath(ant, hero, killer);
+                ant.onEnemyDeath(ant, this, killer);
             }
         }
-        Battle.AddDead(hero);
+        Battle.AddDead(this);
     }
     @Override
     public void onAllyDeath (Character hero, Character deadfriend, Character killer)
@@ -595,7 +552,7 @@ public class Hero extends Character
                 for (StatEff eff: removeme)
                 {
                     if (!(eff instanceof Tracker))
-                    hero.remove(hero, eff.hashcode, "normal"); 
+                    hero.remove(eff.hashcode, "normal"); 
                 }
             }
             switch (hero.index) //for getting rid of immunities when undoing transformation

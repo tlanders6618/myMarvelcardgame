@@ -90,7 +90,7 @@ public class ActivePassive
     }
     public static void Superior (Character tolliver, Character evildoer, boolean attack) //attack and onattack; cardselection lets him select targets with tracers
     {
-        if (attack==true&&evildoer.CheckFor(evildoer, "Tracer", false)==true)
+        if (attack==true&&evildoer.CheckFor("Tracer", false)==true)
         {
             CoinFlip.AddInescapable(tolliver, true);
             tolliver.passivecount=1;
@@ -101,9 +101,9 @@ public class ActivePassive
             tolliver.passivecount=0;
         }
     }
-    public static void Spidey (Character peter, Character villain, boolean attack, boolean aoe) //his second passive is an if statement under onallytargeted since it's so simple
+    public static void Spidey (Character peter, Character villain, boolean harm, boolean aoe) //his second passive is an if statement under onallytargeted since it's so simple
     {
-        if (attack==false&&!(peter.binaries.contains("Stunned"))) //called onturn
+        if (harm==false&&!(peter.binaries.contains("Stunned"))) //called onturn
         {
             Evade numb= new Evade(500);
             boolean yes=CoinFlip.Flip(500+peter.Cchance);
@@ -183,7 +183,7 @@ public class ActivePassive
                 }
                 for (StatEff e: removal)
                 {
-                    wolvie.remove(wolvie, e.hashcode, "normal");
+                    wolvie.remove(e.hashcode, "normal");
                 }
                 wolvie.ADR+=15;
                 wolvie.immunities.add("Persuaded"); wolvie.immunities.add("Control"); CoinFlip.IgnoreTargeting(wolvie, true);
@@ -209,7 +209,7 @@ public class ActivePassive
     }
     public static void X23 (Character laura, Character victim, boolean crit, boolean before)
     {
-        if (crit==false) //hero.attack and hero.onattack
+        if (crit==false) //hero.beforeattack and hero.onattack
         {
             if (before==true&&laura.passivecount==0&&victim.HP<90) //check before attacking
             {
@@ -260,19 +260,19 @@ public class ActivePassive
             {
                 drax.binaries.remove("Death");
             }
-            drax.onDeath(drax, null, "DoT");
+            drax.onDeath(null, "DoT");
         }
         else if (attack==true) //add one more obsession to the target
         {
             if (victim==drax.passivefriend[0]&&drax.passivecount<3&&(!(drax.binaries.contains("Missed"))))
             {
-                if (victim.CheckFor(victim, "Obsession", false)==true)
+                if (victim.CheckFor("Obsession", false)==true)
                 {
                     boolean yes=CoinFlip.Flip(500+drax.Cchance);
                     Obsession obs= new Obsession ();
                     if (yes==true)
                     {
-                        drax.passivefriend[0].add(drax.passivefriend[0], obs);
+                        drax.passivefriend[0].add(obs);
                         drax.passivecount++;
                     }
                     else
@@ -313,7 +313,7 @@ public class ActivePassive
                             t=e; break;
                         }
                     }
-                    marcus.remove(marcus, t.hashcode, "silent");
+                    marcus.remove(t.hashcode, "silent");
                 }
                 else
                 {
@@ -368,7 +368,7 @@ public class ActivePassive
     public static void IM (Character tony, StatEff buff) //called by hero.remove
     {
         Empower emp= new Empower (buff.power, buff.duration, tony.Cname, 4); 
-        tony.add(tony, emp);
+        tony.add(emp);
     }
     public static void Gamora (Character gam, StatEff buff, boolean add) //add is whether the buff is being added or removed; called by hero.remove and hero.add
     {

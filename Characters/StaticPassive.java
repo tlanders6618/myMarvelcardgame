@@ -5,7 +5,7 @@ package myMarvelcardgamepack;
  * Designer: Timothy Landers
  * Date: 20/8/22
  * Filename: StaticPassive
- * Purpose: Split passives into two files because of its length; this is for passives that trigger only once per fight.
+ * Purpose: Split passives into two files because of its length; this is for passives that trigger only once per fight, or at least infrequently.
  */
 import java.util.ArrayList;
 public class StaticPassive 
@@ -16,6 +16,52 @@ public class StaticPassive
         venom.ignores.add("Evade");
         else
         venom.DV+=vuln;
+    }
+    public static void DOOM (Character doctor, String occassion, Character fool)
+    {
+        if (occassion.equals("start"))
+        {
+            doctor.immunities.add("Burn"); doctor.immunities.add("Freeze"); doctor.immunities.add("Shock"); doctor.immunities.add("Persuaded"); doctor.immunities.add("Control");
+        }
+        else if (occassion.equals("turn"))
+        {
+            doctor.passivecount=0; boolean got=false; 
+            Tracker er=new Tracker("Titanium Battlesuit armed");
+            for (StatEff e: doctor.effects)
+            {
+                if (e.geteffname().equals("Titanium Battlesuit armed"))
+                {
+                    got=true; break;
+                }
+            }
+            if (got==false)
+            doctor.effects.add(er);
+        }
+        else if (occassion.equals("attacked"))
+        {
+            if (doctor.passivecount==0)
+            {
+                doctor.passivecount=1; StatEff too=null;
+                for (StatEff e: doctor.effects)
+                {
+                    if (e.geteffname().equals("Titanium Battlesuit armed"))
+                    {
+                        too=e; break;
+                    }
+                }
+                doctor.remove(too.hashcode, "silent");
+                Shock e= new Shock(500, 20, 1);
+                boolean yes=CoinFlip.Flip(500+doctor.Cchance);
+                if (yes==true)
+                StatEff.CheckApply(doctor, fool, e);
+                else
+                StatEff.applyfail(doctor, e, "chance");
+            }
+        }
+    }
+    public static void Ultron (Character hypocrite) //fightstart
+    {
+        CoinFlip.RobotImmunities(hypocrite, true); hypocrite.immunities.add("Snare"); hypocrite.immunities.add("Steal"); hypocrite.immunities.add("Control");
     }
     public static int MODOC (Character george, Character target, boolean shield, boolean start, int dmg)
     {
@@ -120,7 +166,7 @@ public class StaticPassive
             }
             for (StatEff e: r)
             {
-                binary.remove(binary, e.hashcode, "normal");
+                binary.remove(e.hashcode, "normal");
             }
         }
         else //leaving binary state
@@ -152,7 +198,7 @@ public class StaticPassive
         StatEff.CheckApply(eddie, friends[index], res);
         eddie.passivecount=res.hashcode;
         eddie.passivefriend[0]=friends[index];
-        friends[index].add(friends[index], new Tracker ("Watched by Venom (Eddie Brock)"));
+        friends[index].add(new Tracker ("Watched by Venom (Eddie Brock)"));
     }
     public static void WolvieTracker (Character wolvie) //initialise tracker on fightstart
     {
@@ -180,7 +226,7 @@ public class StaticPassive
                         bl=e; break;
                     }
                 }
-                arthur.remove(arthur, bl.hashcode, "silent");
+                arthur.remove(bl.hashcode, "silent");
             }
             else if (arthur.passivecount==-1)
             {
@@ -188,7 +234,7 @@ public class StaticPassive
                 arthur.BD-=15;
             }
         }
-        else //activate passive; called by both hero.attack and knife slash since debuffmod occurs before attacking
+        else //activate his passive; called by both hero.beforeattack and knife slash since debuffmod occurs before attacking
         {
             int HP=target.maxHP;
             double tenth=HP*0.75; //75% of target maxhp
@@ -224,7 +270,7 @@ public class StaticPassive
         }
         Character[] foes=Battle.TargetFilter(drax, "enemy", "single");
         Obsession obsess= new Obsession();  
-        foes[0].add(foes[0], obsess);
+        foes[0].add(obsess);
         drax.passivefriend[0]=foes[0];
         drax.passivecount=1;
         drax.ignores.remove("Invisible");
@@ -264,7 +310,7 @@ public class StaticPassive
             friends=Battle.team2;
         }
         int index=Card_Selection.ChooseTargetFriend (friends);
-        friends[index].add(friends[index], red);
+        friends[index].add(red);
     }
     public static void WM (Character machine) //triggered onturn
     {

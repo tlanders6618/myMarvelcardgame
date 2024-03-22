@@ -9,7 +9,7 @@ package myMarvelcardgamepack;
 import java.util.ArrayList; 
 public class Summon extends Character
 {
-    Character mysummoner;
+    //passivefriend[0] is the summoner
     public Summon (int Sindex)
     {
         //Same as with characters
@@ -36,6 +36,9 @@ public class Summon extends Character
         {
             case 1: SummonPassive.NickLMD(lad); break;
             case 3: SummonPassive.Crushbot(lad, true); break;
+            case 4: SummonPassive.Drone(lad, true, null); break;
+            case 5: SummonPassive.LilDoomie(lad, true, null); break;
+            case 6: int ignore=SummonPassive.Daemon(lad, true, null, 0); break;
             case 7: lad.binaries.add("Stunned"); break;
         }
         CheckSumDupes(lad);
@@ -104,9 +107,9 @@ public class Summon extends Character
         switch (index)
         {
             case 1: name="Nick Fury LMD "+counter+" (Summon)"; break;
-            case 2: name="AIM Rocket Trooper "+counter+"(Summon)";break;
+            case 2: name="AIM Rocket Trooper "+counter+" (Summon)";break;
             case 3: name="AIM Crushbot "+counter+" (Summon)"; break;
-            case 4: name="Ultron Drone "+counter+"(Summon)"; break;
+            case 4: name="Ultron Drone "+counter+" (Summon)"; break;
             case 5: name="Doombot "+counter+" (Summon)"; break;
             case 6: name="Lesser Demon "+counter+" (Summon)"; break;
             case 7: name="Holographic Decoy "+counter+" (Summon)"; break;
@@ -133,55 +136,64 @@ public class Summon extends Character
     }
     //Below are overridden to avoid conflict between summmon and hero indexes
     @Override
-    public void add (Character hero, StatEff eff) //adding a stateff
+    public void add (StatEff eff) //adding a stateff
     {
-        hero.effects.add(eff); 
-        String type=eff.getefftype();
-        for (StatEff e: hero.effects) //for stateffs that react to other stateffs
+        this.effects.add(eff); 
+        String type=eff.getefftype(); String name=eff.getimmunityname();
+        switch (this.index)
+        {
+            case 4: 
+            if (type.equals("Buffs"))
+            {
+                SummonPassive.Drone(this, false, eff); 
+            }
+            break;
+        }
+        for (StatEff e: this.effects) //for stateffs that react to other stateffs
         {
             e.Attacked(eff);
         }
         if (!(eff.getefftype().equals("Secret"))&&!(eff.getimmunityname().equalsIgnoreCase("Protect"))) 
         //due to taunt/protect interaction; no point in announcing it being added if it's instantly removed
         {
-            System.out.println ("\n"+hero.Cname+" gained a(n) "+eff.geteffname());
+            System.out.println ("\n"+this.Cname+" gained a(n) "+eff.geteffname());
         }
-        eff.onApply(hero);
+        eff.onApply(this);
     }
     @Override
-    public void remove (Character hero, int removalcode, String how) //removes status effects
+    public void remove (int removalcode, String how) //removes status effects
     {
-        for (StatEff eff: hero.effects)
+        for (StatEff eff: this.effects)
         {
             if (eff.hashcode==removalcode)
             {
                 String name=eff.getimmunityname(); String type=eff.getefftype();
-                eff.Nullified(hero);
+                eff.Nullified(this);
                 //redundant to print the message if something like nullify already does, so it's only printed if nullify is false
                 if (how.equals("normal")&&!(eff.getimmunityname().equals("Protect")||eff.getimmunityname().equals("Evade")))                 
                 {
-                    System.out.println (hero.Cname+"'s "+eff.getimmunityname()+" expired."); 
+                    System.out.println (this.Cname+"'s "+eff.getimmunityname()+" expired."); 
                 }      
-                hero.effects.remove(eff);
+                this.effects.remove(eff);
                 break; //end the for each loop
             }
         }
     }
     @Override
-    public void onTurn (Character hero, boolean notbonus)
+    public void onTurn (boolean notbonus)
     {
         boolean go=true;
         switch (index)
         {
-            case 3: SummonPassive.Crushbot(hero, false); break;
+            case 3: SummonPassive.Crushbot(this, false); break;
             case 7: 
-            if (hero.team1==true) 
+            if (this.team1==true) 
             {
                 if (Battle.p1solo==true) //to prevent infinite turns if a decoy is the only one left alive on its team
-                hero.binaries.remove("Stunned");
+                this.binaries.remove("Stunned");
                 else //to prevent infinite turns if there is more than one hero on the team, but they're all decoys
                 {
-                    Character[] team=Battle.GetTeammates(hero); boolean solo=true;
+                    Character[] team=Battle.GetTeammates(this); boolean solo=true;
                     for (Character c: team)
                     {
                         if (c!=null&&(c.summoned==false||c.index!=7))
@@ -190,16 +202,16 @@ public class Summon extends Character
                         }
                     }
                     if (solo==true)
-                    hero.binaries.remove("Stunned");
+                    this.binaries.remove("Stunned");
                  }
             }
             else
             {
                 if (Battle.p2solo==true) 
-                hero.binaries.remove("Stunned");
+                this.binaries.remove("Stunned");
                 else 
                 {
-                    Character[] team=Battle.GetTeammates(hero); boolean solo=true;
+                    Character[] team=Battle.GetTeammates(this); boolean solo=true;
                     for (Character c: team)
                     {
                         if (c!=null&&(c.summoned==false||c.index!=7))
@@ -208,14 +220,14 @@ public class Summon extends Character
                         }
                     }
                     if (solo==true)
-                    hero.binaries.remove("Stunned");
+                    this.binaries.remove("Stunned");
                 }
             }
             break;
         }
         if (go==true)
-        ++hero.turn;
-        super.onTurn(hero, notbonus);
+        ++this.turn;
+        super.onTurn(notbonus);
     }
     @Override
     public void onTurnEnd (Character hero, boolean notbonus)
@@ -230,67 +242,16 @@ public class Summon extends Character
     {
     }
     @Override
-    public void onFightStart(Character hero)
+    public void onFightStart()
     {
     }
     @Override
-    public Character Attack (Character dealer, Character target, int dmg, boolean aoe)
+    public void BeforeAttack (Character dealer, Character victim, boolean target)
     {
-        //for normal damage from attack skills
-        target=target.onTargeted(dealer, target, dmg, aoe);
-        if ((!(dealer.binaries.contains("Missed"))&&!(dealer.immunities.contains("Missed")))) //only check if dealer isn't immune to miss and hasn't missed already; can't miss twice
-        {
-            Damage_Stuff.CheckEvade(dealer, target); //blind is checked when activating the ab; evade is checked here once the target has been selected
-        }
-        if ((!(dealer.binaries.contains("Missed")))&&target.dead==false)
-        {
-            dmg=Damage_Stuff.DamageFormula(dealer, target, dmg);
-            dmg=Damage_Stuff.CheckGuard(dealer, target, dmg);      
-            for (SpecialAbility h: target.helpers) //for special things like redwing 
-            {
-                dmg=h.Use (target, dmg, dealer); 
-            }
-            dmg=target.TakeDamage(target, dealer, dmg, aoe);
-        }
-        else
-        dmg=0;
-        dealer.activeability.ReturnDamage(dmg); //tells the ability how much dmg the attack did
-        dealer.onAttack(dealer, target); //activate relevant passives
-        if (target.dead==false)
-        {
-            target.onAttacked(target, dealer, dmg);
-        }
-        Character[] friends=Battle.GetTeammates(target);
-        for (Character friend: friends)
-        {
-            if (friend!=null&&!(friend.binaries.contains("Banished")))
-            {
-                friend.onAllyAttacked(friend, target, dealer, dmg);
-            }
-        }
-        if (dealer.dead==false)
-        {
-            dealer.CheckDrain(dealer, target, dmg);
-        }
-        return target;
-    }
-    @Override
-    public Character AttackNoDamage (Character dealer, Character target, boolean aoe)
-    {
-        //modified version of attack method since debuff skills do no damage
-        target=target.onTargeted(dealer, target, 0, aoe);
-        if ((!(dealer.binaries.contains("Missed"))&&!(dealer.immunities.contains("Missed"))))
-        {
-            Damage_Stuff.CheckEvade(dealer, target);
-        }
-        target.onAttacked(target, dealer, 0);
-        dealer.onAttack(dealer, target);
-        return target;
     }
     @Override
     public void onAttack (Character hero, Character victim)
     {
-        //triggered after a hero attacks
     }
     @Override
     public void onCrit (Character hero, Character target)
@@ -322,41 +283,49 @@ public class Summon extends Character
         return ntarget;
     }
     @Override
-    public int TakeDamage (Character target, Character dealer, int dmg, boolean aoe) //true for aoe, false for single target
+    public int TakeDamage (Character target, Character dealer, int dmg, boolean aoe) //this is the default method for taking damage
     {
-        //this is the default method for taking damage
-        //this checks if shield is strong enough to prevent health damage from an enemy attack
+        switch (target.index)
+        {
+            case 6: dmg=SummonPassive.Daemon(target, false, dealer, dmg); break;
+        }
+        int odmg=dmg;
         if (dealer.ignores.contains("Shield")||dealer.ignores.contains("Defence"))
         {
-            target.HP-=dmg; 
-        }
-        else if (SHLD>=dmg&&dmg>0) 
+        } 
+        else if (SHLD>=dmg) 
         {
             target.SHLD-=dmg; 
+            dmg=0;
         }
-        else if (SHLD<dmg&&dmg>0) //shield broken; can't absorb all the damage
+        else if (SHLD<dmg) //shield broken; can't absorb all the damage
         {
-            target.HP=(target.HP+target.SHLD)-dmg; 
+            int s=target.SHLD;
+            dmg-=s;
             target.SHLD=0;
         }
-        target.TookDamage(target, dealer, dmg);
-        return dmg;
+        Damage_Stuff.CheckBarrier(target, dealer, dmg);
+        target.TookDamage(target, dealer, odmg);
+        return odmg;
     }
     @Override
-    public int TakeDamage (Character target, int dmg, boolean dot) //true for dot and false for all other types of dmg
+    public int TakeDamage (Character target, int dmg, boolean dot) //this checks if shield is strong enough to prevent health damage from an enemy attack
     {
-        //for taking sourceless damage
-        if (SHLD>=dmg&&dmg>0) 
+        int odmg=dmg;
+        if (SHLD>=dmg) 
         {
             target.SHLD-=dmg; 
+            dmg=0;
         }
-        else if (SHLD<dmg&&dmg>0)
+        else if (SHLD<dmg) 
         {
-            target.HP=(target.HP+target.SHLD)-dmg; 
+            int s=target.SHLD;
+            dmg-=s;
             target.SHLD=0;
         }
+        Damage_Stuff.CheckBarrier(target, null, dmg);
         target.TookDamage(target, dot, dmg);
-        return dmg;
+        return odmg;
     }
     @Override
     public void TookDamage (Character hero, boolean dot, int dmg) //true for dot and false for all other types
@@ -396,60 +365,62 @@ public class Summon extends Character
     @Override
     public void onLethalDamage (Character hero, Character killer, String dmgtype)
     {
-        hero.onDeath(hero, killer, dmgtype);
+        if (!(hero.binaries.contains("Immortal")))
+        hero.onDeath(killer, dmgtype);
     }
     @Override
-    public void onDeath (Character hero, Character killer, String dmgtype)
+    public void onDeath (Character killer, String dmgtype)
     {
-        if (hero.activeability!=null&&hero.activeability.channelled==true)
+        if (this.activeability!=null&&this.activeability.channelled==true)
         {
-            hero.activeability.InterruptChannelled(hero, hero.activeability);
+            this.activeability.InterruptChannelled(this, this.activeability);
         }
-        hero.HP=0;
-        hero.dead=true;
-        hero.dmgtaken=0;
-        hero.turn=0;
+        this.HP=0;
+        this.dead=true;
+        this.dmgtaken=0;
+        this.turn=0;
         ArrayList <StatEff> removeme= new ArrayList<StatEff>();
-        removeme.addAll(hero.effects);    
+        removeme.addAll(this.effects);    
         if (killer!=null)
         {
-            System.out.println(killer.Cname+" killed "+hero.Cname);
+            System.out.println(killer.Cname+" killed "+this.Cname);
         }
         else
         {
-            System.out.println(hero.Cname+" has died");
+            System.out.println(this.Cname+" has died");
         }
         for (StatEff eff: removeme)
         {
             if (!(eff instanceof Tracker))
             {
-                hero.remove(hero, eff.hashcode, "silent"); 
+                this.remove(eff.hashcode, "silent"); 
             }
         }
-        Character[] people=Battle.GetTeammates(hero);
+        Character[] people=Battle.GetTeammates(this);
         for (Character friend: people)
         {
             if (friend!=null&&!(friend.binaries.contains("Banished")))
             {
-                friend.onAllyDeath(friend, hero, killer);
+                friend.onAllyDeath(friend, this, killer);
             }
         }
-        boolean foe=CoinFlip.TeamFlip(hero.team1); //to get their enemies
+        boolean foe=CoinFlip.TeamFlip(this.team1); //to get their enemies
         Character[] enemies=Battle.GetTeam(foe);
         for (Character ant: enemies)
         {
             if (ant!=null&&!(ant.binaries.contains("Banished")))
             {
-                ant.onEnemyDeath(ant, hero, killer);
+                ant.onEnemyDeath(ant, this, killer);
             }
         }
-        Battle.AddDead(hero);
+        Battle.AddDead(this);
     }
     @Override
     public void onAllyDeath (Character bystander, Character deadfriend, Character killer)
     {
-        if (killer!=null)
+        switch (bystander.index)
         {
+            case 5: SummonPassive.LilDoomie(bystander, false, deadfriend); break;
         }
     }
     @Override
@@ -502,7 +473,7 @@ public class Summon extends Character
                 for (StatEff eff: removeme)
                 {
                     if (!(eff instanceof Tracker))
-                    hero.remove(hero, eff.hashcode, "normal"); 
+                    hero.remove(eff.hashcode, "normal"); 
                 }
                 if (hero.index==28) //if statement since there are only 2 summons with transform right now
                 {

@@ -16,6 +16,7 @@ public abstract class Character
     int size=1;
     int HP=0; //health
     int maxHP;
+    int BHP; //temporary bonus health from barrier
     int index;
     int turn=0; //++ at start of turn; which turn they are on
     int DR=0; //damage reduction from hits from sources other than resistance (i.e. passives)
@@ -52,11 +53,13 @@ public abstract class Character
     public Character ()
     {
     }
-    public static boolean CheckFor (Character hero, String eff, boolean type)
+    public abstract void add (StatEff eff); //adding a stateff    
+    public abstract void remove (int removalcode, String nullify); //removes status effects
+    public boolean CheckFor (String eff, boolean type)
     {
         if (type==false)
         {
-            for (StatEff e: hero.effects)
+            for (StatEff e: this.effects)
             {
                 if (eff.equalsIgnoreCase(e.getimmunityname()))
                 {
@@ -66,7 +69,7 @@ public abstract class Character
         }
         else //check type
         {
-            for (StatEff e: hero.effects)
+            for (StatEff e: this.effects)
             {
                 if (eff.equalsIgnoreCase(e.getefftype()))
                 {
@@ -76,15 +79,15 @@ public abstract class Character
         }
         return false;
     }
-    public void onTurn (Character hero, boolean notbonus) //onturn passives present in both overridden subclasses; this just notifies allies and enemies the hero took their turn
+    public void onTurn (boolean notbonus) //onturn passives present in both overridden subclasses; this just notifies allies and enemies the hero took their turn
     {
-        boolean team=hero.team1;
-        Character[] friends=Battle.GetTeammates(hero); 
+        boolean team=this.team1;
+        Character[] friends=Battle.GetTeammates(this); 
         for (Character friend: friends)
         {
             if (friend!=null&&!(friend.binaries.contains("Banished")))
             {
-                friend.onAllyTurn(hero, friend, hero.summoned);
+                friend.onAllyTurn(this, friend, this.summoned);
             }
         }
         team=CoinFlip.TeamFlip(team); //reverse team affiliation to get enemies
@@ -93,42 +96,38 @@ public abstract class Character
         {
             if (foe!=null&&!(foe.binaries.contains("Banished")))
             {
-                foe.onEnemyTurn(hero, foe, hero.summoned);
+                foe.onEnemyTurn(this, foe, this.summoned);
             }
         }
-        if (hero.team1==true) //potentially notify dead friends like Phoenix that it's time to revive
+        if (this.team1==true) //potentially notify dead friends like Phoenix that it's time to revive
         {
             for (Character deadlad: Battle.team1dead)
             {
-                deadlad.onAllyTurn (hero, deadlad, hero.summoned);
+                deadlad.onAllyTurn (this, deadlad, this.summoned);
             }
         } 
         else
         {
             for (Character deadlad: Battle.team2dead)
             {
-                deadlad.onAllyTurn (hero, deadlad, hero.summoned);
+                deadlad.onAllyTurn (this, deadlad, this.summoned);
             }
         }
     }
     public abstract void onTurnEnd (Character hero, boolean notbonus);
-    public Ability ChooseAb (Character hero) //called by turn in battle
+    public Ability ChooseAb () //called by turn in battle
     {
-        if (hero.team1==true)
-        {
-            System.out.println ("\nPlayer 1, choose an ability for "+hero.Cname+" to use. Type its number, not its name.");
-        }
+        if (this.team1==true)
+        System.out.println ("\nPlayer 1, choose an ability for "+this.Cname+" to use. Type its number, not its name.");
         else
-        {
-            System.out.println ("\nPlayer 2, choose an ability for "+hero.Cname+" to use. Type its number, not its name.");
-        } 
-        boolean skip=Card_HashCode.CheckSkip(hero); //allows heroes with no usable abilities to skip their turn
+        System.out.println ("\nPlayer 2, choose an ability for "+this.Cname+" to use. Type its number, not its name.");
+        boolean skip=Card_HashCode.CheckSkip(this); //allows heroes with no usable abilities to skip their turn
         for (int i=0; i<5; i++)
         {
             int a=i+1;
-            if (hero.abilities[i]!=null)
+            if (this.abilities[i]!=null)
             {
-                System.out.println (a+": "+hero.abilities[i].GetAbName(hero, hero.abilities[i]));  
+                System.out.println (a+": "+this.abilities[i].GetAbName(this));  
             }
         }
         if (skip==true)
@@ -145,17 +144,17 @@ public abstract class Character
             {
                 good=true;
             }
-            else if (choice<5&&choice>=0&&!(hero.abilities[choice]==null)&&hero.abilities[choice].CheckUse(hero, hero.abilities[choice])==false)
+            else if (choice<5&&choice>=0&&!(this.abilities[choice]==null)&&this.abilities[choice].CheckUse(this)==false)
             {
                 good=false;
                 System.out.println("Selected ability is not currently usable. Pick another one.");
             }
-            else if (choice<5&&choice>=0&&!(hero.abilities[choice]==null)&&hero.activeability!=null&&hero.activeability.unbound==true&&hero.abilities[choice].unbound==true)
+            else if (choice<5&&choice>=0&&!(this.abilities[choice]==null)&&this.activeability!=null&&this.activeability.unbound==true&&this.abilities[choice].unbound==true)
             {
                 good=false;
                 System.out.println("Unbound abilities may only be used once per turn.");
             }
-            else if (choice<5&&choice>=0&&!(hero.abilities[choice]==null)&&hero.abilities[choice].CheckUse(hero, hero.abilities[choice])==true) 
+            else if (choice<5&&choice>=0&&!(this.abilities[choice]==null)&&this.abilities[choice].CheckUse(this)==true) 
             {
                 good=true;
             }
@@ -167,16 +166,10 @@ public abstract class Character
         }
         else
         {
-            hero.activeability=hero.abilities[choice];
-            return hero.abilities[choice];
+            this.activeability=this.abilities[choice];
+            return this.abilities[choice];
         }
     }
-    public abstract void onAllyTurn (Character ally, Character hero, boolean summoned); //ally is the one triggering call and hero is one reacting; true if teammate is a summon
-    public abstract void onEnemyTurn (Character enemy, Character hero, boolean summoned);
-    public abstract void onFightStart(Character hero);
-    public abstract void onAttack (Character hero, Character victim);
-    public abstract void onAttacked(Character attacked, Character attacker, int dmg);
-    public abstract void onAllyAttacked(Character ally, Character hurtfriend, Character attacker, int dmg);
     public abstract void HPChange (Character hero, int oldhp, int newhp);
     public static void Healed (Character healed, int regener, boolean passive) //passive refers to the "recover up to X missing health" type of healing abs
     {
@@ -186,7 +179,7 @@ public abstract class Character
             System.out.println(healed.Cname+" could not be healed due to an immunity!");
             nowound=false;
         }
-        else if (healed.binaries.contains("Wounded"))
+        else if (passive==false&&healed.binaries.contains("Wounded"))
         {
             System.out.println(healed.Cname+" could not be healed due to being Wounded!");
             nowound=false;
@@ -194,15 +187,13 @@ public abstract class Character
         if (nowound==true&&healed.HP<healed.maxHP&&healed.dead==false)
         {
             regener=healed.GetHealAmount(healed, regener, passive);
+            if (regener+healed.HP>healed.maxHP) //can't have more health than the maximum amount
+            regener=healed.maxHP-healed.HP;
             healed.HP+=regener;
             if (passive==false)
             System.out.println("\n"+healed.Cname+" was healed for "+regener+" health!");
             else if (passive==true)
             System.out.println ("\n"+healed.Cname+" regained "+regener+" health!");
-            if (healed.HP>healed.maxHP)
-            {
-                healed.HP=healed.maxHP;
-            }
             healed.HPChange(healed, h, healed.HP);
         }
     }
@@ -234,8 +225,8 @@ public abstract class Character
     }
     public static void CheckDrain (Character hero, Character target, int amount)
     {
-        //this is now under the attack methods instead of each attackab and basicab
-        if (hero.lifesteal<=0||hero.immunities.contains("Drain")||hero.binaries.contains("Wounded"))
+        //this is now under the attack method instead of each attackab and basicab
+        if (hero.lifesteal<=0||target.immunities.contains("Drained")||hero.binaries.contains("Wounded"))
         {
             //can't heal
         }
@@ -248,6 +239,7 @@ public abstract class Character
                 amount=5*(int)Math.ceil(dub/5.0); //drain half, rounded up
             }
             amount=hero.GetHealAmount(hero, amount, false);
+            if (hero.HP<hero.maxHP)
             hero.HP+=amount;
             System.out.println("\n"+hero.Cname+" healed themself for "+amount+" health!");
             if (hero.HP>hero.maxHP)
@@ -276,12 +268,10 @@ public abstract class Character
             System.out.println("\n"+hero.Cname+" received "+amount+" shield!");
         }
     }
-    public abstract void add (Character hero, StatEff eff); //adding a stateff    
-    public abstract void remove (Character hero, int removalcode, String nullify); //removes status effects
     public Character onTargeted (Character attacker, Character target, int dmg, boolean aoe)
     {
         Character ntarg=target;
-        if (aoe==false&&target.CheckFor(target, "Protect", false)==true&&!(attacker.ignores.contains("Protect"))) //check for protect
+        if (aoe==false&&target.CheckFor("Protect", false)==true&&!(attacker.ignores.contains("Protect"))) //check for protect
         {
             for (StatEff eff: target.effects)
             {
@@ -323,68 +313,236 @@ public abstract class Character
         }
         return ntarg;
     }
+    public abstract void onAllyTurn (Character ally, Character hero, boolean summoned); //ally is the one triggering call and hero is one reacting; true if teammate is a summon
+    public abstract void onEnemyTurn (Character enemy, Character hero, boolean summoned);
+    public abstract void onFightStart();
+    public abstract void onAllyAttacked(Character ally, Character hurtfriend, Character attacker, int dmg);
     public abstract Character onAllyTargeted (Character hero, Character dealer, Character target, int dmg, boolean aoe); //for passives to change target hero
-    public abstract Character Attack (Character dealer, Character target, int dmg, boolean aoe);
-    public abstract Character AttackNoDamage (Character dealer, Character target, boolean aoe);
+    public abstract void BeforeAttack (Character dealer, Character target, boolean t); //whether to call before or after checking for protect
+    public Character Attack (Character dealer, Character target, int dmg, boolean aoe) //for attack skills
+    {
+        BeforeAttack(dealer, target, true);
+        target=target.onTargeted(dealer, target, dmg, aoe); 
+        BeforeAttack(dealer, target, false);
+        if (!(dealer.binaries.contains("Missed"))&&!(dealer.immunities.contains("Missed"))) //only check if dealer isn't immune to miss and hasn't missed already; can't miss twice 
+        { 
+            if (dealer.activeability.evade==false)
+            {
+                Damage_Stuff.CheckEvade(dealer, target); //blind is checked when activating the ab; evade is checked here once the target has been selected
+                dealer.activeability.evade=true;
+            }
+        }
+        if ((!(dealer.binaries.contains("Missed")))&&target.dead==false) //check that they're still alive for mulitihit attacks
+        {
+            dmg=Damage_Stuff.DamageFormula(dealer, target, dmg);
+            dmg=Damage_Stuff.CheckGuard(dealer, target, dmg);      
+            for (SpecialAbility h: target.helpers) //for redwing 
+            {
+                dmg=h.Use (target, dmg, dealer); 
+            }
+            dmg=target.TakeDamage(target, dealer, dmg, aoe);
+        }
+        else
+        dmg=0;
+        dealer.activeability.ReturnDamage(dmg); //tells the ability how much dmg the attack did
+        dealer.onAttack(dealer, target); //activate relevant passives after attacking
+        if (target.dead==false)
+        {
+            target.onAttacked(target, dealer, dmg);
+        }
+        Character[] friends=Battle.GetTeammates(target);
+        for (Character friend: friends)
+        {
+            if (friend!=null&&!(friend.binaries.contains("Banished")))
+            {
+                friend.onAllyAttacked(friend, target, dealer, dmg);
+            }
+        }
+        if (dealer.dead==false)
+        {
+            dealer.CheckDrain(dealer, target, dmg);
+        }
+        return target;
+    }
+    public Character AttackNoDamage (Character dealer, Character target, boolean aoe)
+    {
+        //modified version of attack method since debuff skills cannot do damage
+        BeforeAttack(dealer, target, true);
+        target=target.onTargeted(dealer, target, 0, aoe);
+        BeforeAttack(dealer, target, false);
+        if ((!(dealer.binaries.contains("Missed"))&&!(dealer.immunities.contains("Missed"))))
+        {
+            if (dealer.activeability.evade==false)
+            {
+                Damage_Stuff.CheckEvade(dealer, target); 
+                dealer.activeability.evade=true;
+            }
+        }
+        dealer.onAttack(dealer, target);
+        target.onAttacked(target, dealer, 0);
+        Character[] friends=Battle.GetTeammates(target);
+        for (Character friend: friends)
+        {
+            if (friend!=null&&!(friend.binaries.contains("Banished")))
+            {
+                friend.onAllyAttacked(friend, target, dealer, 0);
+            }
+        }
+        return target;
+    }
+    public Character AttackNoDamage (Character dealer, Character target, int lossy, boolean aoe, boolean max) //for (max) health loss attacks
+    {
+        BeforeAttack(dealer, target, true);
+        target=target.onTargeted(dealer, target, 0, aoe);
+        BeforeAttack(dealer, target, false);
+        if ((!(dealer.binaries.contains("Missed"))&&!(dealer.immunities.contains("Missed"))))
+        {
+            if (dealer.activeability.evade==false)
+            {
+                Damage_Stuff.CheckEvade(dealer, target); //blind is checked when activating the ab; evade is checked here once the target has been selected
+                dealer.activeability.evade=true;
+            }
+        }
+        if (!(dealer.binaries.contains("Missed")))
+        {
+            if (max==true)
+            target.LoseMaxHP (target, dealer, lossy);
+            else
+            target.LoseHP (dealer, lossy, "knull");
+        }
+        dealer.onAttack(dealer, target);
+        if (target.dead==false)
+        target.onAttacked(target, dealer, 0);
+        Character[] friends=Battle.GetTeammates(target);
+        for (Character friend: friends)
+        {
+            if (friend!=null&&!(friend.binaries.contains("Banished")))
+            {
+                friend.onAllyAttacked(friend, target, dealer, 0);
+            }
+        }
+        return target;
+    }
     public abstract void onCrit (Character hero, Character target); //called after successful crit; for passives
+    public abstract void onAttack (Character hero, Character victim);
+    public abstract void onAttacked(Character attacked, Character attacker, int dmg);
     public abstract int TakeDamage (Character target, Character dealer, int dmg, boolean aoe); //takedamage checks hero shield and calls tookdamage
     public abstract int TakeDamage (Character target, int dmg, boolean dot); 
     public abstract void TookDamage (Character hero, Character dealer, int dmg); //triggers relevant passives and checks if hero should be dead
     public abstract void TookDamage (Character hero, boolean dot, int dmg); 
-    public void DOTdmg (Character target, int dmg, String type) //target is the one taking the damage
+    public abstract void onLethalDamage (Character hero, Character killer, String dmgtype);
+    public abstract void onDeath (Character killer, String dmgtype);
+    public abstract void onAllyDeath (Character bystander, Character deadfriend, Character killer);
+    public abstract void onEnemyDeath (Character bystander, Character deadfoe, Character killer);
+    public abstract void onKill (Character killer, Character victim);
+    public abstract void onRez (Character hero, Character healer);
+    public void LoseMaxHP (Character victim, Character attacker, int lossy)
+    {
+        if (!(victim.immunities.contains("Reduce")))
+        {
+            System.out.println(victim.Cname+"'s max health was reduced by "+lossy+"!");
+            victim.maxHP-=lossy;
+            if (victim.maxHP<=0) //ignores immortality and the like; instant and permanent death
+            {
+                victim.maxHP=0;
+                victim.onDeath(attacker, "Reduce");
+            }
+        }
+        else
+        System.out.println(attacker.Cname+"'s max health reduction failed due to"+victim.Cname+"'s immunity.");
+    }
+    public void LoseHP (Character attacker, int lossy, String dot) //modified version of tookdamage
+    {
+        if (!(this.immunities.contains("Lose")))
+        {
+            if (dot.equals("Poison"))
+            System.out.println(this.Cname+" lost "+lossy+" health from Poison!");
+            else if (dot.equals("Wither"))
+            System.out.println(this.Cname+" lost "+lossy+" health from Wither!");
+            else
+            System.out.println(this.Cname+" lost "+lossy+" health!");
+            int h=this.HP;
+            Damage_Stuff.CheckBarrier(this, attacker, lossy);
+            if (this.HP<=0)
+            this.HP=0;
+            if (this.HP==0&&(dot.equals("Poison")||dot.equals("Wither"))&&!(this.binaries.contains("Immortal")))
+            {
+                this.onLethalDamage(this, null, "DOT");
+            }
+            else if (this.HP==0&&dot.equals("Self")&&!(this.binaries.contains("Immortal")))
+            {
+                this.onLethalDamage(this, null, "Lose");
+            }
+            else if (this.HP==0&&!(this.binaries.contains("Immortal")))
+            {
+                this.onLethalDamage(this, attacker, "Lose");
+            }
+            if (this.dead==false)
+            {
+                this.HPChange(this, h, this.HP);
+            }
+        }
+        else
+        {
+            if (dot.equals("Poison"))
+            System.out.println(this.Cname+" lost no health from Poison due to an immunity!");
+            else if (dot.equals("Wither"))
+            System.out.println(this.Cname+" lost no health from Wither due to an immunity!");
+            else
+            System.out.println(attacker.Cname+"'s health loss failed due to"+this.Cname+"'s immunity.");
+        }
+    }
+    public void DOTdmg (int dmg, String type)
     {
         int knull; //since the take damage methods require return values, this will store them
         if (type.equalsIgnoreCase("bleed"))
         {
-            dmg=(dmg-target.ADR-target.BlDR); //factoring in damage resistance
+            dmg=(dmg-this.ADR-this.BlDR); //factoring in damage resistance
             if (dmg>0)
             {
-                System.out.println ("\n"+target.Cname+" took "+dmg+" Bleed damage"); 
-                knull=target.TakeDamage(target, dmg, true);
+                System.out.println ("\n"+this.Cname+" took "+dmg+" Bleed damage"); 
+                knull=this.TakeDamage(this, dmg, true);
             }
         }
         else if (type.equalsIgnoreCase("burn"))
         {
-            dmg=(dmg-target.ADR-target.BuDR);
+            dmg=(dmg-this.ADR-this.BuDR);
             if (dmg>0)
             {
-                System.out.println ("\n"+target.Cname+" took "+dmg+" Burn damage"); 
-                knull=target.TakeDamage(target, dmg, true);
+                System.out.println ("\n"+this.Cname+" took "+dmg+" Burn damage"); 
+                knull=this.TakeDamage(this, dmg, true);
             }
         }
         else if (type.equalsIgnoreCase("poison"))
         {
-            dmg=(dmg-target.ADR-target.PoDR);
-            if (dmg>0&&!(target.immunities.contains("Lose"))) //poison damage ignores shields
-            {
-                HP-=dmg;
-                System.out.println ("\n"+target.Cname+" took "+dmg+" Poison damage"); 
-                target.TookDamage(target, true, dmg);
-            }
+            dmg=(dmg-this.PoDR);
+            if (dmg<=0)
+            dmg=0;
+            this.LoseHP(null, dmg, "Poison");
         }
         else if (type.equalsIgnoreCase("shock"))
         {
-            dmg=(dmg-target.ADR-target.ShDR);
+            dmg=(dmg-this.ADR-this.ShDR);
             if (dmg>0)
             {
-                System.out.println ("\n"+target.Cname+" took "+dmg+" Shock damage"); 
-                knull=target.TakeDamage(target, dmg, true);
-                Ability.DoRicochetDmg(dmg, target, true);
+                System.out.println ("\n"+this.Cname+" took "+dmg+" Shock damage"); 
+                knull=this.TakeDamage(this, dmg, true);
+                Ability.DoRicochetDmg(dmg, this, true);
             }
         }
-        else if (type.equalsIgnoreCase("Wither")&&!(target.immunities.contains("Lose")))
+        else if (type.equalsIgnoreCase("Wither"))
         {
-            dmg-=(target.ADR+target.WiDR);
-            if (dmg>0)
-            {
-                target.HP-=dmg;
-                System.out.println ("\n"+target.Cname+" took "+dmg+" Wither damage");
-                target.TookDamage(target, true, dmg);
-            }
+            dmg-=this.WiDR;
+            if (dmg<=0)
+            dmg=0;
+            this.LoseHP(null, dmg, "Wither");
         }
     }
     public static String GetHP (Character hero)
     {
+       if (hero.BHP>0)
+       return hero.BHP+"+"+hero.HP+"/"+hero.maxHP;
+       else
        return hero.HP+"/"+hero.maxHP;
     } 
     public static String GetShield(Character hero)
@@ -401,13 +559,13 @@ public abstract class Character
                 //case
                 //health= 200; break;
             
-                case 6: case 9: case 10: case 14: case 19: case 21:
+                case 6: case 9: case 10: case 14: case 19: case 21: case 29:
                 health= 220; break;
             
                 case 1: case 2: case 3: case 4: case 5: case 7: case 8: case 11: case 18: case 20: case 23: case 24: case 25:
                 health= 230;  break;
             
-                case 12: case 13: case 15: case 16: case 17: case 22:
+                case 12: case 13: case 15: case 16: case 17: case 22: case 27: case 28:
                 health= 240; break;
                     
                 //Special carrots
@@ -434,11 +592,8 @@ public abstract class Character
                 case 8:
                 health= 70; break;
                 
-                case 28:
+                case 4: case 28:
                 health= 80; break;
-            
-                case 4: 
-                health= 100; break;
             
                 case 12:
                 health= 200; break;
@@ -479,6 +634,9 @@ public abstract class Character
                 case 24: name="Binary (Carol Danvers)"; break;
                 case 25: name="Venom (Flash Thompson)"; break;
                 case 26: name="MODOK (Classic)"; break;
+                case 27: name="Ultron (Classic)"; break;
+                case 28: name="Dr. Doom (Classic)"; break;
+                case 29: name="Dr. Strange (Classic)"; break;
                 default: name= "ERROR. INDEX NUMBER NOT FOUND";
             }    
             return name;
@@ -506,12 +664,6 @@ public abstract class Character
             return name;
         }
     }
-    public abstract void onLethalDamage (Character hero, Character killer, String dmgtype);
-    public abstract void onDeath (Character hero, Character killer, String dmgtype);
-    public abstract void onAllyDeath (Character bystander, Character deadfriend, Character killer);
-    public abstract void onEnemyDeath (Character bystander, Character deadfoe, Character killer);
-    public abstract void onKill (Character killer, Character victim);
-    public abstract void onRez (Character hero, Character healer);
     public abstract void Transform (Character hero, int newindex, boolean greater); //new index is the index number of the character being transformed into
     public abstract void onAllySummon (Character summoner, Summon newfriend);
     public abstract void onEnemySummon (Character summoner, Summon newfoe);
@@ -531,65 +683,6 @@ public abstract class Character
         for (StatEff eff: ban)
         {
             eff.UseBanish();
-        }
-    }
-    public static int GetStatCount (Character hero, String name, String type)
-    {
-        int num=0;
-        for (StatEff eff: hero.effects)
-        {
-            if ((eff.getimmunityname().equalsIgnoreCase(name)||name.equalsIgnoreCase("any"))&&(eff.getefftype().equalsIgnoreCase(type)||type.equalsIgnoreCase("any")))
-            {
-                ++num;
-            }
-        }
-        return num;
-    }
-    public static StatEff GetRandomStatEff (Character hero, String name, String type) //ensure size is appropriate before calling this and whatnot
-    {
-        int go=hero.GetStatCount (hero, name, type); //gets random stateffs of a specific type, e.g. debuffs
-        if (go>0)
-        {
-            if (name.equalsIgnoreCase("any")&&!(type.equalsIgnoreCase("any")))
-            {
-                int rando=hero.effects.size();
-                do
-                {
-                    rando= (int)(Math.random()*hero.effects.size());
-                }
-                while (!(hero.effects.get(rando).getefftype().equalsIgnoreCase(type)));
-                return hero.effects.get(rando); 
-            }
-            else if (type.equalsIgnoreCase("any")&&!(name.equalsIgnoreCase("any")))
-            {
-                int rando=hero.effects.size();
-                do
-                {
-                    rando= (int)(Math.random()*hero.effects.size());
-                }
-                while (!(hero.effects.get(rando).getimmunityname().equalsIgnoreCase(name)));
-                return hero.effects.get(rando); //returns the effect in the array at the index of the given random index number
-            }
-            else if (type.equalsIgnoreCase("any")&&name.equalsIgnoreCase("any"))
-            {
-                int rando=hero.effects.size(); 
-                rando= (int)(Math.random()*hero.effects.size());
-                return hero.effects.get(rando); 
-            }
-            else
-            {
-                int rando=hero.effects.size();
-                do
-                {
-                    rando= (int)(Math.random()*hero.effects.size());
-                }
-                while (!(hero.effects.get(rando).getefftype().equalsIgnoreCase(type))||!(hero.effects.get(rando).getimmunityname().equalsIgnoreCase(name)));
-                return hero.effects.get(rando); 
-            }
-        }
-        else
-        {
-            return null;
         }
     }
 }
