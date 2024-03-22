@@ -15,6 +15,7 @@ class AttackAb extends Ability
     int dmgdealt=0; //for ricochet; determined by the hero.attack method where damagecalc is down
     int multihit=0; //how many hits are left in a multihit attack
     int omulti=0; //how many times to repeat the attack; the number of + signs
+    boolean max=false; //whether the target directly loses max health instead of taking damage
     boolean lose=false; //whether the target directly loses health instead of taking damage
     boolean elusive=false;
     public AttackAb ()
@@ -61,11 +62,11 @@ class AttackAb extends Ability
             do
             {
                 uses=Damage_Stuff.GetInput();
-                ++uses;
-                if (uses>0&&uses<=multiuse)
+                if (uses>=0&&uses<=multiuse)
                 {
                     typo=false;
                 }
+                ++uses;
             }
             while (typo==true);
         }
@@ -127,29 +128,11 @@ class AttackAb extends Ability
                         }
                         else if (lose==true) //modified version of attacknodamage method
                         {
-                            //add switch for user's passives to trigger before attacking if needed
-                            chump=chump.onTargeted(user, chump, 0, aoe);
-                            if ((!(user.binaries.contains("Missed"))&&!(user.immunities.contains("Missed"))))
-                            { 
-                                Damage_Stuff.CheckEvade(user, chump); //blind is checked when activating the ab; evade is checked here once the target has been selected
-                            }
-                            if (!(user.binaries.contains("Missed"))&&!(chump.immunities.contains("Lose"))) 
-                            {
-                                chump.HP-=damage; chump.TookDamage(chump, user, damage);
-                            }
-                            user.onAttack(user, chump); //activate relevant passives after attacking
-                            if (chump.dead==false)
-                            {
-                                chump.onAttacked(chump, user, 0);
-                            }
-                            Character[] friends=Battle.GetTeammates(chump);
-                            for (Character friend: friends)
-                            {
-                                if (friend!=null&&!(friend.binaries.contains("Banished")))
-                                {
-                                    friend.onAllyAttacked(friend, chump, user, damage);
-                                }
-                            }
+                            user.AttackNoDamage(user, chump, damage, aoe, false);
+                        }
+                        else if (max==true)
+                        {
+                            user.AttackNoDamage(user, chump, damage, aoe, true);
                         }
                         else 
                         {
@@ -210,7 +193,7 @@ class AttackAb extends Ability
                         {
                             user.binaries.remove("Missed");
                         }
-                        this.blind=false;
+                        this.blind=false; this.evade=false;
                         this.UseMultihit();
                         dmgdealt=0;
                         for (SpecialAbility ob: special)
@@ -385,29 +368,11 @@ class AttackAb extends Ability
                         }
                         else if (lose==true) //modified version of attacknodamage method
                         {
-                            //add switch for user's passives to trigger before attacking if needed
-                            chump=chump.onTargeted(user, chump, 0, aoe);
-                            if ((!(user.binaries.contains("Missed"))&&!(user.immunities.contains("Missed"))))
-                            { 
-                                Damage_Stuff.CheckEvade(user, chump); //blind is checked when activating the ab; evade is checked here once the target has been selected
-                            }
-                            if (!(user.binaries.contains("Missed"))&&!(chump.immunities.contains("Lose"))) 
-                            {
-                                chump.HP-=damage; chump.TookDamage(chump, user, damage);
-                            }
-                            user.onAttack(user, chump); //activate relevant passives after attacking
-                            if (chump.dead==false)
-                            {
-                                chump.onAttacked(chump, user, 0);
-                            }
-                            Character[] friends=Battle.GetTeammates(chump);
-                            for (Character friend: friends)
-                            {
-                                if (friend!=null&&!(friend.binaries.contains("Banished")))
-                                {
-                                    friend.onAllyAttacked(friend, chump, user, damage);
-                                }
-                            }
+                            user.AttackNoDamage(user, chump, damage, aoe, false);
+                        }
+                        else if (max==true)
+                        {
+                            user.AttackNoDamage(user, chump, damage, aoe, true);
                         }
                         else 
                         {
@@ -468,7 +433,7 @@ class AttackAb extends Ability
                         {
                             user.binaries.remove("Missed");
                         }
-                        this.blind=false;
+                        this.blind=false; this.evade=false;
                         this.UseMultihit();
                         damage=odamage; //reset damage 
                         dmgdealt=0;
@@ -496,10 +461,10 @@ class AttackAb extends Ability
         return toadd;
     }
     @Override
-    public boolean CheckUse (Character user, Ability ab)
+    public boolean CheckUse (Character user)
     {
         boolean okay=true;
-        if ((user.CheckFor(user, "Disarm", false)==true&&ab.ignore==false)||user.CheckFor(user, "Suppression", false)==true)
+        if ((user.CheckFor("Disarm", false)==true&&this.ignore==false)||user.CheckFor("Suppression", false)==true)
         {
             okay=false;
         }

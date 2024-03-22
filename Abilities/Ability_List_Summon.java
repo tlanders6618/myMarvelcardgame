@@ -18,11 +18,14 @@ public class Ability_List_Summon
         switch (index) 
         {
             case 1: toret=MakeAbNickLMD(counter); break;
-            case 2: toret=MakeAbRTrooper(counter); break;
-            case 3: toret=MakeAbCrushbot(counter); break;
-            case 7: return null;
             case 27: toret=MakeAbSpiderling(counter); break;
             case 28: toret=MakeAbNaught(counter); break;
+            case 2: toret=MakeAbRTrooper(counter); break;
+            case 3: toret=MakeAbCrushbot(counter); break;
+            case 4: toret=MakeAbDrone(counter); break;
+            case 5: toret=MakeAbLilDoomie(counter); break;
+            case 6: toret=MakeAbDaemon(counter); break;
+            case 7: return null;
             default: System.out.println ("Problem getting summon abilities");
         }
         return toret;
@@ -36,6 +39,41 @@ public class Ability_List_Summon
             case 2:  
             case 3: 
             case 4:
+        }
+        return null; 
+    }
+    public static Ability MakeAbDaemon (int counter)
+    {
+        switch (counter)
+        {
+            case 0: BasicAb rend= new BasicAb("Unnerving Strike", "single", "enemy", 25); 
+            String[] carrot={"Provoke", "100", "616", "1", "false"}; String[][] garrote=StatFactory.MakeParam(carrot, null); rend.AddStatString(garrote);
+            return rend;
+            case 1: BasicAb blast= new BasicAb("Rend", "single", "enemy", 35); 
+            return blast;
+        }
+        return null; 
+    }
+    public static Ability MakeAbLilDoomie (int counter)
+    {
+        switch (counter)
+        {
+            case 0: BasicAb blast= new BasicAb("Electric Blast", "single", "enemy", 35); blast.special.add(new Ignore("Invisible", "always", 616));
+            return blast;
+            case 1: BasicAb core= new BasicAb("Self Destruct", "single", "enemy", 50); core.ignore=true; core.special.add(new Suicide());
+            return core;
+        }
+        return null; 
+    }
+    public static Ability MakeAbDrone (int counter)
+    {
+        switch (counter)
+        {
+            case 0: BasicAb laser= new BasicAb("Laser Beam", "single", "enemy", 30); laser.special.add(new DebuffMod(4));
+            return laser;
+            case 1: BasicAb core= new BasicAb("Core Meltdown", "single", "enemy", 50); core.ignore=true; core.special.add(new DamageCounterRemove("Buffs", true, 10, true));
+            core.special.add(new Suicide());
+            return core;
         }
         return null; 
     }
@@ -70,7 +108,7 @@ public class Ability_List_Summon
             String[] hungry={"Bleed", "100", "5", "2", "false"}; String[][] revenge=StatFactory.MakeParam(hungry, null);
             rail.AddStatString(anger); rail.AddStatString(revenge);
             return rail;
-            case 1: BasicAb mortar= new BasicAb("Mortar Fire", "single", "enemy", 30); mortar.special.add(new DebuffMod(616)); mortar.together=true;
+            case 1: BasicAb mortar= new BasicAb("Mortar Fire", "single", "enemy", 30); mortar.special.add(new DebuffMod(28)); mortar.together=true;
             return mortar;
             case 3: OtherAb leo= new OtherAb ("Ejector Seat", "self", "self", 0); leo.singleuse=true; leo.channelled=true; leo.special.add(new Transformation(27, true));
             return leo;

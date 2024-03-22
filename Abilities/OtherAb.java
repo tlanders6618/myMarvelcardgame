@@ -29,9 +29,9 @@ class OtherAb extends Ability
         }
     }
     @Override
-    public boolean CheckUse (Character user, Ability ab)
+    public boolean CheckUse (Character user)
     {
-        if (user.CheckFor(user, "Suppression", false)==true)
+        if (user.CheckFor("Suppression", false)==true)
         {
             return false;
         }

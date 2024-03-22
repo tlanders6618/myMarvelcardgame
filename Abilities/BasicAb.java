@@ -99,31 +99,13 @@ class BasicAb extends AttackAb
                             damage=0;
                             chump.TakeDamage(chump, user, damage, this.aoe);
                         }
-                        else if (lose==true) //modified version of attacknodamage method
+                        else if (lose==true) 
                         {
-                            //add switch for user's passives to trigger before attacking if needed
-                            chump=chump.onTargeted(user, chump, 0, aoe);
-                            if ((!(user.binaries.contains("Missed"))&&!(user.immunities.contains("Missed"))))
-                            { 
-                                Damage_Stuff.CheckEvade(user, chump); //blind is checked when activating the ab; evade is checked here once the target has been selected
-                            }
-                            if (!(user.binaries.contains("Missed"))&&!(chump.immunities.contains("Lose"))) 
-                            {
-                                chump.HP-=damage; chump.TookDamage(chump, user, damage);
-                            }
-                            user.onAttack(user, chump); //activate relevant passives after attacking
-                            if (chump.dead==false)
-                            {
-                                chump.onAttacked(chump, user, 0);
-                            }
-                            Character[] friends=Battle.GetTeammates(chump);
-                            for (Character friend: friends)
-                            {
-                                if (friend!=null&&!(friend.binaries.contains("Banished")))
-                                {
-                                    friend.onAllyAttacked(friend, chump, user, damage);
-                                }
-                            }
+                            user.AttackNoDamage(user, chump, damage, aoe, false);
+                        }
+                        else if (max==true)
+                        {
+                            user.AttackNoDamage(user, chump, damage, aoe, true);
                         }
                         else 
                         {
@@ -207,7 +189,7 @@ class BasicAb extends AttackAb
                         {
                             user.binaries.remove("Missed");
                         }
-                        this.blind=false;
+                        this.blind=false; this.evade=false;
                         this.UseMultihit();
                         dmgdealt=0;
                         damage=odamage; //reset damage 
@@ -248,9 +230,9 @@ class BasicAb extends AttackAb
         return null;
     }
     @Override 
-    public String GetAbName (Character hero, Ability ab)
+    public String GetAbName (Character hero)
     {
-        boolean g=CheckUse(hero, ab); 
+        boolean g=this.CheckUse(hero); 
         if (g==true)
         {
             return this.oname;
@@ -261,9 +243,9 @@ class BasicAb extends AttackAb
         }
     }
     @Override
-    public boolean CheckUse (Character user, Ability ab)
+    public boolean CheckUse (Character user)
     {
-        if (user.CheckFor(user, "Disarm", false)==true&&ab.ignore==false)
+        if (user.CheckFor("Disarm", false)==true&&this.ignore==false)
         {
             return false;
         }

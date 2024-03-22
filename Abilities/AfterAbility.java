@@ -96,6 +96,258 @@ class ActivatePassive extends AfterAbility //ability activates a hero's passive 
         }
     }
 }
+class CopySteal extends AfterAbility //the only difference is that steal removes the buff; otherwise they're identical so they share a method
+{
+    String[] effname; //name of eff(s) to extend since mandarin can extend more than just one type
+    String[] efftype; //usually only buffs, except for hulkling
+    int chance; 
+    int number; //of effs to copy
+    String type; //chosen or random
+    boolean together; 
+    boolean steal=false;
+    public CopySteal (int echance, int num, String type, String[] ename, String[] etype, boolean tog, boolean steal)
+    {
+        chance=echance; together=tog; number=num; effname=ename; efftype=etype; this.type=type; this.steal=steal;
+    }
+    @Override
+    public void Use (Character user, Character target, int ignoreme)
+    {
+        boolean valid=true;
+        if (user.team1!=target.team1&&user.binaries.contains("Missed")) //need to check for miss before affecting an enemy
+        valid=false;
+        if (steal==false&&target.immunities.contains("Copy"))
+        valid=false;
+        else if (steal==true&&target.immunities.contains("Steal"))
+        valid=false;
+        if (valid==true&&!(target.immunities.contains("Other"))) 
+        {
+            ArrayList <StatEff> effs=CoinFlip.GetEffs(target, effname, efftype, "Protect", false); //the effs on the target eligible to be copied
+            ArrayList<StatEff> delete=new ArrayList<StatEff>();
+            for (StatEff e: effs)
+            {
+                if (e.duration>100) //no copying indefinite duration effs
+                delete.add(e);
+            }
+            effs.removeAll(delete);
+            if (effs.size()>0)
+            {
+                if (type.equals("chosen"))
+                {
+                    CopyChosen(user, target, effs);
+                }
+                else if (type.equals("random"))
+                {
+                    CopyRandom(user, target, effs);
+                }
+                else if (type.equals("all"))
+                {
+                    CopyAll(user, target, effs);
+                }
+                else
+                {
+                    if (steal==false)
+                    System.out.println("Copy failed due to a spelling error.");
+                    else
+                    System.out.println("Steal failed due to a spelling error.");
+                }
+            }
+        }
+        else if (!(user.binaries.contains("Missed"))) //if fail is caused by a miss, print nothing
+        {
+            if (steal==false)
+            System.out.println (user.Cname+"'s Copy failed to apply due to an immunity.");
+            else
+            System.out.println (user.Cname+"'s Steal failed to apply due to an immunity.");
+        }
+    }
+    public void CopyChosen (Character hero, Character target, ArrayList<StatEff> effs)
+    {
+        boolean succeed=false; int todo=number;
+        if (together==true)
+        {
+            succeed=CoinFlip.Flip(chance+hero.Cchance); 
+            if (succeed==false)
+            {
+                if (steal==false)
+                System.out.println(hero.Cname+"'s Copy failed to apply due to chance.");
+                else
+                System.out.println(hero.Cname+"'s Steal failed to apply due to chance.");
+                todo=0;
+            }
+        }
+        else
+        {
+            for (int i=0; i<effs.size(); i++)
+            {
+                succeed=CoinFlip.Flip(chance+hero.Cchance); 
+                if (succeed==false)
+                {
+                    if (steal==false)
+                    System.out.println(hero.Cname+"'s Copy failed to apply due to chance.");
+                    else
+                    System.out.println(hero.Cname+"'s Steal failed to apply due to chance.");
+                    --todo;
+                }
+            }
+        }
+        if (todo>0) 
+        {
+            if (steal==false)
+            System.out.println ("Choose "+todo+" effect(s) to Copy from "+target.Cname+".");
+            else
+            System.out.println ("Choose "+todo+" effect(s) to Steal from "+target.Cname+".");
+            System.out.println ("Enter the number next to it, not its name."); 
+            for (int i=0; i<todo; i++)
+            {
+                boolean falg=false; int counter=0; int index=616; 
+                for (StatEff eff: effs)
+                {
+                    int o=counter+1;  
+                    System.out.println(o+": "+eff.geteffname());
+                    ++counter;
+                }            
+                do
+                {
+                    index=Damage_Stuff.GetInput();
+                    --index;
+                    if (index>=0&&index<effs.size())
+                    {
+                        falg=true;
+                    }
+                }
+                while (falg==false);
+                StatEff ton= effs.get(index);
+                effs.remove(ton); //can't copy the same stateff twice in one use
+                String name=ton.getimmunityname(); int dur=ton.oduration; int pow=ton.power;
+                if (steal==false)
+                System.out.println(hero.Cname+" Copied "+target.Cname+"'s "+ton.geteffname()+"!");
+                else
+                {
+                    System.out.println(hero.Cname+" Stole "+target.Cname+"'s "+ton.geteffname()+"!");
+                    target.remove(ton.hashcode, "steal");
+                }
+                String[] morb={name, "500", Integer.toString(pow), Integer.toString(dur), "true"}; String[][] string=StatFactory.MakeParam(morb, null);
+                hero.activeability.AddTempString(string);
+                if (effs.size()<=0)
+                {
+                    break;
+                }
+            }
+        }
+    }
+    public void CopyRandom (Character hero, Character target, ArrayList<StatEff> effs)
+    {
+        boolean succeed=false; int todo=number;
+        if (together==true)
+        {
+            succeed=CoinFlip.Flip(chance+hero.Cchance); 
+            if (succeed==false)
+            {
+                if (steal==false)
+                System.out.println(hero.Cname+"'s Copy failed to apply due to chance.");
+                else
+                System.out.println(hero.Cname+"'s Steal failed to apply due to chance.");
+                todo=0;
+            }
+        }
+        else
+        {
+            for (int i=0; i<effs.size(); i++)
+            {
+                succeed=CoinFlip.Flip(chance+hero.Cchance); 
+                if (succeed==false)
+                {
+                    if (steal==false)
+                    System.out.println(hero.Cname+"'s Copy failed to apply due to chance.");
+                    else
+                    System.out.println(hero.Cname+"'s Steal failed to apply due to chance.");
+                    --todo;
+                }
+            }
+        }
+        if (todo>0)
+        {
+            for (int i=0; i<todo; i++)
+            {
+                int rando=(int) (Math.random()*(effs.size()-1));
+                StatEff ton= effs.get(rando);
+                effs.remove(ton); //can't copy the same stateff twice in one use
+                String name=ton.getimmunityname(); int dur=ton.oduration; int pow=ton.power;
+                if (steal==false)
+                System.out.println(hero.Cname+" Copied "+target.Cname+"'s "+ton.geteffname()+"!");
+                else
+                {
+                    System.out.println(hero.Cname+" Stole "+target.Cname+"'s "+ton.geteffname()+"!");
+                    target.remove(ton.hashcode, "steal");
+                }
+                String[] morb={name, "500", Integer.toString(pow), Integer.toString(dur), "true"}; String[][] string=StatFactory.MakeParam(morb, null);
+                hero.activeability.AddTempString(string);
+                if (effs.size()<=0)
+                {
+                    break;
+                }
+            }
+        }
+    }
+    public void CopyAll (Character hero, Character target, ArrayList<StatEff> effs)
+    {
+        boolean succeed=false;
+        if (together==true)
+        {
+            succeed=CoinFlip.Flip(chance+hero.Cchance); 
+            if (succeed==true)
+            {
+                for (StatEff eff: effs)
+                {
+                    String name=eff.getimmunityname(); int dur=eff.oduration; int pow=eff.power;
+                    if (steal==false)
+                    System.out.println(hero.Cname+" Copied "+target.Cname+"'s "+eff.geteffname()+"!");
+                    else
+                    {
+                        System.out.println(hero.Cname+" Stole "+target.Cname+"'s "+eff.geteffname()+"!");
+                        target.remove(eff.hashcode, "steal");
+                    }
+                    String[] morb={name, "500", Integer.toString(pow), Integer.toString(dur), "true"}; String[][] string=StatFactory.MakeParam(morb, null);
+                    hero.activeability.AddTempString(string);
+                }
+            }
+            else
+            {
+                if (steal==false)
+                System.out.println(hero.Cname+"'s Copy failed to apply due to chance.");
+                else
+                System.out.println(hero.Cname+"'s Steal failed to apply due to chance.");
+            }
+        }
+        else
+        {
+            for (StatEff eff: effs)
+            {
+                succeed=CoinFlip.Flip(chance+hero.Cchance); 
+                if (succeed==true)
+                {
+                    String name=eff.getimmunityname(); int dur=eff.oduration; int pow=eff.power;
+                    if (steal==false)
+                    System.out.println(hero.Cname+" Copied "+target.Cname+"'s "+eff.geteffname()+"!");
+                    else
+                    {
+                        System.out.println(hero.Cname+" Stole "+target.Cname+"'s "+eff.geteffname()+"!");
+                        target.remove(eff.hashcode, "steal");
+                    }
+                    String[] morb={name, "500", Integer.toString(pow), Integer.toString(dur), "true"}; String[][] string=StatFactory.MakeParam(morb, null);
+                    hero.activeability.AddTempString(string);
+                }
+                else
+                {
+                    if (steal==false)
+                    System.out.println(hero.Cname+"'s Copy failed to apply due to chance.");
+                    else
+                    System.out.println(hero.Cname+"'s Steal failed to apply due to chance.");
+                }
+            }
+        }
+    }
+}
 class Confidence extends AfterAbility
 {
     int amount; int chance; 
@@ -107,7 +359,7 @@ class Confidence extends AfterAbility
     @Override 
     public void Use(Character caller, Character target, int ignore) 
     {
-        if (caller.CheckFor(caller, "Afflicted", false)==false) //confidence is a heal ability
+        if (caller.CheckFor("Afflicted", false)==false) //confidence is a heal ability
         {
             boolean success=CoinFlip.Flip(chance+caller.Cchance);
             if (success==true&&target.dead==false)
@@ -130,9 +382,10 @@ class Extend extends AfterAbility
     String type; //whether all effs are extended or just some; chosen or random
     boolean together; //true for together and false for separate
     boolean self;
-    public Extend (int echance, int num, String type, String[] ename, int turns, String[] etype, boolean self, boolean tog)
+    boolean immortalstun=false; //whether immortality or stun can be extended or not
+    public Extend (int echance, int num, String type, String[] ename, String[] etype, int turns, boolean self, boolean tog, boolean i)
     {
-        chance=echance; together=tog; number=num; effname=ename; efftype=etype; this.type=type; this.self=self; this.turns=turns;
+        chance=echance; together=tog; number=num; effname=ename; efftype=etype; this.type=type; this.self=self; this.turns=turns; immortalstun=i;
     }
     @Override
     public void Use (Character user, Character target, int ignoreme)
@@ -146,7 +399,9 @@ class Extend extends AfterAbility
         {
             ArrayList <StatEff> effs=null;
             if (efftype[0].equals("nondamaging"))
-            effs=CoinFlip.GetEffsND(target);
+            effs=CoinFlip.GetEffsND(target, immortalstun);
+            else if (immortalstun==false) //exclude immortality
+            effs=CoinFlip.GetEffs(target, effname, efftype, "Immortality", false); 
             else
             effs=CoinFlip.GetEffs(target, effname, efftype); //the effs on the target eligible to be extended
             if (effs.size()>0)
@@ -169,7 +424,7 @@ class Extend extends AfterAbility
                 }
             }
         }
-        else
+        else if (!(user.binaries.contains("Missed"))) //if fail is caused by a miss, print nothing
         {
             System.out.println (user.Cname+"'s Extend failed to apply due to an immunity.");
         }
@@ -277,7 +532,7 @@ class Extend extends AfterAbility
         boolean succeed=false;
         if (together==true)
         {
-            succeed=CoinFlip.Flip(chance+hero.Cchance); 
+            succeed=CoinFlip.Flip(chance+hero.Cchance);
             if (succeed==true)
             {
                 for (StatEff eff: effs)
@@ -320,7 +575,7 @@ class Mend extends AfterAbility
     @Override 
     public void Use(Character caller, Character target, int ignore) 
     {
-        if (caller.CheckFor(caller, "Afflicted", false)==false) 
+        if (caller.CheckFor("Afflicted", false)==false) 
         {
             boolean success=CoinFlip.Flip(chance+caller.Cchance);
             if (success==true&&target.dead==false)
@@ -330,6 +585,20 @@ class Mend extends AfterAbility
         }
         else
         System.out.println (caller.Cname+"'s Mend failed to apply due to a conflicting status effect.");
+    }
+}
+class MendPassive extends AfterAbility //restoring missing health; for deadpool and dr. doom
+{
+    int amount; 
+    public MendPassive (int aamount)
+    {
+        amount=aamount;
+    }
+    @Override 
+    public void Use(Character caller, Character target, int ignore) 
+    {
+        if (target.dead==false)
+        Character.Healed(target, amount, true);
     }
 }
 class Nullify extends AfterAbility
@@ -376,7 +645,7 @@ class Nullify extends AfterAbility
                 }
             }
         }
-        else
+        else if (!(user.binaries.contains("Missed"))) //if fail is caused by a miss, print nothing
         {
             System.out.println (user.Cname+"'s Nullify failed to apply due to an immunity.");
         }
@@ -430,7 +699,7 @@ class Nullify extends AfterAbility
                 while (falg==false);
                 StatEff ton= effs.get(index);
                 System.out.println(target.Cname+"'s "+ton.geteffname()+" was Nullified!");
-                target.remove(target, ton.hashcode, "nullify");                     
+                target.remove(ton.hashcode, "nullify");                     
                 effs.remove(index);
                 if (effs.size()<=0)
                 {
@@ -470,7 +739,7 @@ class Nullify extends AfterAbility
                 int rando=(int) (Math.random()*(effs.size()-1));
                 StatEff get=effs.get(rando);
                 System.out.println(target.Cname+"'s "+get.geteffname()+" was Nullified!");
-                target.remove(target, get.hashcode, "nullify");                
+                target.remove(get.hashcode, "nullify");                
                 effs.remove(rando);
                 if (effs.size()<=0)
                 {
@@ -490,7 +759,7 @@ class Nullify extends AfterAbility
                 for (StatEff eff: effs)
                 {
                     System.out.println(target.Cname+"'s "+eff.geteffname()+" was Nullified!");
-                    target.remove(target, eff.hashcode, "nullify"); 
+                    target.remove(eff.hashcode, "nullify"); 
                 }
             }
             else
@@ -506,7 +775,7 @@ class Nullify extends AfterAbility
                 if (succeed==true)
                 {
                     System.out.println(target.Cname+"'s "+eff.geteffname()+" was Nullified!");
-                    target.remove(target, eff.hashcode, "nullify");                     
+                    target.remove(eff.hashcode, "nullify");                     
                 }
                 else
                 {
@@ -614,7 +883,7 @@ class Purify extends AfterAbility
                 while (falg==false);
                 StatEff ton= effs.get(index);                  
                 System.out.println(target.Cname+"'s "+ton.geteffname()+" was Purified!");
-                target.remove(target, ton.hashcode, "purify");   
+                target.remove(ton.hashcode, "purify");   
                 effs.remove(index);
                 if (effs.size()<=0)
                 {
@@ -654,7 +923,7 @@ class Purify extends AfterAbility
                 int rando=(int) (Math.random()*(effs.size()-1));
                 StatEff get=effs.get(rando);
                 System.out.println(target.Cname+"'s "+get.geteffname()+" was Purified!");
-                target.remove(target, get.hashcode, "purify");
+                target.remove(get.hashcode, "purify");
                 effs.remove(rando);
                 if (effs.size()<=0)
                 {
@@ -674,7 +943,7 @@ class Purify extends AfterAbility
                 for (StatEff eff: effs)
                 {
                     System.out.println(target.Cname+"'s "+eff.geteffname()+" was Purified!");
-                    target.remove(target, eff.hashcode, "purify"); 
+                    target.remove(eff.hashcode, "purify"); 
                 }
             }
             else
@@ -690,7 +959,7 @@ class Purify extends AfterAbility
                 if (succeed==true)
                 {                    
                     System.out.println(target.Cname+"'s "+eff.geteffname()+" was Purified!");
-                    target.remove(target, eff.hashcode, "purify"); 
+                    target.remove(eff.hashcode, "purify"); 
                 }
                 else
                 {
@@ -698,6 +967,71 @@ class Purify extends AfterAbility
                 }
             }
         }
+    }
+}
+class ReduceCD extends AfterAbility
+{
+    boolean chosen; int amount;
+    public ReduceCD (boolean c, int a)
+    {
+        chosen=c; amount=a;
+    }
+    @Override
+    public void Use (Character user, Character target, int ignoreme)
+    {
+        boolean go=false;
+        for (Ability a: target.abilities)
+        {
+            if (a!=null&&a.singleuse==false&&a.dcd>0)
+            {
+                go=true; break; //must have at least one ab on cd or there's nothing to reduce
+            }
+        }
+        if (go==true&&chosen==false)
+        {
+            for (Ability a: target.abilities)
+            {
+                if (a!=null&&a.singleuse==false&&a.dcd>0)
+                {
+                    if (amount>0)
+                    System.out.println(a.GetAbName(target)+" had its cooldown reduced by "+amount+" turn(s).");
+                    else 
+                    System.out.println(a.GetAbName(target)+" had its cooldown increased by "+Math.abs(amount)+" turn(s).");
+                    a.CDReduction(amount);
+                }
+            }
+        }
+        else if (go==true)
+        {
+            Ability victim=null; int choice=-1; boolean good=false;
+            System.out.println ("\nChoose one of "+target.Cname+"'s abilities. Type its number, not its name.");
+            for (int i=0; i<5; i++)
+            {
+                int a=i+1;
+                if (target.abilities[i]!=null&&target.abilities[i].singleuse==false&&target.abilities[i].dcd>0)
+                {
+                    System.out.println (a+": "+target.abilities[i].GetAbName(target));  
+                }
+            }
+            do
+            {
+                choice=Damage_Stuff.GetInput(); 
+                --choice; //to get the index number since the number entered was the ability number
+                if (choice<5&&choice>=0)
+                {
+                    good=true;
+                    victim=target.abilities[choice];
+                }
+            }
+            while (good==false);
+            if (amount>0)
+            System.out.println(victim.GetAbName(target)+" had its cooldown reduced by "+amount+" turn(s).");
+            else 
+            System.out.println(victim.GetAbName(target)+" had its cooldown increased by "+Math.abs(amount)+" turn(s).");
+            victim.CDReduction(amount);
+        }
+        else
+        System.out.println("All of "+target.Cname+"'s abilities are already off cooldown!");
     }
 }
 class Ricochet extends AfterAbility //do ricochet damage
@@ -720,6 +1054,18 @@ class Ricochet extends AfterAbility //do ricochet damage
             else
             System.out.println(user.Cname+"'s Ricochet failed to apply due to chance.");
         }
+    }
+}
+class Suicide extends AfterAbility //the thing minions use in suicide attacks
+{
+    public Suicide ()
+    {
+    }
+    @Override
+    public void Use (Character hero, Character target, int ignore)
+    {
+        if (hero.dead==false) //from reflect or something; no need to die again
+        hero.onDeath(null, "knull");
     }
 }
 class Summoning extends AfterAbility
@@ -810,7 +1156,7 @@ class Update extends AfterAbility //adds tracker to hero to make it clear that t
                     ok=false; break;
                 }
             }
-            if (ok==true) //although unlikely, still pointless to let this show twice since its effect doesn't stack
+            if (ok==true) //although unlikely to happen, still pointless to let this show twice since its effect doesn't stack
             hero.effects.add(new Tracker ("Twin Blades active")); 
             break;
         }

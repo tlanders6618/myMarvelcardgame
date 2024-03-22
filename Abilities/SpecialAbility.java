@@ -13,14 +13,14 @@ public abstract class SpecialAbility
    {
        hashcode=Card_HashCode.RandomCode();
    }
-   public int Use(Character hero, Character target) //for before abs
+   public int Use(Character hero, Character target) //for before abs; called before ab is used, after choosing targets
    {
        return 0;
    }
-   public void Use (Character caller, Character target, int dmg) //for after abs
+   public void Use (Character caller, Character target, int dmg) //for after abs; called after attacking with an ab, before applying stateffs
    {
    }
-   public int Use (Character user, int dmg, Character target) //only for helpers, ignore, and chain; not before or after abs
+   public int Use (Character user, int dmg, Character target) //only for helpers, ignore, and chain; not before or after abs; called after an ab is used
    {
        return dmg;
    }
@@ -28,7 +28,7 @@ public abstract class SpecialAbility
    {
    }
 }
-//a target's helpers trigger onattacked and all helpers are called in battle, AFTER their hero's turn ends
+//a target's helpers trigger onattacked and all helpers in hero.helpers are called/undone in battle, AFTER their hero's turn ends
 class BonusTurnHelper extends SpecialAbility 
 {
     boolean used=false;
@@ -265,7 +265,7 @@ class RedwingHelper extends SpecialAbility
                     break; //since there can only be one redwing
                 }
             }
-            victim.remove(victim, removee.hashcode, "normal");
+            victim.remove(removee.hashcode, "normal");
             victim.helpers.remove(remov);
             victim.immunities.remove("Debuffs"); 
         }

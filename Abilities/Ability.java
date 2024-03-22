@@ -20,7 +20,7 @@ public abstract class Ability
     //friendly means ally, enemy, both, either, self, ally inc, ally exc
     //target is single, self, multitarg, random, or aoe 
     boolean aoe=false; boolean attack=false;
-    boolean blind=false; //blind is usually checked after beforeabs but not in all cases; keeps track of whether blind was checked to avoid checking it twice
+    boolean blind=false, evade=false; //blind and evade are usually checked after using beforeabs but not in all cases; keeps track of if they were checked to avoid checking twice
     int multiuse=0; int cd=0; int dcd=0; //all abilities are initially displayed with 0 cooldown (dcd) and switch to their listed cooldowns after use 
     ArrayList <Character> ctargets; //for channelled abs
     ArrayList<SpecialAbility> special= new ArrayList<SpecialAbility>(); 
@@ -41,10 +41,10 @@ public abstract class Ability
          * interrupt is removed, and the ab enters its cd
          * */
     }    
-    public abstract boolean CheckUse (Character user, Ability ab);
-    public String GetAbName (Character hero, Ability ab)
+    public abstract boolean CheckUse (Character user);
+    public String GetAbName (Character hero)
     {
-        boolean useable=CheckUse(hero, ab);
+        boolean useable=this.CheckUse(hero);
         if (useable==true&&dcd==0)
         {
             return this.oname;
@@ -71,11 +71,11 @@ public abstract class Ability
             do
             {
                 uses=Damage_Stuff.GetInput();
-                ++uses;
-                if (uses>0&&uses<=multiuse)
+                if (uses>=0&&uses<=multiuse)
                 {
                     typo=false;
                 }
+                ++uses;
             }
             while (typo==true);
         }
@@ -119,6 +119,19 @@ public abstract class Ability
                     {
                         change=ob.Use(user, chump); //apply unique ability functions before attacking; this only affects before abs
                     } 
+                    if (this.attack==true)
+                    {
+                        if (chump.team1!=user.team1) //hitting an enemy
+                        {
+                            if (blind==false) //only check blind once per attack
+                            Damage_Stuff.CheckBlind(user);
+                            user.AttackNoDamage(user, chump, aoe); //let chump know he's been attacked
+                        }
+                    }
+                    for (SpecialAbility ob: special)
+                    {
+                        ob.Use(user, chump, 0); //apply unique ability functions after attacking; this only activates after abs
+                    } 
                     for (String[][] array: tempstrings)
                     {  
                         StatEff New=StatFactory.MakeStat(array, user); 
@@ -154,7 +167,7 @@ public abstract class Ability
                            otherapply.add(New);
                        }
                        else
-                        {
+                       {
                             if (user.hash==chump.hash)
                             {
                                 selfapply.add(New);
@@ -163,21 +176,8 @@ public abstract class Ability
                             {
                                 otherapply.add(New);
                             }
-                        }
+                       }
                     }
-                    if (this.attack==true)
-                    {
-                        if (chump.team1!=user.team1) //hitting an enemy
-                        {
-                            if (blind==false) //only check blind once per attack
-                            Damage_Stuff.CheckBlind(user);
-                            user.AttackNoDamage(user, chump, aoe); //let chump know he's been attacked
-                        }
-                    }
-                    for (SpecialAbility ob: special)
-                    {
-                        ob.Use(user, chump, 0); //apply unique ability functions after attacking; this only activates after abs
-                    } 
                     toadd=Ability.ApplyStats(user, chump, together, selfapply, otherapply);
                     if (aoe==false)
                     {
@@ -205,7 +205,7 @@ public abstract class Ability
                     {
                         user.binaries.remove("Missed");
                     }
-                    this.blind=false;
+                    this.blind=false; this.evade=false;
                     for (SpecialAbility ob: special)
                     {
                         ob.Use(user, 616, chump); 
@@ -232,22 +232,15 @@ public abstract class Ability
         {
             dcd+=cd;
         }
-        return toadd;
+        return toadd; 
     }
     public void CDReduction(int amount)
     {
+        dcd-=amount;
         if (dcd<=0)
         {
             dcd=0; //no negative cooldowns
         }
-        else 
-        {
-            dcd-=amount;
-            if (dcd<0)
-            {
-                dcd=0; 
-            }
-        } 
     }
     public void SetChannelled (Character hero, Ability ab, ArrayList<Character> targets)
     {
@@ -450,7 +443,7 @@ public abstract class Ability
                     {
                         user.binaries.remove("Missed");
                     }
-                    this.blind=false;
+                    this.blind=false; this.evade=false;
                     for (SpecialAbility ob: special)
                     {
                         ob.Use(user, 616, chump); //for now this only activates chain
@@ -625,11 +618,11 @@ public abstract class Ability
                         {
                             StatEff.applyfail(hero, eff, "immune");
                         }
-                        else if (eff.getefftype().equalsIgnoreCase("Debuffs")&&hero.CheckFor(hero, "Neutralise", false)==true&&!(hero.ignores.contains("Neutralise")))
+                        else if (eff.getefftype().equalsIgnoreCase("Debuffs")&&hero.CheckFor("Neutralise", false)==true&&!(hero.ignores.contains("Neutralise")))
                         {
                             StatEff.applyfail(hero, eff, "conflict");
                         }
-                        else if (eff.getefftype().equalsIgnoreCase("Buffs")&&hero.CheckFor(hero, "Undermine", false)==true&&!(hero.ignores.contains("Undermine")))
+                        else if (eff.getefftype().equalsIgnoreCase("Buffs")&&hero.CheckFor("Undermine", false)==true&&!(hero.ignores.contains("Undermine")))
                         { 
                             StatEff.applyfail(hero, eff, "conflict");
                         }
@@ -637,7 +630,7 @@ public abstract class Ability
                         {
                             StatEff.applyfail(hero, eff, "conflict");
                         }
-                        else if (eff.getefftype().equalsIgnoreCase("Heal")&&hero.CheckFor(hero, "Afflicted", false)==true&&!(hero.ignores.contains("Afflicted")))
+                        else if (eff.getefftype().equalsIgnoreCase("Heal")&&hero.CheckFor("Afflicted", false)==true&&!(hero.ignores.contains("Afflicted")))
                         {
                             StatEff.applyfail(hero, eff, "conflict");
                         }
@@ -679,11 +672,11 @@ public abstract class Ability
                         {
                             StatEff.applyfail(hero, eff, "immune");
                         }
-                        else if (eff.getefftype().equalsIgnoreCase("Debuffs")&&hero.CheckFor(hero, "Neutralise", false)==true&&!(hero.ignores.contains("Neutralise")))
+                        else if (eff.getefftype().equalsIgnoreCase("Debuffs")&&hero.CheckFor("Neutralise", false)==true&&!(hero.ignores.contains("Neutralise")))
                         {
                             StatEff.applyfail(hero, eff, "conflict");
                         }
-                        else if (eff.getefftype().equalsIgnoreCase("Buffs")&&hero.CheckFor(hero, "Undermine", false)==true&&!(hero.ignores.contains("Undermine")))
+                        else if (eff.getefftype().equalsIgnoreCase("Buffs")&&hero.CheckFor("Undermine", false)==true&&!(hero.ignores.contains("Undermine")))
                         { 
                             StatEff.applyfail(hero, eff, "conflict");
                         }
@@ -691,7 +684,7 @@ public abstract class Ability
                         {
                             StatEff.applyfail(hero, eff, "conflict");
                         }
-                        else if (eff.getefftype().equalsIgnoreCase("Heal")&&hero.CheckFor(hero, "Afflicted", false)==true&&!(hero.ignores.contains("Afflicted")))
+                        else if (eff.getefftype().equalsIgnoreCase("Heal")&&hero.CheckFor("Afflicted", false)==true&&!(hero.ignores.contains("Afflicted")))
                         {
                             StatEff.applyfail(hero, eff, "conflict");
                         }

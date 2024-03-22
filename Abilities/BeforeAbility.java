@@ -93,7 +93,7 @@ class ApplyShatter extends BeforeAbility //shatter applies before attacking, and
             start=user.Cname+"'s Shatter";
             System.out.println(start+" failed to apply due to an immunity.");
         }
-        if (ok==true&&(user.CheckFor(user, "Neutralise", false)==true&&!(user.ignores.contains("Neutralise"))))
+        if (ok==true&&(user.CheckFor("Neutralise", false)==true&&!(user.ignores.contains("Neutralise"))))
         {
             ok=false; String start=null;
             if (debuff==true)
@@ -118,7 +118,7 @@ class ApplyShatter extends BeforeAbility //shatter applies before attacking, and
                     {
                         if (eff.getefftype().equalsIgnoreCase("Defence"))
                         {
-                            target.remove(target, eff.hashcode, "normal");
+                            target.remove(eff.hashcode, "normal");
                         }
                     }
                 }
@@ -155,8 +155,11 @@ class BeforeNullify extends BeforeAbility //same as nullify but before doing dmg
     @Override
     public int Use (Character user, Character target)
     {
-        Damage_Stuff.CheckBlind(user); user.activeability.blind=true;
-        if (!(target.immunities.contains("Nullify"))&&!(target.immunities.contains("Other"))&&(!(user.binaries.contains("Missed"))||user.immunities.contains("Missed"))) 
+        if (user.activeability.blind==false)
+        {
+            Damage_Stuff.CheckBlind(user); user.activeability.blind=true;
+        }
+        if (!(target.immunities.contains("Nullify"))&&!(target.immunities.contains("Other"))&&!(user.binaries.contains("Missed")))
         {
             String[] neffname= new String [efftype.length]; 
             for (int i=0; i<efftype.length; i++) //this is really only for brawn; required for the overloaded CoinFlip.GetEffs 
@@ -164,7 +167,11 @@ class BeforeNullify extends BeforeAbility //same as nullify but before doing dmg
                 neffname[i]=effname; 
             }
             ArrayList <StatEff> effs=CoinFlip.GetEffs(target, neffname, efftype); //the effs on the target that are eligible to be nullified
-            Damage_Stuff.CheckEvade(user, target); //since this occurs before the attack method that normally checks evade, it must be checked here
+            if (user.activeability.evade==false)
+            {
+                Damage_Stuff.CheckEvade(user, target); //since this occurs before the attack method that normally checks evade, it must be checked here
+                user.activeability.evade=true;
+            }
             if (effs.size()>0&&!(user.binaries.contains("Missed")))
             {
                 if (type.equals("chosen"))
@@ -185,7 +192,7 @@ class BeforeNullify extends BeforeAbility //same as nullify but before doing dmg
                 }
             }
         }
-        else
+        else if (!(user.binaries.contains("Missed"))) //if fail is caused by a miss, print nothing
         {
             System.out.println (user.Cname+"'s Nullify failed to apply due to an immunity.");
         }
@@ -240,7 +247,7 @@ class BeforeNullify extends BeforeAbility //same as nullify but before doing dmg
                 while (falg==false);
                 StatEff ton= effs.get(index);                  
                 System.out.println(target.Cname+"'s "+ton.geteffname()+" was Nullified!");
-                target.remove(target, ton.hashcode, "nullify");   
+                target.remove(ton.hashcode, "nullify");   
                 effs.remove(index);
                 if (effs.size()<=0)
                 {
@@ -280,7 +287,7 @@ class BeforeNullify extends BeforeAbility //same as nullify but before doing dmg
                 int rando=(int) (Math.random()*(effs.size()-1));
                 StatEff get=effs.get(rando);                
                 System.out.println(target.Cname+"'s "+get.geteffname()+" was Nullified!");
-                target.remove(target, get.hashcode, "nullify");
+                target.remove(get.hashcode, "nullify");
                 effs.remove(rando);
                 if (effs.size()<=0)
                 {
@@ -300,7 +307,7 @@ class BeforeNullify extends BeforeAbility //same as nullify but before doing dmg
                 for (StatEff eff: effs)
                 {
                     System.out.println(target.Cname+"'s "+eff.geteffname()+" was Nullified!");
-                    target.remove(target, eff.hashcode, "nullify"); 
+                    target.remove(eff.hashcode, "nullify"); 
                 }
             }
             else
@@ -316,7 +323,7 @@ class BeforeNullify extends BeforeAbility //same as nullify but before doing dmg
                 if (succeed==true)
                 {                    
                     System.out.println(target.Cname+"'s "+eff.geteffname()+" was Nullified!");
-                    target.remove(target, eff.hashcode, "nullify"); 
+                    target.remove(eff.hashcode, "nullify"); 
                 }
                 else
                 {
@@ -484,7 +491,10 @@ class DamageCounterRemove extends BeforeAbility //increase damage based on numbe
     public int Use(Character hero, Character target)
     {
         int dmgincrease=0;
-        Damage_Stuff.CheckBlind(hero); hero.activeability.blind=true;
+        if (hero.activeability.blind==false)
+        {
+            Damage_Stuff.CheckBlind(hero); hero.activeability.blind=true;
+        }
         if (!(hero.binaries.contains("Missed")))
         {
             if (self==true)
@@ -522,7 +532,7 @@ class DamageCounterRemove extends BeforeAbility //increase damage based on numbe
         }
         for (StatEff eff: concurrentmodificationexception)
         {
-            target.remove(target, eff.hashcode, "normal");
+            target.remove(eff.hashcode, "normal");
         }
         return increase;
     }
@@ -543,7 +553,7 @@ class DamageCounterSimple extends BeforeAbility //just checks if the target has 
         int send=0;
         if (self==true)
         {
-            boolean got=user.CheckFor(user, name, type);
+            boolean got=user.CheckFor(name, type);
             if (got==true)
             {
                 send=amount;
@@ -551,7 +561,7 @@ class DamageCounterSimple extends BeforeAbility //just checks if the target has 
         }
         else
         {
-            boolean got=target.CheckFor(target, name, type);
+            boolean got=target.CheckFor(name, type);
             if (got==true)
             {
                 send=amount;
@@ -562,18 +572,22 @@ class DamageCounterSimple extends BeforeAbility //just checks if the target has 
 }
 class DebuffMod extends BeforeAbility //for altering the debuffs an ab applies, e.g. Superior Spidey and MODOK
 {
-    int ab=0; //also may vary based on the ab the hero uses
-    public DebuffMod (int ability)
+    int index, ab=0; //also may vary based on the ab the hero uses
+    public DebuffMod (int ind)
     {
-        ab=ability;
+        index=ind;
+    }
+    public DebuffMod (int ind, int ability)
+    {
+        index=ind; ab=ability;
     }
     @Override
     public int Use (Character user, Character target)
     {
-        switch (user.index)
+        switch (index) //no distinction between summon and hero indexes bc there's no overlap due to how few heroes use debuffmod
         {
             case 2: //gamora's second passive
-            if (target.CheckFor(target, "Protect", false)==true) //protected enemies have +1 bleed dur; make sure rogue and adaptoid don't copy her passive
+            if (target.CheckFor("Protect", false)==true) //protected enemies have +1 bleed dur; make sure rogue and adaptoid don't copy her passive
             {
                 if (ab==1)
                 {
@@ -600,6 +614,42 @@ class DebuffMod extends BeforeAbility //for altering the debuffs an ab applies, 
                 }
             }
             break;
+            case 4: //ultron drone
+            if (target.CheckFor("Buffs", true)==true) //copy
+            {
+                if (!(target.immunities.contains("Copy")&&!(target.immunities.contains("Other"))))
+                {
+                    if (user.activeability.blind==false)
+                    {
+                        Damage_Stuff.CheckBlind(user); user.activeability.blind=true;
+                    }
+                    if (user.activeability.evade==false)
+                    {
+                        Damage_Stuff.CheckEvade(user, target); 
+                        user.activeability.evade=true;
+                    }
+                    if (!(user.binaries.contains("Missed")))
+                    {
+                        boolean yes=CoinFlip.Flip(100+user.Cchance);
+                        if (yes==true)
+                        {
+                            int rando=(int) (Math.random()*(target.effects.size()-1));
+                            StatEff eff= target.effects.get(rando);
+                            String name=eff.getimmunityname(); int dur=eff.oduration; int pow=eff.power;
+                            String[] morb={name, "500", Integer.toString(pow), Integer.toString(dur), "true"}; String[][] string=StatFactory.MakeParam(morb, null);
+                            System.out.println(user.Cname+" Copied "+target.Cname+"'s "+eff.geteffname()+"!");
+                            user.activeability.AddTempString(string);
+                        }
+                        else
+                        System.out.println(user.Cname+"'s Copy failed to apply due to chance.");
+                    }
+                }
+                else
+                System.out.println(user.Cname+"'s Copy failed to apply due to an immunity.");
+            }
+            else //random buff gain
+            Card_HashCode.RandomStat(user, "Ultron");
+            break;
             case 13: //modern drax
             StaticPassive.Drax(user, target, false); //check with debuff to apply
             if (user.passivecount==-2) //double passive proc
@@ -616,13 +666,13 @@ class DebuffMod extends BeforeAbility //for altering the debuffs an ab applies, 
             }
             break;
             case 19: //miles
-            if (target.CheckFor(target, "Shock", false)==true)
+            if (target.CheckFor("Shock", false)==true)
             {
                 String[] horseson={"Undermine", "500", "616", "1", "false"}; String[][] albert=StatFactory.MakeParam(horseson, null); user.activeability.AddTempString(albert);
             }
             break;
             case 20: //superior
-            if (target.CheckFor(target, "Tracer", false)==true)
+            if (target.CheckFor("Tracer", false)==true)
             {
                 String []akaban={"Countdown", "100", "80", "1", "false"}; String[][] niharu=StatFactory.MakeParam(akaban, null); user.activeability.AddTempString(niharu);
             }
@@ -632,7 +682,7 @@ class DebuffMod extends BeforeAbility //for altering the debuffs an ab applies, 
             }
             break;
             case 22: //KK
-            if (user.CheckFor(user, "Evasion", false)==true) 
+            if (user.CheckFor("Evasion", false)==true) 
             {
                 if (ab==2)
                 {
@@ -645,7 +695,7 @@ class DebuffMod extends BeforeAbility //for altering the debuffs an ab applies, 
                     user.activeability.AddTempString(fin); 
                 }
             }
-            if (user.CheckFor(user, "Mighty Blows", false)==true) 
+            if (user.CheckFor("Mighty Blows", false)==true) 
             {
                 if (ab==2)
                 {
@@ -670,14 +720,14 @@ class DebuffMod extends BeforeAbility //for altering the debuffs an ab applies, 
             }
             break;
             case 25: //agent venom
-            if (user.passivecount<=5) //attacking while losing control 
+            if (user.index==25&&user.passivecount<=5) //attacking while losing control 
             {
                 int amount=15-user.ADR; 
                 System.out.println (user.Cname+" took "+amount+" damage");
                 user.TakeDamage(user, amount, false);
                 String[]akaban={"Bleed", "100", "10", "1", "false"}; String[][] niharu=StatFactory.MakeParam(akaban, null); user.activeability.AddTempString(niharu);
             }
-            else if (user.passivecount>5&&ab==5) //shock in awe while in control
+            else if (user.index==25&&user.passivecount>5&&ab==5) //shock in awe while in control
             {
                 String[]akaban={"Undermine", "100", "616", "1", "false"}; String[][] niharu=StatFactory.MakeParam(akaban, null); user.activeability.AddTempString(niharu);
             }
@@ -709,19 +759,24 @@ class Ignore extends BeforeAbility
       toig=toignore; condition=cond; condnumber=number;
    }
    @Override
-   public int Use (Character hero, Character target) //beforeab
+   public int Use (Character hero, Character target) //beforeab; also activated during target selection 
    {
       switch (condition) //if conditions are met, add whatever needs to be ignored to the hero's ignore arraylist
       {
-         case "always": Ignore.Execute(hero, toig, true); success=true; break;
+         case "always": 
+         if (success==false) //to avoid triggering twice when called both times
+         {
+             Ignore.Execute(hero, toig, true); success=true; 
+         }
+         break;
          case "enemy health below": 
-         if (target.HP<=condnumber) 
+         if (target!=null&&target.HP<=condnumber) 
          {
              Ignore.Execute(hero, toig, true); success=true;
          }
          break; 
          case "passive": 
-         if (hero.passivecount==1) //if the hero's passive has been triggered
+         if (success==false&&hero.passivecount==1) //if the hero's passive has been triggered; just fury jr atm
          {
              Ignore.Execute (hero, toig, true); success=true;
          }
@@ -752,6 +807,7 @@ class Ignore extends BeforeAbility
               case "Counter": hero.ignores.add("Counter"); break;
               case "Inescapable": CoinFlip.AddInescapable (hero, true); break;
               case "Missed": hero.immunities.add("Missed"); break;
+              case "Invisible": hero.ignores.add("Invisible"); break;
               case "Afflicted": hero.ignores.add("Afflicted"); break;
               case "Neutralise": hero.ignores.add("Neutralise"); break;
               case "Undermine": hero.ignores.add("Undermine"); break;
@@ -768,6 +824,7 @@ class Ignore extends BeforeAbility
               case "Counter": hero.ignores.remove("Counter"); break;
               case "Inescapable": CoinFlip.AddInescapable (hero, false); break;
               case "Missed": hero.immunities.remove("Missed"); break;
+              case "Invisible": hero.ignores.remove("Invisible"); break;
               case "Afflicted": hero.ignores.remove("Afflicted"); break;
               case "Neutralise": hero.ignores.remove("Neutralise"); break;
               case "Undermine": hero.ignores.remove("Undermine"); break;
