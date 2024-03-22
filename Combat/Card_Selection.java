@@ -34,7 +34,7 @@ public class Card_Selection
             {
                 Cname=Damage_Stuff.GetInput(); 
                 good=false;
-                if (Cname==616||Cname<=0||Cname>26) //updated as more characters are released in each version
+                if (Cname==616||Cname<=0||Cname>29) //updated as more characters are released in each version
                 {
                     System.out.println("Index number not found.");
                 }
@@ -66,7 +66,7 @@ public class Card_Selection
         do
         {
             rename=Damage_Stuff.GetInput();
-            if (rename==616||rename<=0||rename>26)
+            if (rename==616||rename<=0||rename>29)
             {
                 System.out.println("Index number not found.");
             }
@@ -80,7 +80,7 @@ public class Card_Selection
     }
     public static boolean OnlyOne (int chosen, int[] others) //Ensures players cannot choose duplicate heroes. 
     { 
-        //Chosen is the name the player entered; the other names are already chosen heroes
+        //Chosen is the name the player entered; the other names are previously selected heroes
         boolean unique=true;  
         for (int i: others)
         {
@@ -148,10 +148,20 @@ public class Card_Selection
             case 20: //inescapable
             for (Character c: list)
             {
-                if (c!=null&&c.CheckFor(c, "Tracer", false)==true&&c.targetable==true&&!(c.binaries.contains("Banished")))
+                if (c!=null&&c.CheckFor("Tracer", false)==true&&c.targetable==true&&!(c.binaries.contains("Banished")))
                 safe.add(c);
             }
             break;
+        }
+        if (hero.activeability!=null) //war machine's passive triggers before he uses any abilities
+        {
+            for (SpecialAbility s: hero.activeability.special) //has to be called here or else the ignore is applied after target filtering
+            {
+                if (s instanceof Ignore)
+                {
+                    int ignore=s.Use(hero, null);
+                }
+            }
         }
         for (Character c: team) //can't target banished enemies
         {
@@ -197,7 +207,7 @@ public class Card_Selection
         }
         if (team.size()>1&&((hero.team1==true&&Battle.p2solo!=true)||(hero.team1==false&&Battle.p1solo!=true))) 
         {
-            if (hero.CheckFor(hero, "Terror", false)==true&&!(hero.ignores.contains("Terror")))
+            if (hero.CheckFor("Terror", false)==true&&!(hero.ignores.contains("Terror")))
             {
                 ArrayList <Integer> afraid= new ArrayList <Integer>(); //terror only works if the one the hero is terrified of isn't alone
                 for (StatEff eff: hero.effects)
@@ -231,7 +241,7 @@ public class Card_Selection
             remove.removeAll(remove);
         }
         ArrayList <Integer> nafraid= new ArrayList <Integer>();
-        if (hero.CheckFor(hero, "Provoke", false)==true&&!(hero.ignores.contains("Provoke")))
+        if (hero.CheckFor("Provoke", false)==true&&!(hero.ignores.contains("Provoke")))
         {
             for (StatEff eff: hero.effects)
             {

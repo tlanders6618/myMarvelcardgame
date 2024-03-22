@@ -17,6 +17,44 @@ public class Damage_Stuff
         dmg=DamageDecrease(dealer, crit, chump, dmg);
         return dmg;
     }
+    public static void CheckBarrier (Character hero, Character dealer, int dmg) //called as part of every damage calculation; for taking health dmg 
+    {
+        if (hero.CheckFor("Barrier", false)==true)
+        {
+            if (dealer!=null&&(dealer.ignores.contains("Barrier")||dealer.ignores.contains("Defence")))
+            {
+            }
+            else if (hero.BHP>=dmg) 
+            {
+                if (dealer==null)//update barrier strength if dmg was done by dot
+                {
+                    for (StatEff e: hero.effects)
+                    {
+                        if (e.getimmunityname().equals("Barrier")) //attacked is otherwise only triggered when taking dmg from another hero
+                        {
+                            e.Attacked(hero, dealer, dmg); //need barrier to trigger attacked here too in order to adjust its value and avoid bugs
+                        }
+                    }
+                }
+            }
+            else if (hero.BHP<dmg) //barrier broken; can't absorb all the damage
+            {
+                hero.HP=(hero.HP+hero.BHP)-dmg; 
+                if (dealer==null)
+                {
+                    for (StatEff e: hero.effects)
+                    {
+                        if (e.getimmunityname().equals("Barrier"))
+                        {
+                            e.Attacked(hero, dealer, dmg);
+                        }
+                    }
+                }
+            }
+        }
+        else
+        hero.HP-=dmg;
+    }
     public static int GetInput()
     {
         int choice; 
@@ -84,7 +122,7 @@ public class Damage_Stuff
     public static void CheckBlind (Character hero)
     {
         boolean nomiss=true; 
-        if (!(hero.binaries.contains("Missed"))&&!(hero.immunities.contains("Missed"))&&hero.CheckFor(hero, "Blind", false)==true&&!(hero.ignores.contains("Blind")))
+        if (!(hero.binaries.contains("Missed"))&&!(hero.immunities.contains("Missed"))&&hero.CheckFor("Blind", false)==true&&!(hero.ignores.contains("Blind")))
         {
             nomiss=CoinFlip.Flip(hero.accuracy);
             if (nomiss==false)
@@ -96,7 +134,7 @@ public class Damage_Stuff
     }
     public static void CheckEvade (Character dealer, Character target)
     {
-        if (!(dealer.binaries.contains("Missed"))&&!(dealer.immunities.contains("Missed"))&&(target.CheckFor(target, "Evade", false)==true||target.CheckFor(target, "Evasion", false)==true))
+        if (!(dealer.binaries.contains("Missed"))&&!(dealer.immunities.contains("Missed"))&&(target.CheckFor("Evade", false)==true||target.CheckFor("Evasion", false)==true))
         {
             if (!(dealer.ignores.contains("Evade"))&&!(target.binaries.contains("Shattered"))&&!(target.binaries.contains("Stunned")))
             {
@@ -107,14 +145,14 @@ public class Damage_Stuff
                         if (effect.getefftype().equalsIgnoreCase("Defence")&&!(dealer.ignores.contains("Defence"))) //evade is a defence effect
                         {
                             System.out.println ("\n"+target.Cname+" Evaded "+dealer.Cname+"'s attack!");
-                            target.remove(target, effect.hashcode, "normal");
+                            target.remove(effect.hashcode, "normal");
                             dealer.binaries.add("Missed");
                             break;
                         }
                         else if (effect.getefftype().equalsIgnoreCase("Other")) //evade Effects cannot be stopped
                         {
                             System.out.println ("\n"+target.Cname+" Evaded "+dealer.Cname+"'s attack!");
-                            target.remove(target, effect.hashcode, "normal");
+                            target.remove(effect.hashcode, "normal");
                             dealer.binaries.add("Missed");
                             break;
                         }

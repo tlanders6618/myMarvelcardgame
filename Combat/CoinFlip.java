@@ -68,17 +68,97 @@ public class CoinFlip
         }
         return effs;
     }
-    public static ArrayList GetEffsND (Character hero) //for non damaging debuffs
+    public static ArrayList GetEffs (Character hero, String[] effname, String[] efftype, String ex, boolean type) //same as above but excluding a certain type
+    {
+        ArrayList<StatEff> effs=new ArrayList<StatEff>();
+        for (int i=0; i<effname.length; i++)
+        {
+            for (StatEff eff: hero.effects)
+            {
+               if ((effname[i].equalsIgnoreCase("any")||eff.getimmunityname().equalsIgnoreCase(effname[i]))&&(efftype[i].equalsIgnoreCase("any")||eff.getefftype().equalsIgnoreCase(efftype[i])))
+               {
+                    if (type==false&&!(eff.getimmunityname().equals(ex)))
+                    effs.add(eff);
+                    else if (type==true&&!(eff.getefftype().equals(ex)))
+                    effs.add(eff);
+               }
+            }
+        }
+        return effs;
+    }
+    public static ArrayList GetEffsND (Character hero, boolean stunner) //for non damaging debuffs; stunner is whether stun should be included or not
     {
         ArrayList<StatEff> effs=new ArrayList<StatEff>();
         for (StatEff eff: hero.effects)
         {
            if (eff.getalttype().equals("nondamaging")&&eff.getefftype().equalsIgnoreCase("Debuffs"))
            {
+               if (stunner==true)
+               effs.add(eff); 
+               else if (stunner==false&&!(eff.getimmunityname().equals("Stun")))
                effs.add(eff); 
            }
         }
         return effs;
+    }
+    public static int GetStatCount (Character hero, String name, String type)
+    {
+        int num=0;
+        for (StatEff eff: hero.effects)
+        {
+            if ((eff.getimmunityname().equalsIgnoreCase(name)||name.equalsIgnoreCase("any"))&&(eff.getefftype().equalsIgnoreCase(type)||type.equalsIgnoreCase("any")))
+            {
+                ++num;
+            }
+        }
+        return num;
+    }
+    public static StatEff GetRandomStatEff (Character hero, String name, String type) //ensure size is appropriate before calling this and whatnot
+    {
+        int go=CoinFlip.GetStatCount (hero, name, type); //gets random stateffs of a specific type, e.g. debuffs
+        if (go>0)
+        {
+            if (name.equalsIgnoreCase("any")&&!(type.equalsIgnoreCase("any")))
+            {
+                int rando=hero.effects.size();
+                do
+                {
+                    rando= (int)(Math.random()*hero.effects.size());
+                }
+                while (!(hero.effects.get(rando).getefftype().equalsIgnoreCase(type)));
+                return hero.effects.get(rando); 
+            }
+            else if (type.equalsIgnoreCase("any")&&!(name.equalsIgnoreCase("any")))
+            {
+                int rando=hero.effects.size();
+                do
+                {
+                    rando= (int)(Math.random()*hero.effects.size());
+                }
+                while (!(hero.effects.get(rando).getimmunityname().equalsIgnoreCase(name)));
+                return hero.effects.get(rando); //returns the effect in the array at the index of the given random index number
+            }
+            else if (type.equalsIgnoreCase("any")&&name.equalsIgnoreCase("any"))
+            {
+                int rando=hero.effects.size(); 
+                rando= (int)(Math.random()*hero.effects.size());
+                return hero.effects.get(rando); 
+            }
+            else
+            {
+                int rando=hero.effects.size();
+                do
+                {
+                    rando= (int)(Math.random()*hero.effects.size());
+                }
+                while (!(hero.effects.get(rando).getefftype().equalsIgnoreCase(type))||!(hero.effects.get(rando).getimmunityname().equalsIgnoreCase(name)));
+                return hero.effects.get(rando); 
+            }
+        }
+        else
+        {
+            return null;
+        }
     }
     public static void IgnoreTargeting (Character hero, boolean add)
     {

@@ -111,12 +111,12 @@ public class Battle
         p2teamsize+=(Char21.size+Char22.size+Char23.size);
         team1=SetTurnOrder(Char11, Char12, Char13);
         team2=SetTurnOrder(Char21, Char22, Char23);
-        Char11.onFightStart(Char11); 
-        Char21.onFightStart(Char21); 
-        Char12.onFightStart(Char12); 
-        Char22.onFightStart(Char22); 
-        Char13.onFightStart(Char13); 
-        Char23.onFightStart(Char23); 
+        Char11.onFightStart(); 
+        Char21.onFightStart(); 
+        Char12.onFightStart(); 
+        Char22.onFightStart(); 
+        Char13.onFightStart(); 
+        Char23.onFightStart(); 
         //test
         //Battle.SummonSomeone(Char21, new Summon(7)); Battle.SummonSomeone(Char21, new Summon(7)); Battle.SummonSomeone(Char21, new Summon(7));  
     }
@@ -151,7 +151,7 @@ public class Battle
                     }
                     for (StatEff e: concurrent)
                     {
-                        champions[P1active].remove(champions[P1active], e.hashcode, "normal");
+                        champions[P1active].remove(e.hashcode, "normal");
                     }
                     hero=champions[P1active];
                     fine=true;
@@ -166,7 +166,7 @@ public class Battle
             else if (champions[P1active].binaries.contains("Stunned")) //turn skip if not alone, but stateffs still tick
             {
                 System.out.println ("\n"+champions[P1active].Cname+" skips their turn due to being Stunned.");
-                champions[P1active].onTurn(champions[P1active], true);
+                champions[P1active].onTurn(true);
                 ArrayList<StatEff> modificationexception= new ArrayList<StatEff>(); modificationexception.addAll(champions[P1active].effects);
                 for (StatEff e: modificationexception)
                 {
@@ -224,7 +224,7 @@ public class Battle
                     }
                     for (StatEff e: concurrent)
                     {
-                        champions[P2active].remove(champions[P2active], e.hashcode, "normal");
+                        champions[P2active].remove(e.hashcode, "normal");
                     }
                     hero=champions[P2active];
                     fine=true;
@@ -239,7 +239,7 @@ public class Battle
             else if (champions[P2active].binaries.contains("Stunned"))
             {
                 System.out.println ("\n"+champions[P2active].Cname+" skips their turn due to being Stunned.");
-                champions[P2active].onTurn(champions[P2active], true);
+                champions[P2active].onTurn(true);
                 ArrayList<StatEff> modificationexception= new ArrayList<StatEff>(); modificationexception.addAll(champions[P2active].effects);
                 for (StatEff e: modificationexception)
                 {
@@ -327,9 +327,9 @@ public class Battle
         ArrayList<Character> targets= new ArrayList<Character>(); //chars to hit with ab
         ArrayList<StatEff> selfadd= new ArrayList<StatEff>(); //status effects for hero to apply to self
         if (bonus==false) //makes distinction between bonus turns and normal turns to avoid quicksilver taking infinite turns
-        hero.onTurn(hero, true);
+        hero.onTurn(true);
         else
-        hero.onTurn(hero, false);
+        hero.onTurn(false);
         Scoreboard.UpdateScore(team1, team2);
         if (hero.dead==false) //if they have not died from DoT damage
         {
@@ -337,7 +337,7 @@ public class Battle
             ArrayList<StatEff> selfadd2= new ArrayList<StatEff>(); //to save unbound ab's stateffs to be applied at turn end
             while (flag==false) 
             {
-                activeAb=hero.ChooseAb(hero); //hero chooses an ab to use, which then becomes their activeability
+                activeAb=hero.ChooseAb(); //hero chooses an ab to use, which then becomes their activeability
                 if (activeAb==null) //hero chose to skip turn; end instantly since there's no ab to use
                 break;
                 else 
@@ -764,7 +764,7 @@ public class Battle
         {
             if (p1teamsize<6&&(p1teamsize+size)<=6) //they cannot have more than 6 characters per team, or the equivalent
             {
-                friend.mysummoner=summoner;
+                friend.passivefriend[0]=summoner;
                 Battle.AddSummon(friend);
                 Character[] friends=Battle.GetTeammates(summoner); //after they're summoned, allies and enemies apply relevant passives
                 for (Character prot: friends)
@@ -792,7 +792,7 @@ public class Battle
         {
             if (p2teamsize<6&& (p2teamsize+size)<=6) 
             {
-                friend.mysummoner=summoner;
+                friend.passivefriend[0]=summoner;
                 Battle.AddSummon(friend);
                 Character[] friends=Battle.GetTeammates(summoner);
                 for (Character prot: friends)
@@ -845,7 +845,7 @@ public class Battle
             p2teamsize+=friend.size;
             p2heroes++;
         }
-        System.out.println(friend.mysummoner.Cname+" Summoned "+friend.Cname);
+        System.out.println(friend.passivefriend[0].Cname+" Summoned "+friend.Cname);
         friend.onSummon(friend);
     }
     public static int CheckWin ()
