@@ -147,7 +147,7 @@ class Regen extends HealEff
         --this.duration;
         if (this.duration<=0)
         {
-            hero.remove(hero, this.hashcode, "normal");
+            hero.remove(this.hashcode, "normal");
         }
     }
     @Override

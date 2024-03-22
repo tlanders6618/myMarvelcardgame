@@ -14,6 +14,63 @@ abstract class DefEff extends StatEff
     {
     }
 }
+class Barrier extends DefEff
+{
+    @Override
+    public String getimmunityname()
+    {
+        return "Barrier";
+    }
+    @Override 
+    public String getefftype()
+    {
+        return "Defence";
+    }
+    @Override
+    public String geteffname()
+    {
+        return "Barrier: "+this.power+", "+this.duration+" turn(s)";
+    }
+    public Barrier (int nchance, int npower, int ndur) 
+    {
+        this.chance=nchance;
+        this.power=npower;
+        this.duration=ndur;
+        this.oduration=ndur;
+        this.hashcode=Card_HashCode.RandomCode();
+    }
+    @Override
+    public void onTurnEnd (Character hero)
+    {
+        --this.duration; 
+        if (this.duration<=0||this.power==0)
+        {
+            hero.remove(this.hashcode, "normal");
+        }
+    }
+    @Override
+    public void onApply (Character hero) 
+    {
+        hero.BHP+=this.power;
+    }
+    @Override
+    public void Attacked (Character hero, Character attacker, int dmg)
+    {
+        this.power-=dmg;
+        hero.BHP-=dmg;
+        if (this.power<0)
+        this.power=0;
+        if (hero.BHP<0)
+        hero.BHP=0;
+    }
+    @Override
+    public void Nullified(Character target)
+    {  
+        target.BHP-=this.power; 
+        if (target.BHP<0)
+        target.BHP=0;
+    }
+}
 class Evade extends DefEff
 {
     @Override
@@ -56,7 +113,7 @@ class Protect extends DefEff
         myfriend.duration+=dur;
         if (this.duration<=0)
         {
-            protector.remove(protector, this.hashcode, "normal");
+            protector.remove(this.hashcode, "normal");
         }
     }
     @Override
@@ -90,7 +147,7 @@ class Protect extends DefEff
         if (this.duration<=0) 
         {
             removed=true;
-            hero.remove(hero, this.hashcode, "normal");
+            hero.remove(this.hashcode, "normal");
         }
         else
         myfriend.lessprotected();
@@ -110,9 +167,9 @@ class Protect extends DefEff
     public void onApply (Character hero) 
     {
         boolean taunter=false, invis=false, dupe=false;        
-        if (Character.CheckFor(weakling, "Taunt", false)==true||Character.CheckFor(protector, "Taunt", false)==true)
+        if (weakling.CheckFor("Taunt", false)==true||protector.CheckFor("Taunt", false)==true)
         taunter=true;  
-        if (Character.CheckFor(weakling, "Invisible", false)==true||Character.CheckFor(protector, "Invisible", false)==true)
+        if (weakling.CheckFor("Invisible", false)==true||protector.CheckFor("Invisible", false)==true)
         invis=true;  
         for (StatEff e: protector.effects)
         {
@@ -133,21 +190,21 @@ class Protect extends DefEff
             System.out.println ("Taunting characters cannot be Protected.");
             myfriend=null;
             removed=true;
-            hero.remove(hero, this.hashcode, "silent");
+            hero.remove(this.hashcode, "silent");
         }
         else if (invis==true)
         {
             System.out.println ("Invisible characters cannot be Protected.");
             myfriend=null;
             removed=true;
-            hero.remove(hero, this.hashcode, "silent");
+            hero.remove(this.hashcode, "silent");
         }
         else if (dupe==true)
         {
             System.out.println ("Characters who already have Protect cannot be Protected.");
             myfriend=null;
             removed=true;
-            hero.remove(hero, this.hashcode, "silent");
+            hero.remove(this.hashcode, "silent");
         }
         else 
         {
@@ -155,7 +212,7 @@ class Protect extends DefEff
             myfriend=pr;
             pr.myfriend=this;
             pr.PrepareProtect(protector, weakling);
-            weakling.add(weakling, pr);
+            weakling.add(pr);
             String s;
             if (duration>500)
             {
@@ -175,7 +232,7 @@ class Protect extends DefEff
         removed=true;
         if (myfriend!=null&&myfriend.removed==false) 
         {
-            weakling.remove(weakling, myfriend.hashcode, "normal");
+            weakling.remove(myfriend.hashcode, "normal");
         }
     }
     @Override
@@ -254,7 +311,7 @@ class Protected extends DefEff
         if (this.duration<=0)
         {
             removed=true;
-            weakling.remove(weakling, this.hashcode, "normal");
+            weakling.remove(this.hashcode, "normal");
         }
     }
     @Override
@@ -263,7 +320,7 @@ class Protected extends DefEff
         removed=true;
         if (myfriend!=null&&myfriend.removed==false)
         {
-            protector.remove(protector, myfriend.hashcode, "normal");
+            protector.remove(myfriend.hashcode, "normal");
         }
     }
 }
@@ -371,7 +428,7 @@ class Taunt extends DefEff
         }
         for (StatEff eff: effs) //taunting heroes cannot be protected or invisible
         {
-            hero.remove(hero, eff.hashcode, "normal");
+            hero.remove(eff.hashcode, "normal");
         }
     }
 }

@@ -77,7 +77,7 @@ class Empower extends OtherEff
     {
         if (uses<=0)
         {
-            hero.remove(hero, this.hashcode, "normal");
+            hero.remove(this.hashcode, "normal");
         }
     }
 }
@@ -260,7 +260,7 @@ class ProtectE extends OtherEff
         myfriend.duration+=dur;
         if (this.duration<=0)
         {
-            protector.remove(protector, this.hashcode, "normal");
+            protector.remove(this.hashcode, "normal");
         }
     }
     @Override
@@ -294,7 +294,7 @@ class ProtectE extends OtherEff
         if (this.duration<=0) 
         {
             removed=true;
-            hero.remove(hero, this.hashcode, "normal");
+            hero.remove(this.hashcode, "normal");
         }
         else
         myfriend.lessprotected();
@@ -314,9 +314,9 @@ class ProtectE extends OtherEff
     public void onApply (Character hero) 
     {
         boolean taunter=false, invis=false, dupe=false;        
-        if (Character.CheckFor(weakling, "Taunt", false)==true||Character.CheckFor(protector, "Taunt", false)==true)
+        if (weakling.CheckFor("Taunt", false)==true||protector.CheckFor("Taunt", false)==true)
         taunter=true;  
-        if (Character.CheckFor(weakling, "Invisible", false)==true||Character.CheckFor(protector, "Invisible", false)==true)
+        if (weakling.CheckFor("Invisible", false)==true||protector.CheckFor("Invisible", false)==true)
         invis=true;  
         for (StatEff e: protector.effects)
         {
@@ -337,21 +337,21 @@ class ProtectE extends OtherEff
             System.out.println ("Taunting characters cannot be Protected.");
             myfriend=null;
             removed=true;
-            hero.remove(hero, this.hashcode, "silent");
+            hero.remove(this.hashcode, "silent");
         }
         else if (invis==true)
         {
             System.out.println ("Invisible characters cannot be Protected.");
             myfriend=null;
             removed=true;
-            hero.remove(hero, this.hashcode, "silent");
+            hero.remove(this.hashcode, "silent");
         }
         else if (dupe==true)
         {
             System.out.println ("Characters who already have Protect cannot be Protected.");
             myfriend=null;
             removed=true;
-            hero.remove(hero, this.hashcode, "silent");
+            hero.remove(this.hashcode, "silent");
         }
         else 
         {
@@ -359,7 +359,7 @@ class ProtectE extends OtherEff
             myfriend=pr;
             pr.myfriend=this;
             pr.PrepareProtect(protector, weakling);
-            weakling.add(weakling, pr);
+            weakling.add(pr);
             String s;
             if (duration>500)
             {
@@ -379,7 +379,7 @@ class ProtectE extends OtherEff
         removed=true;
         if (myfriend!=null&&myfriend.removed==false) 
         {
-            weakling.remove(weakling, myfriend.hashcode, "normal");
+            weakling.remove(myfriend.hashcode, "normal");
         }
     }
     @Override
@@ -458,7 +458,7 @@ class ProtectedE extends OtherEff
         if (this.duration<=0)
         {
             removed=true;
-            weakling.remove(weakling, this.hashcode, "normal");
+            weakling.remove(this.hashcode, "normal");
         }
     }
     @Override
@@ -467,7 +467,7 @@ class ProtectedE extends OtherEff
         removed=true;
         if (myfriend!=null&&myfriend.removed==false)
         {
-            protector.remove(protector, myfriend.hashcode, "normal");
+            protector.remove(myfriend.hashcode, "normal");
         }
     }
 }
@@ -569,6 +569,93 @@ class ResistanceE extends OtherEff
         hero.PRDR-=power;   
     }
 }
+class SnareE extends DebuffEff 
+{
+    @Override
+    public String getimmunityname()
+    {
+        return "Snare";
+    }
+    @Override 
+    public String getefftype() 
+    {
+        return "Other";
+    }
+    @Override
+    public String geteffname()
+    {
+        String name;
+        if (this.duration<100)
+        {
+            name="Snare Effect, "+this.duration+" turn(s)";
+            return name;
+        }
+        else
+        {
+            name="Snare Effect";
+            return name;
+        }
+    }
+    public SnareE (int nchance)
+    {
+        this.chance=nchance;
+        this.hashcode=Card_HashCode.RandomCode();
+    }
+    public SnareE (int nchance, int nduration)
+    {
+        this.duration=nduration;
+        this.oduration=nduration;
+        this.chance=nchance;
+        this.hashcode=Card_HashCode.RandomCode();
+    }
+    public void onApply (Character target)
+    {
+        Battle.Snared(target);
+    }
+    @Override
+    public void Nullified (Character target)
+    {
+        Battle.Speeded(target);
+    }
+}
+class StunE extends DebuffEff
+{
+    @Override
+    public String getimmunityname()
+    {
+        return "Stun";
+    }
+    @Override 
+    public String getefftype()
+    {
+        return "Other";
+    }
+    public void onApply (Character target)
+    {
+       target.binaries.add("Stunned");
+       if (target.activeability!=null&&target.activeability.channelled==true)
+       {
+           target.activeability.InterruptChannelled(target, target.activeability);
+       }
+    }
+    public StunE (int nchance, int d)
+    {
+        this.chance=nchance;
+        this.hashcode=Card_HashCode.RandomCode();
+        this.duration=d; 
+        this.oduration=d;
+    }
+    @Override
+    public String geteffname() 
+    {
+       return "Stun Effect, "+duration+ " turn(s)"; 
+    }
+    @Override
+    public void Nullified (Character target)
+    {
+        target.binaries.remove("Stunned");
+    }
+}
 class Tracer extends OtherEff
 {
     @Override
@@ -620,7 +707,7 @@ class WMTarget extends OtherEff
         }
         for (StatEff eff: concurrentmodificationexception2electricboogaloo)
         {
-            target.remove(target, eff.hashcode, "normal");
+            target.remove(eff.hashcode, "normal");
         }
     }
     @Override

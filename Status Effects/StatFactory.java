@@ -34,7 +34,9 @@ public class StatFactory
         switch (param[0][0]) //param[1] is secondary stat for effs like counter and countdown to apply, e.g. a debuff or ricochet
         {
             case "Afflicted": eff=new Afflicted (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3])); break;  
+            case "Barrier": eff= new Barrier (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][2]), Integer.valueOf(param[0][3])); break;
             case "Bleed": eff=new Bleed (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][2]), Integer.valueOf(param[0][3])); break;
+            case "Bulwark": eff=new Bulwark (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3])); break;  
             case "Burn": eff=new Burn (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][2]), Integer.valueOf(param[0][3])); break;    
             case "Countdown": eff=new Countdown (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][2]), Integer.valueOf(param[0][3]), param[1]); break;
             case "Counter": eff=new Counter (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][2]), Integer.valueOf(param[0][3]), param[1]); break; 
@@ -53,6 +55,8 @@ public class StatFactory
             case "Invisible": eff= new Invisible (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3])); break;
             case "Mighty Blows": eff= new MightyBlows (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3])); break;
             case "Neutralise": eff= new Neutralise (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3])); break;
+            case "Placebo (Buff)": eff= new PlaceboB(Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3])); break;
+            case "Placebo (Debuff)": eff= new PlaceboD(Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3])); break;
             case "Poison": eff=new Poison (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][2]), Integer.valueOf(param[0][3])); break;
             case "Precision": eff=new Precision (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3])); break;
             case "Protect": eff=new Protect (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3])); break;
@@ -64,8 +68,10 @@ public class StatFactory
             case "Shatter": eff= new Shatter (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3])); break;
             case "Shock": eff= new Shock (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][2]), Integer.valueOf(param[0][3])); break;
             case "Snare": eff= new Snare (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3])); break;
+            case "SnareE": eff= new SnareE (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3])); break;
             case "Speed": eff=new Speed(Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3])); break;
             case "Stun": eff=new Stun (Integer.valueOf(param[0][1])); break;
+            case "StunE": eff=new StunE (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3])); break;
             case "Target": eff=new Target (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][2]), Integer.valueOf(param[0][3])); break;
             case "Taunt": eff=new Taunt (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3])); break;
             case "Terror": eff=new Terror(Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3]), Q); break;

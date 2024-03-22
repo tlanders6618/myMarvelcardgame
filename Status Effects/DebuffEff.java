@@ -113,11 +113,11 @@ class Bleed extends DebuffEff
     @Override
     public void onTurnStart (Character hero)
     {
-        hero.DOTdmg(hero, this.power, "bleed");
+        hero.DOTdmg(this.power, "bleed");
         --this.duration;
         if (this.duration<=0)
         {
-            hero.remove(hero, this.hashcode, "normal");
+            hero.remove(this.hashcode, "normal");
         }
     }
     @Override
@@ -181,11 +181,11 @@ class Burn extends DebuffEff
     @Override
     public void onTurnStart (Character hero)
     {
-        hero.DOTdmg(hero, this.power, "burn");
+        hero.DOTdmg(this.power, "burn");
         --this.duration;
         if (this.duration<=0)
         {
-            hero.remove(hero, this.hashcode, "normal");
+            hero.remove(this.hashcode, "normal");
         }
     }
     @Override
@@ -255,7 +255,7 @@ class Countdown extends DebuffEff
         --this.duration;
         if (this.duration<=0)
         {
-            hero.remove(hero, this.hashcode, "normal");
+            hero.remove(this.hashcode, "normal");
             int dmg=this.power; 
             dmg=dmg-hero.ADR; //countdown dmg not affected by resistance
             if (dmg<0)
@@ -520,6 +520,55 @@ class Neutralise extends DebuffEff
        return "Neutralise, "+duration+ " turn(s)"; 
     }
 }
+class PlaceboD extends DebuffEff
+{
+    @Override
+    public String getimmunityname()
+    {
+        return "Placebo (Debuff)";
+    }
+    @Override 
+    public String getefftype()
+    {
+        return "Debuffs";
+    }
+    @Override
+    public String getalttype() 
+    {
+        return "nondamaging";
+    }
+    @Override
+    public String geteffname()
+    {
+        String name;
+        if (duration<100)
+        {
+            name="Placebo (Debuff), "+this.duration+" turn(s)";
+            return name;
+        }
+        else
+        {
+            name="Placebo (Debuff)";
+            return name;
+        }
+    }
+    public PlaceboD (int nchance)
+    {
+        this.chance=nchance;
+        this.hashcode=Card_HashCode.RandomCode();
+    }
+    public PlaceboD (int nchance, int nduration)
+    {
+        this.duration=nduration;
+        this.oduration=nduration;
+        this.chance=nchance;
+        this.hashcode=Card_HashCode.RandomCode();
+    }
+    @Override
+    public void onApply (Character target)
+    {
+    }
+}
 class Poison extends DebuffEff 
 {
     @Override
@@ -571,11 +620,11 @@ class Poison extends DebuffEff
     @Override
     public void onTurnStart (Character hero)
     {
-        hero.DOTdmg(hero, this.power, "poison");
+        hero.DOTdmg(this.power, "poison");
         --this.duration;
         if (this.duration<=0)
         {
-            hero.remove(hero, this.hashcode, "normal");
+            hero.remove(this.hashcode, "normal");
         }
     }
     @Override
@@ -645,7 +694,7 @@ class Provoke extends DebuffEff
         }
         for (StatEff e: remove)
         {
-            target.remove(target, e.hashcode, "normal");
+            target.remove( e.hashcode, "normal");
         }
     }
     @Override
@@ -687,7 +736,7 @@ class Shatter extends DebuffEff
         {
             if (eff.getefftype().equalsIgnoreCase("Defence"))
             {
-                target.remove(target, eff.hashcode, "normal");
+                target.remove(eff.hashcode, "normal");
             }
         }
     }
@@ -770,11 +819,11 @@ class Shock extends DebuffEff
     @Override
     public void onTurnStart (Character hero)
     {
-        hero.DOTdmg(hero, this.power, "shock");
+        hero.DOTdmg(this.power, "shock");
         --this.duration;
         if (this.duration<=0)
         {
-            hero.remove(hero, this.hashcode, "normal");
+            hero.remove(this.hashcode, "normal");
         }
     }
     @Override
@@ -993,13 +1042,13 @@ class Terror extends DebuffEff
         }
         for (StatEff e: remove)
         {
-            target.remove(target, e.hashcode, "normal");
+            target.remove(e.hashcode, "normal");
         }
     }
     @Override
     public int UseTerrorProvoke ()
     {
-        if (progenitor.CheckFor(progenitor, "Taunt", false)==false&&progenitor.CheckFor(progenitor, "Protect", false)==false) //taunt and protect supersede terror
+        if (progenitor.CheckFor("Taunt", false)==false&&progenitor.CheckFor("Protect", false)==false) //taunt and protect supersede terror
         return progenitor.hash;
         else 
         return 0;

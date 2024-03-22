@@ -15,6 +15,55 @@ public abstract class BuffEff extends StatEff
     {
     }
 }
+class Bulwark extends BuffEff 
+{
+    @Override
+    public String getimmunityname()
+    {
+        return "Bulwark";
+    }
+    @Override 
+    public String getefftype() 
+    {
+        return "Buffs";
+    }
+    @Override
+    public String geteffname()
+    {
+        String name;
+        if (this.duration<100)
+        {
+            name="Bulwark, "+this.duration+" turn(s)";
+            return name;
+        }
+        else
+        {
+            name="Bulwark";
+            return name;
+        }
+    }
+    public Bulwark (int nchance)
+    {
+        this.chance=nchance;
+        this.hashcode=Card_HashCode.RandomCode();
+    }
+    public Bulwark (int nchance, int nduration)
+    {
+        this.duration=nduration;
+        this.oduration=nduration;
+        this.chance=nchance;
+        this.hashcode=Card_HashCode.RandomCode();
+    }
+    public void onApply (Character target)
+    {
+        target.CritDR+=50;      
+    }
+    @Override
+    public void Nullified (Character target)
+    {
+        target.CritDR-=50;
+    }
+}
 class Counter extends BuffEff 
 {
     ArrayList<String[]>statstrings= new ArrayList<String[]>();
@@ -294,7 +343,7 @@ class Invisible extends BuffEff
         }
         for (StatEff e: r)
         {
-            target.remove(target, e.hashcode, "normal");
+            target.remove(e.hashcode, "normal");
         }
     }
 }
@@ -378,6 +427,50 @@ class MightyBlows extends BuffEff
                 }
             }
         }
+    }
+}
+class PlaceboB extends BuffEff
+{
+    @Override
+    public String getimmunityname()
+    {
+        return "Placebo (Buff)";
+    }
+    @Override 
+    public String getefftype()
+    {
+        return "Buffs";
+    }
+    @Override
+    public String geteffname()
+    {
+        String name;
+        if (duration<100)
+        {
+            name="Placebo (Buff), "+this.duration+" turn(s)";
+            return name;
+        }
+        else
+        {
+            name="Placebo (Buff)";
+            return name;
+        }
+    }
+    public PlaceboB (int nchance)
+    {
+        this.chance=nchance;
+        this.hashcode=Card_HashCode.RandomCode();
+    }
+    public PlaceboB (int nchance, int nduration)
+    {
+        this.duration=nduration;
+        this.oduration=nduration;
+        this.chance=nchance;
+        this.hashcode=Card_HashCode.RandomCode();
+    }
+    @Override
+    public void onApply (Character target)
+    {
     }
 }
 class Precision extends BuffEff 

@@ -27,7 +27,7 @@ public abstract class StatEff
         --this.duration;
         if (this.duration<=0)
         {
-            hero.remove(hero, this.hashcode, "normal");
+            hero.remove(this.hashcode, "normal");
         }
     }
     public abstract String geteffname(); //name to be displayed on scoreboard, including strength and duration
@@ -46,7 +46,7 @@ public abstract class StatEff
         this.duration+=d;
         if (this.duration<=0)
         {
-            hero.remove(hero, this.hashcode, "normal");
+            hero.remove(this.hashcode, "normal");
         }
     }
     public void PrepareProtect (Character tank, Character weak)
@@ -97,11 +97,11 @@ public abstract class StatEff
         {
             StatEff.applyfail(hero, effect, "immune");
         }
-        else if (effect.getefftype().equalsIgnoreCase("Debuffs")&&hero.CheckFor(hero, "Neutralise", false)==true&&!(hero.ignores.contains("Neutralise")))
+        else if (effect.getefftype().equalsIgnoreCase("Debuffs")&&hero.CheckFor("Neutralise", false)==true&&!(hero.ignores.contains("Neutralise")))
         {
             StatEff.applyfail(hero, effect, "conflict");
         }
-        else if (effect.getefftype().equalsIgnoreCase("Buffs")&&hero.CheckFor(hero, "Undermine", false)==true&&!(hero.ignores.contains("Undermine")))
+        else if (effect.getefftype().equalsIgnoreCase("Buffs")&&hero.CheckFor("Undermine", false)==true&&!(hero.ignores.contains("Undermine")))
         { 
             StatEff.applyfail(hero, effect, "conflict");
         }
@@ -109,7 +109,7 @@ public abstract class StatEff
         {
             StatEff.applyfail(hero, effect, "conflict");
         }
-        else if (effect.getefftype().equalsIgnoreCase("Heal")&&hero.CheckFor(hero, "Afflicted", false)==true&&!(hero.ignores.contains("Afflicted")))
+        else if (effect.getefftype().equalsIgnoreCase("Heal")&&hero.CheckFor("Afflicted", false)==true&&!(hero.ignores.contains("Afflicted")))
         {
             StatEff.applyfail(hero, effect, "conflict");
         }
@@ -126,14 +126,14 @@ public abstract class StatEff
             {
                 if (speed==true)
                 {
-                    if (friends[i]!=null&&friends[i].CheckFor(friends[i], "Speed", false)==true) 
+                    if (friends[i]!=null&&friends[i].CheckFor("Speed", false)==true) 
                     {
                         good=false; break;
                     }
                 }
                 else if (snare==true)
                 {
-                    if (friends[i]!=null&&friends[i].CheckFor(friends[i], "Snare", false)==true)
+                    if (friends[i]!=null&&friends[i].CheckFor("Snare", false)==true)
                     {
                         good=false; break;
                     }
@@ -144,7 +144,7 @@ public abstract class StatEff
                 boolean apple=effect.CheckStacking(target, effect, effect.stackable); 
                 if (apple==true)
                 {
-                    target.add(target, effect);
+                    target.add(effect);
                 }
                 else
                 StatEff.applyfail(hero, effect, "dupe");
@@ -156,7 +156,7 @@ public abstract class StatEff
         {
             boolean apple=effect.CheckStacking(target, effect, effect.stackable); 
             if (apple==true)
-            target.add(target, effect);
+            target.add(effect);
             else
             StatEff.applyfail(hero, effect, "dupe");
         }
@@ -175,7 +175,7 @@ public abstract class StatEff
                 {   //there's already an effect of the exact same type trying to be applied
                     if (effect.power>targeteff.power) //but if the new effect is stronger, it replaces the old one
                     {
-                        target.remove(target, targeteff.hashcode, "normal"); 
+                        target.remove(targeteff.hashcode, "normal"); 
                         return true;
                     }
                     else
