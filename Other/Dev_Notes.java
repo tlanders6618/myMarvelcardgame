@@ -56,12 +56,11 @@ public class Dev_Notes
      * iceman's passive can just use debuffmod for deciding whether to apply freeze or not
      * 
      * To Do
-     * double check glossary desc before doing assist and multitarget
+     * double check glossary desc before doing multitarget
      * attack method no longer trigger onattacked for aoe abs; attackab must trigger it if ab is aoe
      * 
      * Keep in mind:
      * For unique Other effects, check for their interaction methods, e.g. characters cannot evade while submerged so change evade criteria
-     * When making changes to status effects, make the change to its Other counterpart too (e.g. change ShatterE when changing Shatter)
      * Sourceless damage (e.g. reflection) must print the took damage statement on their own; tookdamage will not
      * 
      * Known issues   
