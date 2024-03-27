@@ -1,3 +1,4 @@
+
 package myMarvelcardgamepack;
 
 
@@ -31,27 +32,13 @@ class ActivateP extends BeforeAbility //ability activates a hero's passive
         {
             case 11: ActivePassive.FuryJr(user, false, false, false, true); break;
             case 13: StaticPassive.Drax(user, null, true); break;
-            case 23: 
-            if (num==2)
+            case 23: ++user.passivecount; System.out.println(user.Cname+" gained 1 Energy."); //gain energy but don't transform mid attack to avoid bugs
+            for (StatEff e: user.effects) 
             {
-                ++user.passivecount; ++user.passivecount; System.out.println(user.Cname+" gained 2 Energy.");
-                for (StatEff e: user.effects) //update displayed energy count
-                {
-                    if (e instanceof Tracker)
-                    e.Attacked(user, null, 616);
-                }
-            }
-            else if (num==1)
-            {
-                ++user.passivecount; System.out.println(user.Cname+" gained 1 Energy."); 
-                for (StatEff e: user.effects) 
-                {
-                    if (e instanceof Tracker)
-                    e.Attacked(user, null, 616);
-                }
+                if (e instanceof Tracker)
+                e.Attacked(user, null, 616);
             }
             break;
-            case 26: int ignore=StaticPassive.MODOC(user, target, false, false, 0); break;
         }
         return 0;
     }
@@ -76,7 +63,7 @@ class ApplyShatter extends BeforeAbility //shatter applies before attacking, and
             String[][] sjatter=StatFactory.MakeParam(initial, null);
             shatter=StatFactory.MakeStat(sjatter, user);
         }
-        if (user.activeability.blind=false)
+        if (user.activeability!=null&&user.activeability.blind==false)
         {
             Damage_Stuff.CheckBlind(user); user.activeability.blind=true;
         }
@@ -140,7 +127,7 @@ class ApplyShatter extends BeforeAbility //shatter applies before attacking, and
         return 0;
     }
 }
-class BeforeNullify extends BeforeAbility //same as nullify but before doing dmg
+class BeforeNullify extends BeforeAbility //same as nullify but quick; only wm and brawn use this for now
 {
     String effname; //name of buff to nullify
     String[] efftype; //since amadeus can nullify things other than buffs
@@ -155,7 +142,7 @@ class BeforeNullify extends BeforeAbility //same as nullify but before doing dmg
     @Override
     public int Use (Character user, Character target)
     {
-        if (user.activeability.blind==false)
+        if (user.activeability!=null&&user.activeability.blind==false)
         {
             Damage_Stuff.CheckBlind(user); user.activeability.blind=true;
         }
@@ -167,7 +154,7 @@ class BeforeNullify extends BeforeAbility //same as nullify but before doing dmg
                 neffname[i]=effname; 
             }
             ArrayList <StatEff> effs=CoinFlip.GetEffs(target, neffname, efftype); //the effs on the target that are eligible to be nullified
-            if (user.activeability.evade==false)
+            if (user.activeability!=null&&user.activeability.evade==false)
             {
                 Damage_Stuff.CheckEvade(user, target); //since this occurs before the attack method that normally checks evade, it must be checked here
                 user.activeability.evade=true;
@@ -224,7 +211,7 @@ class BeforeNullify extends BeforeAbility //same as nullify but before doing dmg
         }
         if (todo>0) 
         {
-            System.out.println ("Choose "+todo+" buff(s) to Nullify from "+target.Cname+".");
+            System.out.println ("\nChoose "+todo+" buff(s) to Nullify from "+target.Cname+".");
             System.out.println ("Enter the number next to it, not its name."); 
             for (int i=0; i<todo; i++)
             {
@@ -248,6 +235,14 @@ class BeforeNullify extends BeforeAbility //same as nullify but before doing dmg
                 StatEff ton= effs.get(index);                  
                 System.out.println(target.Cname+"'s "+ton.geteffname()+" was Nullified!");
                 target.remove(ton.hashcode, "nullify");   
+                String name=ton.getimmunityname(); 
+                if (hero.index==30&&!(name.equals("Protect"))&&!(name.equals("Taunt"))) //brawn's passive; can copy indefinite dur stateffs bc why not
+                {
+                    int dur=ton.oduration; int pow=ton.power;
+                    String[] morb={name, "500", Integer.toString(pow), Integer.toString(dur), "true"}; String[][] string=StatFactory.MakeParam(morb, null);
+                    StatEff e=StatFactory.MakeStat(string, hero);
+                    StatEff.CheckApply(hero, hero, e);
+                }
                 effs.remove(index);
                 if (effs.size()<=0)
                 {
@@ -288,6 +283,14 @@ class BeforeNullify extends BeforeAbility //same as nullify but before doing dmg
                 StatEff get=effs.get(rando);                
                 System.out.println(target.Cname+"'s "+get.geteffname()+" was Nullified!");
                 target.remove(get.hashcode, "nullify");
+                String name=get.getimmunityname(); 
+                if (hero.index==30&&!(name.equals("Protect"))&&!(name.equals("Taunt")))
+                {
+                    int dur=get.oduration; int pow=get.power;
+                    String[] morb={name, "500", Integer.toString(pow), Integer.toString(dur), "true"}; String[][] string=StatFactory.MakeParam(morb, null);
+                    StatEff e=StatFactory.MakeStat(string, hero);
+                    StatEff.CheckApply(hero, hero, e);
+                }
                 effs.remove(rando);
                 if (effs.size()<=0)
                 {
@@ -491,9 +494,13 @@ class DamageCounterRemove extends BeforeAbility //increase damage based on numbe
     public int Use(Character hero, Character target)
     {
         int dmgincrease=0;
-        if (hero.activeability.blind==false)
+        if (hero.activeability!=null&&hero.activeability.blind==false)
         {
             Damage_Stuff.CheckBlind(hero); hero.activeability.blind=true;
+        }
+        if (hero.activeability!=null&&hero.activeability.evade==false&&!(hero.binaries.contains("Missed")))
+        {
+            Damage_Stuff.CheckEvade(hero, target); hero.activeability.evade=true;
         }
         if (!(hero.binaries.contains("Missed")))
         {
@@ -541,33 +548,90 @@ class DamageCounterSimple extends BeforeAbility //just checks if the target has 
 {
     int amount; //of bonus dmg 
     String name; //of efftype/name to check for; e.g. debuffs or intensify
+    String[] names=null;
     boolean type; //whether to check for efftype or effimmunityname
     boolean self; //whether to check self or enemy for the eff
-    public DamageCounterSimple (int namount, String nname, boolean etype, boolean self) 
+    boolean has; //whether the damage boost is based on if the target has the stateff or doesn't have it
+    int hp=616;
+    boolean above; //above or below the hp threshold
+    public DamageCounterSimple (int namount, String nname, boolean etype, boolean self, boolean has) 
     {
-        amount=namount; name=nname; type=etype; this.self=self;
+        amount=namount; name=nname; type=etype; this.self=self; this.has=has;
+    }
+    public DamageCounterSimple (int namount, String[] nname, boolean etype, boolean self, boolean has) 
+    {
+        amount=namount; names=nname; type=etype; this.self=self; this.has=has;
+    }
+    public DamageCounterSimple (int amount, int health, boolean self, boolean above)
+    {
+        this.amount=amount; hp=health; this.self=self; this.above=above;
     }
     @Override
     public int Use (Character user, Character target)
     {
-        int send=0;
         if (self==true)
         {
-            boolean got=user.CheckFor(name, type);
-            if (got==true)
+            if (hp!=616)
             {
-                send=amount;
+                if (above==true&&user.HP>hp)
+                return amount;
+                else if (above==false&&user.HP<hp)
+                return amount;
+            }
+            else if (names==null)
+            { 
+                boolean got=user.CheckFor(name, type);
+                if (got==true&&has==true)
+                return amount;
+                else if (got==false&&has==false)
+                return amount;
+            }
+            else
+            {
+                boolean yes;
+                for (int i=0; i<names.length; i++)
+                {
+                    yes=user.CheckFor(names[i], type); //target must have all of the required stateffs for the damage boost to apply
+                    if (has==true&&yes==false) //if they don't have even one, the dmg boost is 0
+                    return 0;
+                    else if (has==false&&yes==true) //same if they're not supposed to have any and they have even one (e.g. Brawn's "Brawn")
+                    return 0;
+                }
+                return amount;
             }
         }
         else
         {
-            boolean got=target.CheckFor(name, type);
-            if (got==true)
+            if (hp!=616)
             {
-                send=amount;
+                if (above==true&&target.HP>hp)
+                return amount;
+                else if (above==false&&target.HP<hp)
+                return amount;
+            }
+            else if (names==null)
+            {
+                boolean got=target.CheckFor(name, type);
+                if (got==true&&has==true)
+                return amount;
+                else if (got==false&&has==false)
+                return amount;
+            }
+            else
+            {
+                boolean yes;
+                for (int i=0; i<names.length; i++)
+                {
+                    yes=target.CheckFor(names[i], type); 
+                    if (has==true&&yes==false) 
+                    return 0;
+                    else if (has==false&&yes==true) 
+                    return 0;
+                }
+                return amount;
             }
         }
-        return send;
+        return 0;
     }
 }
 class DebuffMod extends BeforeAbility //for altering the debuffs an ab applies, e.g. Superior Spidey and MODOK
@@ -619,11 +683,11 @@ class DebuffMod extends BeforeAbility //for altering the debuffs an ab applies, 
             {
                 if (!(target.immunities.contains("Copy")&&!(target.immunities.contains("Other"))))
                 {
-                    if (user.activeability.blind==false)
+                    if (user.activeability!=null&&user.activeability.blind==false)
                     {
                         Damage_Stuff.CheckBlind(user); user.activeability.blind=true;
                     }
-                    if (user.activeability.evade==false)
+                    if (user.activeability!=null&&user.activeability.evade==false)
                     {
                         Damage_Stuff.CheckEvade(user, target); 
                         user.activeability.evade=true;
@@ -633,12 +697,26 @@ class DebuffMod extends BeforeAbility //for altering the debuffs an ab applies, 
                         boolean yes=CoinFlip.Flip(100+user.Cchance);
                         if (yes==true)
                         {
-                            int rando=(int) (Math.random()*(target.effects.size()-1));
-                            StatEff eff= target.effects.get(rando);
+                            StatEff eff=null;
+                            ArrayList <StatEff> effs=CoinFlip.GetEffs(target, "any", "Buffs"); //the effs on the target eligible to be copied
+                            ArrayList<StatEff> delete=new ArrayList<StatEff>();
+                            for (StatEff e: effs)
+                            {
+                                if (e.duration>100) //no copying indefinite duration effs
+                                delete.add(e);
+                            }
+                            effs.removeAll(delete);
+                            int rando=(int) (Math.random()*(effs.size()-1));
+                            eff= effs.get(rando);
                             String name=eff.getimmunityname(); int dur=eff.oduration; int pow=eff.power;
                             String[] morb={name, "500", Integer.toString(pow), Integer.toString(dur), "true"}; String[][] string=StatFactory.MakeParam(morb, null);
                             System.out.println(user.Cname+" Copied "+target.Cname+"'s "+eff.geteffname()+"!");
+                            if (user.activeability!=null&&(Battle.team1[Battle.P1active]==user||Battle.team2[Battle.P2active]==user))
                             user.activeability.AddTempString(string);
+                            else
+                            {
+                                StatEff e=StatFactory.MakeStat(string, user); StatEff.CheckApply(user, user, e);
+                            }
                         }
                         else
                         System.out.println(user.Cname+"'s Copy failed to apply due to chance.");
@@ -648,10 +726,10 @@ class DebuffMod extends BeforeAbility //for altering the debuffs an ab applies, 
                 System.out.println(user.Cname+"'s Copy failed to apply due to an immunity.");
             }
             else //random buff gain
-            Card_HashCode.RandomStat(user, "Ultron");
+            Card_HashCode.RandomStat(user, target, "Ultron");
             break;
             case 13: //modern drax
-            StaticPassive.Drax(user, target, false); //check with debuff to apply
+            StaticPassive.Drax(user, target, false); //check which debuff to apply
             if (user.passivecount==-2) //double passive proc
             {
                 String[] bloody= {"Bleed", "100", "65", "2", "false"}; String[][] gore= StatFactory.MakeParam(bloody, null); user.activeability.AddTempString(gore);
@@ -720,14 +798,7 @@ class DebuffMod extends BeforeAbility //for altering the debuffs an ab applies, 
             }
             break;
             case 25: //agent venom
-            if (user.index==25&&user.passivecount<=5) //attacking while losing control 
-            {
-                int amount=15-user.ADR; 
-                System.out.println (user.Cname+" took "+amount+" damage");
-                user.TakeDamage(user, amount, false);
-                String[]akaban={"Bleed", "100", "10", "1", "false"}; String[][] niharu=StatFactory.MakeParam(akaban, null); user.activeability.AddTempString(niharu);
-            }
-            else if (user.index==25&&user.passivecount>5&&ab==5) //shock in awe while in control
+            if (user.index==25&&user.passivecount>5) //shock in awe while in control
             {
                 String[]akaban={"Undermine", "100", "616", "1", "false"}; String[][] niharu=StatFactory.MakeParam(akaban, null); user.activeability.AddTempString(niharu);
             }
@@ -735,13 +806,60 @@ class DebuffMod extends BeforeAbility //for altering the debuffs an ab applies, 
             case 28: //arachnaught
             if (target.summoned==true)
             {
-                String []akaban={"Weakness", "100", "5", "2", "false"}; String[][] niharu=StatFactory.MakeParam(akaban, null); user.activeability.AddTempString(niharu);
-                String[] temper={"Provoke", "100", "616", "2", "false"}; String[][] invasion=StatFactory.MakeParam(temper, null); user.activeability.AddTempString(invasion);
+                String []akaban={"Weakness", "100", "5", "2", "false"}; String[][] niharu=StatFactory.MakeParam(akaban, null); 
+                String[] temper={"Provoke", "100", "616", "2", "false"}; String[][] invasion=StatFactory.MakeParam(temper, null); 
+                if (user.activeability!=null&&(Battle.team1[Battle.P1active]==user||Battle.team2[Battle.P2active]==user))
+                {
+                    user.activeability.AddTempString(niharu); user.activeability.AddTempString(invasion);
+                }
+                else
+                {
+                    StatEff e=StatFactory.MakeStat(niharu, user); StatEff.CheckApply(user, target, e);
+                    StatEff ef=StatFactory.MakeStat(invasion, user); StatEff.CheckApply(user, target, ef);
+                }
             }
             else
             {
-                String []akaban={"Weakness", "100", "5", "1", "false"}; String[][] niharu=StatFactory.MakeParam(akaban, null); user.activeability.AddTempString(niharu);
-                String[] temper={"Provoke", "100", "616", "1", "false"}; String[][] invasion=StatFactory.MakeParam(temper, null); user.activeability.AddTempString(invasion);
+                String []akaban={"Weakness", "100", "5", "1", "false"}; String[][] niharu=StatFactory.MakeParam(akaban, null); 
+                String[] temper={"Provoke", "100", "616", "1", "false"}; String[][] invasion=StatFactory.MakeParam(temper, null); 
+                if (user.activeability!=null&&(Battle.team1[Battle.P1active]==user||Battle.team2[Battle.P2active]==user))
+                {
+                    user.activeability.AddTempString(niharu); user.activeability.AddTempString(invasion);
+                }
+                else
+                {
+                    StatEff e=StatFactory.MakeStat(niharu, user); StatEff.CheckApply(user, target, e);
+                    StatEff ef=StatFactory.MakeStat(invasion, user); StatEff.CheckApply(user, target, ef);
+                }
+            }
+            break;
+            case 32: //bb
+            if (user.index==32&&ab==3)
+            {
+                int boost=user.passivecount*40; 
+                user.passivecount=0; 
+                return boost;
+            }
+            else if (user.index==32&&ab==4)
+            {
+                ApplyShatter n=null;
+                int boost=user.passivecount*20; 
+                if (user.passivecount>0)
+                n= new ApplyShatter(100+(50*user.passivecount), user.passivecount, true);
+                else
+                n= new ApplyShatter(100, 0, false);
+                n.Use(user, target);
+                user.passivecount=0; 
+                return boost;
+            }
+            break;
+            case 35: //juggernut
+            if (user.index==35&&ab==1&&user.passivecount==5)
+            return 20;
+            else if (user.index==35&&ab==5&&user.passivecount==5)
+            {
+                System.out.println(user.Cname+" is no longer unstoppable."); user.passivecount=0; user.immunities.remove("Debuffs"); 
+                return 30;
             }
             break;
         }
@@ -776,7 +894,7 @@ class Ignore extends BeforeAbility
          }
          break; 
          case "passive": 
-         if (success==false&&hero.passivecount==1) //if the hero's passive has been triggered; just fury jr atm
+         if (success==false&&hero.passivecount==condnumber) //if the hero's passive has been triggered; fury jr and juggs atm
          {
              Ignore.Execute (hero, toig, true); success=true;
          }
@@ -811,6 +929,8 @@ class Ignore extends BeforeAbility
               case "Afflicted": hero.ignores.add("Afflicted"); break;
               case "Neutralise": hero.ignores.add("Neutralise"); break;
               case "Undermine": hero.ignores.add("Undermine"); break;
+              case "Protect": hero.ignores.add("Protect"); break;
+              case "Taunt": hero.ignores.add("Taunt"); break;
           }
       }
       else
@@ -828,6 +948,8 @@ class Ignore extends BeforeAbility
               case "Afflicted": hero.ignores.remove("Afflicted"); break;
               case "Neutralise": hero.ignores.remove("Neutralise"); break;
               case "Undermine": hero.ignores.remove("Undermine"); break;
+              case "Protect": hero.ignores.remove("Protect"); break;
+              case "Taunt": hero.ignores.remove("Taunt"); break;
           }
       }
    }

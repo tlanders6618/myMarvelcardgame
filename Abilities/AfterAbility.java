@@ -1,6 +1,4 @@
 package myMarvelcardgamepack;
-
-
 /**
  * Designer: Timothy Landers
  * Date: 19/8/22
@@ -96,6 +94,209 @@ class ActivatePassive extends AfterAbility //ability activates a hero's passive 
         }
     }
 }
+class Assist extends AfterAbility 
+{
+    boolean friendly; //call ally or enemy to assist
+    int num; //of heroes performing assist
+    int bonus; //extra damage
+    boolean random; //random or chosen target to call for assist
+    int Cchance; //extra statchance
+    String[][] apply=null;
+    int chance; //to apply
+    boolean together;
+    boolean skull; //to trigger red skull's damagecounter ability bc this is the easiest way to do it
+    public Assist (boolean f, int n, int b, boolean r, int c, boolean t)
+    {
+        friendly=f; num=n; bonus=b; random=r; chance=c; together=t;
+    }
+    public Assist (boolean f, int n, int b, boolean r, int s, int c, boolean t) //hero performing assist gains status chance; mysterio
+    {
+        friendly=f; num=n; bonus=b; random=r; Cchance=s; chance=c; together=t;
+    }
+    public Assist (boolean f, int n, int b, boolean r, String[][] s, int c, boolean t) //hero doing assist gains stateff after attacking; loki
+    {
+        friendly=f; num=n; bonus=b; random=r; apply=s; chance=c; together=t;
+    }
+    @Override
+    public void Use (Character user, Character chump, int ignore) //target of the assist is same as target of the ability; if random, then ab will need to be random target
+    {
+        Character[] targets=null;
+        if (friendly==true)
+        targets=Battle.GetTeammates(user);
+        else
+        targets=Battle.GetTeam(CoinFlip.TeamFlip(user.team1));
+        boolean valid=false;
+        ArrayList<Character> champs=new ArrayList<Character>();
+        ArrayList<Ability> basics=new ArrayList<Ability>();
+        int done=0; //number of heroes who actually have basic attacks and thus are able to perform an assist
+        for (Character a: targets)
+        {
+            if (a!=null&&!(a.binaries.contains("Banished")))
+            {
+                for (Ability f: a.abilities)
+                {
+                    if (f instanceof BasicAb)
+                    {
+                        ++done; champs.add(a); basics.add(f);
+                        break;
+                    }
+                }
+            }
+            if (done>=num)
+            break;
+        }
+        int hold=done;
+        boolean print=true; //whether to print failure message for lack of eligible targets or not; don't need to print 2 reasons for failure
+        if (hold>0)
+        {
+            for (int i=0; i<hold; i++)
+            {
+                boolean yes=CoinFlip.Flip(chance+user.Cchance);
+                if (yes==true&&together==true)
+                {
+                    break; //done looping; all assists work
+                }
+                else if (yes==false&&together==true)
+                {
+                    System.out.println(user.Cname+"'s Assist failed to apply due to chance"); done=0; print=false; break; //done looping; all assists fail
+                }
+                else if (yes==false&&together==false)
+                {
+                    System.out.println(user.Cname+"'s Assist failed to apply due to chance"); --done; print=false; //keep looping; this assist fails but check others
+                }
+                //else if yes==true&&together==false, keep looping; this assist works but check others
+            }
+        }
+        if (done>0) 
+        { 
+            ArrayList<Character> nchamp=new ArrayList<Character>(); //characters who will assist, chosen from those who are able to
+            ArrayList<Ability> nbasic=new ArrayList<Ability>();
+            if (random==true)
+            {
+                for (int i=0; i<done; i++)
+                {
+                    int index=0+(int)(Math.random() * (((champs.size()-1) - 0) + 1)); //random number between 0 and champs.size-1, the highest index of a hero in champs
+                    if (champs.size()>0) //basics and champs should have same size
+                    {
+                        nchamp.add(champs.get(index)); nbasic.add(basics.get(index)); //two arraylists are designed so the hero and their basic will have the same index in both
+                        champs.remove(index); basics.remove(index); //can't have same hero be called twice by one assist
+                    }
+                }
+            }
+            else //choose who performs the assist from the available targets in champs
+            {
+                System.out.println ("Choose a character to perform the Assist. Type their number, not their name."); 
+                for (int hocley=0; hocley<done; hocley++) //can choose as many characters as are available, since the available number can't be higher than the assist's num value
+                {
+                    int choice=616;
+                    for (int i=0; i<champs.size(); i++)
+                    {
+                        System.out.println ((i+1)+": "+champs.get(i).Cname);  
+                    }
+                    do
+                    {
+                        choice=Damage_Stuff.GetInput(); 
+                        if (!(choice<=done&&choice>0)) 
+                        choice=616;
+                    }
+                    while (choice==616);
+                    nchamp.add(champs.get(choice));
+                }
+            }
+            for (int i=0; i<nchamp.size(); i++)
+            { 
+                Character dealer=nchamp.get(i); Ability ab=nbasic.get(i); 
+                boolean lose=ab.GetLose(); boolean max=ab.GetMax(); int multihit=ab.GetMultihit(true);
+                ArrayList<StatEff> selfapply=new ArrayList<StatEff>(); ArrayList<StatEff> otherapply=new ArrayList<StatEff>(); ArrayList<StatEff> toadd=new ArrayList<StatEff>();
+                do 
+                {
+                    int change=0; int damage=ab.GetBaseDmg();
+                    damage+=bonus; dealer.Cchance+=Cchance;
+                    if (skull==true) //his storm assault
+                    {
+                        DamageCounter d= new DamageCounter("Debuffs", true, 5, false, true);
+                        int add=d.Use(dealer, chump);
+                        damage+=add;
+                    }
+                    for (SpecialAbility ob: ab.special)
+                    {
+                        change=ob.Use(dealer, chump); //before abs still apply
+                        damage+=change;
+                    } 
+                    if (lose==true) 
+                    chump.LoseHP (dealer, damage, "knull");
+                    else if (max==true)
+                    chump.LoseMaxHP (dealer, damage);
+                    else //assists are elusive
+                    {
+                        damage-=chump.ADR;
+                        if (damage<0)
+                        damage=0;
+                        chump.TakeDamage(chump, dealer, damage, ab.aoe);
+                    }
+                    for (SpecialAbility ob: ab.special)
+                    {
+                        ob.Use(dealer, chump, damage); //afterabs
+                    } 
+                    for (String[][] array: ab.tempstrings)
+                    {  
+                        StatEff New=StatFactory.MakeStat(array, dealer); 
+                        if (array[0][4].equalsIgnoreCase("true"))
+                        selfapply.add(New);
+                        else if (array[0][4].equalsIgnoreCase("false")) 
+                        otherapply.add(New);
+                        else
+                        {
+                            if (dealer.hash==chump.hash)
+                            selfapply.add(New);
+                            else
+                            otherapply.add(New);
+                        }
+                    }
+                    for (String[][] array: ab.statstrings)
+                    {  
+                        StatEff New=StatFactory.MakeStat(array, dealer); 
+                        if (array[0][4].equalsIgnoreCase("true"))
+                        selfapply.add(New);
+                        else if (array[0][4].equalsIgnoreCase("false")) 
+                        otherapply.add(New);
+                        else
+                        {
+                            if (dealer.hash==chump.hash)
+                            selfapply.add(New);
+                            else
+                            otherapply.add(New);
+                        }
+                    }
+                    toadd=Ability.ApplyStats(dealer, chump, together, selfapply, otherapply);
+                    if (toadd.size()>0) //apply stateffs to self
+                    {
+                        for (StatEff eff: toadd)
+                        {
+                            eff.CheckApply(dealer, dealer, eff);
+                        }
+                    }
+                    if (ab.tempstrings.size()!=0) 
+                    ab.tempstrings.removeAll(ab.tempstrings);
+                    multihit--;
+                    for (SpecialAbility ob: ab.special)
+                    {
+                        ob.Use(dealer, 616, chump); //for now this only activates chain
+                    }
+                }
+                while (multihit>-1); //then repeat the attack for each multihit
+                if (apply!=null)
+                {
+                    StatEff bunny=StatFactory.MakeStat(apply, user); //for loki
+                    StatEff.CheckApply(user, dealer, bunny);
+                }
+                //then loop to next hero doing assist
+            }
+        }
+        else if (print==true)
+        System.out.println(user.Cname+"'s Assist failed to apply due to a lack of eligible targets.");
+    }
+}
 class CopySteal extends AfterAbility //the only difference is that steal removes the buff; otherwise they're identical so they share a method
 {
     String[] effname; //name of eff(s) to extend since mandarin can extend more than just one type
@@ -121,7 +322,7 @@ class CopySteal extends AfterAbility //the only difference is that steal removes
         valid=false;
         if (valid==true&&!(target.immunities.contains("Other"))) 
         {
-            ArrayList <StatEff> effs=CoinFlip.GetEffs(target, effname, efftype, "Protect", false); //the effs on the target eligible to be copied
+            ArrayList <StatEff> effs=CoinFlip.GetEffs(target, effname, efftype, "Protect", false); //the effs on the target eligible to be copied; protect is excluded
             ArrayList<StatEff> delete=new ArrayList<StatEff>();
             for (StatEff e: effs)
             {
@@ -227,7 +428,12 @@ class CopySteal extends AfterAbility //the only difference is that steal removes
                     target.remove(ton.hashcode, "steal");
                 }
                 String[] morb={name, "500", Integer.toString(pow), Integer.toString(dur), "true"}; String[][] string=StatFactory.MakeParam(morb, null);
+                if (hero.activeability!=null&&(Battle.team1[Battle.P1active]==hero||Battle.team2[Battle.P2active]==hero)) //to prevent bugs with assist
                 hero.activeability.AddTempString(string);
+                else
+                {
+                    StatEff e=StatFactory.MakeStat(string, hero); StatEff.CheckApply(hero, hero, e);
+                }
                 if (effs.size()<=0)
                 {
                     break;
@@ -281,7 +487,12 @@ class CopySteal extends AfterAbility //the only difference is that steal removes
                     target.remove(ton.hashcode, "steal");
                 }
                 String[] morb={name, "500", Integer.toString(pow), Integer.toString(dur), "true"}; String[][] string=StatFactory.MakeParam(morb, null);
+                if (hero.activeability!=null&&(Battle.team1[Battle.P1active]==hero||Battle.team2[Battle.P2active]==hero)) //to prevent bugs with assist
                 hero.activeability.AddTempString(string);
+                else
+                {
+                    StatEff e=StatFactory.MakeStat(string, hero); StatEff.CheckApply(hero, hero, e);
+                }
                 if (effs.size()<=0)
                 {
                     break;
@@ -308,7 +519,12 @@ class CopySteal extends AfterAbility //the only difference is that steal removes
                         target.remove(eff.hashcode, "steal");
                     }
                     String[] morb={name, "500", Integer.toString(pow), Integer.toString(dur), "true"}; String[][] string=StatFactory.MakeParam(morb, null);
+                    if (hero.activeability!=null&&(Battle.team1[Battle.P1active]==hero||Battle.team2[Battle.P2active]==hero)) //to prevent bugs with assist
                     hero.activeability.AddTempString(string);
+                    else
+                    {
+                        StatEff e=StatFactory.MakeStat(string, hero); StatEff.CheckApply(hero, hero, e);
+                    }
                 }
             }
             else
@@ -335,7 +551,12 @@ class CopySteal extends AfterAbility //the only difference is that steal removes
                         target.remove(eff.hashcode, "steal");
                     }
                     String[] morb={name, "500", Integer.toString(pow), Integer.toString(dur), "true"}; String[][] string=StatFactory.MakeParam(morb, null);
+                    if (hero.activeability!=null&&(Battle.team1[Battle.P1active]==hero||Battle.team2[Battle.P2active]==hero)) //to prevent bugs with assist
                     hero.activeability.AddTempString(string);
+                    else
+                    {
+                        StatEff e=StatFactory.MakeStat(string, hero); StatEff.CheckApply(hero, hero, e);
+                    }
                 }
                 else
                 {
@@ -364,8 +585,8 @@ class Confidence extends AfterAbility
             boolean success=CoinFlip.Flip(chance+caller.Cchance);
             if (success==true&&target.dead==false)
             {
-                Character.Healed(target, amount, false);
-                Character.Shielded(target, amount);
+                target.Healed(amount, false);
+                target.Shielded(amount);
             }
         }
         else
@@ -580,7 +801,7 @@ class Mend extends AfterAbility
             boolean success=CoinFlip.Flip(chance+caller.Cchance);
             if (success==true&&target.dead==false)
             {
-                Character.Healed(target, amount, false);
+                target.Healed(amount, false);
             }
         }
         else
@@ -598,7 +819,7 @@ class MendPassive extends AfterAbility //restoring missing health; for deadpool 
     public void Use(Character caller, Character target, int ignore) 
     {
         if (target.dead==false)
-        Character.Healed(target, amount, true);
+        target.Healed(amount, true);
     }
 }
 class Nullify extends AfterAbility
@@ -676,7 +897,7 @@ class Nullify extends AfterAbility
         }
         if (todo>0) 
         {
-            System.out.println ("Choose "+todo+" buff(s) to Nullify from "+target.Cname+".");
+            System.out.println ("\nChoose "+todo+" buff(s) to Nullify from "+target.Cname+".");
             System.out.println ("Enter the number next to it, not its name."); 
             for (int i=0; i<todo; i++)
             {
@@ -987,7 +1208,7 @@ class ReduceCD extends AfterAbility
                 go=true; break; //must have at least one ab on cd or there's nothing to reduce
             }
         }
-        if (go==true&&chosen==false)
+        if (go==true&&chosen==false) //reduce cd of all abs
         {
             for (Ability a: target.abilities)
             {
@@ -1036,22 +1257,24 @@ class ReduceCD extends AfterAbility
 }
 class Ricochet extends AfterAbility //do ricochet damage
 {
-    int chance;
+    int chance; String[][] string=null;
     public Ricochet(int cchance)
     {
         chance=cchance; 
+    }
+    public Ricochet (int chance, String[][] e) //apply stateff to enemy dmged by ricochet
+    {
+        this.chance=chance; string=e;
     }
     @Override
     public void Use (Character user, Character target, int dmg) //user is the one doing the damage 
     { 
         if ((!(user.binaries.contains("Missed"))||user.immunities.contains("Missed")))
         {
-            boolean success=CoinFlip.Flip(chance+user.Cchance);
+            boolean success=CoinFlip.Flip(chance+user.Cchance); 
             if (success==true&&dmg>5) //sends over ab's dmg dealt for ricochet calculation
-            {
-                Ability.DoRicochetDmg (dmg, target, true);            
-            }
-            else
+            Ability.DoRicochetDmg (dmg, target, true, string); 
+            else if (dmg>5) //don't print failure message if failure was due to low dmg
             System.out.println(user.Cname+"'s Ricochet failed to apply due to chance.");
         }
     }
@@ -1133,7 +1356,7 @@ class Transformation extends AfterAbility
     @Override
     public void Use (Character hero, Character ignored, int ignore)
     {
-        hero.Transform(hero, index, great);
+        hero.Transform(index, great);
     }
 }
 class Update extends AfterAbility //adds tracker to hero to make it clear that their otherwise silent otherab took effect; for drax modern, mephisto, the weaver, unstoppable colossus

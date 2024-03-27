@@ -52,6 +52,16 @@ class AttackAb extends Ability
         }
     }
     @Override
+    public boolean GetLose() //for assists
+    {
+        return lose;
+    }
+    @Override
+    public boolean GetMax()
+    {
+        return max;
+    }
+    @Override
     public ArrayList<StatEff> UseAb (Character user, Ability ab, ArrayList<Character> targets)
     { 
         boolean typo=true; int uses=1;   
@@ -128,11 +138,11 @@ class AttackAb extends Ability
                         }
                         else if (lose==true) //modified version of attacknodamage method
                         {
-                            user.AttackNoDamage(user, chump, damage, aoe, false);
+                            chump=user.AttackNoDamage(user, chump, damage, aoe, false);
                         }
                         else if (max==true)
                         {
-                            user.AttackNoDamage(user, chump, damage, aoe, true);
+                            chump=user.AttackNoDamage(user, chump, damage, aoe, true);
                         }
                         else 
                         {
@@ -166,7 +176,8 @@ class AttackAb extends Ability
                                 otherapply.add(New);
                             }
                         }
-                        toadd=Ability.ApplyStats(user, chump, together, selfapply, otherapply); 
+                        ArrayList<StatEff> holder=Ability.ApplyStats(user, chump, together, selfapply, otherapply);
+                        toadd.addAll(holder);
                         if (aoe==false)
                         {
                             for (StatEff eff: user.effects) //undo empowerments
@@ -368,11 +379,11 @@ class AttackAb extends Ability
                         }
                         else if (lose==true) //modified version of attacknodamage method
                         {
-                            user.AttackNoDamage(user, chump, damage, aoe, false);
+                            chump=user.AttackNoDamage(user, chump, damage, aoe, false);
                         }
                         else if (max==true)
                         {
-                            user.AttackNoDamage(user, chump, damage, aoe, true);
+                            chump=user.AttackNoDamage(user, chump, damage, aoe, true);
                         }
                         else 
                         {
@@ -406,7 +417,8 @@ class AttackAb extends Ability
                                 otherapply.add(New);
                             }
                         }
-                        toadd=Ability.ApplyStats(user, chump, together, selfapply, otherapply); 
+                        ArrayList<StatEff> holder=Ability.ApplyStats(user, chump, together, selfapply, otherapply);
+                        toadd.addAll(holder);
                         if (aoe==false)
                         {
                             for (StatEff eff: user.effects) //undo empowerments

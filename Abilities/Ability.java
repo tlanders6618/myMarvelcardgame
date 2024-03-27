@@ -42,6 +42,14 @@ public abstract class Ability
          * */
     }    
     public abstract boolean CheckUse (Character user);
+    public boolean GetLose() //for assists; only attackabs use this
+    {
+        return false;
+    }
+    public boolean GetMax()
+    {
+        return false;
+    }
     public String GetAbName (Character hero)
     {
         boolean useable=this.CheckUse(hero);
@@ -104,7 +112,7 @@ public abstract class Ability
             {
                 if (chump!=null) //if null, skip entirely
                 {
-                    int change=0; 
+                    int change=0; //does nothing, but beforeabs and empowers return ints so this stores them
                     if (this.aoe==false) //only empowered against the attack's target
                     {
                         for (StatEff eff: user.effects) //get empowerments
@@ -125,7 +133,7 @@ public abstract class Ability
                         {
                             if (blind==false) //only check blind once per attack
                             Damage_Stuff.CheckBlind(user);
-                            user.AttackNoDamage(user, chump, aoe); //let chump know he's been attacked
+                            chump=user.AttackNoDamage(user, chump, aoe); //let chump know he's been attacked
                         }
                     }
                     for (SpecialAbility ob: special)
@@ -162,7 +170,7 @@ public abstract class Ability
                        {
                            selfapply.add(New);
                        }
-                       else if (array[0][4].equalsIgnoreCase("false"))
+                       else if ((!(user.binaries.contains("Missed"))||user.immunities.contains("Missed"))&&array[0][4].equalsIgnoreCase("false"))
                        {
                            otherapply.add(New);
                        }
@@ -170,7 +178,7 @@ public abstract class Ability
                        {
                             if (user.hash==chump.hash)
                             {
-                                selfapply.add(New);
+                                selfapply.add(New); 
                             }
                             else
                             {
@@ -178,7 +186,8 @@ public abstract class Ability
                             }
                        }
                     }
-                    toadd=Ability.ApplyStats(user, chump, together, selfapply, otherapply);
+                    ArrayList<StatEff> holder=Ability.ApplyStats(user, chump, together, selfapply, otherapply);
+                    toadd.addAll(holder);
                     if (aoe==false)
                     {
                         for (StatEff eff: user.effects) //undo empowerments
@@ -363,7 +372,7 @@ public abstract class Ability
                         {
                             if (blind==false) //only check blind once per attack
                             Damage_Stuff.CheckBlind(user);
-                            user.AttackNoDamage(user, chump, aoe); //let chump know he's been attacked
+                            chump=user.AttackNoDamage(user, chump, aoe); //let chump know he's been attacked
                         }
                     }
                     for (SpecialAbility ob: special)
@@ -400,7 +409,7 @@ public abstract class Ability
                        {
                            selfapply.add(New);
                        }
-                       else if (array[0][4].equalsIgnoreCase("false"))
+                       else if ((!(user.binaries.contains("Missed"))||user.immunities.contains("Missed"))&&array[0][4].equalsIgnoreCase("false"))
                        {
                            otherapply.add(New);
                        }
@@ -416,7 +425,8 @@ public abstract class Ability
                             }
                         }
                     }
-                    toadd=Ability.ApplyStats(user, chump, together, selfapply, otherapply);
+                    ArrayList<StatEff> holder=Ability.ApplyStats(user, chump, together, selfapply, otherapply);
+                    toadd.addAll(holder);
                     if (aoe==false)
                     {
                         for (StatEff eff: user.effects) //undo empowerments
@@ -510,9 +520,8 @@ public abstract class Ability
         }
         return abilities;
     }
-    public static void DoRicochetDmg (int dmg, Character user, boolean shock)
+    public static void DoRicochetDmg (int dmg, Character user, boolean shock, String[][] e) //this both calculates and deals Ricochet damage to a random enemy
     {
-        //this both calculates and deals Ricochet damage to a random enemy
         double d=dmg/2; //dmg dealt divided by 2
         dmg=5*(int)(Math.floor(d/5)); //ricochet damage; rounded down
         Character villain=Ability.GetRandomHero(user, shock, true); //random enemy, or teammate if the Ricochet is from a Shock
@@ -523,6 +532,11 @@ public abstract class Ability
             {
                 System.out.println ("\n"+villain.Cname+" took "+dmg+" Ricochet damage"); 
                 villain.TakeDamage(villain, dmg, false); //random enemy takes the damage
+            }
+            if (e!=null)
+            {
+                StatEff effect=StatFactory.MakeStat(e, user);
+                StatEff.CheckApply(user, villain, effect);
             }
         }
     }
@@ -580,7 +594,7 @@ public abstract class Ability
         {
             int chance=0;
             if (selfapp.size()!=0)
-            {
+            { 
                 for (StatEff eff: selfapp)
                 {
                     chance=eff.chance;
@@ -639,7 +653,7 @@ public abstract class Ability
                             boolean apple=eff.CheckStacking(hero, eff, eff.stackable); 
                             if (apple==true)
                             {
-                                toadd.add(eff);
+                                toadd.add(eff); 
                             }
                             else
                             {

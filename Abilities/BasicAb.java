@@ -26,6 +26,21 @@ class BasicAb extends AttackAb
             this.aoe=true;
         }
     }
+    public BasicAb (String aname, String atarget, String afriendly, int dmg, int mult)
+    {
+        this.oname=aname;
+        this.friendly=afriendly;
+        this.target=atarget;
+        this.damage=dmg;
+        this.odamage=damage;
+        this.attack=true;
+        this.multihit=mult;
+        this.omulti=mult;
+        if (atarget.equalsIgnoreCase("aoe"))
+        {
+            this.aoe=true;
+        }
+    }
     @Override
     public ArrayList<StatEff> UseAb (Character user, Ability ab, ArrayList<Character> targets)
     {
@@ -101,11 +116,11 @@ class BasicAb extends AttackAb
                         }
                         else if (lose==true) 
                         {
-                            user.AttackNoDamage(user, chump, damage, aoe, false);
+                            chump=user.AttackNoDamage(user, chump, damage, aoe, false);
                         }
                         else if (max==true)
                         {
-                            user.AttackNoDamage(user, chump, damage, aoe, true);
+                            chump=user.AttackNoDamage(user, chump, damage, aoe, true);
                         }
                         else 
                         {
@@ -162,7 +177,8 @@ class BasicAb extends AttackAb
                                 }
                             }
                         }
-                        toadd=Ability.ApplyStats(user, chump, together, selfapply, otherapply);  
+                        ArrayList<StatEff> holder=Ability.ApplyStats(user, chump, together, selfapply, otherapply);
+                        toadd.addAll(holder);
                         if (aoe==false) 
                         {
                             for (StatEff eff: user.effects) //undo empowerments
