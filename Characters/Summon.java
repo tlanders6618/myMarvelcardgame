@@ -182,8 +182,7 @@ public class Summon extends Character
     @Override
     public void onTurn (boolean notbonus)
     {
-        boolean go=true;
-        switch (index)
+        switch (this.index)
         {
             case 3: SummonPassive.Crushbot(this, false); break;
             case 7: 
@@ -225,8 +224,6 @@ public class Summon extends Character
             }
             break;
         }
-        if (go==true)
-        ++this.turn;
         super.onTurn(notbonus);
     }
     @Override
@@ -250,11 +247,11 @@ public class Summon extends Character
     {
     }
     @Override
-    public void onAttack (Character hero, Character victim)
+    public void onAttack (Character victim)
     {
     }
     @Override
-    public void onCrit (Character hero, Character target)
+    public void onCrit (Character target)
     {
     }
     @Override
@@ -273,7 +270,7 @@ public class Summon extends Character
     {
     }
     @Override
-    public void HPChange (Character hero, int oldhp, int newhp)
+    public void HPChange (int oldhp, int newhp)
     {
     }
     @Override
@@ -336,15 +333,15 @@ public class Summon extends Character
         hero.HP=0;
         if (hero.HP<=0&&dot==true&&!(hero.binaries.contains("Immortal")))
         {
-            hero.onLethalDamage(hero, null, "DOT");
+            hero.onLethalDamage(null, "DOT");
         }
         else if (hero.HP<=0&&dot==false&&!(hero.binaries.contains("Immortal")))
         {
-            hero.onLethalDamage(hero, null, "other");
+            hero.onLethalDamage(null, "other");
         }
         if (hero.dead==false)
         {
-            //hero.HPChange(hero, h, hero.HP); //commented out for now since no summons use this method
+            //hero.HPChange(hero, h, hero.HP); //commented out for now since no summons use this method; saves time of checking it
         }
     }
     @Override
@@ -355,7 +352,7 @@ public class Summon extends Character
         if (hero.HP<=0)
         {
             hero.HP=0;
-            hero.onLethalDamage(hero, dealer, "attack");
+            hero.onLethalDamage(dealer, "attack");
         }
         else
         {
@@ -363,10 +360,10 @@ public class Summon extends Character
         }
     }
     @Override
-    public void onLethalDamage (Character hero, Character killer, String dmgtype)
+    public void onLethalDamage (Character killer, String dmgtype)
     {
-        if (!(hero.binaries.contains("Immortal")))
-        hero.onDeath(killer, dmgtype);
+        if (!(this.binaries.contains("Immortal")))
+        this.onDeath(killer, dmgtype);
     }
     @Override
     public void onDeath (Character killer, String dmgtype)
@@ -428,67 +425,67 @@ public class Summon extends Character
     {
         if (killer!=null&&bystander.hash==killer.hash)
         {
-            killer.onKill(killer, deadfoe);
+            killer.onKill(deadfoe);
         }
     }
     @Override
-    public void onKill (Character killer, Character victim)
+    public void onKill (Character victim)
     {
     } 
     @Override 
-    public void onRez (Character hero, Character healer)
+    public void onRez (Character healer)
     {
     }
     @Override
-    public void Transform (Character hero, int newindex, boolean greater) //new index is the index number of the character being transformed into
+    public void Transform (int newindex, boolean greater) //new index is the index number of the character being transformed into
     {
-        if (!(hero.immunities.contains("Other")))
+        if (!(this.immunities.contains("Other")))
         {
-            String old=hero.Cname; 
+            String old=this.Cname; 
             String New=SetName(newindex, true); 
             if (greater==false)
             System.out.println(old+" Transformed into "+New+"!");
             else
             System.out.println(old+" Transformed (Greater) into "+New+"!");
-            hero.Cname=New; 
-            if (hero.transabs[0][0]==null) //transforming for the first time, not counting legion since he's special
+            this.Cname=New; 
+            if (this.transabs[0][0]==null) //transforming for the first time, not counting legion since he's special
             {
-                hero.transabs[0]=hero.abilities;
+                this.transabs[0]=this.abilities;
                 Ability[] newabilities=Ability.AssignAbSum(newindex);
-                hero.abilities=newabilities;
+                this.abilities=newabilities;
             }
             else //already transformed earlier and now transforming back
             {
-                Ability[] temp=hero.transabs[0];
-                hero.transabs[0]=hero.abilities;
-                hero.abilities=temp;
+                Ability[] temp=this.transabs[0];
+                this.transabs[0]=this.abilities;
+                this.abilities=temp;
             }
             if (greater==true) //greater transformation is ocurring
             {
-                hero.maxHP=InHP(newindex, true); 
-                hero.HP=maxHP;
-                hero.SHLD=0;
+                this.maxHP=InHP(newindex, true); 
+                this.HP=maxHP;
+                this.SHLD=0;
                 ArrayList <StatEff> removeme= new ArrayList<StatEff>();
-                removeme.addAll(hero.effects);        
+                removeme.addAll(this.effects);        
                 for (StatEff eff: removeme)
                 {
                     if (!(eff instanceof Tracker))
-                    hero.remove(eff.hashcode, "normal"); 
+                    this.remove(eff.hashcode, "normal"); 
                 }
-                if (hero.index==28) //if statement since there are only 2 summons with transform right now
+                if (this.index==28) //if statement since there are only 2 summons with transform right now
                 {
-                    CoinFlip.RobotImmunities(hero, false); //if arachnaught is transforming into someone else, it loses its immunities
+                    CoinFlip.RobotImmunities(this, false); //if arachnaught is transforming into someone else, it loses its immunities
                 }
                 else if (newindex==28)
                 {
-                    CoinFlip.RobotImmunities(hero, true); //when transforming into an arachnaught, gain its immunities
+                    CoinFlip.RobotImmunities(this, true); //when transforming into an arachnaught, gain its immunities
                 }
             }
-            hero.index=newindex; 
-            CheckSumDupes(hero);
+            this.index=newindex; 
+            CheckSumDupes(this);
         }
         else
-        System.out.println(hero.Cname+"'s Transformation failed due to an immunity.");
+        System.out.println(this.Cname+"'s Transformation failed due to an immunity.");
     }
     @Override
     public void onAllySummon (Character summoner, Summon newfriend)
@@ -502,12 +499,9 @@ public class Summon extends Character
     public boolean onAllyControlled (Character hero, Character controlled, Character controller)
     {
         boolean ok=true;
-        return ok;
-    }
-    @Override
-    public boolean onEnemyControlled (Character hero, Character controlled, Character controller)
-    {
-        boolean ok=true;
+        if (!(hero.binaries.contains("Stunned")))
+        {
+        }
         return ok;
     }
     @Override
@@ -520,14 +514,6 @@ public class Summon extends Character
             if (friend!=null&&!(friend.binaries.contains("Banished")))
             {
                 ok=friend.onAllyControlled(friend, hero, controller);
-            }
-        }
-        Character[] enemies=Battle.GetTeam(CoinFlip.TeamFlip(hero.team1));
-        for (Character ant: enemies)
-        {
-            if (ant!=null&&!(ant.binaries.contains("Banished")))
-            {
-                ok=ant.onEnemyControlled(ant, hero, controller);
             }
         }
         return ok;

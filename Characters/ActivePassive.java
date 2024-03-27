@@ -10,6 +10,71 @@ package myMarvelcardgamepack;
 import java.util.ArrayList;
 public class ActivePassive 
 {
+    public static void Cain (Character marko, boolean turn, boolean change, boolean start, int old)
+    {
+        if (turn==true&&marko.passivecount<5) //onturn
+        {
+            marko.passivecount++;
+            System.out.println(marko.Cname+" gained 1 Momentum.");
+            if (marko.passivecount==5)
+            {
+                System.out.println(marko.Cname+" is unstoppable!"); marko.immunities.add("Debuffs");
+            }
+            for (StatEff e: marko.effects) //update tracker to accurately show M since it otherwise only updates onturnend
+            {
+                if (e instanceof Tracker&&e.geteffname().equals("Momentum: "+(marko.passivecount-1)))
+                {
+                    e.onTurnEnd(marko); break;
+                }
+            }
+        }
+        else if (change==true) //hpchange
+        {
+            if (old>100&marko.HP<=100) //fallen below threshold; lost bonuses
+            {
+                marko.ADR-=10; marko.immunities.remove("Control");
+                StatEff too=null;
+                for (StatEff e: marko.effects)
+                {
+                    if (e.geteffname().equals("Cyttorak's Blessing active")&&e instanceof Tracker)
+                    {
+                        too=e; break;
+                    }
+                }
+                marko.effects.remove(too);
+                Tracker salt= new Tracker("Cyttorak's Blessing lost"); marko.effects.add(salt);
+            }
+            else if (old<=100&marko.HP>100) //healed back above threshold; gain bonuses
+            {
+                marko.ADR+=10; marko.immunities.add("Control");
+                StatEff too=null;
+                for (StatEff e: marko.effects)
+                {
+                    if (e instanceof Tracker&&e.geteffname().equals("Cyttorak's Blessing lost"))
+                    {
+                        too=e; break;
+                    }
+                }
+                marko.effects.remove(too);
+                Tracker salt= new Tracker("Cyttorak's Blessing active"); marko.effects.add(salt);
+            }
+        }
+        else if (start==true) //fightstart
+        {
+            marko.immunities.add("Snare"); marko.immunities.add("Stun"); marko.ADR+=10; marko.immunities.add("Control");
+            Tracker rage= new Tracker("Momentum: "); marko.effects.add(rage); rage.onApply(marko);
+            Tracker salt= new Tracker("Cyttorak's Blessing active"); marko.effects.add(salt);
+        }
+        else if (marko.passivecount<5) //onattack
+        {
+            marko.passivecount++;
+            System.out.println(marko.Cname+" gained 1 Momentum.");
+            if (marko.passivecount==5)
+            {
+                System.out.println(marko.Cname+" is unstoppable!"); marko.immunities.add("Debuffs");
+            }
+        }
+    }
     public static void Flash (Character eugene, int change) //called by activatep and onattacked
     {
         int old=eugene.passivecount; 
@@ -17,7 +82,7 @@ public class ActivePassive
         System.out.println(eugene.Cname+" lost "+Math.abs(change)+" Control Points.");
         else
         System.out.println(eugene.Cname+" gained "+change+" Control Points.");
-        eugene.passivecount+=change; 
+        eugene.passivecount+=change; //tracker auto updates turnend and when attacked so no need to do it here
         if (eugene.passivecount>10)
         eugene.passivecount=10;
         if (eugene.passivecount<0)
@@ -63,7 +128,7 @@ public class ActivePassive
         }
         if (binary.dead==false&&binary.passivecount<=0)
         {
-            System.out.println(binary.Cname+" ran out of Energy."); binary.Transform(binary, 23, false);
+            System.out.println(binary.Cname+" ran out of Energy."); binary.Transform(23, false);
         }
     }
     public static void CM (Character carol, boolean turn, int dmg)
@@ -73,7 +138,7 @@ public class ActivePassive
             System.out.println(carol.Cname+" gained 1 Energy.");
             ++carol.passivecount;
         }
-        else if (dmg>80&&!(carol.binaries.contains("Stunned")))
+        else if (dmg>80&&!(carol.binaries.contains("Stunned"))) //tookdamage 
         {
             System.out.println(carol.Cname+" gained 1 Energy.");
             ++carol.passivecount;
@@ -86,7 +151,7 @@ public class ActivePassive
             }
         }
         if (carol.passivecount>=5) 
-        carol.Transform(carol, 24, false);
+        carol.Transform(24, false);
     }
     public static void Superior (Character tolliver, Character evildoer, boolean attack) //attack and onattack; cardselection lets him select targets with tracers
     {
@@ -322,7 +387,7 @@ public class ActivePassive
                     if (marcus.HP<=0)
                     {
                         marcus.HP=0;
-                        marcus.onLethalDamage(marcus, null, "other");
+                        marcus.onLethalDamage(null, "other");
                     }
                 }
             }
@@ -334,7 +399,7 @@ public class ActivePassive
             if (marcus.HP<=0)
             {
                 marcus.HP=0;
-                marcus.onLethalDamage(marcus, null, "other");
+                marcus.onLethalDamage(null, "other");
             }
         }
     }
@@ -362,7 +427,7 @@ public class ActivePassive
     {
         if (!(cap.binaries.contains("Shattered"))&&!(cap.binaries.contains("Stunned"))) //onturn and fight start
         {
-            cap.Shielded(cap, 20);
+            cap.Shielded(20);
         }
     }
     public static void IM (Character tony, StatEff buff) //called by hero.remove

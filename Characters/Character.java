@@ -25,7 +25,8 @@ public abstract class Character
     int ADR=0; //damage reduction from all sources
     int BuDR, BlDR, PoDR, ShDR, WiDR=0; //dot damage reduction; burn, bleed, poison, shock, and wither
     int DV=0; //damage vulnerability
-    int BD=0; //bonus damage on attacks
+    int BD=0; //bonus damage on attacks from status effects
+    int PBD=0; //bonus damage on attacks from passives
     int CC=0; //crit chance
     double critdmg=1.5; //default is crits do +50% dmg
     int SHLD=0; //shield
@@ -79,8 +80,9 @@ public abstract class Character
         }
         return false;
     }
-    public void onTurn (boolean notbonus) //onturn passives present in both overridden subclasses; this just notifies allies and enemies the hero took their turn
+    public void onTurn (boolean ignoreme) //onturn passives present in both overridden subclasses; this just notifies allies and enemies the hero took their turn
     {
+        ++this.turn;
         boolean team=this.team1;
         Character[] friends=Battle.GetTeammates(this); 
         for (Character friend: friends)
@@ -170,31 +172,31 @@ public abstract class Character
             return this.abilities[choice];
         }
     }
-    public abstract void HPChange (Character hero, int oldhp, int newhp);
-    public static void Healed (Character healed, int regener, boolean passive) //passive refers to the "recover up to X missing health" type of healing abs
+    public abstract void HPChange (int oldhp, int newhp);
+    public void Healed (int regener, boolean passive) //passive refers to the "recover up to X missing health" type of healing abs
     {
-        boolean nowound=true; int h=healed.HP;
-        if (passive==false&&healed.immunities.contains("Heal")) //passive healing isn't considered to be a heal ability
+        boolean nowound=true; int h=this.HP;
+        if (passive==false&&this.immunities.contains("Heal")) //passive healing isn't considered to be a heal ability
         {
-            System.out.println(healed.Cname+" could not be healed due to an immunity!");
+            System.out.println(this.Cname+" could not be healed due to an immunity!");
             nowound=false;
         }
-        else if (passive==false&&healed.binaries.contains("Wounded"))
+        else if (passive==false&&this.binaries.contains("Wounded"))
         {
-            System.out.println(healed.Cname+" could not be healed due to being Wounded!");
+            System.out.println(this.Cname+" could not be healed due to being Wounded!");
             nowound=false;
         }
-        if (nowound==true&&healed.HP<healed.maxHP&&healed.dead==false)
+        if (nowound==true&&this.HP<this.maxHP&&this.dead==false)
         {
-            regener=healed.GetHealAmount(healed, regener, passive);
-            if (regener+healed.HP>healed.maxHP) //can't have more health than the maximum amount
-            regener=healed.maxHP-healed.HP;
-            healed.HP+=regener;
+            regener=this.GetHealAmount(this, regener, passive);
+            if (regener+this.HP>this.maxHP) //can't have more health than the maximum amount
+            regener=this.maxHP-this.HP;
+            this.HP+=regener;
             if (passive==false)
-            System.out.println("\n"+healed.Cname+" was healed for "+regener+" health!");
+            System.out.println("\n"+this.Cname+" was healed for "+regener+" health!");
             else if (passive==true)
-            System.out.println ("\n"+healed.Cname+" regained "+regener+" health!");
-            healed.HPChange(healed, h, healed.HP);
+            System.out.println ("\n"+this.Cname+" regained "+regener+" health!");
+            this.HPChange(h, this.HP);
         }
     }
     public static int GetHealAmount (Character hero, int amount, boolean passive)
@@ -246,26 +248,26 @@ public abstract class Character
             {
                 hero.HP=hero.maxHP;
             }
-            hero.HPChange(hero, h, hero.HP);
+            hero.HPChange(h, hero.HP);
         }
     }
-    public static void Shielded (Character hero, int amount) //hero is gaining shield
+    public void Shielded (int amount) //hero is gaining shield
     {
-        if (hero.binaries.contains("Shattered"))
+        if (this.binaries.contains("Shattered"))
         {
-            System.out.println(hero.Cname+" could not be Shielded due to being Shattered.");
+            System.out.println(this.Cname+" could not be Shielded due to being Shattered.");
         }
-        else if (hero.immunities.contains("Defence")||hero.immunities.contains("Shield"))
+        else if (this.immunities.contains("Defence")||this.immunities.contains("Shield"))
         {
-            System.out.println(hero.Cname+" could not be Shielded due to an immunity.");
+            System.out.println(this.Cname+" could not be Shielded due to an immunity.");
         }
-        else if (hero.SHLD>=amount) //nothing happens; shield does not stack
+        else if (this.SHLD>=amount) //nothing happens; shield does not stack
         {
         }
         else 
         {
-            hero.SHLD=amount;
-            System.out.println("\n"+hero.Cname+" received "+amount+" shield!");
+            this.SHLD=amount;
+            System.out.println("\n"+this.Cname+" received "+amount+" shield!");
         }
     }
     public Character onTargeted (Character attacker, Character target, int dmg, boolean aoe)
@@ -345,7 +347,7 @@ public abstract class Character
         else
         dmg=0;
         dealer.activeability.ReturnDamage(dmg); //tells the ability how much dmg the attack did
-        dealer.onAttack(dealer, target); //activate relevant passives after attacking
+        dealer.onAttack(target); //activate relevant passives after attacking
         if (target.dead==false)
         {
             target.onAttacked(target, dealer, dmg);
@@ -378,7 +380,7 @@ public abstract class Character
                 dealer.activeability.evade=true;
             }
         }
-        dealer.onAttack(dealer, target);
+        dealer.onAttack(target);
         target.onAttacked(target, dealer, 0);
         Character[] friends=Battle.GetTeammates(target);
         for (Character friend: friends)
@@ -406,11 +408,11 @@ public abstract class Character
         if (!(dealer.binaries.contains("Missed")))
         {
             if (max==true)
-            target.LoseMaxHP (target, dealer, lossy);
+            target.LoseMaxHP (dealer, lossy);
             else
             target.LoseHP (dealer, lossy, "knull");
         }
-        dealer.onAttack(dealer, target);
+        dealer.onAttack(target);
         if (target.dead==false)
         target.onAttacked(target, dealer, 0);
         Character[] friends=Battle.GetTeammates(target);
@@ -423,33 +425,37 @@ public abstract class Character
         }
         return target;
     }
-    public abstract void onCrit (Character hero, Character target); //called after successful crit; for passives
-    public abstract void onAttack (Character hero, Character victim);
+    public abstract void onCrit (Character target); //called after successful crit; for passives
+    public abstract void onAttack (Character victim);
     public abstract void onAttacked(Character attacked, Character attacker, int dmg);
     public abstract int TakeDamage (Character target, Character dealer, int dmg, boolean aoe); //takedamage checks hero shield and calls tookdamage
     public abstract int TakeDamage (Character target, int dmg, boolean dot); 
     public abstract void TookDamage (Character hero, Character dealer, int dmg); //triggers relevant passives and checks if hero should be dead
     public abstract void TookDamage (Character hero, boolean dot, int dmg); 
-    public abstract void onLethalDamage (Character hero, Character killer, String dmgtype);
+    public abstract void onLethalDamage (Character killer, String dmgtype);
     public abstract void onDeath (Character killer, String dmgtype);
     public abstract void onAllyDeath (Character bystander, Character deadfriend, Character killer);
     public abstract void onEnemyDeath (Character bystander, Character deadfoe, Character killer);
-    public abstract void onKill (Character killer, Character victim);
-    public abstract void onRez (Character hero, Character healer);
-    public void LoseMaxHP (Character victim, Character attacker, int lossy)
+    public abstract void onKill (Character victim);
+    public abstract void onRez (Character healer); //needs to call hpchange
+    public void LoseMaxHP (Character attacker, int lossy)
     {
-        if (!(victim.immunities.contains("Reduce")))
+        if (!(this.immunities.contains("Reduce")))
         {
-            System.out.println(victim.Cname+"'s max health was reduced by "+lossy+"!");
-            victim.maxHP-=lossy;
-            if (victim.maxHP<=0) //ignores immortality and the like; instant and permanent death
+            System.out.println(this.Cname+"'s max health was reduced by "+lossy+"!");
+            this.maxHP-=lossy;
+            if (this.maxHP<=0) //ignores immortality and the like; instant and permanent death
             {
-                victim.maxHP=0;
-                victim.onDeath(attacker, "Reduce");
+                this.maxHP=0;
+                this.onDeath(attacker, "Reduce");
+            }
+            if (this.dead==false)
+            {
+                this.HPChange(this.HP, this.HP); //for passives based on missing health, which are calculated using the difference between current and max health
             }
         }
         else
-        System.out.println(attacker.Cname+"'s max health reduction failed due to"+victim.Cname+"'s immunity.");
+        System.out.println(attacker.Cname+"'s max health reduction failed due to"+this.Cname+"'s immunity.");
     }
     public void LoseHP (Character attacker, int lossy, String dot) //modified version of tookdamage
     {
@@ -467,19 +473,19 @@ public abstract class Character
             this.HP=0;
             if (this.HP==0&&(dot.equals("Poison")||dot.equals("Wither"))&&!(this.binaries.contains("Immortal")))
             {
-                this.onLethalDamage(this, null, "DOT");
+                this.onLethalDamage(null, "DOT");
             }
             else if (this.HP==0&&dot.equals("Self")&&!(this.binaries.contains("Immortal")))
             {
-                this.onLethalDamage(this, null, "Lose");
+                this.onLethalDamage(null, "Lose");
             }
             else if (this.HP==0&&!(this.binaries.contains("Immortal")))
             {
-                this.onLethalDamage(this, attacker, "Lose");
+                this.onLethalDamage(attacker, "Lose");
             }
             if (this.dead==false)
             {
-                this.HPChange(this, h, this.HP);
+                this.HPChange(h, this.HP);
             }
         }
         else
@@ -498,18 +504,22 @@ public abstract class Character
         if (type.equalsIgnoreCase("bleed"))
         {
             dmg=(dmg-this.ADR-this.BlDR); //factoring in damage resistance
+            if (dmg<=0)
+            dmg=0;
+            System.out.println ("\n"+this.Cname+" took "+dmg+" Bleed damage"); 
             if (dmg>0)
             {
-                System.out.println ("\n"+this.Cname+" took "+dmg+" Bleed damage"); 
                 knull=this.TakeDamage(this, dmg, true);
             }
         }
         else if (type.equalsIgnoreCase("burn"))
         {
             dmg=(dmg-this.ADR-this.BuDR);
+            if (dmg<=0)
+            dmg=0;
+            System.out.println ("\n"+this.Cname+" took "+dmg+" Burn damage"); 
             if (dmg>0)
             {
-                System.out.println ("\n"+this.Cname+" took "+dmg+" Burn damage"); 
                 knull=this.TakeDamage(this, dmg, true);
             }
         }
@@ -523,11 +533,13 @@ public abstract class Character
         else if (type.equalsIgnoreCase("shock"))
         {
             dmg=(dmg-this.ADR-this.ShDR);
+            if (dmg<=0)
+            dmg=0;
+            System.out.println ("\n"+this.Cname+" took "+dmg+" Shock damage"); 
             if (dmg>0)
             {
-                System.out.println ("\n"+this.Cname+" took "+dmg+" Shock damage"); 
                 knull=this.TakeDamage(this, dmg, true);
-                Ability.DoRicochetDmg(dmg, this, true);
+                Ability.DoRicochetDmg(dmg, this, true, null);
             }
         }
         else if (type.equalsIgnoreCase("Wither"))
@@ -551,129 +563,131 @@ public abstract class Character
     }
     public int InHP (int index, boolean summoned) //Initialises HP
     {
-        int health=0;
         if (summoned==false)
         {
             switch (index)
             {
                 //case
-                //health= 200; break;
+                //return 200;
             
-                case 6: case 9: case 10: case 14: case 19: case 21: case 29:
-                health= 220; break;
+                case 6: case 9: case 10: case 14: case 19: case 21: case 29: case 33:
+                return 220;
             
-                case 1: case 2: case 3: case 4: case 5: case 7: case 8: case 11: case 18: case 20: case 23: case 24: case 25:
-                health= 230;  break;
+                case 1: case 2: case 3: case 4: case 5: case 7: case 8: case 11: case 18: case 20: case 23: case 24: case 25: case 34:
+                return 230;
             
-                case 12: case 13: case 15: case 16: case 17: case 22: case 27: case 28:
-                health= 240; break;
-                    
+                case 12: case 13: case 15: case 16: case 17: case 22: case 27: case 28: case 30: case 32: case 35:
+                return 240;
+                
                 //Special carrots
-                case 26: health=130; break;
+                case 26: return 130;
+                case 31: return 250;
             }    
-            return health;
+            return 616;
         }
         else
         {
             switch (index)
             {
                 case 7: 
-                health= 5; break;      
+                return 5;    
             
                 case 1: case 10: case 11:
-                health= 40;  break; 
+                return 40;
             
                 case 5: case 9:
-                health= 50; break;
+                return 50;
             
                 case 2: case 3: case 6: case 27:
-                health= 60; break;   
+                return 60;
                 
                 case 8:
-                health= 70; break;
+                return 70;
                 
                 case 4: case 28:
-                health= 80; break;
+                return 80;
             
                 case 12:
-                health= 200; break;
-            }        
-            return health;
+                return 200;
+            }   
+            return 616;
         }
     }
     public static String SetName (int index, boolean summoned)
     {
-        String name;
         if (summoned==false) //hero names
         {
             switch (index)
             {
-                case 1: name= "Moon Knight (Modern)"; break;
-                case 2: name= "Gamora (Modern)"; break;
-                case 3: name= "Punisher (Classic)"; break;
-                case 4: name= "Iron Man (Mark VII)"; break;
-                case 5: name= "War Machine (James Rhodes)"; break; 
-                case 6: name= "Captain America (Steve Rogers)"; break;
-                case 7: name= "Falcon (Classic)"; break;
-                case 8: name= "Winter Soldier (Classic)"; break;
-                case 9: name= "Star-Lord (Modern)"; break;
-                case 10: name="Nick Fury (Classic)"; break;
-                case 11: name="Nick Fury (Modern)"; break;
-                case 12: name="Drax (Classic)"; break;
-                case 13: name="Drax (Modern)"; break;
-                case 14: name="X-23 (Modern)"; break;
-                case 15: name="Wolverine (Classic)"; break;
-                case 16: name="Venom (Eddie Brock)"; break;
-                case 17: name="Venom (Mac Gargan)"; break;
-                case 18: name="Spider-Man (Peter Parker)"; break;
-                case 19: name="Spider-Man (Miles Morales)"; break;
-                case 20: name="Spider-Man (Superior)"; break;
-                case 21: name="Storm (Modern)"; break;
-                case 22: name="Ms. Marvel (Kamala Khan)"; break;
-                case 23: name="Captain Marvel (Carol Danvers)"; break;
-                case 24: name="Binary (Carol Danvers)"; break;
-                case 25: name="Venom (Flash Thompson)"; break;
-                case 26: name="MODOK (Classic)"; break;
-                case 27: name="Ultron (Classic)"; break;
-                case 28: name="Dr. Doom (Classic)"; break;
-                case 29: name="Dr. Strange (Classic)"; break;
-                default: name= "ERROR. INDEX NUMBER NOT FOUND";
+                case 1: return "Moon Knight (Modern)"; 
+                case 2: return "Gamora (Modern)"; 
+                case 3: return "Punisher (Classic)"; 
+                case 4: return "Iron Man (Mark VII)"; 
+                case 5: return "War Machine (James Rhodes)"; 
+                case 6: return "Captain America (Steve Rogers)"; 
+                case 7: return "Falcon (Classic)"; 
+                case 8: return "Winter Soldier (Classic)"; 
+                case 9: return "Star-Lord (Modern)"; 
+                case 10: return "Nick Fury (Classic)"; 
+                case 11: return "Nick Fury (Modern)"; 
+                case 12: return "Drax (Classic)"; 
+                case 13: return "Drax (Modern)"; 
+                case 14: return "X-23 (Modern)"; 
+                case 15: return "Wolverine (Classic)"; 
+                case 16: return "Venom (Eddie Brock)"; 
+                case 17: return "Venom (Mac Gargan)"; 
+                case 18: return "Spider-Man (Peter Parker)"; 
+                case 19: return "Spider-Man (Miles Morales)"; 
+                case 20: return "Spider-Man (Superior)"; 
+                case 21: return "Storm (Modern)"; 
+                case 22: return "Ms. Marvel (Kamala Khan)"; 
+                case 23: return "Captain Marvel (Carol Danvers)"; 
+                case 24: return "Binary (Carol Danvers)"; 
+                case 25: return "Venom (Flash Thompson)"; 
+                case 26: return "MODOK (Classic)"; 
+                case 27: return "Ultron (Classic)"; 
+                case 28: return "Dr. Doom (Classic)";
+                case 29: return "Dr. Strange (Classic)";
+                case 30: return "Amadeus Cho (Brawn)";
+                case 31: return "Hulk (Classic)";
+                case 32: return "Black Bolt (Classic)";
+                case 33: return "Deadpool (Classic)";
+                case 34: return "Red Skull (Classic)";
+                case 35: return "Juggernaut (Classic)";
             }    
-            return name;
+            return "ERROR. INDEX NUMBER NOT FOUND";
         }
         else //summon names
         {
             switch (index)
             {
-                case 1: name="Nick Fury LMD (Summon)"; break;
-                case 2: name="AIM Rocket Trooper (Summon)";break;
-                case 3: name="AIM Crushbot (Summon)"; break;
-                case 4: name="Ultron Drone (Summon)"; break;
-                case 5: name="Doombot (Summon)"; break;
-                case 6: name="Lesser Demon (Summon)"; break;
-                case 7: name="Holographic Decoy (Summon)"; break;
-                case 8: name="Ice Golem (Summon)"; break;
-                case 9: name="HYDRA Trooper (Summon)"; break;
-                case 10: name="Thug (Summon)"; break;
-                case 11: name="Mirror Image (Summon)"; break;
-                case 12: name="Giganto (Summon)"; break;
-                case 27: name="Spiderling (Summon)"; break;
-                case 28: name="Arachnaught (Summon)"; break;
-                default: name="Error with Summon index";
+                case 1: return "Nick Fury LMD (Summon)"; 
+                case 2: return "AIM Rocket Trooper (Summon)";
+                case 3: return "AIM Crushbot (Summon)"; 
+                case 4: return "Ultron Drone (Summon)"; 
+                case 5: return "Doombot (Summon)"; 
+                case 6: return "Lesser Demon (Summon)"; 
+                case 7: return "Holographic Decoy (Summon)"; 
+                case 8: return "Ice Golem (Summon)"; 
+                case 9: return "HYDRA Trooper (Summon)"; 
+                case 10: return "Thug (Summon)"; 
+                case 11: return "Mirror Image (Summon)"; 
+                case 12: return "Giganto (Summon)"; 
+                case 27: return "Spiderling (Summon)"; 
+                case 28: return "Arachnaught (Summon)"; 
             }    
-            return name;
+            return "Error with Summon index";
         }
     }
-    public abstract void Transform (Character hero, int newindex, boolean greater); //new index is the index number of the character being transformed into
+    public abstract void Transform (int newindex, boolean greater); //new index is the index number of the character being transformed into
     public abstract void onAllySummon (Character summoner, Summon newfriend);
     public abstract void onEnemySummon (Character summoner, Summon newfoe);
     public abstract boolean onAllyControlled (Character hero, Character controlled, Character controller);
-    public abstract boolean onEnemyControlled (Character hero, Character controlled, Character controller);
     public abstract boolean onSelfControlled (Character hero, Character controller);
-    public static void BanishTick (Character hero)
+    public void BanishTick ()
     {
         ArrayList <StatEff> ban= new ArrayList<StatEff>();
-        for (StatEff eff: hero.effects)
+        for (StatEff eff: this.effects)
         {
             if (eff.getimmunityname().equalsIgnoreCase("Banish"))
             {

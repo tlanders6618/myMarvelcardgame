@@ -36,8 +36,10 @@ public class Hero extends Character
             case 23: ActivePassive.CM(this, true, 0); break;
             case 24: ActivePassive.Binary(this); break;
             case 28: StaticPassive.DOOM(this, "turn", this); break;
+            case 32: StaticPassive.BB(this, false); break;
+            case 33: StaticPassive.Deadpool(this, true, null, false); break;
+            case 35: ActivePassive.Cain(this, true, false, false, 616); break;
         }
-        ++this.turn;
         super.onTurn(notbonus);
     }
     @Override
@@ -83,12 +85,16 @@ public class Hero extends Character
             case 15: StaticPassive.WolvieTracker(this); break;
             case 16: StaticPassive.OGVenom (this); StaticPassive.Symbiote (this, 0, true); break;
             case 17: StaticPassive.Symbiote (this, 0, true); break;
-            case 23: StaticPassive.CM(this); break;
+            case 23: StaticPassive.CM(this, true); break;
             case 25: this.passivecount=10; this.Cchance+=50; Tracker t=new Tracker("Control Points: "); this.effects.add(t); t.onApply(this); 
             StaticPassive.Symbiote (this, 0, true); break;
             case 26: int ignore=StaticPassive.MODOC(this, null, false, true, 0); break;
             case 27: StaticPassive.Ultron(this); break;
             case 28: StaticPassive.DOOM(this, "start", this); break;
+            case 30: StaticPassive.Brawn(this); break;
+            case 31: StaticPassive.Hulk(this, true); break;
+            case 32: StaticPassive.BB(this, true); break;
+            case 35: ActivePassive.Cain(this, false, false, true, 616); break;
         }
     }
     @Override
@@ -166,12 +172,15 @@ public class Hero extends Character
                 case 20: ActivePassive.Superior(dealer, victim, true); break;
             }
         }
-        else //once target is determined, check if passive activates against them
+        else //once target is determined after checking for protect and passives like spidey's, check if passive activates against the target
         {
             switch (dealer.index)
             {
                 case 13: StaticPassive.Drax(dealer, victim, false); break;
                 case 14: ActivePassive.X23(dealer, victim, false, true); break;
+                case 25: StaticPassive.Flash(dealer); break;
+                case 26: int ignore=StaticPassive.MODOC(dealer, victim, false, false, 616); break;
+                case 33: StaticPassive.Deadpool(dealer, false, victim, false); break;
             }
         }
     }
@@ -227,23 +236,25 @@ public class Hero extends Character
         return ntarg;
     }
     @Override
-    public void onAttack (Character hero, Character victim) //triggered after a hero finishes attacking
+    public void onAttack (Character victim) //triggered after a hero finishes attacking
     {
-        switch (hero.index)
+        switch (this.index)
         {
-            case 12: ActivePassive.DraxOG(hero, true, victim, null); break;
-            case 13: StaticPassive.Drax (hero, null, false); break;
-            case 14: ActivePassive.X23(hero, victim, false, false); break;
-            case 20: ActivePassive.Superior(hero, victim, false); break;
-            case 23: ActivePassive.CM(hero, false, 0); break; //after attacking, see if she can go binary; to avoid bugs with her transforming mid attack
+            case 12: ActivePassive.DraxOG(this, true, victim, null); break;
+            case 13: StaticPassive.Drax (this, null, false); break;
+            case 14: ActivePassive.X23(this, victim, false, false); break;
+            case 20: ActivePassive.Superior(this, victim, false); break;
+            case 23: StaticPassive.CM(this, false); break;
+            case 33: StaticPassive.Deadpool(this, false, victim, false); break;
+            case 35: ActivePassive.Cain(this, false, false, false, 616); break;
         }
     }
     @Override
-    public void onCrit (Character hero, Character target) //called by damagestuff crit calc
+    public void onCrit (Character target) //called by damagestuff crit calc
     {
-        switch (hero.index)
+        switch (this.index)
         {
-            case 14: ActivePassive.X23(hero, target, true, false); break;
+            case 14: ActivePassive.X23(this, target, true, false); break;
         }
     }
     @Override
@@ -276,14 +287,6 @@ public class Hero extends Character
                 case 1: ActivePassive.MoonKnight(hero, hurtfriend, attacker); break;
                 case 16: ActivePassive.OGVenom (hero, hurtfriend, attacker); break;
             }
-        }
-    }
-    @Override
-    public void HPChange (Character hero, int oldhp, int newhp)
-    {
-        switch (hero.index)
-        {
-            case 10: StaticPassive.FurySr(hero, newhp); break;
         }
     }
     @Override
@@ -359,15 +362,15 @@ public class Hero extends Character
         hero.HP=0;
         if (hero.HP<=0&&dot==true&&!(hero.binaries.contains("Immortal")))
         {
-            hero.onLethalDamage(hero, null, "DOT");
+            hero.onLethalDamage(null, "DOT");
         }
         else if (hero.HP<=0&&dot==false&&!(hero.binaries.contains("Immortal")))
         {
-            hero.onLethalDamage(hero, null, "other");
+            hero.onLethalDamage(null, "other");
         }
         if (hero.dead==false)
         {
-            hero.HPChange(hero, h, hero.HP);
+            hero.HPChange(h, hero.HP);
             switch (hero.index)
             {
                 case 15: ActivePassive.Wolvie(hero, false); break;
@@ -384,11 +387,11 @@ public class Hero extends Character
         hero.HP=0;
         if (hero.HP<=0&&!(hero.binaries.contains("Immortal")))
         {
-            hero.onLethalDamage(hero, dealer, "attack");
+            hero.onLethalDamage(dealer, "attack");
         }
         else
         {
-            hero.HPChange(hero, h, hero.HP);
+            hero.HPChange(h, hero.HP);
             switch (hero.index)
             {
                 case 15: ActivePassive.Wolvie(hero, false); break;
@@ -397,16 +400,26 @@ public class Hero extends Character
         }
     }
     @Override
-    public void onLethalDamage (Character hero, Character killer, String dmgtype)
+    public void HPChange (int oldhp, int newhp)
+    {
+        switch (this.index)
+        {
+            case 10: StaticPassive.FurySr(this, newhp); break;
+            case 31: StaticPassive.Hulk(this, false); break;
+            case 35: ActivePassive.Cain(this, false, true, false, oldhp); break;
+        }
+    }
+    @Override
+    public void onLethalDamage (Character killer, String dmgtype)
     {
         boolean die=true;
-        switch (hero.index)
+        switch (this.index)
         {
-            case 12: die=ActivePassive.DraxOG(hero, false, hero, dmgtype); break;
+            case 12: die=ActivePassive.DraxOG(this, false, this, dmgtype); break;
         }
         if (die==true)
         {
-            hero.onDeath(killer, dmgtype);
+            this.onDeath(killer, dmgtype);
         }
     }
     @Override
@@ -476,97 +489,98 @@ public class Hero extends Character
     {
         if (killer!=null&&hero.hash==killer.hash)
         {
-            killer.onKill(killer, deadfoe);
+            killer.onKill(deadfoe);
         }
     }
     @Override
-    public void onKill (Character killer, Character victim)
+    public void onKill (Character victim)
     {
-        switch (killer.index)
+        switch (this.index)
         {
-            case 17: ActivePassive.Venom(killer); break;
+            case 17: ActivePassive.Venom(this); break;
+            case 33: StaticPassive.Deadpool(this, false, victim, true); break;
         }
     } 
     @Override 
-    public void onRez (Character hero, Character healer)
+    public void onRez (Character healer)
     {
     }
     @Override
-    public void Transform (Character hero, int newindex, boolean greater) //new index is the index number of the character being transformed into
+    public void Transform (int newindex, boolean greater) //new index is the index number of the character being transformed into
     {
-        if (!(hero.immunities.contains("Other")))
+        if (!(this.immunities.contains("Other")))
         {
-            String old=hero.Cname; 
+            String old=this.Cname; 
             String New=SetName(newindex, false); 
             if (greater==false)
             System.out.println(old+" Transformed into "+New+"!");
             else
             System.out.println(old+" Transformed (Greater) into "+New+"!");
-            hero.Cname=New; 
-            if ((hero.index<113||hero.index>115)&&hero.transabs[0][0]==null) //transforming for the first time, not counting legion since he's special
+            this.Cname=New; 
+            if ((this.index<113||this.index>115)&&this.transabs[0][0]==null) //transforming for the first time, not counting legion since he's special
             {
-                hero.transabs[0]=hero.abilities;
+                this.transabs[0]=this.abilities;
                 Ability[] newabilities=Ability.AssignAb(newindex);
-                hero.abilities=newabilities;
+                this.abilities=newabilities;
             }
-            else if (hero.index<113||hero.index>115&&hero.transabs[0][0]!=null) //already transformed earlier and now transforming back
+            else if (this.index<113||this.index>115&&this.transabs[0][0]!=null) //already transformed earlier and now transforming back
             {
-                Ability[] temp=hero.transabs[0];
-                hero.transabs[0]=hero.abilities;
-                hero.abilities=temp;
+                Ability[] temp=this.transabs[0];
+                this.transabs[0]=this.abilities;
+                this.abilities=temp;
             }
             else //hero is legion
             {
-                if (hero.index==113)
+                if (this.index==113)
                 {
-                    hero.transabs[0]=hero.abilities;
+                    this.transabs[0]=this.abilities;
                 }
-                else if (hero.index==114)
+                else if (this.index==114)
                 {
-                    hero.transabs[1]=hero.abilities;
+                    this.transabs[1]=this.abilities;
                 }
-                else if (hero.index==115)
+                else if (this.index==115)
                 {
-                    hero.transabs[2]=hero.abilities;
+                    this.transabs[2]=this.abilities;
                 }
                 if (newindex==113)
                 {
-                    hero.abilities=hero.transabs[0];
+                    this.abilities=this.transabs[0];
                 }
                 else if (newindex==114)
                 {
-                    hero.abilities=hero.transabs[1];
+                    this.abilities=this.transabs[1];
                 }
                 else if (newindex==115)
                 {
-                    hero.abilities=hero.transabs[2];
+                    this.abilities=this.transabs[2];
                 }
             }
             if (greater==true) //greater transformation is ocurring
             {
-                hero.maxHP=InHP(newindex, false); 
-                hero.HP=maxHP;
-                hero.SHLD=0;
+                this.maxHP=InHP(newindex, false); 
+                this.HP=maxHP;
+                this.SHLD=0;
                 ArrayList <StatEff> removeme= new ArrayList<StatEff>();
-                removeme.addAll(hero.effects);        
+                removeme.addAll(this.effects);        
                 for (StatEff eff: removeme)
                 {
                     if (!(eff instanceof Tracker))
-                    hero.remove(eff.hashcode, "normal"); 
+                    this.remove(eff.hashcode, "normal"); 
                 }
             }
-            switch (hero.index) //for getting rid of immunities when undoing transformation
+            switch (this.index) //for getting rid of immunities when undoing transformation
             {
-                case 24: StaticPassive.Binary(hero, false); break;
+                case 24: StaticPassive.Binary(this, false); break;
             }
-            hero.index=newindex; 
-            switch (hero.index) //for gaining immunities when transforming
+            this.index=newindex; 
+            switch (this.index) //for gaining immunities when transforming
             {
-                case 24: StaticPassive.Binary(hero, true); break;
+                case 24: StaticPassive.Binary(this, true); break;
             }
         }
         else
-        System.out.println(hero.Cname+"'s Transformation failed due to an immunity.");
+        System.out.println(this.Cname+"'s Transformation failed due to an immunity.");
     }
     @Override
     public void onAllySummon (Character hero, Summon newfriend)
@@ -586,16 +600,7 @@ public class Hero extends Character
     public boolean onAllyControlled (Character hero, Character controlled, Character controller)
     {
         boolean ok=true;
-        if (!(hero.binaries.contains("Stunned"))&&!(hero.binaries.contains("Banished")))
-        {
-        }
-        return ok;
-    }
-    @Override
-    public boolean onEnemyControlled (Character hero, Character controlled, Character controller)
-    {
-        boolean ok=true;
-        if (!(hero.binaries.contains("Stunned"))&&!(hero.binaries.contains("Banished")))
+        if (!(hero.binaries.contains("Stunned")))
         {
         }
         return ok;
@@ -607,17 +612,9 @@ public class Hero extends Character
         Character[] people=Battle.GetTeammates(hero);
         for (Character friend: people)
         {
-            if (friend!=null)
+            if (friend!=null&&!(friend.binaries.contains("Banished")))
             {
                 ok=friend.onAllyControlled(friend, hero, controller);
-            }
-        }
-        Character[] enemies=Battle.GetTeam(CoinFlip.TeamFlip(hero.team1));
-        for (Character ant: enemies)
-        {
-            if (ant!=null)
-            {
-                ok=ant.onEnemyControlled(ant, hero, controller);
             }
         }
         return ok;

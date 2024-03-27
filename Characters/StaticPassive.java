@@ -5,7 +5,7 @@ package myMarvelcardgamepack;
  * Designer: Timothy Landers
  * Date: 20/8/22
  * Filename: StaticPassive
- * Purpose: Split passives into two files because of its length; this is for passives that trigger only once per fight, or at least infrequently.
+ * Purpose: Split passives into two files because of its length; this is for passives that trigger only once per fight, or trigger infrequently, or are extremely simple to implement.
  */
 import java.util.ArrayList;
 public class StaticPassive 
@@ -17,19 +17,107 @@ public class StaticPassive
         else
         venom.DV+=vuln;
     }
+    public static void Deadpool (Character wade, boolean heal, Character vic, boolean kill) 
+    {
+        if (heal==true&&!(wade.binaries.contains("Stunned"))) //onturn
+        {
+            wade.Healed(30, true);
+        }
+        else if (vic!=null&&kill==true) //onkill
+        {
+            int t=1;
+            for (Ability a: wade.abilities)
+            {
+                if (a!=null&&a.dcd>0)
+                {
+                    if (t==1)
+                    {
+                        System.out.println(""); t--; //to put space in between kill message and cd reduction, but only once and only if there are any cds to reduce
+                    }
+                    System.out.println(a.GetAbName(wade)+" had its cooldown reduced by 1 turn(s).");
+                    a.CDReduction(1);
+                }
+            }
+        }
+        else if (vic!=null&&kill==false&&vic.summoned==true) 
+        {
+            if (wade.passivecount==0) //beforeattack
+            {
+                wade.BD+=15; wade.passivecount=1;
+            }
+            else if (wade.passivecount==1) //onattack
+            {
+                wade.BD-=15; wade.passivecount=0;
+            }
+        }
+    }
+    public static void BB (Character blackagar, boolean start)
+    {
+        if (start==true) //fightstart
+        {
+            blackagar.immunities.add("Control"); Tracker rage= new Tracker ("Electrons: "); blackagar.effects.add(rage); rage.onApply(blackagar);
+        }
+        else if (!(blackagar.binaries.contains("Stunned"))&&blackagar.turn%2!=0) //odd numbers only since the first turn is turn 0; every other turn; onturn
+        {
+            blackagar.passivecount++; System.out.println(blackagar.Cname+" gained 1 Electron.");
+            for (StatEff e: blackagar.effects) //update tracker to accurately show E since it otherwise only updates onturnend
+            {
+                if (e instanceof Tracker&&e.geteffname().equals("Electrons: "+(blackagar.passivecount-1)))
+                {
+                    e.onTurnEnd(blackagar); break;
+                }
+            }
+        }
+    }
+    public static void Hulk (Character banner, boolean start) //fightstart and hpchange
+    {
+        if (start==true)
+        {
+            banner.immunities.add("Terror"); banner.immunities.add("Provoke"); banner.immunities.add("Poison"); banner.immunities.add("Control"); 
+            banner.immunities.add("Persuaded"); Tracker rage= new Tracker ("Rage: "); banner.effects.add(rage); rage.onApply(banner);
+        }
+        else
+        {
+            int dif=banner.maxHP-banner.HP;
+            int number=0;
+            if (dif>=50&&dif<100)
+            number=5;
+            else if (dif>=100&&dif<150)
+            number=10;
+            else if (dif>=150&&dif<200)
+            number=15;
+            else if (dif>=200&&dif<250)
+            number=20;
+            else if (dif>=250&&dif<300) //technically possible with apocalypse, but 300 missing health is impossible so it stops checking here
+            number=25;
+            banner.ADR=number; banner.PBD=number; banner.passivecount=number;
+            for (StatEff e: banner.effects) //update rage tracker
+            {
+                if (e instanceof Tracker)
+                {
+                    e.Attacked(banner, null, 616);
+                }
+            }
+        }
+    }
+    public static void Brawn (Character cho) //fightstart
+    {
+        cho.immunities.add("Poison"); cho.immunities.add("Control");
+    }
     public static void DOOM (Character doctor, String occassion, Character fool)
     {
         if (occassion.equals("start"))
         {
             doctor.immunities.add("Burn"); doctor.immunities.add("Freeze"); doctor.immunities.add("Shock"); doctor.immunities.add("Persuaded"); doctor.immunities.add("Control");
+            Tracker er=new Tracker("Titanium Battlesuit armed"); doctor.effects.add(er);
         }
-        else if (occassion.equals("turn"))
+        else if (occassion.equals("turn")&&!(doctor.binaries.contains("Stunned")))
         {
             doctor.passivecount=0; boolean got=false; 
             Tracker er=new Tracker("Titanium Battlesuit armed");
             for (StatEff e: doctor.effects)
             {
-                if (e.geteffname().equals("Titanium Battlesuit armed"))
+                if (e instanceof Tracker&&e.geteffname().equals("Titanium Battlesuit armed"))
                 {
                     got=true; break;
                 }
@@ -37,19 +125,19 @@ public class StaticPassive
             if (got==false)
             doctor.effects.add(er);
         }
-        else if (occassion.equals("attacked"))
+        else if (occassion.equals("attacked")&&!(doctor.binaries.contains("Stunned")))
         {
-            if (doctor.passivecount==0)
+            if (doctor.passivecount==0) //battlesuit armed
             {
                 doctor.passivecount=1; StatEff too=null;
                 for (StatEff e: doctor.effects)
                 {
-                    if (e.geteffname().equals("Titanium Battlesuit armed"))
+                    if (e instanceof Tracker&&e.geteffname().equals("Titanium Battlesuit armed"))
                     {
                         too=e; break;
                     }
                 }
-                doctor.remove(too.hashcode, "silent");
+                doctor.effects.remove(too);
                 Shock e= new Shock(500, 20, 1);
                 boolean yes=CoinFlip.Flip(500+doctor.Cchance);
                 if (yes==true)
@@ -69,7 +157,7 @@ public class StaticPassive
         {
             CoinFlip.IgnoreTargeting(george, true); george.SHLD=100; george.passivecount=1; george.immunities.add("Debuffs");
         }
-        else if (shield==false) //apply debuffs when attacking; called by his only attack ability's activatep
+        else if (shield==false) //apply debuffs when attacking; called by beforeattack
         {
             boolean stop=false;
             for (int i=0; i<5; i++)
@@ -86,35 +174,45 @@ public class StaticPassive
                             if (a instanceof DefAb)
                             {
                                 String[] choochoo={"Shatter", "500", "616", "1", "false"}; String[][] nuclear=StatFactory.MakeParam(choochoo, null); 
-                                george.activeability.AddTempString(nuclear); stop=true;
+                                if (george.activeability!=null)
+                                george.activeability.AddTempString(nuclear); 
+                                stop=true;
                             }
                             break;
                             case 1:
                             if (a instanceof HealAb)
                             {
                                 String[] choochoo={"Afflicted", "500", "616", "1", "false"}; String[][] nuclear=StatFactory.MakeParam(choochoo, null); 
-                                george.activeability.AddTempString(nuclear); stop=true;
+                                if (george.activeability!=null)
+                                george.activeability.AddTempString(nuclear); 
+                                stop=true;
                             }
                             break;
                             case 2:
                             if (a instanceof DebuffAb)
                             {
                                 String[] choochoo={"Neutralise", "500", "616", "1", "false"}; String[][] nuclear=StatFactory.MakeParam(choochoo, null); 
-                                george.activeability.AddTempString(nuclear); stop=true;
+                                if (george.activeability!=null)
+                                george.activeability.AddTempString(nuclear); 
+                                stop=true;
                             }
                             break;
                             case 3:
                             if (a instanceof BuffAb)
                             {
                                 String[] choochoo={"Undermine", "500", "616", "1", "false"}; String[][] nuclear=StatFactory.MakeParam(choochoo, null); 
-                                george.activeability.AddTempString(nuclear); stop=true;
+                                if (george.activeability!=null)
+                                george.activeability.AddTempString(nuclear); 
+                                stop=true;
                             }
                             break;
                             case 4: 
                             if (a instanceof AttackAb)
                             {
                                 String[] choochoo={"Disarm", "500", "616", "1", "false"}; String[][] nuclear=StatFactory.MakeParam(choochoo, null); 
-                                george.activeability.AddTempString(nuclear); stop=true;
+                                if (george.activeability!=null)
+                                george.activeability.AddTempString(nuclear); 
+                                stop=true;
                             }
                             break;
                         }
@@ -143,6 +241,16 @@ public class StaticPassive
             }
         }
         return dmg;
+    }
+    public static void Flash (Character user) //called beforeattack; here bc it's short
+    {
+        if (user.passivecount<=5) //attacking while losing control 
+        {
+            int amount=15-user.ADR; 
+            System.out.println (user.Cname+" took "+amount+" damage");
+            user.TakeDamage(user, amount, false);
+            String[]akaban={"Bleed", "100", "10", "1", "false"}; String[][] niharu=StatFactory.MakeParam(akaban, null); user.activeability.AddTempString(niharu);
+        }
     }
     public static void Binary (Character binary, boolean in) //when transforming into binary; in is whether transform is into binary or out of binary
     {
@@ -174,12 +282,29 @@ public class StaticPassive
             binary.immunities.remove("Buffs"); binary.immunities.remove("Debuffs"); binary.immunities.remove("Heal"); binary.immunities.remove("Defence");
         }
     }
-    public static void CM (Character carol) //fightstart
+    public static void CM (Character carol, boolean start) 
     {
-        carol.immunities.add("Poison");
-        Tracker NRG= new Tracker("Energy: ");
-        carol.effects.add(NRG);
-        NRG.onApply(carol);
+        if (start==true) //fightstart
+        {
+            carol.immunities.add("Poison");
+            Tracker NRG= new Tracker("Energy: ");
+            carol.effects.add(NRG);
+            NRG.onApply(carol);
+        }
+        else //onattack
+        {
+            System.out.println(carol.Cname+" gained 1 Energy.");
+            ++carol.passivecount;
+            for (StatEff e: carol.effects) //update displayed energy count
+            {
+                if (e instanceof Tracker&&e.geteffname().equals("Energy: "+(carol.passivecount-1)))
+                {
+                    e.Attacked(carol, null, 616);
+                }
+            }
+            if (carol.passivecount>=5) 
+            carol.Transform(24, false);
+        }
     }
     public static void OGVenom (Character eddie) //choose ally to watch over at fight start
     {
