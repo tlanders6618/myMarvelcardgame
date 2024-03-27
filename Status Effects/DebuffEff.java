@@ -268,7 +268,7 @@ class Countdown extends DebuffEff
                 {
                     if (eff[0].equalsIgnoreCase("Ricochet")) 
                     {
-                        Ability.DoRicochetDmg (dmg, hero, true);
+                        Ability.DoRicochetDmg (dmg, hero, true, null);
                     }
                 }
             }
@@ -362,16 +362,14 @@ class Debilitate extends DebuffEff
     @Override
     public String geteffname()
     {
-        String name;
         if (duration<100)
         {
-            name="Debilitate: "+power+", "+duration+" turn(s)";
+            return "Debilitate: "+power+", "+duration+" turn(s)";
         }
         else
         {
-            name="Debilitate: "+power;
+            return "Debilitate: "+power;
         }
-        return name;
     }
     public Debilitate (int nchance, int npow, int ndur)
     {
@@ -430,7 +428,66 @@ class Disarm extends DebuffEff
     @Override
     public String geteffname() 
     {
-       return "Disarm, "+duration+ " turn(s)"; 
+       if (this.duration<100)
+       {
+           return "Disarm, "+this.duration+" turn(s)";
+       }
+       else
+       {
+           return "Disarm";
+       }
+    }
+}
+class Disorient extends DebuffEff 
+{
+    @Override
+    public String getimmunityname()
+    {
+        return "Disorient";
+    }
+    @Override 
+    public String getefftype()
+    {
+        return "Debuffs";
+    }
+    @Override
+    public String getalttype() 
+    {
+        return "nondamaging";
+    }
+    @Override
+    public String geteffname()
+    {
+        if (this.duration<100)
+        {
+            return "Disorient, "+this.duration+" turn(s)";
+        }
+        else
+        {
+            return "Disorient";
+        }
+    }
+    public Disorient (int nchance, int ndur)
+    {
+        this.duration=ndur;
+        this.oduration=ndur;
+        this.chance=nchance;
+        this.hashcode=Card_HashCode.RandomCode();
+    }
+    public Disorient (int nchance)
+    {
+        this.chance=nchance;
+        this.hashcode=Card_HashCode.RandomCode();
+    }
+    @Override
+    public void onApply (Character target)
+    {
+        target.CC-=50;
+    }
+    @Override
+    public void Nullified (Character target)
+    {
+        target.CC+=50;
     }
 }
 class Disrupt extends DebuffEff 
@@ -517,7 +574,14 @@ class Neutralise extends DebuffEff
     @Override
     public String geteffname() 
     {
-       return "Neutralise, "+duration+ " turn(s)"; 
+       if (this.duration<100)
+       {
+           return "Neutralise, "+this.duration+" turn(s)";
+       }
+       else
+       {
+           return "Neutralise";
+       }
     }
 }
 class PlaceboD extends DebuffEff

@@ -143,7 +143,7 @@ class Regen extends HealEff
     @Override
     public void onTurnStart (Character hero)
     {
-        Character.Healed(hero, this.power, false);
+        hero.Healed(this.power, false);
         --this.duration;
         if (this.duration<=0)
         {

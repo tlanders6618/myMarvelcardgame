@@ -43,6 +43,7 @@ public class StatFactory
             case "Daze": eff=new Daze (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3])); break;  
             case "Debilitate": eff= new Debilitate (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][2]), Integer.valueOf(param[0][3])); break;
             case "Disarm": eff=new Disarm (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3])); break;
+            case "Disorient": eff=new Disorient (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3])); break;
             case "Disrupt": eff=new Disrupt (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3])); break;
             case "Drain": eff=new Drain (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][2]), Integer.valueOf(param[0][3])); break;
             case "Evade": eff= new Evade (Integer.valueOf(param[0][1])); break;
@@ -112,8 +113,9 @@ class Tracker extends StatEff //displays a character's relevant personal statist
         switch (oname)
         {
             case "Damage Taken: ": info=target.dmgtaken; name+=info; break;
-            case "Energy: ": info=target.passivecount; name+=info; break;
-            case "Control Points: ": info=target.passivecount; name+=info; break;
+            case "Energy: ": case "Control Points: ": case "Rage: ": case "Electrons: ": case "Momentum: ":
+            info=target.passivecount; name+=info; 
+            break;
         }
     }
     @Override
@@ -142,7 +144,15 @@ class Tracker extends StatEff //displays a character's relevant personal statist
                 name=(oname+info);
             }
             break;
-            case "Control Points: ": info=hero.passivecount; name=(oname+info); break;
+            case "Control Points: ": case "Electrons: ": 
+            info=hero.passivecount; name=(oname+info); 
+            break;
+            case "Momentum: ":
+            if (hero.passivecount==5)
+            name="Unstoppable!";
+            else
+            name=(oname+hero.passivecount);
+            break;
         }
     }
     @Override
@@ -161,8 +171,9 @@ class Tracker extends StatEff //displays a character's relevant personal statist
                 name=(oname+info);
             }
             break;
-            case "Energy: ": info=hero.passivecount; name=(oname+info); break;
-            case "Control Points: ": info=hero.passivecount; name=(oname+info); break;
+            case "Energy: ": case "Control Points: ": case "Rage: ":
+            info=hero.passivecount; name=(oname+info); 
+            break;
         }
     }
 }
