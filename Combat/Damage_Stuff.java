@@ -86,13 +86,13 @@ public class Damage_Stuff
             System.out.println(dealer.Cname+"'s attack was critical!");
             double ndmg= dmg*dealer.critdmg;
             dmg=5*(int)(Math.floor(ndmg/5)); //crit damage rounded down to nearest 5
-            dealer.onCrit(dealer, chump);
+            dealer.onCrit(chump);
         }
         return dmg;
     }
     public static int DamageIncrease (Character dealer, Character chump, int dmg) //dealer is the one doing the damage and chump is the one taking it
     {
-        dmg=dmg+dealer.BD+chump.DV; //dealer's dmg boosts plus the chump's damage vulnerabilities
+        dmg=dmg+dealer.BD+dealer.PBD+chump.DV; //dealer's dmg boosts plus the chump's damage vulnerabilities
         return dmg;
     }
     public static int DamageDecrease (Character dealer, boolean crit, Character chump, int dmg)

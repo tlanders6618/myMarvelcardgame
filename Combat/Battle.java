@@ -23,7 +23,7 @@ public class Battle
     {
         int round=0; //variable for keeping track of rounds for TTK sake
         boolean gamewinner=false; //game has been won
-        boolean Pwinner=true; //true for player 1 wins, and false for player 2 wins
+        boolean Pwinner=false; //true for player 1 wins, and false for player 2 wins
         FightStart(Char11, Char12, Char13, Char21, Char22, Char23); //allows certain passives to take effect
         Scoreboard.main(team1, team2);
         int winner=616;
@@ -159,7 +159,7 @@ public class Battle
                 else
                 {
                     System.out.println ("\n"+champions[P1active].Cname+" skips their turn due to being Banished.");
-                    champions[P1active].BanishTick(champions[P1active]); //ensures banished heroes take no turns but still have their banish duration reduced 
+                    champions[P1active].BanishTick(); //ensures banished heroes take no turns but still have their banish duration reduced 
                     Battle.CheckActive(affil);
                 }
             }
@@ -232,7 +232,7 @@ public class Battle
                 else
                 {
                     System.out.println ("\n"+champions[P1active].Cname+" skips their turn due to being Banished.");
-                    champions[P1active].BanishTick(champions[P1active]); //ensures banished heroes take no turns but still have their banish duration reduced 
+                    champions[P1active].BanishTick(); //ensures banished heroes take no turns but still have their banish duration reduced 
                     Battle.CheckActive(affil);
                 }
             }

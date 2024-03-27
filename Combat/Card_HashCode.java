@@ -43,9 +43,8 @@ public class Card_HashCode
         else 
         return true;
     }
-    public static void RandomStat (Character hero, String kind) 
+    public static void RandomStat (Character hero, Character target, String kind) 
     {
-        //random number=Min + (int)(Math.random() * ((Max - Min) + 1))
         String[][] ps=null;
         switch (kind)
         {
@@ -64,6 +63,18 @@ public class Card_HashCode
             }
             break;
         }
-        hero.activeability.AddTempString(ps);
+        if (hero.activeability!=null&&(Battle.team1[Battle.P1active]==hero||Battle.team2[Battle.P2active]==hero)) //to prevent bugs with assist
+        hero.activeability.AddTempString(ps); 
+        else
+        {
+            if (ps[0][4].equals("true")||hero==target)
+            {
+                StatEff e=StatFactory.MakeStat(ps, hero); StatEff.CheckApply(hero, hero, e);
+            }
+            else 
+            {
+                StatEff e=StatFactory.MakeStat(ps, hero); StatEff.CheckApply(hero, target, e);
+            }
+        }
     }
 }

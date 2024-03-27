@@ -187,6 +187,7 @@ public class CoinFlip
             hero.ignores.add ("Provoke");
             hero.ignores.add ("Invisible");
             hero.ignores.add ("Blind");
+            hero.ignores.add ("Evade");
         }
         else
         {
@@ -196,6 +197,7 @@ public class CoinFlip
             hero.ignores.remove ("Provoke");
             hero.ignores.remove ("Invisible");
             hero.ignores.remove ("Blind");
+            hero.ignores.remove ("Evade");
         }
     }
     public static void RobotImmunities (Character hero, boolean add)
