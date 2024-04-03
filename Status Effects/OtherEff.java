@@ -137,12 +137,6 @@ class FocusE extends OtherEff
             return "Focus Effect";
         }
     }
-    public FocusE (int nchance)
-    {
-        this.chance=nchance;
-        this.hashcode=Card_HashCode.RandomCode();
-        this.stackable=true;
-    }
     public FocusE (int nchance, int nduration)
     {
         this.duration=nduration;
@@ -187,13 +181,6 @@ class IntensifyE extends OtherEff
             name="Intensify Effect: "+this.power;
             return name;
         }
-    }
-    public IntensifyE (int nchance, int nstrength)
-    {
-        this.power=nstrength;
-        this.chance=nchance;
-        this.hashcode=Card_HashCode.RandomCode();
-        this.stackable=true;
     }
     public IntensifyE (int nchance, int nstrength, int nduration)
     {
@@ -552,12 +539,6 @@ class ResistanceE extends OtherEff
         this.oduration=ndur;
         this.hashcode=Card_HashCode.RandomCode();
     }
-    public ResistanceE (int nchance, int npower) 
-    {
-        this.chance=nchance;
-        this.power=npower;
-        this.hashcode=Card_HashCode.RandomCode();
-    }
     @Override
     public void onApply (Character hero) 
     {
@@ -595,11 +576,6 @@ class SnareE extends DebuffEff
             name="Snare Effect";
             return name;
         }
-    }
-    public SnareE (int nchance)
-    {
-        this.chance=nchance;
-        this.hashcode=Card_HashCode.RandomCode();
     }
     public SnareE (int nchance, int nduration)
     {

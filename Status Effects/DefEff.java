@@ -358,12 +358,6 @@ class Resistance extends DefEff
         this.oduration=ndur;
         this.hashcode=Card_HashCode.RandomCode();
     }
-    public Resistance (int nchance, int npower) 
-    {
-        this.chance=nchance;
-        this.power=npower;
-        this.hashcode=Card_HashCode.RandomCode();
-    }
     @Override
     public void onApply (Character hero) 
     {
@@ -406,11 +400,6 @@ class Taunt extends DefEff
         this.chance=chan;
         this.duration=ndur;
         this.oduration=ndur;
-        this.hashcode=Card_HashCode.RandomCode();
-    }
-    public Taunt (int cham) 
-    {
-        this.chance=cham;
         this.hashcode=Card_HashCode.RandomCode();
     }
     @Override

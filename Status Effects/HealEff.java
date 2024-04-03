@@ -85,12 +85,6 @@ class Recovery extends HealEff
             return name;
         }
     }
-    public Recovery (int nchance, int nstrength)
-    {
-        this.power=nstrength;
-        this.chance=nchance;
-        this.hashcode=Card_HashCode.RandomCode();
-    }
     public Recovery (int nchance, int nstrength, int nduration)
     {
         this.power=nstrength;

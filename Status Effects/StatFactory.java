@@ -36,11 +36,12 @@ public class StatFactory
             case "Afflicted": eff=new Afflicted (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3])); break;  
             case "Barrier": eff= new Barrier (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][2]), Integer.valueOf(param[0][3])); break;
             case "Bleed": eff=new Bleed (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][2]), Integer.valueOf(param[0][3])); break;
+            case "Blind": eff=new Blind (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3]), Q); break;  
             case "Bulwark": eff=new Bulwark (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3])); break;  
             case "Burn": eff=new Burn (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][2]), Integer.valueOf(param[0][3])); break;    
             case "Countdown": eff=new Countdown (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][2]), Integer.valueOf(param[0][3]), param[1]); break;
             case "Counter": eff=new Counter (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][2]), Integer.valueOf(param[0][3]), param[1]); break; 
-            case "Daze": eff=new Daze (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3])); break;  
+            case "Daze": eff=new Daze (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3]), Q); break;  
             case "Debilitate": eff= new Debilitate (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][2]), Integer.valueOf(param[0][3])); break;
             case "Disarm": eff=new Disarm (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3])); break;
             case "Disorient": eff=new Disorient (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3])); break;

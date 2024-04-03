@@ -42,11 +42,6 @@ class Bulwark extends BuffEff
             return name;
         }
     }
-    public Bulwark (int nchance)
-    {
-        this.chance=nchance;
-        this.hashcode=Card_HashCode.RandomCode();
-    }
     public Bulwark (int nchance, int nduration)
     {
         this.duration=nduration;
@@ -54,6 +49,7 @@ class Bulwark extends BuffEff
         this.chance=nchance;
         this.hashcode=Card_HashCode.RandomCode();
     }
+    @Override 
     public void onApply (Character target)
     {
         target.CritDR+=50;      
@@ -113,13 +109,12 @@ class Counter extends BuffEff
     @Override
     public void Attacked (Character hero, Character attacker, int ignore) //dmg based on status effects like damage up weakness and resistance
     {
-        if (hero.binaries.contains("Missed"))
-        hero.binaries.remove("Missed");
         int dmg=this.power; 
         if (!(attacker.ignores.contains("Counter"))&&!(hero.binaries.contains("Stunned")))
         {
+            if (!(hero.binaries.contains("Missed"))&&!(hero.immunities.contains("Missed")))
             Damage_Stuff.CheckBlind(hero);
-            if (!(hero.binaries.contains("Missed")))
+            if (!(hero.binaries.contains("Missed"))&&!(hero.immunities.contains("Missed")))
             Damage_Stuff.CheckEvade(hero, attacker);
         }
         if (!(attacker.ignores.contains("Counter"))&&!(hero.binaries.contains("Stunned"))&&!(hero.binaries.contains("Missed")))
@@ -138,6 +133,8 @@ class Counter extends BuffEff
                 }
             }
         }
+        if (hero.binaries.contains("Missed"))
+        hero.binaries.remove("Missed");
     }
 }
 class Evasion extends BuffEff 
@@ -167,11 +164,6 @@ class Evasion extends BuffEff
             return name;
         }
     }
-    public Evasion (int nchance)
-    {
-        this.chance=nchance;
-        this.hashcode=Card_HashCode.RandomCode();
-    }
     public Evasion (int nchance, int nduration)
     {
         this.duration=nduration;
@@ -179,6 +171,7 @@ class Evasion extends BuffEff
         this.chance=nchance;
         this.hashcode=Card_HashCode.RandomCode();
     }
+    @Override 
     public void onApply (Character target)
     {     
     }
@@ -210,11 +203,6 @@ class Focus extends BuffEff
             return name;
         }
     }
-    public Focus (int nchance)
-    {
-        this.chance=nchance;
-        this.hashcode=Card_HashCode.RandomCode();
-    }
     public Focus (int nchance, int nduration)
     {
         this.duration=nduration;
@@ -222,6 +210,7 @@ class Focus extends BuffEff
         this.chance=nchance;
         this.hashcode=Card_HashCode.RandomCode();
     }
+    @Override 
     public void onApply (Character target)
     {
         target.Cchance+=50;      
@@ -258,13 +247,6 @@ class Intensify extends BuffEff
             name="Intensify: "+this.power;
             return name;
         }
-    }
-    public Intensify (int nchance, int nstrength)
-    {
-        this.power=nstrength;
-        this.chance=nchance;
-        this.hashcode=Card_HashCode.RandomCode();
-        this.myriad=false;
     }
     public Intensify (int nchance, int nstrength, int nduration)
     {
@@ -313,11 +295,6 @@ class Invisible extends BuffEff
             return name;
         }
     }
-    public Invisible (int nchance)
-    {
-        this.chance=nchance;
-        this.hashcode=Card_HashCode.RandomCode();
-    }
     public Invisible (int nchance, int nduration)
     {
         this.duration=nduration;
@@ -325,11 +302,7 @@ class Invisible extends BuffEff
         this.chance=nchance;
         this.hashcode=Card_HashCode.RandomCode();
     }
-    @Override
-    public void Nullified (Character target)
-    {
-        target.binaries.remove("Invisible");
-    }
+    @Override 
     public void onApply (Character target)
     {
         target.binaries.add("Invisible"); 
@@ -345,6 +318,11 @@ class Invisible extends BuffEff
         {
             target.remove(e.hashcode, "normal");
         }
+    }
+    @Override
+    public void Nullified (Character target)
+    {
+        target.binaries.remove("Invisible");
     }
 }
 class MightyBlows extends BuffEff 
@@ -375,11 +353,6 @@ class MightyBlows extends BuffEff
             return name;
         }
     }
-    public MightyBlows (int nchance)
-    {
-        this.chance=nchance;
-        this.hashcode=Card_HashCode.RandomCode();
-    }
     public MightyBlows (int nchance, int nduration)
     {
         this.duration=nduration;
@@ -387,6 +360,7 @@ class MightyBlows extends BuffEff
         this.chance=nchance;
         this.hashcode=Card_HashCode.RandomCode();
     }
+    @Override
     public void onApply (Character target)
     {   
         for (Ability a: target.abilities)
@@ -456,11 +430,6 @@ class PlaceboB extends BuffEff
             return name;
         }
     }
-    public PlaceboB (int nchance)
-    {
-        this.chance=nchance;
-        this.hashcode=Card_HashCode.RandomCode();
-    }
     public PlaceboB (int nchance, int nduration)
     {
         this.duration=nduration;
@@ -500,12 +469,6 @@ class Precision extends BuffEff
             return name;
         }
     }
-    public Precision (int nchance)
-    {
-        this.chance=nchance;
-        this.hashcode=Card_HashCode.RandomCode();
-        this.stackable=true;
-    }
     public Precision (int nchance, int nduration)
     {
         this.duration=nduration;
@@ -514,6 +477,7 @@ class Precision extends BuffEff
         this.hashcode=Card_HashCode.RandomCode();
         this.stackable=true;
     }
+    @Override
     public void onApply (Character target)
     {
         target.CC+=50;      
@@ -550,11 +514,6 @@ class Speed extends BuffEff
             name="Speed";
             return name;
         }
-    }
-    public Speed (int nchance)
-    {
-        this.chance=nchance;
-        this.hashcode=Card_HashCode.RandomCode();
     }
     public Speed (int nchance, int nduration)
     {
