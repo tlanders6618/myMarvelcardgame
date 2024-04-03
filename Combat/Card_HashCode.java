@@ -62,14 +62,28 @@ public class Card_HashCode
                 String[] porridge={"Focus", "500", "616", "2", "true"}; ps=StatFactory.MakeParam(porridge, null);
             }
             break;
+            case "disable debuffs": int choose=1+(int)(Math.random() * ((3 - 1) + 1));
+            if (choose==1) 
+            {
+                String[] porridge={"Afflicted", "100", "616", "1", "false"}; ps=StatFactory.MakeParam(porridge, null);
+            }
+            else if (choose==2) 
+            {
+                String[] porridge={"Neutralise", "100", "616", "1", "false"}; ps=StatFactory.MakeParam(porridge, null);
+            }
+            else if (choose==3) 
+            {
+                String[] porridge={"Undermine", "100", "616", "1", "false"}; ps=StatFactory.MakeParam(porridge, null);
+            }
+            break;
         }
         if (hero.activeability!=null&&(Battle.team1[Battle.P1active]==hero||Battle.team2[Battle.P2active]==hero)) //to prevent bugs with assist
         hero.activeability.AddTempString(ps); 
         else
         {
-            if (ps[0][4].equals("true")||hero==target)
+            if (ps[0][4].equals("true")||hero==target) //don't forget to check application chance first since checkapply doesn't
             {
-                StatEff e=StatFactory.MakeStat(ps, hero); StatEff.CheckApply(hero, hero, e);
+                StatEff e=StatFactory.MakeStat(ps, hero); StatEff.CheckApply(hero, hero, e); 
             }
             else 
             {

@@ -34,7 +34,7 @@ public class Card_Selection
             {
                 Cname=Damage_Stuff.GetInput(); 
                 good=false;
-                if (Cname==616||Cname<=0||Cname>35) //updated as more characters are released in each version
+                if (Cname==616||Cname<=0||Cname>37) //updated as more characters are released in each version
                 {
                     System.out.println("Index number not found.");
                 }
@@ -66,7 +66,7 @@ public class Card_Selection
         do
         {
             rename=Damage_Stuff.GetInput();
-            if (rename==616||rename<=0||rename>35)
+            if (rename==616||rename<=0||rename>37)
             {
                 System.out.println("Index number not found.");
             }
@@ -81,16 +81,14 @@ public class Card_Selection
     public static boolean OnlyOne (int chosen, int[] others) //Ensures players cannot choose duplicate heroes. 
     { 
         //Chosen is the name the player entered; the other names are previously selected heroes
-        boolean unique=true;  
         for (int i: others)
         {
             if (i!=0&&chosen==i) //the default value for empty int array slots is 0; no point in checking those 
             {
-                unique=false;
-                break;
+                return false;
             }
         }
-        return unique;
+        return true;
     }
     public static int ChooseTargetFriend (Character[] list) //for targeting allies
     {
@@ -159,7 +157,7 @@ public class Card_Selection
             {
                 if (s instanceof Ignore)
                 {
-                    int ignore=s.Use(hero, null);
+                    int ignoreme=s.Use(hero, null);
                 }
             }
         }
@@ -296,14 +294,17 @@ public class Card_Selection
         {
             for (Character c: team)
             {
+                boolean taunt=false;
                 for (Integer ig: priority)
                 {
                     int h= (int) ig;
-                    if (h!=c.hash)
+                    if (h==c.hash)
                     {
-                        remove.add(c); //non taunters cannot be attacked
+                        taunt=true; //non taunters cannot be attacked
                     }
                 }
+                if (taunt==false)
+                remove.add(c);
             }
         }
         if (remove.size()>0)

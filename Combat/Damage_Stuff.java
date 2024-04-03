@@ -130,6 +130,8 @@ public class Damage_Stuff
                 System.out.println ("\n"+hero.Cname+"'s attack missed.");
                 hero.binaries.add("Missed"); //missed is automatically removed after a hero uses any ability on a target
             }
+            else
+            System.out.println("\n"+hero.Cname+"'s attack hit!");
         }
     }
     public static void CheckEvade (Character dealer, Character target)

@@ -234,6 +234,25 @@ public class CoinFlip
             hero.immunities.remove ("Burn");
         }
     }
+    public static void StatImmune (Character hero, boolean add)
+    {
+        if (add==true)
+        {
+            hero.immunities.add ("Buffs");
+            hero.immunities.add ("Debuffs");
+            hero.immunities.add ("Heal");
+            hero.immunities.add ("Defence");
+            hero.immunities.add ("Other");
+        }
+        else
+        {
+            hero.immunities.remove ("Buffs");
+            hero.immunities.remove ("Debuffs");
+            hero.immunities.remove ("Heal");
+            hero.immunities.remove ("Defence");
+            hero.immunities.remove ("Other");
+        }
+    }
     public static ArrayList ToList (Character[] list) //converts array to arraylist and returns arraylist
     {
         ArrayList<Character> team= new ArrayList<Character>();

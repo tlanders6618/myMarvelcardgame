@@ -19,21 +19,19 @@ public class Card_Game_Main
         int Ccounter=0; //for keeping track of the character/ban array index
         int name=616;
         String ban="nope";
-        String bane, bane1, bane2, bane3, bane4, bane5, bane6="F";
         boolean unique=false;
         int[] bans= new int [11]; 
         int[] charnames= new int[6];
-        bans[6]=62; bans[7]=24; bans[8]=122; bans[9]=170; bans[10]=184; //players cannot pick gauntlet thanos, binary, etc        
+        bans[6]=24; bans[7]=62; bans[8]=122; bans[9]=170; bans[10]=184; //players cannot pick gauntlet thanos, binary, etc        
         //Selecting cards
-        System.out.println ("Welcome. The current version is 4.0.24. The latest playable character is Juggernaut (Classic). "); 
+        System.out.println ("Welcome. The current version is 4.1.2. The latest playable character is Mysterio (Classic). "); 
         System.out.println ("Please check the character overview list for the full list of playable characters.");
         System.out.println ("Remember, characters will take turns in the order they are picked.");
-        //System.out.println ("\nEnter draft mode (allows character banning and up to one character swap)? Type yes or no.");
-        boolean issue=true; //no draft mode until there are at least ~16 heroes
+        System.out.println ("\nEnter draft mode (allows character banning and up to one character swap)? Type yes or no.");
+        boolean issue=true; 
         while (issue==true) //as in there's an issue with what they typed
         {
-            ban="no"; //until draft mode is reenabled
-            //ban=scan.nextLine(); 
+            ban=trash.nextLine(); 
             ban=ban.trim().replaceAll("\\s+"," "); 
             if (ban.equalsIgnoreCase("yes")||ban.equalsIgnoreCase("no"))
             {
@@ -44,40 +42,36 @@ public class Card_Game_Main
         if (ban.equalsIgnoreCase("yes"))
         {
             System.out.println ("Each player gets to ban 3 characters. Banned characters cannot be used by either player.");
-            for (int i=0; i<6; i++)
+            while (Ccounter<6)
             { 
                 while (unique==false) //ensures there are no duplicate bans
                 {
-                    name=Card_Selection.Selection(i, true);
+                    name=Card_Selection.Selection(Ccounter, true);
                     unique=Card_Selection.OnlyOne(name, bans); 
                     if (unique==false)
                     {
-                        System.out.println ("No duplicate bans allowed.");
+                        System.out.println (Character.SetName(name, false)+" has already been banned. Please select another character.");
                     }
                 }
                 switch (Ccounter)
                 {
-                    case 0: bans[0]=name; bane=Character.SetName(name, false); System.out.println (bane+" has been banned."); break; 
-                    case 1: bans[1]=name; bane=Character.SetName(name, false); System.out.println (bane+" has been banned."); break;
-                    case 2: bans[2]=name; bane=Character.SetName(name, false); System.out.println (bane+" has been banned."); break;
-                    case 3: bans[3]=name; bane=Character.SetName(name, false); System.out.println (bane+" has been banned."); break;
-                    case 4: bans[4]=name; bane=Character.SetName(name, false); System.out.println (bane+" has been banned."); break;
-                    case 5: bans[5]=name; bane=Character.SetName(name, false); System.out.println (bane+" has been banned."); break;
+                    case 0: bans[0]=name; break; 
+                    case 1: bans[1]=name; break;
+                    case 2: bans[2]=name; break;
+                    case 3: bans[3]=name; break;
+                    case 4: bans[4]=name; break;
+                    case 5: bans[5]=name; break;
                 } 
+                System.out.println (Character.SetName(name, false)+" has been banned."); ++Ccounter; unique=false;
             }
-            bane1=Character.SetName(bans[0], false);
-            bane2=Character.SetName(bans[1], false);
-            bane3=Character.SetName(bans[2], false);
-            bane4=Character.SetName(bans[3], false);
-            bane5=Character.SetName(bans[4], false);
-            bane6=Character.SetName(bans[5], false);
-            System.out.println ("Banned characters for this match: "+bane1+", "+bane2+", "+bane3);
-            System.out.println ("Banned characters for this match: "+bane4+", "+bane5+", "+bane6);
+            System.out.println ("\nPlayer 1's bans for this match: "+Character.SetName(bans[0], false)+", "+Character.SetName(bans[2], false)+", "+Character.SetName(bans[4], false));
+            System.out.println ("Player 2's bans for this match: "+Character.SetName(bans[1], false)+", "+Character.SetName(bans[3], false)+", "+Character.SetName(bans[5], false));
         }
         //Creating teams
         unique=false; boolean uncle; //uncle also represents hero uniqueness
         boolean banned; 
         System.out.println ("Now you will take turns choosing characters.");
+        Ccounter=0;
         while (Ccounter<6)
         {
             name=Card_Selection.Selection(Ccounter, false); //player picks their character 
@@ -99,39 +93,53 @@ public class Card_Game_Main
                 unique=Card_Selection.OnlyOne(name, charnames);
                 uncle=Card_Selection.OnlyOne(name, bans);
             }
-            switch (Ccounter)
+            switch (Ccounter) //0 is name11, 1 is name21, 2 is name12, 3 is name22, 4 is name 13, 5 is name23
             { 
-                case 0: charnames[0]=name; bane=Character.SetName(name, false); System.out.println ("Player 1 has picked "+bane); ++Ccounter; break; 
-                case 1: charnames[1]=name; bane=Character.SetName(name, false); System.out.println ("Player 2 has picked "+bane); ++Ccounter; break;
-                case 2: charnames[2]=name; bane=Character.SetName(name, false); System.out.println ("Player 1 has picked "+bane); ++Ccounter; break;
-                case 3: charnames[3]=name; bane=Character.SetName(name, false); System.out.println ("Player 2 has picked "+bane); ++Ccounter; break;
-                case 4: charnames[4]=name; bane=Character.SetName(name, false); System.out.println ("Player 1 has picked "+bane); ++Ccounter; break;
-                case 5: charnames[5]=name; bane=Character.SetName(name, false); System.out.println ("Player 2 has picked "+bane); ++Ccounter; break;
+                case 0: charnames[0]=name; break; 
+                case 1: charnames[1]=name; break;
+                case 2: charnames[2]=name; break;
+                case 3: charnames[3]=name; break;
+                case 4: charnames[4]=name; break;
+                case 5: charnames[5]=name; break;
             }  
-            //0 is name11, 1 is name21, 2 is name12, 3 is name22, 4 is name 13, 5 is name23
+            if (Ccounter%2==0)
+            System.out.println ("Player 1 has picked "+Character.SetName(name, false)); 
+            else
+            System.out.println ("Player 2 has picked "+Character.SetName(name, false));
+            ++Ccounter; 
         }
         //Optional team editing phase
         if (ban.equalsIgnoreCase("yes"))
         {
+            System.out.println("\nPlayer 1's team: "+Character.SetName(charnames[0], false)+", "+Character.SetName(charnames[2], false)+", "+Character.SetName(charnames[4], false));
+            System.out.println("Player 2's team: "+Character.SetName(charnames[1], false)+", "+Character.SetName(charnames[3], false)+", "+Character.SetName(charnames[5], false));
             for (int i=0; i<2; i++) //this is the reason why it's called draft mode instead of ban mode. Players can change one of their characters
             {
                 unique=false; uncle=false;
                 boolean typo=true;
                 if (i==0)
+                System.out.println ("\nPlayer 1, do you want to change one of your characters? Type yes or no.");
+                else 
+                System.out.println ("\nPlayer 2, do you want to change one of your characters? Type yes or no.");
+                boolean problem=true; String dr=null;
+                while (problem==true) 
                 {
-                    System.out.println ("Player 1, do you want to change one of your characters? Type yes or no.");
+                    dr=trash.nextLine(); 
+                    dr=dr.trim().replaceAll("\\s+"," "); 
+                    if (dr.equalsIgnoreCase("yes")||dr.equalsIgnoreCase("no"))
+                    {
+                        problem=false;
+                    }
                 }
-                else if (i==1)
-                {
-                    System.out.println ("Player 2, do you want to change one of your characters? Type yes or no.");
-                }
-                bane=trash.nextLine(); 
-                if (bane.equalsIgnoreCase("yes"))
+                if (dr.equalsIgnoreCase("yes"))
                 {
                     System.out.println ("Which character would you like to add to your team?");
                     while (unique==false||uncle==false) //check for uniqueness again
                     {
-                        name=trash.nextInt();
+                        if (i==0)
+                        name=Card_Selection.Selection(0, false);
+                        else
+                        name=Card_Selection.Selection(1, false);
                         unique=Card_Selection.OnlyOne(name, charnames);
                         uncle=Card_Selection.OnlyOne(name, bans);
                         if (unique==false)
@@ -143,54 +151,62 @@ public class Card_Game_Main
                             System.out.println ("No banned characters allowed.");
                         }
                     }
-                    bane=Character.SetName(name, false);
+                    if (i==0)
+                    System.out.println ("Player 1 has picked "+Character.SetName(name, false));
+                    else 
+                    System.out.println ("Player 2 has picked "+Character.SetName(name, false));
+                    System.out.println ("\nWhich character would you like them to replace? Type their number, not their name.");
                     if (i==0)
                     {
-                        System.out.println ("Player 1 has picked "+bane);
+                        System.out.println("1. "+Character.SetName(charnames[0], false)+" 2. "+Character.SetName(charnames[2], false)+" 3. "+Character.SetName(charnames[4], false));
                     }
-                    else 
+                    else
                     {
-                        System.out.println ("Player 2 has picked "+bane);
+                        System.out.println("1. "+Character.SetName(charnames[1], false)+" 2. "+Character.SetName(charnames[3], false)+" 3. "+Character.SetName(charnames[5], false));
                     }
-                    System.out.println ("Which character would you like them to replace?");
-                    while (typo==true) 
+                    while (typo==true)  
                     {
-                        int replace;
-                        replace=Damage_Stuff.GetInput(); 
+                        int replace=Damage_Stuff.GetInput(); 
                         if (i==0) //if player 1 is typing
                         {
-                            if (replace==charnames[0])
+                            if (replace==1)
                             {
-                                typo=false;
-                                charnames[0]=name;
+                                typo=false;   
+                                System.out.println(Character.SetName(charnames[0], false)+" has been replaced with "+Character.SetName(name, false)+".");
+                                charnames[0]=name; 
                             }
-                            else if(replace==charnames[2])
+                            else if(replace==2)
                             {
                                 typo=false;
+                                System.out.println(Character.SetName(charnames[2], false)+" has been replaced with "+Character.SetName(name, false)+".");
                                 charnames[2]=name; 
                             }
-                            else if(replace==charnames[4])
+                            else if(replace==3)
                             {
                                 typo=false;
-                                charnames[3]=name;
+                                System.out.println(Character.SetName(charnames[4], false)+" has been replaced with "+Character.SetName(name, false)+".");
+                                charnames[4]=name; 
                             } 
                         }
-                        else if (i==1) //player 2 is typing
+                        else //player 2 is typing
                         {
-                            if (replace==charnames[1])
+                            if (replace==1)
                             {
                                 typo=false;
-                                charnames[0]=name;
+                                System.out.println(Character.SetName(charnames[1], false)+" has been replaced with "+Character.SetName(name, false)+".");
+                                charnames[1]=name; 
                             }
-                            else if(replace==charnames[3])
+                            else if(replace==2)
                             {
                                 typo=false;
-                                charnames[2]=name; 
+                                System.out.println(Character.SetName(charnames[3], false)+" has been replaced with "+Character.SetName(name, false)+".");
+                                charnames[3]=name; 
                             }
-                            else if(replace==charnames[5])
+                            else if(replace==3)
                             {
                                 typo=false;
-                                charnames[3]=name;
+                                System.out.println(Character.SetName(charnames[5], false)+" has been replaced with "+Character.SetName(name, false)+".");
+                                charnames[5]=name; 
                             } 
                         }
                         if (typo==true)
