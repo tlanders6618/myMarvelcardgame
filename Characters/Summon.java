@@ -39,7 +39,7 @@ public class Summon extends Character
             case 4: SummonPassive.Drone(lad, true, null); break;
             case 5: SummonPassive.LilDoomie(lad, true, null); break;
             case 6: int ignore=SummonPassive.Daemon(lad, true, null, 0); break;
-            case 7: lad.binaries.add("Stunned"); break;
+            case 7: SummonPassive.Decoy(lad); break;
         }
         CheckSumDupes(lad);
     }
@@ -368,6 +368,14 @@ public class Summon extends Character
     @Override
     public void onDeath (Character killer, String dmgtype)
     {
+        if (killer!=null)
+        {
+            System.out.println(killer.Cname+" killed "+this.Cname);
+        }
+        else
+        {
+            System.out.println(this.Cname+" has died");
+        }
         if (this.activeability!=null&&this.activeability.channelled==true)
         {
             this.activeability.InterruptChannelled(this, this.activeability);
@@ -377,15 +385,7 @@ public class Summon extends Character
         this.dmgtaken=0;
         this.turn=0;
         ArrayList <StatEff> removeme= new ArrayList<StatEff>();
-        removeme.addAll(this.effects);    
-        if (killer!=null)
-        {
-            System.out.println(killer.Cname+" killed "+this.Cname);
-        }
-        else
-        {
-            System.out.println(this.Cname+" has died");
-        }
+        removeme.addAll(this.effects);  
         for (StatEff eff: removeme)
         {
             if (!(eff instanceof Tracker))
@@ -496,26 +496,11 @@ public class Summon extends Character
     {
     }
     @Override
-    public boolean onAllyControlled (Character hero, Character controlled, Character controller)
+    public void onAllyControlled (Character ally, Character controller) //ally is one being controlled
     {
-        boolean ok=true;
-        if (!(hero.binaries.contains("Stunned")))
-        {
-        }
-        return ok;
     }
     @Override
-    public boolean onSelfControlled (Character hero, Character controller)
+    public void onSelfControlled (Character controller)
     {
-        boolean ok=true;
-        Character[] people=Battle.GetTeammates(hero); 
-        for (Character friend: people)
-        {
-            if (friend!=null&&!(friend.binaries.contains("Banished")))
-            {
-                ok=friend.onAllyControlled(friend, hero, controller);
-            }
-        }
-        return ok;
     }
 }

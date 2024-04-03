@@ -207,16 +207,15 @@ public class ActivePassive
             {
                 int dmg=40;
                 System.out.println ("\nThis one is under our protection!");
+                if (!(eddie.binaries.contains("Missed"))&&!(eddie.immunities.contains("Missed")))
                 Damage_Stuff.CheckBlind(eddie);
-                if ((!(eddie.binaries.contains("Missed"))||eddie.immunities.contains("Missed")))
+                if (!(eddie.binaries.contains("Missed"))&&!(eddie.immunities.contains("Missed")))
+                Damage_Stuff.CheckEvade(eddie, attacker);
+                if (!(eddie.binaries.contains("Missed")))
                 {
-                    Damage_Stuff.CheckEvade(eddie, attacker);
-                    if (!(eddie.binaries.contains("Missed")))
-                    {
-                        dmg=Damage_Stuff.DamageFormula(eddie, attacker, dmg);
-                        dmg=Damage_Stuff.CheckGuard(eddie, attacker, dmg);
-                        attacker.TakeDamage(attacker, eddie, dmg, false);                         
-                    }
+                    dmg=Damage_Stuff.DamageFormula(eddie, attacker, dmg);
+                    dmg=Damage_Stuff.CheckGuard(eddie, attacker, dmg);
+                    attacker.TakeDamage(attacker, eddie, dmg, false);                         
                 }
             }
         }
@@ -460,16 +459,15 @@ public class ActivePassive
                 {
                     int dmg=55;
                     System.out.println ("\nThe Lunar Protector strikes back!");
+                    if (!(knight.binaries.contains("Missed"))&&!(knight.immunities.contains("Missed")))
                     Damage_Stuff.CheckBlind(knight);
-                    if ((!(knight.binaries.contains("Missed"))||knight.immunities.contains("Missed")))
+                    if (!(knight.binaries.contains("Missed"))&&!(knight.immunities.contains("Missed")))
+                    Damage_Stuff.CheckEvade(knight, attacker);
+                    if (!(knight.binaries.contains("Missed")))
                     {
-                        Damage_Stuff.CheckEvade(knight, attacker);
-                        if (!(knight.binaries.contains("Missed")))
-                        {
-                            dmg=Damage_Stuff.DamageFormula(knight, attacker, dmg);
-                            dmg=Damage_Stuff.CheckGuard(knight, attacker, dmg);
-                            attacker.TakeDamage(attacker, knight, dmg, false);                         
-                        }
+                        dmg=Damage_Stuff.DamageFormula(knight, attacker, dmg);
+                        dmg=Damage_Stuff.CheckGuard(knight, attacker, dmg);
+                        attacker.TakeDamage(attacker, knight, dmg, false);                         
                     }
                     break;
                 }

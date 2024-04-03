@@ -37,7 +37,7 @@ public class Hero extends Character
             case 24: ActivePassive.Binary(this); break;
             case 28: StaticPassive.DOOM(this, "turn", this); break;
             case 32: StaticPassive.BB(this, false); break;
-            case 33: StaticPassive.Deadpool(this, true, null, false); break;
+            case 33: StaticPassive.Deadpool(this, "turn", null); break;
             case 35: ActivePassive.Cain(this, true, false, false, 616); break;
         }
         super.onTurn(notbonus);
@@ -180,7 +180,8 @@ public class Hero extends Character
                 case 14: ActivePassive.X23(dealer, victim, false, true); break;
                 case 25: StaticPassive.Flash(dealer); break;
                 case 26: int ignore=StaticPassive.MODOC(dealer, victim, false, false, 616); break;
-                case 33: StaticPassive.Deadpool(dealer, false, victim, false); break;
+                case 33: StaticPassive.Deadpool(dealer, "attack", victim); break;
+                case 36: StaticPassive.Vulture(dealer, victim); break;
             }
         }
     }
@@ -245,7 +246,7 @@ public class Hero extends Character
             case 14: ActivePassive.X23(this, victim, false, false); break;
             case 20: ActivePassive.Superior(this, victim, false); break;
             case 23: StaticPassive.CM(this, false); break;
-            case 33: StaticPassive.Deadpool(this, false, victim, false); break;
+            case 33: StaticPassive.Deadpool(this, "attack", victim); break;
             case 35: ActivePassive.Cain(this, false, false, false, 616); break;
         }
     }
@@ -425,6 +426,14 @@ public class Hero extends Character
     @Override
     public void onDeath (Character killer, String dmgtype)
     {
+        if (killer!=null)
+        {
+            System.out.println(killer.Cname+" killed "+this.Cname);
+        }
+        else
+        {
+            System.out.println(this.Cname+" has died");
+        }
         switch (this.index)
         {
             case 5: case 16:    
@@ -443,15 +452,7 @@ public class Hero extends Character
         this.dmgtaken=0;
         this.turn=0;
         ArrayList <StatEff> removeme= new ArrayList<StatEff>();
-        removeme.addAll(this.effects);   
-        if (killer!=null)
-        {
-            System.out.println(killer.Cname+" killed "+this.Cname);
-        }
-        else
-        {
-            System.out.println(this.Cname+" has died");
-        }
+        removeme.addAll(this.effects);  
         for (StatEff eff: removeme)
         {
             if (!(eff instanceof Tracker))
@@ -498,7 +499,7 @@ public class Hero extends Character
         switch (this.index)
         {
             case 17: ActivePassive.Venom(this); break;
-            case 33: StaticPassive.Deadpool(this, false, victim, true); break;
+            case 33: StaticPassive.Deadpool(this, "kill", victim); break;
         }
     } 
     @Override 
@@ -597,26 +598,11 @@ public class Hero extends Character
         }
     }
     @Override
-    public boolean onAllyControlled (Character hero, Character controlled, Character controller)
+    public void onAllyControlled (Character ally, Character controller) //ally is one being controlled
     {
-        boolean ok=true;
-        if (!(hero.binaries.contains("Stunned")))
-        {
-        }
-        return ok;
     }
     @Override
-    public boolean onSelfControlled (Character hero, Character controller)
+    public void onSelfControlled (Character controller)
     {
-        boolean ok=true;
-        Character[] people=Battle.GetTeammates(hero);
-        for (Character friend: people)
-        {
-            if (friend!=null&&!(friend.binaries.contains("Banished")))
-            {
-                ok=friend.onAllyControlled(friend, hero, controller);
-            }
-        }
-        return ok;
     }
 }

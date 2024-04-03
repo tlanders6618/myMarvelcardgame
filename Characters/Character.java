@@ -570,13 +570,13 @@ public abstract class Character
                 //case
                 //return 200;
             
-                case 6: case 9: case 10: case 14: case 19: case 21: case 29: case 33:
+                case 6: case 9: case 10: case 14: case 19: case 21: case 29: case 33: case 36: case 37:
                 return 220;
             
-                case 1: case 2: case 3: case 4: case 5: case 7: case 8: case 11: case 18: case 20: case 23: case 24: case 25: case 34:
+                case 1: case 2: case 3: case 4: case 5: case 7: case 8: case 11: case 18: case 20: case 23: case 24: case 25: case 34: case 39: case 40:
                 return 230;
             
-                case 12: case 13: case 15: case 16: case 17: case 22: case 27: case 28: case 30: case 32: case 35:
+                case 12: case 13: case 15: case 16: case 17: case 22: case 27: case 28: case 30: case 32: case 35: case 38: case 41:
                 return 240;
                 
                 //Special carrots
@@ -589,26 +589,19 @@ public abstract class Character
         {
             switch (index)
             {
-                case 7: 
-                return 5;    
+                case 7: return 5;    
             
-                case 1: case 10: case 11:
-                return 40;
+                case 1: case 10: case 11: return 40;
             
-                case 5: case 9:
-                return 50;
+                case 5: case 9: return 50;
             
-                case 2: case 3: case 6: case 27:
-                return 60;
+                case 2: case 3: case 6: case 27: return 60;
                 
-                case 8:
-                return 70;
+                case 8: return 70;
                 
-                case 4: case 28:
-                return 80;
+                case 4: case 28: return 80;
             
-                case 12:
-                return 200;
+                case 12: return 200;
             }   
             return 616;
         }
@@ -654,6 +647,12 @@ public abstract class Character
                 case 33: return "Deadpool (Classic)";
                 case 34: return "Red Skull (Classic)";
                 case 35: return "Juggernaut (Classic)";
+                case 36: return "Vulture (Classic)";
+                case 37: return "Mysterio (Classic)";
+                case 38: return "Doctor Octopus (Classic)";
+                case 39: return "Electro (Classic)";
+                case 40: return "Sandman (Classic)";
+                case 41: return "Rhino (Classic)";
             }    
             return "ERROR. INDEX NUMBER NOT FOUND";
         }
@@ -682,8 +681,8 @@ public abstract class Character
     public abstract void Transform (int newindex, boolean greater); //new index is the index number of the character being transformed into
     public abstract void onAllySummon (Character summoner, Summon newfriend);
     public abstract void onEnemySummon (Character summoner, Summon newfoe);
-    public abstract boolean onAllyControlled (Character hero, Character controlled, Character controller);
-    public abstract boolean onSelfControlled (Character hero, Character controller);
+    public abstract void onAllyControlled (Character ally, Character controller);
+    public abstract void onSelfControlled (Character controller);
     public void BanishTick ()
     {
         ArrayList <StatEff> ban= new ArrayList<StatEff>();

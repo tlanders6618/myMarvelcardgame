@@ -17,13 +17,22 @@ public class StaticPassive
         else
         venom.DV+=vuln;
     }
-    public static void Deadpool (Character wade, boolean heal, Character vic, boolean kill) 
+    public static void Vulture (Character adrian, Character prey) //beforeattack
     {
-        if (heal==true&&!(wade.binaries.contains("Stunned"))) //onturn
+        if (prey.HP<120)
+        {
+            System.out.println("The Vulture circles his prey...");
+            String[] sean={"Wound", "50", "616", "1", "false"}; String[][] hannity=StatFactory.MakeParam(sean, null);
+            adrian.activeability.AddTempString(hannity);
+        }
+    }
+    public static void Deadpool (Character wade, String cause, Character vic) 
+    {
+        if (cause.equals("heal")&&!(wade.binaries.contains("Stunned"))) //onturn
         {
             wade.Healed(30, true);
         }
-        else if (vic!=null&&kill==true) //onkill
+        else if (vic!=null&&cause.equals("kill")) //onkill
         {
             int t=1;
             for (Ability a: wade.abilities)
@@ -39,7 +48,7 @@ public class StaticPassive
                 }
             }
         }
-        else if (vic!=null&&kill==false&&vic.summoned==true) 
+        else if (vic!=null&&cause.equals("attack")&&vic.summoned==true) 
         {
             if (wade.passivecount==0) //beforeattack
             {
