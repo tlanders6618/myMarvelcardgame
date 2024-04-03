@@ -28,10 +28,7 @@ public class Test
        Card_Game_Main.trash.close();
        /*
         * To do/to test today:
-        * do draft mode for 4.1
-        * randomly taking bleed dmg twice (captain a took thrice; flash took twice)
         * test that extend doesn't affect immortal/stun
-        * final test: flash, deadpool, skull, juggs, bb, cm, modoc
         */
        //random number=Min + (int)(Math.random() * ((Max - Min) + 1))
        /** 
