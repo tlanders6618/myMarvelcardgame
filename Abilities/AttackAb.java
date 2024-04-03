@@ -105,7 +105,10 @@ class AttackAb extends Ability
             }
             for (Character chump: targets) //use the ability on its target
             {
-                if (chump!=null) //if null, skip entirely
+                boolean okay=true;
+                if (chump!=null&&this.control==true)
+                okay=CheckControl(user, chump);
+                if (chump!=null&&okay==true) //if null, skip entirely
                 {
                     do 
                     {
@@ -134,7 +137,8 @@ class AttackAb extends Ability
                             damage-=chump.ADR;
                             if (damage<0)
                             damage=0;
-                            chump.TakeDamage(chump, user, damage, this.aoe);
+                            System.out.println ("\n"+user.Cname+" did "+damage+" damage to "+chump.Cname);
+                            chump.TakeDamage(chump, damage, false);
                         }
                         else if (lose==true) //modified version of attacknodamage method
                         {
@@ -346,7 +350,10 @@ class AttackAb extends Ability
             }
             for (Character chump: ctargets) //use the ability on its target
             {
-                if (chump!=null) //if null, skip entirely
+                boolean okay=true;
+                if (chump!=null&&this.control==true)
+                okay=CheckControl(user, chump);
+                if (chump!=null&&okay==true) //if null, skip entirely
                 {
                     do 
                     {
@@ -375,7 +382,8 @@ class AttackAb extends Ability
                             damage-=chump.ADR;
                             if (damage<0)
                             damage=0;
-                            chump.TakeDamage(chump, user, damage, this.aoe);
+                            System.out.println ("\n"+user.Cname+" did "+damage+" damage to "+chump.Cname);
+                            chump.TakeDamage(chump, damage, false);
                         }
                         else if (lose==true) //modified version of attacknodamage method
                         {

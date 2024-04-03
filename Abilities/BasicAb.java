@@ -83,7 +83,10 @@ class BasicAb extends AttackAb
             }
             for (Character chump: targets) //use the ability on its target
             {
-                if (chump!=null) //if null, skip entirely to avoid null exception
+                boolean okay=true;
+                if (chump!=null&&this.control==true)
+                okay=CheckControl(user, chump);
+                if (chump!=null&&okay==true) //if null, skip entirely to avoid null exception
                 {
                     do 
                     {
@@ -112,7 +115,8 @@ class BasicAb extends AttackAb
                             damage-=chump.ADR;
                             if (damage<0)
                             damage=0;
-                            chump.TakeDamage(chump, user, damage, this.aoe);
+                            System.out.println ("\n"+user.Cname+" did "+damage+" damage to "+chump.Cname);
+                            chump.TakeDamage(chump, damage, false);
                         }
                         else if (lose==true) 
                         {

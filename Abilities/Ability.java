@@ -15,6 +15,7 @@ public abstract class Ability
     boolean unbound=false; 
     boolean ignore=false; //for ignoring disable debuffs but not suppression
     boolean together=false; //whether status effects are applied separately or together
+    boolean control=false;
     String oname; 
     String target; String friendly; 
     //friendly means ally, enemy, both, either, self, ally inc, ally exc
@@ -66,6 +67,25 @@ public abstract class Ability
             return this.oname+ " (disabled)";
         }
     } 
+    public boolean CheckControl (Character user, Character target) //jean grey and moon knight use their passives and then ability rendered useless if target is immune
+    {
+        target.onSelfControlled(user);
+        Character[] friends=Battle.GetTeammates(target); 
+        for (Character c: friends)
+        {
+            if (c!=null)
+            {
+                c.onAllyControlled(target, user);
+            }
+        }
+        if (!(target.immunities.contains("Control")))
+        return true;
+        else
+        {
+            System.out.println(user.Cname+"'s "+user.activeability.GetAbName(user)+" had no effect due to "+target.Cname+"'s immunity to Control.");
+            return false;
+        }
+    }
     public ArrayList<StatEff> UseAb (Character user, Ability ab, ArrayList<Character> targets) //only applies for the non-attack abs since they all work the same
     {
         boolean typo=true; int uses=1; 
@@ -110,7 +130,10 @@ public abstract class Ability
             }
             for (Character chump: targets) //use the ability on its target
             {
-                if (chump!=null) //if null, skip entirely
+                boolean okay=true;
+                if (chump!=null&&this.control==true)
+                okay=CheckControl(user, chump);
+                if (chump!=null&&okay==true) //if null, skip entirely
                 {
                     int change=0; //does nothing, but beforeabs and empowers return ints so this stores them
                     if (this.aoe==false) //only empowered against the attack's target
@@ -349,7 +372,10 @@ public abstract class Ability
             }
             for (Character chump: ctargets) //use the ability on its target
             {
-                if (chump!=null) 
+                boolean okay=true;
+                if (chump!=null&&this.control==true)
+                okay=CheckControl(user, chump);
+                if (chump!=null&&okay==true) 
                 {
                     int change=0; 
                     if (this.aoe==false)
@@ -533,7 +559,7 @@ public abstract class Ability
                 System.out.println ("\n"+villain.Cname+" took "+dmg+" Ricochet damage"); 
                 villain.TakeDamage(villain, dmg, false); //random enemy takes the damage
             }
-            if (e!=null)
+            if (e!=null&&villain.dead==false)
             {
                 StatEff effect=StatFactory.MakeStat(e, user);
                 StatEff.CheckApply(user, villain, effect);

@@ -52,6 +52,8 @@ public class Ability_List_Player
             case 33: return MakeAbDeadpool(counter);
             case 34: return MakeAbSkull(counter);
             case 35: return MakeAbCain(counter);
+            case 36: return MakeAbVulture(counter);
+            case 37: return MakeAbMysterio(counter);
             default: System.out.println ("Problem getting hero abilities");
         }
         return null;
@@ -66,6 +68,46 @@ public class Ability_List_Player
             case 2: 
             case 3: 
             case 4: 
+            default: return null;
+        }
+    }
+    public static Ability MakeAbMysterio (int counter)
+    {
+        switch (counter)
+        {
+            case 0: BasicAb vanish= new BasicAb("Disappearing Act", "single", "enemy", 40); 
+            String[] milk={"Invisible", "100", "616", "1", "true"}; String[][] teat=StatFactory.MakeParam(milk, null); vanish.AddStatString(teat);
+            return vanish;
+            case 1: DebuffAb pyro= new DebuffAb("Pyrotechnics", "single", "enemy", 2);
+            String[] tired={"Burn", "100", "40", "2", "false"}; String[][] sonic=StatFactory.MakeParam(tired, null); pyro.AddStatString(sonic);
+            return pyro;
+            case 2: OtherAb mental= new OtherAb("Hallucinogenic Gas", "single", "enemy", 3); mental.control=true; mental.special.add(new Assist(false, 1, 40, false, 50, 500, true));
+            return mental;
+            case 3: OtherAb light= new OtherAb("Master of Illusions", "self", "self", 4); 
+            light.special.add(new Summoning(7)); light.special.add(new Summoning(7)); light.special.add(new Summoning(7));
+            return light;
+            case 4: AttackAb sun= new AttackAb("Light Spectacle", "AoE", "enemy", 80, 5); sun.channelled=true;
+            String[] blind={"Blind", "50", "616", "1", "false"}; String[][] girlfriend=StatFactory.MakeParam(blind, null); sun.AddStatString(girlfriend);
+            return sun;
+            default: return null;
+        }
+    }
+    public static Ability MakeAbVulture (int counter)
+    {
+        switch (counter)
+        {
+            case 0: BasicAb swoop= new BasicAb("Wing Swipe", "single", "enemy", 40);
+            return swoop;
+            case 1: AttackAb fight= new AttackAb("Fight and Flight", "single", "enemy", 80, 3); fight.special.add(new DebuffMod(36));
+            return fight;
+            case 3: AttackAb flight= new AttackAb("Aerial Attack", "single", "enemy", 80, 3); 
+            String[] sean={"Afflicted", "100", "616", "1", "false"}; String[][] hannity=StatFactory.MakeParam(sean, null);
+            String[] tucker={"Neutralise", "100", "616", "1", "false"}; String[][] carlson=StatFactory.MakeParam(tucker, null);
+            String[] ben={"Undermine", "100", "616", "1", "false"}; String[][] shapiro=StatFactory.MakeParam(ben, null);
+            flight.special.add(new ChooseStat(hannity, carlson, shapiro));
+            return flight;
+            case 4: AttackAb floop= new AttackAb("One Fell Swoop", "single", "enemy", 80, 3); floop.special.add(new Boost (50));
+            return floop;
             default: return null;
         }
     }

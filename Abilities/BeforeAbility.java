@@ -336,6 +336,26 @@ class BeforeNullify extends BeforeAbility //same as nullify but quick; only wm a
         }
     }
 }
+class Boost extends BeforeAbility //for abs with +50% stat chance
+{
+    int amount;
+    public Boost (int a)
+    {
+        amount=a;
+    }
+    @Override
+    public int Use (Character hero, Character target)
+    {
+        hero.Cchance+=amount;
+        return 0;
+    }
+    @Override
+    public int Use (Character hero, int ignore, Character target) //specialab to undo so cchance boost stays active during stateff gen and application
+    {
+        hero.Cchance-=amount;
+        return ignore;
+    }
+}
 class ChooseStat extends BeforeAbility //choose one effect to apply with the ability
 {
    String[][] choice1; String[][] choice2; String[][] choice3; int choicenum=0;
@@ -861,6 +881,9 @@ class DebuffMod extends BeforeAbility //for altering the debuffs an ab applies, 
                 System.out.println(user.Cname+" is no longer unstoppable."); user.passivecount=0; user.immunities.remove("Debuffs"); 
                 return 30;
             }
+            break;
+            case 36: //vulture
+            Card_HashCode.RandomStat(user, target, "disable debuffs");
             break;
         }
         return 0;

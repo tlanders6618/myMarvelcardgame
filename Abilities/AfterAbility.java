@@ -94,17 +94,18 @@ class ActivatePassive extends AfterAbility //ability activates a hero's passive 
         }
     }
 }
-class Assist extends AfterAbility 
+class Assist extends AfterAbility //either random allies hitting enemy or chosen ally hitting enemy or chosen enemy hitting enemy or random enemy hitting enemy
 {
     boolean friendly; //call ally or enemy to assist
     int num; //of heroes performing assist
     int bonus; //extra damage
     boolean random; //random or chosen target to call for assist
-    int Cchance; //extra statchance
+    int Cchance=0; //extra statchance
     String[][] apply=null;
-    int chance; //to apply
+    int chance; //for assist to apply
     boolean together;
     boolean skull; //to trigger red skull's damagecounter ability bc this is the easiest way to do it
+    boolean self; //for crossbones 
     public Assist (boolean f, int n, int b, boolean r, int c, boolean t)
     {
         friendly=f; num=n; bonus=b; random=r; chance=c; together=t;
@@ -118,17 +119,51 @@ class Assist extends AfterAbility
         friendly=f; num=n; bonus=b; random=r; apply=s; chance=c; together=t;
     }
     @Override
-    public void Use (Character user, Character chump, int ignore) //target of the assist is same as target of the ability; if random, then ab will need to be random target
+    public void Use (Character user, Character chump, int ignore) //target hit by assist is same as target of the ability; if random, then ab will need to be random target
+    {
+        int tnum=num;
+        if (num>=6&&((user.team1==true&&friendly==true)||(user.team1==false&&friendly==false)))
+        num=Battle.p1heroes;
+        else if (num>=6&&((user.team1==false&&friendly==true)||(user.team1==true&&friendly==false)))
+        num=Battle.p2heroes; //no need to check chance/print failure messages 6 times if there's 3 enemies 
+        for (int i=0; i<num; i++)
+        {
+            boolean yes=CoinFlip.Flip(chance+user.Cchance); 
+            if (yes==true&&together==true)
+            {
+                break; //done looping; all assists work
+            }
+            else if (yes==false&&together==true)
+            {
+                System.out.println(user.Cname+"'s Assist failed to apply due to chance"); num=0; break; //done looping; all assists fail
+            }
+            else if (yes==false&&together==false)
+            {
+                System.out.println(user.Cname+"'s Assist failed to apply due to chance"); --num; //keep looping; this assist fails but check others
+            }
+            //else if yes==true&&together==false, keep looping; this assist works but check others
+        }
+        if (num>0) 
+        { 
+            ArrayList<Character> nchamp=new ArrayList<Character>(); //the characters who will assist, chosen from those who are able to
+            if (random==true)
+            nchamp=RandomAssist(user); //chump is the target of the assist and random heroes will attack them
+            else
+            nchamp=ChosenAssist(chump, user); //chump is the one performing the assist and player chooses who they will perform the assist on
+            if (nchamp!=null)
+            UseAssist (nchamp, chump, user);
+        }
+        num=tnum; //reset num for next assist usage
+    }
+    public ArrayList<Character> RandomAssist (Character user) //randomly select heroes to perform assist
     {
         Character[] targets=null;
         if (friendly==true)
         targets=Battle.GetTeammates(user);
         else
         targets=Battle.GetTeam(CoinFlip.TeamFlip(user.team1));
-        boolean valid=false;
         ArrayList<Character> champs=new ArrayList<Character>();
-        ArrayList<Ability> basics=new ArrayList<Ability>();
-        int done=0; //number of heroes who actually have basic attacks and thus are able to perform an assist
+        int valid=0; //number of ally or enemy heroes who actually have basic attacks and thus are able to perform an assist
         for (Character a: targets)
         {
             if (a!=null&&!(a.binaries.contains("Banished")))
@@ -137,75 +172,110 @@ class Assist extends AfterAbility
                 {
                     if (f instanceof BasicAb)
                     {
-                        ++done; champs.add(a); basics.add(f);
+                        ++valid; champs.add(a); 
                         break;
                     }
                 }
             }
-            if (done>=num)
-            break;
         }
-        int hold=done;
-        boolean print=true; //whether to print failure message for lack of eligible targets or not; don't need to print 2 reasons for failure
-        if (hold>0)
+        if (valid>0)
         {
-            for (int i=0; i<hold; i++)
+            int hold;
+            if (num>valid) //supposed to call 2 heroes to assist but only one has a basicab, so go with 1
+            hold=valid;
+            else //if valid>=num; supposed to call 2 heroes to assist and there's two or more with basicabs, so call two
+            hold=num;
+            ArrayList<Character> nchamp= new ArrayList<Character>();
+            for (int i=0; i<hold; i++) 
             {
-                boolean yes=CoinFlip.Flip(chance+user.Cchance);
-                if (yes==true&&together==true)
-                {
-                    break; //done looping; all assists work
-                }
-                else if (yes==false&&together==true)
-                {
-                    System.out.println(user.Cname+"'s Assist failed to apply due to chance"); done=0; print=false; break; //done looping; all assists fail
-                }
-                else if (yes==false&&together==false)
-                {
-                    System.out.println(user.Cname+"'s Assist failed to apply due to chance"); --done; print=false; //keep looping; this assist fails but check others
-                }
-                //else if yes==true&&together==false, keep looping; this assist works but check others
+                int index=0+(int)(Math.random() * (((champs.size()-1) - 0) + 1)); //random number between 0 and champs.size-1, the highest index of a hero in champs
+                nchamp.add(champs.get(index)); 
+                champs.remove(index); //can't have same hero be called twice by one assist
+            }
+            return nchamp;
+        }
+        else
+        System.out.println(user.Cname+"'s Assist failed to apply due to a lack of eligible targets.");
+        return null;
+    }
+    public ArrayList<Character> ChosenAssist (Character hero, Character user)
+    {
+        if (user.binaries.contains("Missed")&&hero.team1!=user.team1) //can't force enemy to assist if attack missed
+        return null;
+        boolean valid=false;
+        for (Ability f: hero.abilities) //must ensure chosen hero even has a basicab or else assist won't work
+        {
+            if (f instanceof BasicAb)
+            {
+                valid=true; break;
             }
         }
-        if (done>0) 
-        { 
-            ArrayList<Character> nchamp=new ArrayList<Character>(); //characters who will assist, chosen from those who are able to
-            ArrayList<Ability> nbasic=new ArrayList<Ability>();
-            if (random==true)
+        if (valid==true)
+        {
+            ArrayList<Character> nchamp=new ArrayList<Character>(); //person(s) to be harmed by the assist that hero is performing 
+            if (self==false)
             {
-                for (int i=0; i<done; i++)
-                {
-                    int index=0+(int)(Math.random() * (((champs.size()-1) - 0) + 1)); //random number between 0 and champs.size-1, the highest index of a hero in champs
-                    if (champs.size()>0) //basics and champs should have same size
-                    {
-                        nchamp.add(champs.get(index)); nbasic.add(basics.get(index)); //two arraylists are designed so the hero and their basic will have the same index in both
-                        champs.remove(index); basics.remove(index); //can't have same hero be called twice by one assist
-                    }
-                }
-            }
-            else //choose who performs the assist from the available targets in champs
-            {
-                System.out.println ("Choose a character to perform the Assist. Type their number, not their name."); 
-                for (int hocley=0; hocley<done; hocley++) //can choose as many characters as are available, since the available number can't be higher than the assist's num value
+                System.out.println ("Choose a character for "+hero.Cname+" to perform an Assist on. Type their number, not their name."); 
+                Character[] targets=null;
+                if (friendly==true)
+                targets=Battle.GetTeammates(user);
+                else
+                targets=Battle.GetTeam(CoinFlip.TeamFlip(user.team1));
+                ArrayList<Character> champs=CoinFlip.ToList(targets);
+                for (int hocley=0; hocley<num; hocley++) //num determines how many characters are affected by the assist
                 {
                     int choice=616;
                     for (int i=0; i<champs.size(); i++)
                     {
+                        if (champs.get(i)!=hero) //character cannot perform assist on self
                         System.out.println ((i+1)+": "+champs.get(i).Cname);  
                     }
                     do
                     {
                         choice=Damage_Stuff.GetInput(); 
-                        if (!(choice<=done&&choice>0)) 
+                        if (!(choice<=champs.size()&&choice>0)) 
                         choice=616;
+                        else
+                        choice--; //to get index number
                     }
                     while (choice==616);
-                    nchamp.add(champs.get(choice));
+                    nchamp.add(champs.get(choice)); 
                 }
             }
-            for (int i=0; i<nchamp.size(); i++)
+            else //self==true; target is self
+            nchamp.add(user); 
+            return nchamp;
+        }
+        else
+        System.out.println(user.Cname+"'s Assist failed due to "+hero.Cname+" not having any basic attacks.");
+        return null;
+    }
+    public void UseAssist (ArrayList<Character> nchamp, Character stalker, Character user)
+    {
+        ArrayList<Character> friends= new ArrayList<Character>(); //those performing assist
+        ArrayList<Character> foes= new ArrayList<Character>(); //those being hit by the assist
+        if (random==true) //nchamp contains those performing assist on the hero
+        {
+            friends.addAll(nchamp); foes.add(stalker);
+        }
+        else //nchamp contains those the chosen hero is performing the assist on
+        {
+            friends.add(stalker); foes.addAll(nchamp);
+        }
+        for (int n=0; n<friends.size(); n++)
+        {
+            Character dealer=friends.get(n); //one performing assist
+            Ability ab=null;
+            for (Ability f: dealer.abilities) //must ensure chosen hero even has a basicab or else assist won't work
+            {
+                if (f instanceof BasicAb)
+                {
+                    ab=f; break;
+                }
+            }
+            for (int i=0; i<foes.size(); i++)
             { 
-                Character dealer=nchamp.get(i); Ability ab=nbasic.get(i); 
+                Character chump=foes.get(i);
                 boolean lose=ab.GetLose(); boolean max=ab.GetMax(); int multihit=ab.GetMultihit(true);
                 ArrayList<StatEff> selfapply=new ArrayList<StatEff>(); ArrayList<StatEff> otherapply=new ArrayList<StatEff>(); ArrayList<StatEff> toadd=new ArrayList<StatEff>();
                 do 
@@ -290,11 +360,10 @@ class Assist extends AfterAbility
                     StatEff bunny=StatFactory.MakeStat(apply, user); //for loki
                     StatEff.CheckApply(user, dealer, bunny);
                 }
+                dealer.Cchance-=Cchance;
                 //then loop to next hero doing assist
             }
         }
-        else if (print==true)
-        System.out.println(user.Cname+"'s Assist failed to apply due to a lack of eligible targets.");
     }
 }
 class CopySteal extends AfterAbility //the only difference is that steal removes the buff; otherwise they're identical so they share a method
