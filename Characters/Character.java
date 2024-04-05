@@ -89,7 +89,7 @@ public abstract class Character
         {
             if (friend!=null&&!(friend.binaries.contains("Banished")))
             {
-                friend.onAllyTurn(this, friend, this.summoned);
+                friend.onAllyTurn(this, this.summoned);
             }
         }
         team=CoinFlip.TeamFlip(team); //reverse team affiliation to get enemies
@@ -98,25 +98,25 @@ public abstract class Character
         {
             if (foe!=null&&!(foe.binaries.contains("Banished")))
             {
-                foe.onEnemyTurn(this, foe, this.summoned);
+                foe.onEnemyTurn(this, this.summoned);
             }
         }
         if (this.team1==true) //potentially notify dead friends like Phoenix that it's time to revive
         {
             for (Character deadlad: Battle.team1dead)
             {
-                deadlad.onAllyTurn (this, deadlad, this.summoned);
+                deadlad.onAllyTurn (this, this.summoned);
             }
         } 
         else
         {
             for (Character deadlad: Battle.team2dead)
             {
-                deadlad.onAllyTurn (this, deadlad, this.summoned);
+                deadlad.onAllyTurn (this, this.summoned);
             }
         }
     }
-    public abstract void onTurnEnd (Character hero, boolean notbonus);
+    public abstract void onTurnEnd (boolean notbonus);
     public Ability ChooseAb () //called by turn in battle
     {
         if (this.team1==true)
@@ -188,7 +188,7 @@ public abstract class Character
         }
         if (nowound==true&&this.HP<this.maxHP&&this.dead==false)
         {
-            regener=this.GetHealAmount(this, regener, passive);
+            regener=this.GetHealAmount(regener, passive);
             if (regener+this.HP>this.maxHP) //can't have more health than the maximum amount
             regener=this.maxHP-this.HP;
             this.HP+=regener;
@@ -199,9 +199,9 @@ public abstract class Character
             this.HPChange(h, this.HP);
         }
     }
-    public static int GetHealAmount (Character hero, int amount, boolean passive)
+    public int GetHealAmount (int amount, boolean passive)
     {
-        for (StatEff eff: hero.effects)
+        for (StatEff eff: this.effects)
         {
             if (eff.getimmunityname().equalsIgnoreCase("Poison"))
             {
@@ -210,7 +210,7 @@ public abstract class Character
         }
         if (passive==false) //passive healing is unaffected by recovery
         {
-            for (StatEff eff: hero.effects)
+            for (StatEff eff: this.effects)
             {
                 if (eff.getimmunityname().equalsIgnoreCase("Recovery"))
                 {
@@ -225,30 +225,30 @@ public abstract class Character
         }
         return amount;
     }
-    public static void CheckDrain (Character hero, Character target, int amount)
+    public void CheckDrain (Character target, int amount)
     {
         //this is now under the attack method instead of each attackab and basicab
-        if (hero.lifesteal<=0||target.immunities.contains("Drained")||hero.binaries.contains("Wounded"))
+        if (this.lifesteal<=0||target.immunities.contains("Drained")||this.binaries.contains("Wounded"))
         {
             //can't heal
         }
         else
         {
-            int h=hero.HP;
-            if (hero.lifesteal==50)
+            int h=this.HP;
+            if (this.lifesteal==50)
             {
                 double dub=amount/2;
                 amount=5*(int)Math.ceil(dub/5.0); //drain half, rounded up
             }
-            amount=hero.GetHealAmount(hero, amount, false);
-            if (hero.HP<hero.maxHP)
-            hero.HP+=amount;
-            System.out.println("\n"+hero.Cname+" healed themself for "+amount+" health!");
-            if (hero.HP>hero.maxHP)
+            amount=this.GetHealAmount(amount, false);
+            if (this.HP<this.maxHP)
+            this.HP+=amount;
+            System.out.println("\n"+this.Cname+" healed themself for "+amount+" health!");
+            if (this.HP>this.maxHP)
             {
-                hero.HP=hero.maxHP;
+                this.HP=this.maxHP;
             }
-            hero.HPChange(h, hero.HP);
+            this.HPChange(h, this.HP);
         }
     }
     public void Shielded (int amount) //hero is gaining shield
@@ -315,8 +315,8 @@ public abstract class Character
         }
         return ntarg;
     }
-    public abstract void onAllyTurn (Character ally, Character hero, boolean summoned); //ally is the one triggering call and hero is one reacting; true if teammate is a summon
-    public abstract void onEnemyTurn (Character enemy, Character hero, boolean summoned);
+    public abstract void onAllyTurn (Character ally, boolean summoned); 
+    public abstract void onEnemyTurn (Character enemy, boolean summoned);
     public abstract void onFightStart();
     public abstract void onAllyAttacked(Character ally, Character hurtfriend, Character attacker, int dmg);
     public abstract Character onAllyTargeted (Character hero, Character dealer, Character target, int dmg, boolean aoe); //for passives to change target hero
@@ -362,7 +362,7 @@ public abstract class Character
         }
         if (dealer.dead==false)
         {
-            dealer.CheckDrain(dealer, target, dmg);
+            dealer.CheckDrain(target, dmg);
         }
         return target;
     }

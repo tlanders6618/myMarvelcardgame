@@ -10,12 +10,28 @@ package myMarvelcardgamepack;
 import java.util.ArrayList;
 public class StaticPassive 
 {
+    public static StatEff InstaConversion (Character max, StatEff e, String toadd, int strength, int dur) //add; for electro, zzzax, apocalypse, etc
+    {
+        String[] string={toadd, Integer.toString(e.chance), Integer.toString(strength), Integer.toString(dur), "true"}; String[][] her=StatFactory.MakeParam(string, null);
+        StatEff brand=StatFactory.MakeStat(her, max);
+        System.out.println(max.Cname+"'s "+e.geteffname()+" was converted into a "+brand.geteffname()+"!");
+        return brand;
+    }
     public static void Symbiote (Character venom, int vuln, boolean start) //efficient since they all have the same passive; fightstart and add/remove
     {
         if (start==true)
         venom.ignores.add("Evade");
         else
         venom.DV+=vuln;
+    }
+    public static void Rhino (Character alexei) //fightstart
+    {
+        alexei.immunities.add("Vulnerable"); alexei.immunities.add("Suppression"); alexei.immunities.add("Reduce"); alexei.BlDR+=10; 
+        ResistanceE me= new ResistanceE(500, 10, 616); alexei.add(me);
+    }
+    public static void Sandy (Character will) //fightstart
+    {
+        will.immunities.add("Bleed"); will.immunities.add("Shock"); will.immunities.add("Disarm"); will.ignores.add("Counter");
     }
     public static void Vulture (Character adrian, Character prey) //beforeattack
     {

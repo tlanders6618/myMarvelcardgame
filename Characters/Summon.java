@@ -227,15 +227,15 @@ public class Summon extends Character
         super.onTurn(notbonus);
     }
     @Override
-    public void onTurnEnd (Character hero, boolean notbonus)
+    public void onTurnEnd (boolean notbonus)
     {
     }
     @Override
-    public void onAllyTurn (Character ally, Character hero, boolean summoned) //ally is the one triggering call and hero is one reacting; true if teammate is a summon
+    public void onAllyTurn (Character ally, boolean summoned) //ally is the one triggering call and this is one reacting; true if teammate is a summon
     {
     }
     @Override
-    public void onEnemyTurn (Character enemy, Character hero, boolean summoned)
+    public void onEnemyTurn (Character enemy, boolean summoned)
     {
     }
     @Override

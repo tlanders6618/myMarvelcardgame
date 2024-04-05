@@ -10,6 +10,101 @@ package myMarvelcardgamepack;
 import java.util.ArrayList;
 public class ActivePassive 
 {
+    public static void Sandy (Character baker, String o)
+    {
+        if (o.equals("ult")) //activatep; use sandstorm 
+        {
+            ArrayList<StatEff> opp= new ArrayList<StatEff>(); opp.addAll(baker.effects);
+            for (StatEff e: opp)
+            {
+                if (!(e.getefftype().equals("Secret")))
+                baker.remove(e.hashcode, "normal");
+            }
+            String[]blast={"Safeguard", "500", "616", "1", "true"}; String[][] loopy=StatFactory.MakeParam(blast, null); baker.activeability.AddTempString(loopy);
+            Character[] friends=Battle.GetTeammates(baker);
+            Character[] foes=Battle.GetTeam(CoinFlip.TeamFlip(baker.team1));
+            for (Character c: friends)
+            {
+                if (c!=null)
+                {
+                    Blind k=new Blind(500, 1, baker); StatEff.CheckApply(baker, c, k);
+                }
+            }
+            for (Character c: foes)
+            {
+                if (c!=null)
+                {
+                    Blind k=new Blind(500, 1, baker); StatEff.CheckApply(baker, c, k);
+                }
+            }
+            baker.passivecount=4;
+            Tracker clunt=new Tracker("Sand Storm active: "); baker.effects.add(clunt); clunt.onApply(baker);
+        }
+        else if (o.equals("turn")) //onturn and onallyturn; sandstorm dmg
+        {
+            if (baker.passivecount>0&&baker.dead==false&&!(baker.binaries.contains("Stunned")))
+            {
+                --baker.passivecount;
+                Character[] friends=Battle.GetTeammates(baker);
+                Character[] foes=Battle.GetTeam(CoinFlip.TeamFlip(baker.team1));
+                for (Character chump: foes)
+                {
+                    if (chump!=null)
+                    {
+                        int damage=20;
+                        damage-=chump.ADR;
+                        if (damage<0)
+                        damage=0;
+                        System.out.println ("\n"+baker.Cname+" did "+damage+" damage to "+chump.Cname);
+                        chump.TakeDamage(chump, damage, false);
+                    }
+                }
+                for (Character chump: friends)
+                {
+                    if (chump!=null)
+                    {
+                        int damage=10;
+                        damage-=chump.ADR;
+                        if (damage<0)
+                        damage=0;
+                        System.out.println ("\n"+baker.Cname+" did "+damage+" damage to "+chump.Cname);
+                        chump.TakeDamage(chump, damage, false);
+                    }
+                }
+                StatEff hope=null;
+                for (StatEff e: baker.effects)
+                {
+                    if (e instanceof Tracker&& e.geteffname().equals("Sand Storm active: "+(baker.passivecount+1)+" turns"))
+                    {
+                        if (baker.passivecount>0)
+                        e.onApply(baker);
+                        else
+                        hope=e;
+                        break;
+                    }
+                }
+                if (hope!=null)
+                {
+                    baker.remove(hope.hashcode, "silent"); System.out.println(baker.Cname+"'s Sand Storm ended.");
+                }
+            }
+        }
+        else //if (o.equals("burn")) //add
+        {
+            ArrayList<StatEff> burns= new ArrayList<StatEff>();
+            for (StatEff e: baker.effects)
+            {
+                if (e.getimmunityname().equals("Burn"))
+                burns.add(e);
+            }
+            if (burns.size()>1)
+            {
+                System.out.print("\n");
+                baker.remove(burns.get(0).hashcode, "normal"); baker.remove(burns.get(1).hashcode, "normal");
+                StunE hope= new StunE(500, 1); StatEff.CheckApply(baker, baker, hope);
+            }
+        }
+    }
     public static void Cain (Character marko, boolean turn, boolean change, boolean start, int old)
     {
         if (turn==true&&marko.passivecount<5) //onturn
@@ -235,6 +330,13 @@ public class ActivePassive
         }
         else //called by hero.tookdamage
         {
+            for (StatEff e: wolvie.effects) //to update after an elusive attack since they don't trigger the tracker's .attacked 
+            {
+                if (e instanceof Tracker)
+                {
+                    e.Attacked(wolvie, null, 0);
+                }
+            }
             if (wolvie.passivecount==0&&wolvie.dmgtaken>=180)
             {
                 wolvie.passivecount=1;

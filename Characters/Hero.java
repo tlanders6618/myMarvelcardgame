@@ -39,37 +39,39 @@ public class Hero extends Character
             case 32: StaticPassive.BB(this, false); break;
             case 33: StaticPassive.Deadpool(this, "turn", null); break;
             case 35: ActivePassive.Cain(this, true, false, false, 616); break;
+            case 40: ActivePassive.Sandy(this, "turn"); break;
         }
         super.onTurn(notbonus);
     }
     @Override
-    public void onTurnEnd (Character hero, boolean notbonus)
+    public void onTurnEnd (boolean notbonus)
     {
-        switch (hero.index)
+        switch (this.index)
         {
-            case 12: ActivePassive.DraxOG(hero, false, null, null); break;
+            case 12: ActivePassive.DraxOG(this, false, null, null); break;
         }
     }
     @Override
-    public void onAllyTurn (Character ally, Character hero, boolean summoned) //ally is the one triggering call and hero is one reacting; true if teammate is a summon
+    public void onAllyTurn (Character ally, boolean summoned) //ally is the one triggering call and this is one reacting
     {
-        if (!(hero.binaries.contains("Banished"))) //remember that this triggers for dead heroes too
+        if (!(this.binaries.contains("Banished"))) //remember that this triggers for dead heroes too
         {
             switch (index)
             {
-                case 11: ActivePassive.FuryJr(hero, false, true, summoned, false); break;
-                case 24: ActivePassive.Binary(hero); break;
+                case 11: ActivePassive.FuryJr(this, false, true, summoned, false); break;
+                case 24: ActivePassive.Binary(this); break;
+                case 40: ActivePassive.Sandy(this, "turn"); break;
             }
         }
     }
     @Override
-    public void onEnemyTurn (Character enemy, Character hero, boolean summoned)
+    public void onEnemyTurn (Character enemy, boolean summoned) //enemy is the one triggering call and this is one reacting
     {
-        if (!(hero.binaries.contains("Banished")))
+        if (!(this.binaries.contains("Banished")))
         {
             switch (index)
             {
-                case 24: ActivePassive.Binary(hero); break;
+                case 24: ActivePassive.Binary(this); break;
             }
         }
     }
@@ -95,25 +97,14 @@ public class Hero extends Character
             case 31: StaticPassive.Hulk(this, true); break;
             case 32: StaticPassive.BB(this, true); break;
             case 35: ActivePassive.Cain(this, false, false, true, 616); break;
+            case 40: StaticPassive.Sandy(this); break;
+            case 41: StaticPassive.Rhino(this); break;
         }
     }
     @Override
     public void add (StatEff eff) //adding a stateff
     {
-        this.effects.add(eff);        
-        String type=eff.getefftype(); String name=eff.getimmunityname();
-        switch (this.index)
-        {
-            case 2: 
-            if (name.equals("Intensify")&&type.equals("Buffs"))
-            ActivePassive.Gamora(this, eff, true); 
-            break;
-            case 16: case 17: case 25:
-            if (name.equals("Burn"))
-            StaticPassive.Symbiote(this, 5, false);
-            break;
-        }
-        for (StatEff e: this.effects) //for stateffs that react to other stateffs like fortify
+        for (StatEff e: this.effects) //for stateffs that react to other stateffs, e.g. fortify
         {
             e.Attacked(eff);
         }
@@ -122,7 +113,30 @@ public class Hero extends Character
         {
             System.out.println ("\n"+this.Cname+" gained a(n) "+eff.geteffname());
         }
+        switch (this.index) //modify effect before gaining it
+        {
+            case 39: 
+            if (eff.getimmunityname().equals("Shock"))
+            eff=StaticPassive.InstaConversion(this, eff, "IntensifyE", eff.power, eff.duration); 
+            break;
+        }
+        this.effects.add(eff);  
         eff.onApply(this);
+        switch (this.index) //after gaining effect
+        {
+            case 2: 
+            if (eff.getimmunityname().equals("Intensify")&&eff.getefftype().equals("Buffs"))
+            ActivePassive.Gamora(this, eff, true); 
+            break;
+            case 16: case 17: case 25:
+            if (eff.getimmunityname().equals("Burn"))
+            StaticPassive.Symbiote(this, 5, false);
+            break;
+            case 40:
+            if (eff.getimmunityname().equals("Burn"))
+            ActivePassive.Sandy(this, "burn");
+            break;
+        }
     }
     @Override
     public void remove (int removalcode, String how) //removes status effects; how is how it was removed, meaning purify or nullify or steal or normal (i.e. expiry)
