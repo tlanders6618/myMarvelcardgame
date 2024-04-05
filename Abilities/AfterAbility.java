@@ -683,7 +683,7 @@ class Extend extends AfterAbility
         boolean valid=true;
         if (self==true)
         target=user;
-        if (user.team1!=target.team1&&(user.binaries.contains("Missed"))) //need to check for miss before affecting an enemy
+        else if (user.team1!=target.team1&&(user.binaries.contains("Missed"))) //need to check for miss before affecting an enemy
         valid=false;
         if (valid==true&&!(target.immunities.contains("Extend"))&&!(target.immunities.contains("Other"))) 
         {

@@ -54,6 +54,10 @@ public class Ability_List_Player
             case 35: return MakeAbCain(counter);
             case 36: return MakeAbVulture(counter);
             case 37: return MakeAbMysterio(counter);
+            case 38: return MakeAbOck(counter);
+            case 39: return MakeAbElectro(counter);
+            case 40: return MakeAbSandy(counter);
+            case 41: return MakeAbRhino(counter);
             default: System.out.println ("Problem getting hero abilities");
         }
         return null;
@@ -68,6 +72,76 @@ public class Ability_List_Player
             case 2: 
             case 3: 
             case 4: 
+            default: return null;
+        }
+    }
+    //2.1
+    public static Ability MakeAbRhino (int counter)
+    {
+        switch (counter)
+        {
+            case 0: BasicAb ram= new BasicAb("Ram", "single", "enemy", 35);
+            String[] shazam={"Provoke", "50", "616", "1", "false"}; String[][] shamaz=StatFactory.MakeParam(shazam, null); ram.AddStatString(shamaz);
+            return ram;
+            case 3: AttackAb rhino= new AttackAb("Rhino Charge", "single", "enemy", 100, 4);
+            String[] brave={"Taunt", "100", "616", "1", "true"}; String[][] bold=StatFactory.MakeParam(brave, null); rhino.AddStatString(bold);
+            return rhino;
+            case 4: AttackAb minotaur= new AttackAb("Stampede", "AoE", "enemy", 60, 4); 
+            String[] wash={"Provoke", "100", "616", "1", "false"}; String[][] after=StatFactory.MakeParam(wash, null); minotaur.AddStatString(after);
+            return minotaur;
+            default: return null;
+        }
+    }
+    public static Ability MakeAbSandy (int counter)
+    {
+        switch (counter)
+        {
+            case 0: BasicAb blast= new BasicAb("Sand Blast", "AoE", "enemy", 30);
+            return blast;
+            case 1: AttackAb wave= new AttackAb("Sand Wave", "AoE", "enemy", 50, 2);
+            return wave;
+            case 4: OtherAb storm= new OtherAb("Sand Storm", "self", "self", 0); storm.singleuse=true; storm.special.add(new ActivateP());
+            return storm;
+            default: return null;
+        }
+    }
+    public static Ability MakeAbElectro (int counter)
+    {
+        switch (counter)
+        {
+            case 0: DebuffAb ball= new DebuffAb("Ball Lightning", "single", "enemy", 0);
+            String[] orb={"Shock", "100", "40", "1", "false"}; String[][] shockinghuh=StatFactory.MakeParam(orb, null); ball.AddStatString(shockinghuh);
+            return ball;
+            case 1: DebuffAb shimmy= new DebuffAb("Shocking Touch", "single", "enemy", 0); shimmy.multiuse=2; shimmy.special.add(new ActivateP(39));
+            return shimmy;
+            case 3: OtherAb surge= new OtherAb("Electrical Surge", "self", "self", 0); surge.multiuse=2;
+            String[] thee={"Shock", "500", "20", "2", "true"}; String[][] thine=StatFactory.MakeParam(thee, null); surge.AddStatString(thine);
+            String[] me={"TargetE", "500", "10", "1", "true"}; String[][] mine=StatFactory.MakeParam(me, null); surge.AddStatString(mine);
+            return surge;
+            case 4: BasicAb bolt= new BasicAb("Electric Discharge", "AoE", "enemy", 30); bolt.special.add(new DamageCounterRemove("Intensify", false, 5, true, true, true));
+            return bolt;
+            default: return null;
+        }
+    }
+    public static Ability MakeAbOck (int counter)
+    {
+        switch (counter)
+        {
+            case 0: BasicAb punch= new BasicAb("Tentacle Punch", "single", "enemy", 45);
+            return punch;
+            case 1: AttackAb arm= new AttackAb("Armed and Dangerous", "single", "enemy", 70, 2);
+            String[] disarm={"Disarm", "50", "616", "1", "false"}; String[][] d=StatFactory.MakeParam(disarm, null); arm.AddStatString(d);
+            return arm;
+            case 2: BuffAb plan= new BuffAb("Sinister Plan", "single", "ally exclusive", 3);
+            String[] me={"Focus", "100", "616", "2", "true"}; String[][] mine=StatFactory.MakeParam(me, null); plan.AddStatString(mine);
+            String[] thee={"Focus", "100", "616", "2", "false"}; String[][] thine=StatFactory.MakeParam(thee, null); plan.AddStatString(thine);
+            return plan;
+            case 3: OtherAb bigbrain= new OtherAb("Superior Intellect", "single", "ally inclusive", 2); 
+            String[] name={"any"}; String[] type={"Buffs"}; bigbrain.special.add(new Extend(500, 1, "chosen", name, type, 1, false, true, true));
+            return bigbrain;
+            case 4: AttackAb fore= new AttackAb("Four Armed Fury", "single", "enemy", 25, 4, 3); 
+            String[] gimme={"Disorient", "0", "616", "1", "false"}; String[][]dat=StatFactory.MakeParam(gimme, null); fore.AddStatString(dat);
+            return fore;
             default: return null;
         }
     }
@@ -111,6 +185,7 @@ public class Ability_List_Player
             default: return null;
         }
     }
+    //2.0 
     public static Ability MakeAbCain (int counter)
     {
         switch (counter)
@@ -373,7 +448,7 @@ public class Ability_List_Player
             case 3: DebuffAb rain= new DebuffAb ("Acid Rain", "AoE", "enemy", 3); rain.special.add(new Ignore("Evade", "always", 616));
             String[] cresht= {"Poison", "100", "40", "2", "false"}; String[][] peaks=StatFactory.MakeParam(cresht, null); rain.AddStatString(peaks);
             return rain;
-            case 4: AttackAb tornado= new AttackAb("Tornado", "AoE", "enemy", 100, 0); tornado.elusive=true; tornado.channelled=true; tornado.singleuse=true; tornado.dcd=1;
+            case 4: AttackAb tornado= new AttackAb("Tornado", "AoE", "enemy", 90, 0); tornado.elusive=true; tornado.channelled=true; tornado.singleuse=true; tornado.dcd=1;
             return tornado;
             default: return null;
         }
@@ -514,7 +589,7 @@ public class Ability_List_Player
             else
             knife.special.add (new DebuffMod (13));
             return knife; 
-            case 3: AttackAb dice= new AttackAb("Slice and Dice", "AoE", "enemy", 70, 3); 
+            case 3: AttackAb dice= new AttackAb("Slice and Dice", "AoE", "enemy", 60, 3); 
             return dice; 
             default: return null;
         }
@@ -525,7 +600,7 @@ public class Ability_List_Player
         {
             case 0: BasicAb blast= new BasicAb ("Cosmic Blast", "single", "enemy", 45); blast.special.add(new DamageCounter ("Obsession", false, 5, false, false));
             return blast;  
-            case 1: BasicAb blow= new BasicAb ("Finishing Blow", "single", "enemy", 40); blow.special.add(new DamageCounterRemove ("Obsession", false, 40, false));
+            case 1: BasicAb blow= new BasicAb ("Finishing Blow", "single", "enemy", 40); blow.special.add(new DamageCounterRemove ("Obsession", false, 40, false, false, false));
             return blow;
             default: return null;
         }
@@ -555,16 +630,15 @@ public class Ability_List_Player
     {
         switch (counter)
         {
-            case 0: BasicAb frag= new BasicAb ("Frag Grenade", "single", "enemy", 45); frag.special.add (new Ricochet (500));
-            return frag;
-            case 1: BasicAb smg= new BasicAb ("SMG", "AoE", "enemy", 35);
+            case 0: BasicAb smg= new BasicAb ("SMG", "AoE", "enemy", 30);
             return smg;
+            case 1: BuffAb frag= new BuffAb ("Overwhelming Firepower", "single", "ally inclusive", 0); 
+            String[] swordm= {"Mighty Blows", "100", "616", "2", "knull"}; String[][] redmo=StatFactory.MakeParam(swordm, null); frag.AddStatString(redmo);
+            return frag;
             case 2: BuffAb cache= new BuffAb ("Hidden Weapons Cache", "single", "ally inclusive", 0); 
-            String[] sword= {"Intensify", "100", "15", "1", "knull"}; 
-            String[][] redo=StatFactory.MakeParam(sword, null); cache.AddStatString(redo);
+            String[] sword= {"Intensify", "100", "15", "1", "knull"}; String[][] redo=StatFactory.MakeParam(sword, null); cache.AddStatString(redo);
             return cache;
-            case 4: AttackAb air= new AttackAb ("Airstrike", "AoE", "enemy", 90, 5);
-            air.special.add(new Ignore ("Missed", "always", 616));
+            case 4: AttackAb air= new AttackAb ("Airstrike", "AoE", "enemy", 80, 5); air.channelled=true; air.special.add(new Ignore ("Missed", "always", 616));
             return air;
             default: return null;
         }

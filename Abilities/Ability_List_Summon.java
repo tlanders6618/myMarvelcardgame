@@ -71,8 +71,8 @@ public class Ability_List_Summon
         {
             case 0: BasicAb laser= new BasicAb("Laser Beam", "single", "enemy", 30); laser.special.add(new DebuffMod(4));
             return laser;
-            case 1: BasicAb core= new BasicAb("Core Meltdown", "single", "enemy", 50); core.ignore=true; core.special.add(new DamageCounterRemove("Buffs", true, 10, true));
-            core.special.add(new Suicide());
+            case 1: BasicAb core= new BasicAb("Core Meltdown", "single", "enemy", 50); core.special.add(new DamageCounterRemove("Buffs", true, 10, true, false, false));
+            core.special.add(new Suicide()); core.ignore=true; 
             return core;
         }
         return null; 

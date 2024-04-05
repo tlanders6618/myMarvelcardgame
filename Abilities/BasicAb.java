@@ -70,17 +70,6 @@ class BasicAb extends AttackAb
                 uses=-1;
                 System.out.println(ab.oname+" could not be used due to a lack of eligible targets.");
             }
-            if (this.aoe==true)
-            {
-                for (StatEff eff: user.effects) //get empowerments
-                {
-                    if (eff.getimmunityname().equalsIgnoreCase("Empower"))
-                    {
-                        change=eff.UseEmpower(user, ab, true);
-                        damage+=change;
-                    }
-                }
-            }
             for (Character chump: targets) //use the ability on its target
             {
                 boolean okay=true;
@@ -90,15 +79,12 @@ class BasicAb extends AttackAb
                 {
                     do 
                     {
-                        if (this.aoe==false)
+                        for (StatEff eff: user.effects) //get empowerments
                         {
-                            for (StatEff eff: user.effects) //get empowerments
+                            if (eff.getimmunityname().equalsIgnoreCase("Empower"))
                             {
-                                if (eff.getimmunityname().equalsIgnoreCase("Empower"))
-                                {
-                                    change=eff.UseEmpower(user, ab, true);
-                                    damage+=change;
-                                }
+                                change=eff.UseEmpower(user, ab, true);
+                                damage+=change;
                             }
                         }
                         if (elusive==true)

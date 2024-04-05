@@ -30,15 +30,29 @@ class ActivateP extends BeforeAbility //ability activates a hero's passive
     {
         switch (user.index)
         {
-            case 11: ActivePassive.FuryJr(user, false, false, false, true); break;
-            case 13: StaticPassive.Drax(user, null, true); break;
-            case 23: ++user.passivecount; System.out.println(user.Cname+" gained 1 Energy."); //gain energy but don't transform mid attack to avoid bugs
+            case 11: ActivePassive.FuryJr(user, false, false, false, true); break; //kill mode activation
+            case 13: StaticPassive.Drax(user, null, true); break; //twin blades activation
+            case 23: ++user.passivecount; System.out.println(user.Cname+" gained 1 Energy."); //gain energy when using her abs
             for (StatEff e: user.effects) 
             {
                 if (e instanceof Tracker)
                 e.Attacked(user, null, 616);
             }
             break;
+            case 39: StatEff delete=null; //electro's shocking touch 
+            for (StatEff e: user.effects)
+            {
+                if (e.getimmunityname().equals("Intensify")&&e.getefftype().equals("Other"))
+                {
+                    String[] stat={"Shock", "500", Integer.toString(e.power+10), Integer.toString(e.duration), "false"}; String[][]haha=StatFactory.MakeParam(stat, null);
+                    user.activeability.AddTempString(haha); delete=e;
+                    break;
+                }
+            }
+            if (delete!=null)
+            user.remove(delete.hashcode, "normal");
+            break;
+            case 40: ActivePassive.Sandy(user, "ult"); break; //activate sandstorm
         }
         return 0;
     }
@@ -502,36 +516,38 @@ class DamageCounter extends BeforeAbility //increase damage of attack based on n
 }
 class DamageCounterRemove extends BeforeAbility //increase damage based on number of target stat effs, and then remove all; for characters like carnage
 { 
-    int amount; //how much extra dmg each stateff grants
     String name; //of stateff to check for and remove
     boolean type; //check for eff type or name
+    int amount; //how much extra dmg each stateff grants
     boolean self;
-    public DamageCounterRemove(String nname, boolean etype, int namount, boolean self)
+    boolean intense; //whether to add the value of removed buffs to the bonus damage before removing them
+    boolean aoe; 
+    public DamageCounterRemove(String nname, boolean etype, int namount, boolean self, boolean i, boolean aoe)
     {
-        amount=namount; name=nname; type=etype; this.self=self;
+        amount=namount; name=nname; type=etype; this.self=self; intense=i; this.aoe=aoe;
     }
     @Override
     public int Use(Character hero, Character target)
-    {
+    { 
         int dmgincrease=0;
-        if (hero.activeability!=null&&hero.activeability.blind==false)
+        if (target!=hero&&hero.activeability!=null&&hero.activeability.blind==false)
         {
             Damage_Stuff.CheckBlind(hero); hero.activeability.blind=true;
         }
-        if (hero.activeability!=null&&hero.activeability.evade==false&&!(hero.binaries.contains("Missed")))
+        if (target!=hero&&hero.activeability!=null&&hero.activeability.evade==false&&!(hero.binaries.contains("Missed")))
         {
             Damage_Stuff.CheckEvade(hero, target); hero.activeability.evade=true;
         }
         if (!(hero.binaries.contains("Missed")))
         {
             if (self==true)
-            dmgincrease=UseDamageCounterRemove(hero, amount, name);
+            dmgincrease=UseDamageCounterRemove(hero, hero, amount, name);
             else
-            dmgincrease=UseDamageCounterRemove(target, amount, name);
+            dmgincrease=UseDamageCounterRemove(hero, target, amount, name);
         }
         return dmgincrease;
     }
-    public int UseDamageCounterRemove (Character target, int amount, String name) 
+    public int UseDamageCounterRemove (Character hero, Character target, int amount, String name) 
     {
         int increase=0; //the amount of total extra damage the attack will do
         ArrayList<StatEff> concurrentmodificationexception= new ArrayList<StatEff>(); 
@@ -539,10 +555,12 @@ class DamageCounterRemove extends BeforeAbility //increase damage based on numbe
         { 
             for (StatEff eff: target.effects)
             {
-                if (eff.getefftype().equalsIgnoreCase(name)) //specific name, e.g. bleed or pain
+                if (eff.getefftype().equalsIgnoreCase(name)) //type e.g. debuffs or buffs
                 {
                     increase+=amount;
                     concurrentmodificationexception.add(eff);
+                    if (intense==true)
+                    increase+=eff.power;
                 }
             }
         }
@@ -550,16 +568,23 @@ class DamageCounterRemove extends BeforeAbility //increase damage based on numbe
         {
             for (StatEff eff: target.effects)
             {
-                if (eff.getimmunityname().equalsIgnoreCase(name)) //specific name, e.g. bleed or pain
+                if (eff.getimmunityname().equalsIgnoreCase(name)) //specific name, e.g. bleed or intensify
                 {
                     increase+=amount;
-                    concurrentmodificationexception.add(eff);                    
+                    concurrentmodificationexception.add(eff);    
+                    if (intense==true)
+                    increase+=eff.power;
                 }
             }
         }
         for (StatEff eff: concurrentmodificationexception)
         {
             target.remove(eff.hashcode, "normal");
+        }
+        if (aoe==true&&increase>0&&(Battle.team1[Battle.P1active]==hero||Battle.team2[Battle.P2active]==hero)) //to avoid applying empower after an assist
+        {
+            Empower e= new Empower(increase, 1, "THIS IS A BUG", 39);
+            hero.effects.add(e); //so the damage boost affects all targets hit by aoe attack instead of only the first; should be applied and consumed without player seeing it
         }
         return increase;
     }
@@ -572,7 +597,7 @@ class DamageCounterSimple extends BeforeAbility //just checks if the target has 
     boolean type; //whether to check for efftype or effimmunityname
     boolean self; //whether to check self or enemy for the eff
     boolean has; //whether the damage boost is based on if the target has the stateff or doesn't have it
-    int hp=616;
+    int hp=616; //only grant extra dmg if target has certain amount of hp
     boolean above; //above or below the hp threshold
     public DamageCounterSimple (int namount, String nname, boolean etype, boolean self, boolean has) 
     {
