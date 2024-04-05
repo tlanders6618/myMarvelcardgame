@@ -181,7 +181,7 @@ public class Battle
                 }
                 if (champions[P1active]!=null)
                 {
-                    champions[P1active].onTurnEnd(champions[P1active], true);
+                    champions[P1active].onTurnEnd(true);
                     for (Ability ab: champions[P1active].abilities)
                     {
                         if (ab!=null)
@@ -254,7 +254,7 @@ public class Battle
                 }
                 if (champions[P2active]!=null)
                 {
-                    champions[P2active].onTurnEnd(champions[P2active], true);
+                    champions[P2active].onTurnEnd(true);
                     for (Ability ab: champions[P2active].abilities)
                     {
                         if (ab!=null)
@@ -371,9 +371,9 @@ public class Battle
             if (hero.dead==false) //finally, hero ends their turn
             {
                 if (bonus==false)
-                hero.onTurnEnd(hero, true);             
+                hero.onTurnEnd(true);             
                 else
-                hero.onTurnEnd(hero, false);   
+                hero.onTurnEnd(false);   
                 if (selfadd.size()>0) //if the ab buffs the hero, the effs must be added after their turn end so they don't prematurely tick down
                 {
                     for (StatEff eff: selfadd)
