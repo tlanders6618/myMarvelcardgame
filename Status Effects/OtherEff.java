@@ -41,6 +41,7 @@ class Empower extends OtherEff
         this.index=index;
         this.power=power;
         uses=use;
+        this.stackable=true;
     }
     @Override
     public void onApply (Character target) 
@@ -54,7 +55,7 @@ class Empower extends OtherEff
         {
             switch (index) //has to be this way since every empowerment is unique
             {
-                case 4: 
+                case 4: case 39: //39 is for damagecounterremove when intense==true; or else the dmg boost only applies to the first enemy hit by the attack
                 if (ab instanceof AttackAb) //damage boost only applies to abs that do dmg
                 {
                     used=true;
@@ -77,6 +78,9 @@ class Empower extends OtherEff
     {
         if (uses<=0)
         {
+            if (index==39)
+            hero.remove(this.hashcode, "silent");
+            else
             hero.remove(this.hashcode, "normal");
         }
     }
@@ -538,6 +542,7 @@ class ResistanceE extends OtherEff
         this.duration=ndur;
         this.oduration=ndur;
         this.hashcode=Card_HashCode.RandomCode();
+        this.stackable=true;
     }
     @Override
     public void onApply (Character hero) 
@@ -550,7 +555,7 @@ class ResistanceE extends OtherEff
         hero.PRDR-=power;   
     }
 }
-class SnareE extends DebuffEff 
+class SnareE extends OtherEff 
 {
     @Override
     public String getimmunityname()
@@ -594,7 +599,7 @@ class SnareE extends DebuffEff
         Battle.Speeded(target);
     }
 }
-class StunE extends DebuffEff
+class StunE extends OtherEff
 {
     @Override
     public String getimmunityname()
@@ -620,6 +625,7 @@ class StunE extends DebuffEff
         this.hashcode=Card_HashCode.RandomCode();
         this.duration=d; 
         this.oduration=d;
+        this.stackable=true;
     }
     @Override
     public String geteffname() 
@@ -630,6 +636,50 @@ class StunE extends DebuffEff
     public void Nullified (Character target)
     {
         target.binaries.remove("Stunned");
+    }
+}
+class TargetE extends OtherEff 
+{
+    @Override
+    public String getimmunityname()
+    {
+        return "Target";
+    }
+    @Override 
+    public String getefftype()
+    {
+        return "Other";
+    }
+    @Override
+    public String geteffname()
+    {
+        if (duration<100)
+        {
+            return "Target Effect: "+power+", "+duration+" turn(s)";
+        }
+        else
+        {
+            return "Target Effect: "+power;
+        }
+    }
+    public TargetE (int nchance, int npow, int ndur)
+    {
+        this.duration=ndur;
+        this.oduration=ndur;
+        this.chance=nchance;
+        this.power=npow;
+        this.hashcode=Card_HashCode.RandomCode();
+        this.stackable=true;
+    }
+    @Override
+    public void onApply (Character target)
+    {
+        target.DV+=power;
+    }
+    @Override
+    public void Nullified (Character target)
+    {
+        target.DV-=power;
     }
 }
 class Tracer extends OtherEff

@@ -22,7 +22,7 @@ public abstract class StatEff
     public void onTurnStart (Character hero)
     {
     }
-    public void onTurnEnd (Character hero)
+    public void onTurnEnd (Character hero) //by default all stateffs do this; only dot ticks down on turnstart
     {
         --this.duration;
         if (this.duration<=0)

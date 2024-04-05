@@ -67,6 +67,7 @@ public class StatFactory
             case "Regen": eff=new Regen (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][2]), Integer.valueOf(param[0][3])); break;
             case "Resistance": eff=new Resistance (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][2]), Integer.valueOf(param[0][3])); break;
             case "ResistanceE": eff=new ResistanceE (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][2]), Integer.valueOf(param[0][3])); break;
+            case "Safeguard": eff=new Safeguard(Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3])); break;
             case "Shatter": eff= new Shatter (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3])); break;
             case "Shock": eff= new Shock (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][2]), Integer.valueOf(param[0][3])); break;
             case "Snare": eff= new Snare (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3])); break;
@@ -75,6 +76,7 @@ public class StatFactory
             case "Stun": eff=new Stun (Integer.valueOf(param[0][1])); break;
             case "StunE": eff=new StunE (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3])); break;
             case "Target": eff=new Target (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][2]), Integer.valueOf(param[0][3])); break;
+            case "TargetE": eff=new TargetE (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][2]), Integer.valueOf(param[0][3])); break;
             case "Taunt": eff=new Taunt (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3])); break;
             case "Terror": eff=new Terror(Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3]), Q); break;
             case "Tracer": eff= new Tracer (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3])); break;
@@ -113,10 +115,11 @@ class Tracker extends StatEff //displays a character's relevant personal statist
     {
         switch (oname)
         {
-            case "Damage Taken: ": info=target.dmgtaken; name+=info; break;
+            case "Damage Taken: ": info=target.dmgtaken; name=oname+info; break;
             case "Energy: ": case "Control Points: ": case "Rage: ": case "Electrons: ": case "Momentum: ":
-            info=target.passivecount; name+=info; 
+            info=target.passivecount; name=oname+info; 
             break;
+            case "Sand Storm active: ": info=target.passivecount; name=oname+(target.passivecount+" turns"); break;
         }
     }
     @Override
@@ -157,7 +160,7 @@ class Tracker extends StatEff //displays a character's relevant personal statist
         }
     }
     @Override
-    public void Attacked(Character hero, Character attacker, int dmg)
+    public void Attacked(Character hero, Character attacker, int dmg) //can ignore both dmg and attacker; no trackers currently use it
     {
         switch (oname)
         {

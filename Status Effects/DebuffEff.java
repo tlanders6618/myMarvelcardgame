@@ -1051,7 +1051,7 @@ class Target extends DebuffEff
         target.DV+=power;
     }
     @Override
-    public void Nullified (Character target)
+    public void Nullified (Character target) 
     {
         target.DV-=power;
     }

@@ -488,6 +488,51 @@ class Precision extends BuffEff
         target.CC-=50;
     }
 }
+class Safeguard extends BuffEff 
+{
+    @Override
+    public String getimmunityname()
+    {
+        return "Safeguard";
+    }
+    @Override 
+    public String getefftype() 
+    {
+        return "Buffs";
+    }
+    @Override
+    public String geteffname()
+    {
+        String name;
+        if (this.duration<100)
+        {
+            name="Safeguard, "+this.duration+" turn(s)";
+            return name;
+        }
+        else
+        {
+            name="Safeguard";
+            return name;
+        }
+    }
+    public Safeguard (int nchance, int nduration)
+    {
+        this.duration=nduration;
+        this.oduration=nduration;
+        this.chance=nchance;
+        this.hashcode=Card_HashCode.RandomCode();
+    }
+    @Override
+    public void onApply (Character target)
+    {
+        target.immunities.add("Debuffs");
+    }
+    @Override
+    public void Nullified (Character target)
+    {
+        target.immunities.remove("Debuffs");
+    }
+}
 class Speed extends BuffEff 
 {
     @Override
@@ -522,6 +567,7 @@ class Speed extends BuffEff
         this.chance=nchance;
         this.hashcode=Card_HashCode.RandomCode();
     }
+    @Override
     public void onApply (Character target)
     {
         Battle.Speeded(target);
