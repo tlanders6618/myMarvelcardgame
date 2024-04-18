@@ -12,13 +12,12 @@ public abstract class Ability
 {
     boolean channelled=false; boolean interrupt=false; boolean usable=true; 
     boolean singleuse=false; boolean used=false; //used is only for keeeping track of single use
-    boolean unbound=false; 
+    boolean unbound=false, control=false, elusive=false; 
     boolean ignore=false; //for ignoring disable debuffs but not suppression
     boolean together=false; //whether status effects are applied separately or together
-    boolean control=false;
-    String oname; 
+    String oname; String desc=null;
     String target; String friendly; 
-    //friendly means ally, enemy, both, either, self, ally inc, ally exc
+    //friendly means enemy, both, either, self, ally inc, ally exc
     //target is single, self, multitarg, random, or aoe 
     boolean aoe=false; boolean attack=false;
     boolean blind=false, evade=false; //blind and evade are usually checked after using beforeabs but not in all cases; keeps track of if they were checked to avoid checking twice
@@ -43,6 +42,76 @@ public abstract class Ability
          * */
     }    
     public abstract boolean CheckUse (Character user);
+    public void PrintDesc (boolean ignore) 
+    {
+        //friendly means enemy, both, either, self, ally inc, ally exc
+        if (this.friendly.equals("enemy")) 
+        System.out.print("Affects enemies. ");
+        else if (this.friendly.equals("ally exclusive"))
+        System.out.print("Affects allies. ");
+        else if (this.friendly.equals("self"))
+        System.out.print("Affects self. ");
+        else if (this.friendly.equals("ally inclusive"))
+        System.out.print("Affects allies and/or self. ");
+        else //friendly is both or either
+        System.out.print("Affects allies and/or enemies. ");
+        //target is single, self, multitarg, random, or aoe 
+        if (this.target.equals("single")) 
+        System.out.print("Single target. ");
+        else if (this.target.equals("multitarget"))
+        System.out.print("Multitarget. ");
+        else if (this.target.equals("random"))
+        System.out.print("Random target. ");
+        else if (this.target.equalsIgnoreCase("aoe"))
+        System.out.print("AoE. ");
+        else if (this.target.equals("lowest"))
+        System.out.print("Targets the character with the lowest HP. ");
+        if (this.cd>1)
+        System.out.print(this.cd+" turn cooldown. ");
+        if (this.elusive==true)
+        System.out.print("Elusive. ");
+        if (this.channelled==true)
+        System.out.print("Channelled. ");
+        if (this.singleuse==true)
+        System.out.print("Single use. ");
+        if (this.multiuse>0)
+        System.out.print("Multiuse. ");
+        if (this.control==true)
+        System.out.print("Control. ");
+        if (this.unbound==true)
+        System.out.print("Unbound. ");
+        for (String[][] e: this.statstrings)
+        {
+            String a;
+            if (e[0][4].equals("true"))
+            {
+                if (Integer.valueOf(e[0][1])>=500)
+                a="Gain ";
+                else
+                a=e[0][1]+"% chance to gain ";
+            }
+            else
+            {
+                if (Integer.valueOf(e[0][1])>=500)
+                a="Applies ";
+                else
+                a=e[0][1]+"% chance to apply ";
+            }
+            String s="";
+            if (Integer.valueOf(e[0][2])<616)
+            s=s+": "+e[0][2];
+            if (Integer.valueOf(e[0][3])<616)
+            s=s+" for "+e[0][3]+" turn(s)";
+            System.out.print(a+e[0][0]+s+". ");
+        }
+        for (SpecialAbility a: this.special)
+        {
+            if (a.desc!=null)
+            System.out.print(a.desc);
+        }
+        if (this.desc!=null) //for abilities with unusual/overly specific effects
+        System.out.print(desc);
+    }
     public boolean GetLose() //for assists; only attackabs use this
     {
         return false;
@@ -118,16 +187,6 @@ public abstract class Ability
                 uses=-1;
                 System.out.println(ab.oname+" could not be used due to a lack of eligible targets.");
             }
-            if (this.aoe==true)//attack is empowered against all enemies
-            {
-                for (StatEff eff: user.effects) //get empowerments
-                {
-                    if (eff.getimmunityname().equalsIgnoreCase("Empower"))
-                    {
-                        int ignore=eff.UseEmpower(user, ab, true);
-                    }
-                }
-            }
             for (Character chump: targets) //use the ability on its target
             {
                 boolean okay=true;
@@ -136,15 +195,16 @@ public abstract class Ability
                 if (chump!=null&&okay==true) //if null, skip entirely
                 {
                     int change=0; //does nothing, but beforeabs and empowers return ints so this stores them
-                    if (this.aoe==false) //only empowered against the attack's target
+                    for (StatEff eff: user.effects) //get empowerments
                     {
-                        for (StatEff eff: user.effects) //get empowerments
+                        if (eff.getimmunityname().equalsIgnoreCase("Empower"))
                         {
-                            if (eff.getimmunityname().equalsIgnoreCase("Empower"))
-                            {
-                                change=eff.UseEmpower(user, ab, true);
-                            }
+                            change=eff.UseEmpower(user, ab, true);
                         }
+                    }
+                    if (elusive==true)
+                    {
+                        blind=true; evade=true; //no need to check blind or evade for elusive abs since they aren't attacks
                     }
                     for (SpecialAbility ob: special)
                     {
@@ -277,7 +337,7 @@ public abstract class Ability
     public void SetChannelled (Character hero, Ability ab, ArrayList<Character> targets)
     {
         ctargets=targets;
-        hero.effects.add(new Tracker ("Channelling "+ab.oname)); //so you don't forget someone is channelling
+        hero.effects.add(new Tracker ("Channelling "+ab.oname)); //so it's impossible to forget someone is channelling
     }
     public void InterruptChannelled (Character hero, Ability ab) //same for all non basicabs
     {
@@ -360,16 +420,6 @@ public abstract class Ability
                 }
                 return toadd;
             }
-            if (this.aoe==true)
-            {
-                for (StatEff eff: user.effects) //get empowerments
-                {
-                    if (eff.getimmunityname().equalsIgnoreCase("Empower"))
-                    {
-                        int ignore=eff.UseEmpower(user, ab, true);
-                    }
-                }
-            }
             for (Character chump: ctargets) //use the ability on its target
             {
                 boolean okay=true;
@@ -378,15 +428,16 @@ public abstract class Ability
                 if (chump!=null&&okay==true) 
                 {
                     int change=0; 
-                    if (this.aoe==false)
+                    for (StatEff eff: user.effects) //get empowerments
                     {
-                        for (StatEff eff: user.effects) //get empowerments
+                        if (eff.getimmunityname().equalsIgnoreCase("Empower"))
                         {
-                            if (eff.getimmunityname().equalsIgnoreCase("Empower"))
-                            {
-                                change=eff.UseEmpower(user, ab, true);
-                            }
+                            change=eff.UseEmpower(user, ab, true);
                         }
+                    }
+                    if (elusive==true)
+                    {
+                        blind=true; evade=true; //no need to check blind or evade for elusive abs since they aren't attacks
                     }
                     for (SpecialAbility ob: special)
                     {
@@ -561,8 +612,16 @@ public abstract class Ability
             }
             if (e!=null&&villain.dead==false)
             {
-                StatEff effect=StatFactory.MakeStat(e, user);
-                StatEff.CheckApply(user, villain, effect);
+                if (e[0][4].equals("false"))
+                {
+                    StatEff effect=StatFactory.MakeStat(e, user);
+                    StatEff.CheckApply(user, villain, effect);
+                }
+                else
+                {
+                    StatEff effect=StatFactory.MakeStat(e, user);
+                    StatEff.CheckApply(user, user, effect);
+                }
             }
         }
     }

@@ -29,6 +29,11 @@ class DefAb extends Ability
         }
     }
     @Override
+    public void PrintDesc (boolean ignore)
+    {
+        System.out.print("Defence ability. "); super.PrintDesc(false);
+    }
+    @Override
     public boolean CheckUse (Character user)
     {
         if (user.CheckFor("Suppression", false)==true)

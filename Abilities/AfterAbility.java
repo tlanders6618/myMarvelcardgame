@@ -20,6 +20,10 @@ class Activate extends AfterAbility //forcibly ticks all stateffs of a given typ
     public Activate (boolean t, String n, int d)
     {
         type=t; name=n; dmg=d;
+        if (d>0)
+        this.desc="Rapidly tick down the target's "+name+"(s) and do +"+d+" damage for each. ";
+        else
+        this.desc="Rapidly tick down the target's "+name+"(s). ";
     }
     @Override 
     public void Use (Character user, Character target, int ignoreme)
@@ -63,7 +67,7 @@ class Activate extends AfterAbility //forcibly ticks all stateffs of a given typ
         }
     }
 }  
-class ActivatePassive extends AfterAbility //ability activates a hero's passive or does something otherwise too difficult/specific for another afterab
+class ActivatePassive extends AfterAbility //ability activates a hero's passive after attacking or does something otherwise too difficult/specific for another afterab
 {
     int num=0;
     public ActivatePassive ()
@@ -100,23 +104,37 @@ class Assist extends AfterAbility //either random allies hitting enemy or chosen
     int num; //of heroes performing assist
     int bonus; //extra damage
     boolean random; //random or chosen target to call for assist
-    int Cchance=0; //extra statchance
-    String[][] apply=null;
+    int Cchance=0; //extra statchance for mysterio
+    String[][] apply=null; //for loki
     int chance; //for assist to apply
     boolean together;
     boolean skull; //to trigger red skull's damagecounter ability bc this is the easiest way to do it
     boolean self; //for crossbones 
-    public Assist (boolean f, int n, int b, boolean r, int c, boolean t)
+    public Assist (boolean f, int n, int b, boolean r, int s, String[][] L, int c, boolean t)
     {
-        friendly=f; num=n; bonus=b; random=r; chance=c; together=t;
-    }
-    public Assist (boolean f, int n, int b, boolean r, int s, int c, boolean t) //hero performing assist gains status chance; mysterio
-    {
-        friendly=f; num=n; bonus=b; random=r; Cchance=s; chance=c; together=t;
-    }
-    public Assist (boolean f, int n, int b, boolean r, String[][] s, int c, boolean t) //hero doing assist gains stateff after attacking; loki
-    {
-        friendly=f; num=n; bonus=b; random=r; apply=s; chance=c; together=t;
+        friendly=f; num=n; bonus=b; random=r; chance=c; together=t; Cchance=s; apply=L;
+        String Random;
+        if (this.random==true&&num==1)
+        Random="Call a random ";
+        else if (this.random==true&&num>1)
+        Random="Call "+num+" random ";
+        else 
+        Random="Call a chosen ";
+        String Friendly;
+        if (this.friendly==false&&num==1)
+        Friendly="enemy";
+        else if (this.friendly==false&&num>1)
+        Friendly="enemies";
+        else if (this.friendly==true&&num>1)
+        Friendly="allies";
+        else 
+        Friendly="ally";
+        String Bonus="";
+        if (bonus>0)
+        Bonus+="They do +"+bonus+" damage. ";
+        if (Cchance>0)
+        Bonus+="They have +"+Cchance+"% status chance. ";
+        this.desc=Random+Friendly+" to perform an Assist. "+Bonus; 
     }
     @Override
     public void Use (Character user, Character chump, int ignore) //target hit by assist is same as target of the ability; if random, then ab will need to be random target
@@ -215,7 +233,7 @@ class Assist extends AfterAbility //either random allies hitting enemy or chosen
             ArrayList<Character> nchamp=new ArrayList<Character>(); //person(s) to be harmed by the assist that hero is performing 
             if (self==false)
             {
-                System.out.println ("Choose a character for "+hero.Cname+" to perform an Assist on. Type their number, not their name."); 
+                System.out.println ("\nChoose a character for "+hero.Cname+" to perform an Assist on. Type their number, not their name."); 
                 Character[] targets=null;
                 if (friendly==true)
                 targets=Battle.GetTeammates(user);
@@ -368,7 +386,7 @@ class Assist extends AfterAbility //either random allies hitting enemy or chosen
 }
 class CopySteal extends AfterAbility //the only difference is that steal removes the buff; otherwise they're identical so they share a method
 {
-    String[] effname; //name of eff(s) to extend since mandarin can extend more than just one type
+    String[] effname; 
     String[] efftype; //usually only buffs, except for hulkling
     int chance; 
     int number; //of effs to copy
@@ -378,6 +396,55 @@ class CopySteal extends AfterAbility //the only difference is that steal removes
     public CopySteal (int echance, int num, String type, String[] ename, String[] etype, boolean tog, boolean steal)
     {
         chance=echance; together=tog; number=num; effname=ename; efftype=etype; this.type=type; this.steal=steal;
+        String Chance;
+        if (this.chance>=500&&this.steal==true)
+        Chance="Steals ";
+        else if (this.chance>=500&&this.steal==false)
+        Chance="Copies ";
+        else if (this.chance<500&&this.steal==true)
+        Chance=this.chance+"% chance to Steal ";
+        else 
+        Chance=this.chance+"% chance to to Copy ";
+        String Type;
+        if (num<99&&type.equals("chosen"))
+        Type=Integer.toString(num)+" chosen ";
+        else if (num<99&&type.equals("random"))
+        Type=Integer.toString(num)+" random ";
+        else
+        Type="all ";
+        String Name="";
+        int i=effname.length;
+        for (int p=0; p<i; p++) //loop is used in copysteal and extend
+        {
+            if (!(effname[p].equals("any")))
+            {
+                if (p!=(i-1))
+                Name=Name+effname[p]+"(s) and ";
+                else
+                Name=Name+effname[p]+"(s) ";
+            }
+            else
+            {
+                if (efftype[p].equals("Defence")||efftype[p].equals("Heal"))
+                {
+                    if (p!=(i-1))
+                    Name=Name+efftype[p]+" effects and ";
+                    else
+                    Name=Name+efftype[p]+" effects. ";
+                }
+                else 
+                {
+                    String nom=efftype[p]; 
+                    if (!(efftype[p].equals("Other"))&&!(Type.equals("all "))) //if efftype is buffs or debuffs, change it to buff(s) or debuff(s)
+                    nom=nom.substring(0, nom.length()-1)+"(s)";
+                    if (p!=(i-1))
+                    Name=Name+nom+" and ";
+                    else
+                    Name=Name+nom+" ";
+                }
+            }
+        }
+        this.desc=Chance+Type+Name+"from the target. ";
     }
     @Override
     public void Use (Character user, Character target, int ignoreme)
@@ -463,9 +530,9 @@ class CopySteal extends AfterAbility //the only difference is that steal removes
         if (todo>0) 
         {
             if (steal==false)
-            System.out.println ("Choose "+todo+" effect(s) to Copy from "+target.Cname+".");
+            System.out.println ("\nChoose "+todo+" effect(s) to Copy from "+target.Cname+".");
             else
-            System.out.println ("Choose "+todo+" effect(s) to Steal from "+target.Cname+".");
+            System.out.println ("\nChoose "+todo+" effect(s) to Steal from "+target.Cname+".");
             System.out.println ("Enter the number next to it, not its name."); 
             for (int i=0; i<todo; i++)
             {
@@ -643,8 +710,13 @@ class Confidence extends AfterAbility
     int amount; int chance; 
     public Confidence(int cchance, int aamount)
     {
-        amount=aamount;
-        chance=cchance;
+        amount=aamount; chance=cchance; 
+        String Chance;
+        if (chance>=500)
+        Chance="Apply ";
+        else
+        Chance=this.chance+"% chance to apply ";
+        this.desc=Chance+"Confidence: "+amount+". ";
     }
     @Override 
     public void Use(Character caller, Character target, int ignore) 
@@ -673,9 +745,59 @@ class Extend extends AfterAbility
     boolean together; //true for together and false for separate
     boolean self;
     boolean immortalstun=false; //whether immortality or stun can be extended or not
-    public Extend (int echance, int num, String type, String[] ename, String[] etype, int turns, boolean self, boolean tog, boolean i)
+    public Extend (int echance, int num, String type, String[] ename, String[] etype, int turns, boolean self, boolean tog, boolean im)
     {
-        chance=echance; together=tog; number=num; effname=ename; efftype=etype; this.type=type; this.self=self; this.turns=turns; immortalstun=i;
+        chance=echance; together=tog; number=num; effname=ename; efftype=etype; this.type=type; this.self=self; this.turns=turns; immortalstun=im;
+        String Chance;
+        if (this.chance>=500)
+        Chance="Extends ";
+        else 
+        Chance=this.chance+"% chance to Extend ";
+        String Type;
+        if (num<99&&type.equals("chosen"))
+        Type=Integer.toString(num)+" chosen ";
+        else if (num<99&&type.equals("random"))
+        Type=Integer.toString(num)+" random ";
+        else
+        Type="all ";
+        String Name="";
+        int i=effname.length;
+        for (int p=0; p<i; p++) //loop is used in copysteal and extend
+        {
+            if (!(effname[p].equals("any")))
+            {
+                if (p!=(i-1))
+                Name=Name+effname[p]+"(s) and ";
+                else
+                Name=Name+effname[p]+"(s) ";
+            }
+            else
+            {
+                if (efftype[p].equals("Defence")||efftype[p].equals("Heal"))
+                {
+                    if (p!=(i-1))
+                    Name=Name+efftype[p]+" effects and ";
+                    else
+                    Name=Name+efftype[p]+" effects. ";
+                }
+                else 
+                {
+                    String nom=efftype[p]; 
+                    if (!(efftype[p].equals("Other"))&&!(Type.equals("all "))) //if efftype is buffs or debuffs, change it to buff(s) or debuff(s)
+                    nom=nom.substring(0, nom.length()-1)+"(s)";
+                    if (p!=(i-1))
+                    Name=Name+nom+" and ";
+                    else
+                    Name=Name+nom+" ";
+                }
+            }
+        }
+        String Self;
+        if (self==true)
+        Self="self";
+        else
+        Self="the target";
+        this.desc=Chance+Type+Name+"on "+Self+". ";
     }
     @Override
     public void Use (Character user, Character target, int ignoreme)
@@ -745,7 +867,7 @@ class Extend extends AfterAbility
         }
         if (todo>0) 
         {
-            System.out.println ("Choose "+todo+" effect(s) to Extend on "+target.Cname+".");
+            System.out.println ("\nChoose "+todo+" effect(s) to Extend on "+target.Cname+".");
             System.out.println ("Enter the number next to it, not its name."); 
             for (int i=0; i<todo; i++)
             {
@@ -859,8 +981,13 @@ class Mend extends AfterAbility
     int amount; int chance; 
     public Mend (int cchance, int aamount)
     {
-        amount=aamount;
-        chance=cchance;
+        amount=aamount; chance=cchance;
+        String Chance;
+        if (chance>=500)
+        Chance="Apply ";
+        else
+        Chance=this.chance+"% chance to apply ";
+        this.desc=Chance+"Mend: "+amount+". ";
     }
     @Override 
     public void Use(Character caller, Character target, int ignore) 
@@ -882,7 +1009,11 @@ class MendPassive extends AfterAbility //restoring missing health; for deadpool 
     int amount; 
     public MendPassive (int aamount)
     {
-        amount=aamount;
+        amount=aamount; 
+        if (amount>=300)
+        this.desc="The target regains all missing health. ";
+        else
+        this.desc="The target regains up to "+amount+" missing health. ";
     }
     @Override 
     public void Use(Character caller, Character target, int ignore) 
@@ -903,6 +1034,32 @@ class Nullify extends AfterAbility
     public Nullify (int echance, int num, String type, String ename, boolean self, boolean tog)
     {
         chance=echance; together=tog; number=num; effname=ename; this.type=type; this.self=self;
+        String Chance;
+        if (this.chance>=500)
+        Chance="Nullifies ";
+        else
+        Chance=this.chance+"% chance to Nullify ";
+        String Number;
+        if (num<99)
+        Number=Integer.toString(num)+" ";
+        else
+        Number="all ";
+        String Type="";
+        if (!(type.equals("all")))
+        Type=type+" ";
+        String Buff;
+        if (type.equals("all"))
+        Buff="buffs";
+        else if (effname.equals("any"))
+        Buff="buff(s)";
+        else
+        Buff=effname+" buff(s)";
+        String Self;
+        if (self==true)
+        Self="self. ";
+        else
+        Self="the target. ";
+        this.desc=Chance+Number+Type+Buff+" on "+Self;
     }
     @Override
     public void Use (Character user, Character target, int ignoreme)
@@ -1087,6 +1244,32 @@ class Purify extends AfterAbility
     public Purify (int echance, int num, String t, String ename, boolean self, boolean tog)
     {
         chance=echance; together=tog; number=num; effname=ename; type=t; this.self=self;
+        String Chance;
+        if (this.chance>=500)
+        Chance="Purifies ";
+        else
+        Chance=this.chance+"% chance to Purify ";
+        String Number;
+        if (num<99)
+        Number=Integer.toString(num)+" ";
+        else
+        Number="all ";
+        String Type;
+        if (t.equalsIgnoreCase("all"))
+        Type="";
+        else 
+        Type=type+" ";
+        String Buff;
+        if (effname.equals("any"))
+        Buff="debuff(s)";
+        else
+        Buff=effname+" debuffs";
+        String Self;
+        if (self==true)
+        Self="self. ";
+        else
+        Self="the target. ";
+        this.desc=Chance+Number+Type+Buff+" on "+Self;
     }
     @Override
     public void Use (Character user, Character target, int ignoreme)
@@ -1150,7 +1333,7 @@ class Purify extends AfterAbility
         }
         if (todo>0) 
         {
-            System.out.println ("Choose "+todo+" debuff(s) to Purify from "+target.Cname+"."); 
+            System.out.println ("\nChoose "+todo+" debuff(s) to Purify from "+target.Cname+"."); 
             System.out.println ("Enter the number next to it, not its name."); 
             for (int i=0; i<todo; i++)
             {
@@ -1261,10 +1444,19 @@ class Purify extends AfterAbility
 }
 class ReduceCD extends AfterAbility
 {
-    boolean chosen; int amount;
+    boolean chosen; //either choose one ab to affect or affect all the target's abs
+    int amount; //number of turns the cd is reduced by
     public ReduceCD (boolean c, int a)
     {
-        chosen=c; amount=a;
+        chosen=c; amount=a; 
+        if (chosen==true&&amount>0)
+        this.desc="Reduce the cooldown of one of the target's abilities by "+amount+" turn(s). ";
+        else if (chosen==true&&amount<0)
+        this.desc="Increase the cooldown of one of the target's abilities by "+Math.abs(amount)+" turn(s). ";
+        else if (chosen==false&&amount>0)
+        this.desc="Reduce the cooldowns of all of the target's abilities by "+amount+" turn(s). ";
+        else
+        this.desc="Increase the cooldowns of all of the target's abilities by "+Math.abs(amount)+" turn(s). ";
     }
     @Override
     public void Use (Character user, Character target, int ignoreme)
@@ -1330,10 +1522,23 @@ class Ricochet extends AfterAbility //do ricochet damage
     public Ricochet(int cchance)
     {
         chance=cchance; 
+        if (chance>=500)
+        this.desc="Ricochets. ";
+        else
+        this.desc=this.chance+"% chance to Ricochet. ";
     }
     public Ricochet (int chance, String[][] e) //apply stateff to enemy dmged by ricochet
     {
         this.chance=chance; string=e;
+        String targ;
+        if (e[0][4].equals("true"))
+        targ=" to self on hit. ";
+        else
+        targ=" to those hit. ";
+        if (chance>=500)
+        this.desc="Ricochets and applies "+e[0][0]+targ;
+        else
+        desc=this.chance+"% chance to Ricochet and apply "+e[0][0]+targ;
     }
     @Override
     public void Use (Character user, Character target, int dmg) //user is the one doing the damage 
@@ -1342,7 +1547,7 @@ class Ricochet extends AfterAbility //do ricochet damage
         {
             boolean success=CoinFlip.Flip(chance+user.Cchance); 
             if (success==true&&dmg>5) //sends over ab's dmg dealt for ricochet calculation
-            Ability.DoRicochetDmg (dmg, target, true, string); 
+            Ability.DoRicochetDmg (dmg, user, false, string); 
             else if (dmg>5) //don't print failure message if failure was due to low dmg
             System.out.println(user.Cname+"'s Ricochet failed to apply due to chance.");
         }
@@ -1352,6 +1557,7 @@ class Suicide extends AfterAbility //the thing minions use in suicide attacks
 {
     public Suicide ()
     {
+        this.desc="Die after using this ability. ";
     }
     @Override
     public void Use (Character hero, Character target, int ignore)
@@ -1365,15 +1571,15 @@ class Summoning extends AfterAbility
     int sindex=616; int in2=0; int in3=0;
     public Summoning (int ind)
     {
-        sindex=ind;
+        sindex=ind; this.desc="Summons "+Character.SetName(ind, true)+". ";
     }
     public Summoning (int ind, int c)
     {
-        sindex=ind; in2=c;
+        sindex=ind; in2=c; this.desc="Summons "+Character.SetName(ind, true)+" or "+Character.SetName(c, true)+". ";
     }
     public Summoning (int ind, int c, int t)
     {
-        sindex=ind; in2=c; in3=t;
+        sindex=ind; in2=c; in3=t; this.desc="Summons "+Character.SetName(ind, true)+" or "+Character.SetName(c, true)+" or "+Character.SetName(c, true)+". ";
     }
     @Override
     public void Use (Character hero, Character target, int ignore)
@@ -1418,9 +1624,13 @@ class Transformation extends AfterAbility
 {
     int index;
     boolean great;
-    public Transformation (int n, boolean g)
+    public Transformation (int n, boolean g, boolean s)
     {
-        index=n; great=g;
+        index=n; great=g; 
+        if (great==false)
+        this.desc="Transform into "+Character.SetName(n, s)+". ";
+        else
+        this.desc="Transform (Greater) into "+Character.SetName(n, s)+". ";
     }
     @Override
     public void Use (Character hero, Character ignored, int ignore)

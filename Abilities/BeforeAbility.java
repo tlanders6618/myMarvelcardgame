@@ -30,7 +30,7 @@ class ActivateP extends BeforeAbility //ability activates a hero's passive
     {
         switch (user.index)
         {
-            case 11: ActivePassive.FuryJr(user, false, false, false, true); break; //kill mode activation
+            case 11: ActivePassive.FuryJr(user, "activate", false); break; //kill mode activation
             case 13: StaticPassive.Drax(user, null, true); break; //twin blades activation
             case 23: ++user.passivecount; System.out.println(user.Cname+" gained 1 Energy."); //gain energy when using her abs
             for (StatEff e: user.effects) 
@@ -59,10 +59,23 @@ class ActivateP extends BeforeAbility //ability activates a hero's passive
 }
 class ApplyShatter extends BeforeAbility //shatter applies before attacking, and thus cannot simply be added to statstrings; this is used for mighty blows too for the same reason
 {
-    int chance; int duration; boolean debuff;
-    public ApplyShatter (int chancer, int dur, boolean deb)
+    int chance; int duration; boolean debuff; boolean effect;
+    public ApplyShatter (int chancer, int dur, boolean deb, boolean E)
     {
-       chance=chancer; duration=dur; debuff=deb;
+       chance=chancer; duration=dur; debuff=deb; String start; effect=E;
+       if (this.chance>=500)
+       start="Applies";
+       else
+       start=this.chance+"% chance to apply";
+       if (deb==true)
+       {
+           if (E==true)
+           this.desc=start+" Shatter Effect for "+duration+" turn(s). ";
+           else
+           this.desc=start+" Shatter for "+duration+" turn(s). ";
+       }
+       else
+       this.desc=start+" Shatter. ";
     }
     @Override
     public int Use (Character user, Character target)
@@ -73,7 +86,12 @@ class ApplyShatter extends BeforeAbility //shatter applies before attacking, and
         {
             String nchance=String.valueOf(chance);
             String ndur=String.valueOf(duration);
-            String[] initial={"Shatter", nchance, "616", ndur, "false"};
+            String name;
+            if (effect==false)
+            name="Shatter";
+            else
+            name="Shatter Effect";
+            String[] initial={name, nchance, "616", ndur, "false"};
             String[][] sjatter=StatFactory.MakeParam(initial, null);
             shatter=StatFactory.MakeStat(sjatter, user);
         }
@@ -108,7 +126,7 @@ class ApplyShatter extends BeforeAbility //shatter applies before attacking, and
             boolean yes=CoinFlip.Flip(chance+user.Cchance); 
             if (yes==true)
             {
-                if (debuff==false)
+                if (debuff==false&&target.CheckFor("Shatter", false)==false) //mainly for kk; no need to say they're shattered if they already have a shatter on them
                 System.out.println(target.Cname+" was Shattered!");
                 target.SHLD=0;
                 ArrayList<StatEff>modexception= new ArrayList<StatEff>();
@@ -152,6 +170,32 @@ class BeforeNullify extends BeforeAbility //same as nullify but quick; only wm a
     public BeforeNullify (int echance, int num, String type, String ename, boolean self, boolean tog, String[] etype)
     {
         chance=echance; effname=ename; number=num;  together=tog; this.type=type; efftype=etype;
+        String Chance;
+        if (this.chance>=500)
+        Chance="Nullifies ";
+        else
+        Chance=this.chance+"% chance to Nullify ";
+        String Number;
+        if (num<99)
+        Number=Integer.toString(num)+" ";
+        else
+        Number="all ";
+        String Type="";
+        if (!(type.equals("all")))
+        Type=type+" ";
+        String Buff;
+        if (type.equals("all"))
+        Buff="buffs";
+        else if (effname.equals("any"))
+        Buff="buff(s)";
+        else
+        Buff=effname+" buff(s)";
+        String Self;
+        if (self==true)
+        Self="self. ";
+        else
+        Self="the target. ";
+        this.desc=Chance+Number+Type+Buff+" on "+Self;
     }
     @Override
     public int Use (Character user, Character target)
@@ -350,12 +394,12 @@ class BeforeNullify extends BeforeAbility //same as nullify but quick; only wm a
         }
     }
 }
-class Boost extends BeforeAbility //for abs with +50% stat chance
+class Boost extends BeforeAbility //for abs with increased stat chance
 {
     int amount;
     public Boost (int a)
     {
-        amount=a;
+        amount=a; this.desc="+"+a+"% status chance. ";
     }
     @Override
     public int Use (Character hero, Character target)
@@ -376,18 +420,18 @@ class ChooseStat extends BeforeAbility //choose one effect to apply with the abi
    public ChooseStat(String[][] one, String[][] two, String[][] three)
    {
       choice1=one; choice2=two; choice3=three;
-      if (one!=null)
-      {
-         ++choicenum;
-      }
-      if (two!=null)
-      {
-         ++choicenum;
-      }
       if (three!=null)
-      {
-         ++choicenum;
-      }
+      ++choicenum; 
+      if (two!=null)
+      ++choicenum; 
+      if (one!=null)
+      ++choicenum; 
+      if (choicenum==1)
+      this.desc="Can apply "+choice1[0][0]+". ";
+      else if (choicenum==2)
+      this.desc="Can apply either "+choice1[0][0]+" or "+choice2[0][0]+". ";
+      else if (choicenum==3)
+      this.desc="Can apply either "+choice1[0][0]+", "+choice2[0][0]+", or "+choice3[0][0]+". ";
    }
    @Override
    public int Use(Character hero, Character target)
@@ -436,6 +480,20 @@ class DamageCounter extends BeforeAbility //increase damage of attack based on n
     public DamageCounter (String nname, boolean etype, int namount, boolean self, boolean unique) 
     {
         amount=namount; this.unique=unique; name=nname; type=etype; this.self=self;
+        String Self;
+        if (self==true)
+        Self="self";
+        else
+        Self="the target";
+        String Name;
+        if (name.equals("Buffs")||name.equals("Debuffs"))
+        Name=name.substring(0, name.length()-1);
+        else
+        Name=name;
+        if (unique==false)
+        this.desc="Does +"+amount+" damage for each "+Name+" on "+Self+". ";
+        else
+        this.desc="Does +"+amount+" damage for each unique "+Name+" on "+Self+". ";
     }
     @Override
     public int Use(Character hero, Character target)
@@ -525,6 +583,19 @@ class DamageCounterRemove extends BeforeAbility //increase damage based on numbe
     public DamageCounterRemove(String nname, boolean etype, int namount, boolean self, boolean i, boolean aoe)
     {
         amount=namount; name=nname; type=etype; this.self=self; intense=i; this.aoe=aoe;
+        String Self;
+        if (self==true)
+        Self="self";
+        else
+        Self="the target";
+        String Name;
+        if (name.equals("Buffs")||name.equals("Debuffs"))
+        Name=name.substring(0, name.length()-1);
+        else if (name.equals("Defence")||name.equals("Other")||name.equals("Heal"))
+        Name=name+" effect";
+        else
+        Name=name;
+        this.desc="Does +"+amount+" damage for each "+Name+" on "+Self+", and removes them all. ";
     }
     @Override
     public int Use(Character hero, Character target)
@@ -602,14 +673,56 @@ class DamageCounterSimple extends BeforeAbility //just checks if the target has 
     public DamageCounterSimple (int namount, String nname, boolean etype, boolean self, boolean has) 
     {
         amount=namount; name=nname; type=etype; this.self=self; this.has=has;
+        String Self;
+        if (self==true)
+        Self="self";
+        else
+        Self="the target";
+        String Has;
+        if (has==true)
+        Has=" has ";
+        else
+        Has=" doesn't have ";
+        this.desc="Does +"+amount+" damage if "+Self+Has+name+". ";
     }
     public DamageCounterSimple (int namount, String[] nname, boolean etype, boolean self, boolean has) 
     {
         amount=namount; names=nname; type=etype; this.self=self; this.has=has;
+        String Self;
+        if (self==true)
+        Self="self";
+        else
+        Self="the target";
+        String Has;
+        if (has==true)
+        Has=" has ";
+        else
+        Has=" doesn't have ";
+        String Name="";
+        int i=names.length;
+        for (int p=0; p<i; p++)
+        {
+            if (p!=(i-1))
+            Name=Name+names[p]+" or ";
+            else
+            Name=Name+names[p]+"";
+        }
+        this.desc="Does +"+amount+" damage if "+Self+Has+Name+". ";
     }
     public DamageCounterSimple (int amount, int health, boolean self, boolean above)
     {
         this.amount=amount; hp=health; this.self=self; this.above=above;
+        String Self;
+        if (self==true)
+        Self="self";
+        else
+        Self="the target";
+        String Above;
+        if (above==true)
+        Above=" is above "+health+" HP";
+        else
+        Above=" is below "+health+" HP";
+        this.desc="Does +"+amount+" damage if "+Self+Above+". ";
     }
     @Override
     public int Use (Character user, Character target)
@@ -700,12 +813,12 @@ class DebuffMod extends BeforeAbility //for altering the debuffs an ab applies, 
             {
                 if (ab==1)
                 {
-                    String[] light={"Bleed", "50", "20", "2", "false"}; String[][] baby=StatFactory.MakeParam(light, null); 
+                    String[] light={"Bleed Effect", "50", "20", "2", "false"}; String[][] baby=StatFactory.MakeParam(light, null); 
                     user.activeability.AddTempString(baby);
                 }
                 if (ab==2)
                 {
-                    String[] kira={"Bleed", "50", "30", "2", "false"}; String[][] fin=StatFactory.MakeParam(kira, null); 
+                    String[] kira={"Bleed Effect", "50", "30", "2", "false"}; String[][] fin=StatFactory.MakeParam(kira, null); 
                     user.activeability.AddTempString(fin); 
                 }
             }
@@ -713,12 +826,12 @@ class DebuffMod extends BeforeAbility //for altering the debuffs an ab applies, 
             {
                 if (ab==1)
                 {
-                    String[] mello={"Bleed", "50", "20", "1", "false"}; String[][] baby=StatFactory.MakeParam(mello, null); 
+                    String[] mello={"Bleed Effect", "50", "20", "1", "false"}; String[][] baby=StatFactory.MakeParam(mello, null); 
                     user.activeability.AddTempString(baby);
                 }
                 if (ab==2)
                 {
-                    String[] near={"Bleed", "50", "30", "1", "false"}; String[][] fin=StatFactory.MakeParam(near, null); 
+                    String[] near={"Bleed Effect", "50", "30", "1", "false"}; String[][] fin=StatFactory.MakeParam(near, null); 
                     user.activeability.AddTempString(fin); 
                 }
             }
@@ -797,11 +910,11 @@ class DebuffMod extends BeforeAbility //for altering the debuffs an ab applies, 
             case 20: //superior
             if (target.CheckFor("Tracer", false)==true)
             {
-                String []akaban={"Countdown", "100", "80", "1", "false"}; String[][] niharu=StatFactory.MakeParam(akaban, null); user.activeability.AddTempString(niharu);
+                String []akaban={"Countdown", "100", "75", "1", "false"}; String[][] niharu=StatFactory.MakeParam(akaban, null); user.activeability.AddTempString(niharu);
             }
             else
             {
-                String []akaban={"Countdown", "100", "70", "1", "false"}; String[][] niharu=StatFactory.MakeParam(akaban, null); user.activeability.AddTempString(niharu);
+                String []akaban={"Countdown", "100", "65", "1", "false"}; String[][] niharu=StatFactory.MakeParam(akaban, null); user.activeability.AddTempString(niharu);
             }
             break;
             case 22: //KK
@@ -890,9 +1003,9 @@ class DebuffMod extends BeforeAbility //for altering the debuffs an ab applies, 
                 ApplyShatter n=null;
                 int boost=user.passivecount*20; 
                 if (user.passivecount>0)
-                n= new ApplyShatter(100+(50*user.passivecount), user.passivecount, true);
+                n= new ApplyShatter(100+(50*user.passivecount), user.passivecount, true, false);
                 else
-                n= new ApplyShatter(100, 0, false);
+                n= new ApplyShatter(100, 0, false, false);
                 n.Use(user, target);
                 user.passivecount=0; 
                 return boost;
@@ -923,6 +1036,19 @@ class Ignore extends BeforeAbility
    public Ignore (String toignore, String cond, int number)
    {
       toig=toignore; condition=cond; condnumber=number;
+      String C="Error generating description for this ability's Ignore";
+      if (cond.equals("always"))
+      C="Always";
+      else if (cond.equals("enemy health below"))
+      C="When enemy health is below "+number+",";
+      else if (cond.equals("passive"))
+      C="Conditionally";
+      if(toignore.equals("Missed"))
+      this.desc=C+" ignore Miss. ";
+      else if (toignore.equals("inescapable"))
+      this.desc=C+" "+toignore+". ";
+      else 
+      this.desc=C+" ignore "+toignore+". ";
    }
    @Override
    public int Use (Character hero, Character target) //beforeab; also activated during target selection 
@@ -1007,7 +1133,7 @@ class SelfDMG extends BeforeAbility
     int amount;
     public SelfDMG (int amot)
     {
-        amount=amot;
+        amount=amot; this.desc="Deals "+amount+" damage to self. ";
     }
     @Override
     public int Use (Character hero, Character ignored)

@@ -9,6 +9,7 @@ import java.util.ArrayList;
 public abstract class SpecialAbility 
 {
    int hashcode;
+   String desc; //for printdesc for abs
    public SpecialAbility()
    {
        hashcode=Card_HashCode.RandomCode();
@@ -62,9 +63,13 @@ class Chain extends SpecialAbility //both chain and multichain have been merged 
     public Chain (boolean multi, Ability ability)
     {
         this.multi=multi; damage=ability.GetBaseDmg();
+        if (multi==true)
+        this.desc="If the target dies before the last hit, continue the attack on a random enemy. ";
+        else
+        this.desc="Chain. ";
     }
     @Override
-    public int Use (Character user, int ignore, Character victim)
+    public int Use (Character user, int ignore, Character victim) //after hero finishes attacking and using afterabs
     {
         Ability ab=user.activeability;
         ArrayList<Character> targets= new ArrayList<Character>();
@@ -205,7 +210,7 @@ class Chain extends SpecialAbility //both chain and multichain have been merged 
         return 616;
     }
 }
-class RedwingHelper extends SpecialAbility
+class RedwingHelper extends SpecialAbility //called by character.attack, after damage formula and before taking damage; elusive attacks don't check for redwing
 {
     boolean used=false;
     int heal=0;

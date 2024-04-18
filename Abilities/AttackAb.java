@@ -17,7 +17,6 @@ class AttackAb extends Ability
     int omulti=0; //how many times to repeat the attack; the number of + signs
     boolean max=false; //whether the target directly loses max health instead of taking damage
     boolean lose=false; //whether the target directly loses health instead of taking damage
-    boolean elusive=false;
     public AttackAb ()
     {
     }
@@ -50,6 +49,21 @@ class AttackAb extends Ability
         {
             this.aoe=true;
         }
+    }
+    @Override
+    public void PrintDesc (boolean printed) 
+    {
+        if (printed==false) //whether basicab.printdesc was called or not, since it already prints that it's a basic attack
+        System.out.print("Attack ability. "); 
+        if (this.lose==true)
+        System.out.print("Causes "+damage+" health loss. ");
+        else if (this.max==true)
+        System.out.print("Reduces max HP by "+damage+". ");
+        else
+        System.out.print("Does "+damage+" damage. ");
+        if (this.multihit>0)
+        System.out.print("Multihit. ");
+        super.PrintDesc(false);
     }
     @Override
     public boolean GetLose() //for assists
@@ -110,7 +124,9 @@ class AttackAb extends Ability
                             }
                         }
                         if (elusive==true)
-                        blind=true; //no need to check blind for elusive abs since they aren't attacks
+                        {
+                            blind=true; evade=true; //no need to check blind or evade for elusive abs since they aren't attacks
+                        }
                         for (SpecialAbility ob: special)
                         {
                             change=ob.Use(user, chump); //apply unique ability functions before attacking; this only affects before abs
@@ -341,7 +357,9 @@ class AttackAb extends Ability
                             }
                         }
                         if (elusive==true)
-                        blind=true; //no need to check blind for elusive abs since they aren't attacks
+                        {
+                            blind=true; evade=true; //no need to check blind or evade for elusive abs since they aren't attacks
+                        }
                         for (SpecialAbility ob: special)
                         {
                             change=ob.Use(user, chump); //apply unique ability functions before attacking; this only affects before abs

@@ -42,6 +42,12 @@ class BasicAb extends AttackAb
         }
     }
     @Override
+    public void PrintDesc (boolean ignore)
+    {
+        System.out.print("Basic attack. "); 
+        super.PrintDesc(true); //calls attackab's printdesc, not ability's printdesc
+    }
+    @Override
     public ArrayList<StatEff> UseAb (Character user, Ability ab, ArrayList<Character> targets)
     {
         boolean typo=true; int uses=1; 
@@ -88,7 +94,9 @@ class BasicAb extends AttackAb
                             }
                         }
                         if (elusive==true)
-                        blind=true; //no need to check blind for elusive abs since they aren't attacks
+                        {
+                            blind=true; evade=true; //no need to check blind or evade for elusive abs since they aren't attacks
+                        }
                         for (SpecialAbility ob: special)
                         {
                             change=ob.Use(user, chump); //apply unique ability functions before attacking; this only affects before abs

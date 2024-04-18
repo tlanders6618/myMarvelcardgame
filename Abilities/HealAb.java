@@ -29,6 +29,11 @@ class HealAb extends Ability
         }
     }
     @Override
+    public void PrintDesc (boolean ignore)
+    {
+        System.out.print("Heal ability. "); super.PrintDesc(false);
+    }
+    @Override
     public boolean CheckUse (Character user)
     {
         if ((user.CheckFor("Afflicted", false)==true&&this.ignore==false)||user.CheckFor("Suppression", false)==true)

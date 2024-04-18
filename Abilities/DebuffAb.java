@@ -29,6 +29,11 @@ class DebuffAb extends Ability
         }
     }
     @Override
+    public void PrintDesc (boolean ignore)
+    {
+        System.out.print("Debuff ability. "); super.PrintDesc(false);
+    }
+    @Override
     public boolean CheckUse (Character user)
     {
         if ((user.CheckFor("Neutralise", false)==true&&this.ignore==false)||user.CheckFor("Suppression", false)==true)

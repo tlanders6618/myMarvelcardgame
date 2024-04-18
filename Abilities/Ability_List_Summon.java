@@ -70,6 +70,7 @@ public class Ability_List_Summon
         switch (counter)
         {
             case 0: BasicAb laser= new BasicAb("Laser Beam", "single", "enemy", 30); laser.special.add(new DebuffMod(4));
+            laser.desc="100% chance to Copy 1 random buff(s) on the target. \nIf they have none, randomly gain Bulwark, Focus, or Placebo (Buff) for 2 turns.";
             return laser;
             case 1: BasicAb core= new BasicAb("Core Meltdown", "single", "enemy", 50); core.special.add(new DamageCounterRemove("Buffs", true, 10, true, false, false));
             core.special.add(new Suicide()); core.ignore=true; 
@@ -109,8 +110,9 @@ public class Ability_List_Summon
             rail.AddStatString(anger); rail.AddStatString(revenge);
             return rail;
             case 1: BasicAb mortar= new BasicAb("Mortar Fire", "single", "enemy", 30); mortar.special.add(new DebuffMod(28)); mortar.together=true;
+            mortar.desc="100% chance to apply Weakness: 5 for 1 turn(s). 100% chance to apply Provoke for 1 turn(s). \n+1 duration to both if the target is Summoned.";
             return mortar;
-            case 3: OtherAb leo= new OtherAb ("Ejector Seat", "self", "self", 0); leo.singleuse=true; leo.channelled=true; leo.special.add(new Transformation(27, true));
+            case 3: OtherAb leo= new OtherAb ("Ejector Seat", "self", "self", 0); leo.singleuse=true; leo.channelled=true; leo.special.add(new Transformation(27, true, true));
             return leo;
         }
         return null; 
@@ -128,7 +130,8 @@ public class Ability_List_Summon
             String[] twofer={"Burn", "100", "5", "2", "false"}; String[][] twoface=StatFactory.MakeParam(twofer, null);
             duty.AddStatString(twoface); duty.AddStatString(twoface);
             return duty;
-            case 2: OtherAb trans=new OtherAb("Pilot Arachnaught", "self", "self", 0); trans.singleuse=true; trans.channelled=true; trans.special.add(new Transformation(28, true));
+            case 2: OtherAb trans=new OtherAb("Pilot Arachnaught", "self", "self", 0); trans.singleuse=true; trans.channelled=true; 
+            trans.special.add(new Transformation(28, true, true));
             return trans;
         }
         return null; 
@@ -139,7 +142,7 @@ public class Ability_List_Summon
         {
             case 0: BasicAb pistol= new BasicAb ("Concealed Pistol", "single", "enemy", 35); return pistol;
             case 1: BuffAb cache= new BuffAb ("Hidden Weapons Cache", "single", "ally inclusive", 0); 
-            String[] sword= {"Intensify", "100", "10", "1", "knull"}; 
+            String[] sword= {"Intensify", "100", "15", "1", "knull"}; 
             String[][] redo=StatFactory.MakeParam(sword, null); cache.AddStatString(redo);
             return cache;
             default: return null;

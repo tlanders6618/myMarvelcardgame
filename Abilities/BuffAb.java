@@ -29,6 +29,11 @@ class BuffAb extends Ability
         }
     }
     @Override
+    public void PrintDesc (boolean ignore)
+    {
+        System.out.print("Buff ability. "); super.PrintDesc(false);
+    }
+    @Override
     public boolean CheckUse (Character user)
     {
         if ((user.CheckFor("Undermine", false)==true&&this.ignore==false)||user.CheckFor("Suppression", false)==true)
