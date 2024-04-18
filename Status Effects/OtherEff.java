@@ -14,6 +14,129 @@ public abstract class OtherEff extends StatEff
     {
     }
 }
+class BleedE extends OtherEff 
+{
+    @Override
+    public String getimmunityname()
+    {
+        return "Bleed";
+    }
+    @Override 
+    public String getefftype()
+    {
+        return "Other";
+    }
+    @Override
+    public String geteffname()
+    {
+        String name;
+        if (duration<100)
+        {
+            name="Bleed Effect: "+this.power+", "+this.duration+" turn(s)";
+            return name;
+        }
+        else
+        {
+            name="Bleed Effect: "+this.power;
+            return name;
+        }
+    }
+    public BleedE (int nchance, int nstrength, int nduration)
+    {
+        this.power=nstrength;
+        this.duration=nduration;
+        this.oduration=nduration;
+        this.chance=nchance;
+        this.hashcode=Card_HashCode.RandomCode();
+        this.stackable=true;
+    }
+    @Override
+    public void onTurnStart (Character hero)
+    {
+        hero.DOTdmg(this.power, "bleed");
+        --this.duration;
+        if (this.duration<=0)
+        {
+            hero.remove(this.hashcode, "normal");
+        }
+    }
+    @Override
+    public void onTurnEnd (Character hero)
+    {
+        //do nothing
+    }
+    @Override
+    public void onApply (Character target)
+    {
+    }
+}
+class CounterE extends OtherEff 
+{
+    ArrayList<String[]>statstrings= new ArrayList<String[]>();
+    @Override
+    public String getimmunityname()
+    {
+        return "Counter";
+    }
+    @Override 
+    public String getefftype()
+    {
+        return "Other";
+    }
+    @Override
+    public String geteffname()
+    {
+        String name;
+        if (duration<100)
+        {
+            name="Counter Effect: "+this.power+", "+this.duration+" turn(s)";
+            return name;
+        }
+        else
+        {
+            name="Counter Effect: "+this.power;
+            return name;
+        }
+    }
+    public CounterE (int nchance, int nstrength, int nduration, String[] stat)
+    {
+        this.power=nstrength;
+        this.duration=nduration;
+        this.oduration=nduration;
+        this.chance=nchance;
+        this.hashcode=Card_HashCode.RandomCode();
+        this.stackable=true;
+        if (stat!=null)
+        {
+            statstrings.add(stat);
+        }
+    }
+    @Override
+    public void onApply (Character target)
+    {          
+    }
+    @Override
+    public void Attacked (Character hero, Character attacker, int ignore) //dmg is elusive
+    {
+        if (!(attacker.ignores.contains("Counter"))&&!(hero.binaries.contains("Stunned")))
+        {   
+            int dmg=this.power;  
+            dmg-=attacker.ADR;
+            System.out.println (hero.Cname+" counterattacks for "+dmg+" damage!");
+            attacker.TakeDamage(attacker, dmg, false);  
+            if (statstrings.size()>0)
+            {
+                for (String[] array: statstrings)
+                {
+                    String[][] toapply=StatFactory.MakeParam(array, null);
+                    StatEff New=StatFactory.MakeStat(toapply, hero); 
+                    StatEff.CheckApply(hero, attacker, New);
+                }
+            }
+            hero.remove(this.hashcode, "normal"); //counter is consumed after use
+        }
+    }
+}
 class Empower extends OtherEff
 {
     String name; //of hero who made the empowerment
@@ -555,6 +678,63 @@ class ResistanceE extends OtherEff
         hero.PRDR-=power;   
     }
 }
+class ShatterE extends OtherEff 
+{
+    @Override
+    public String getimmunityname()
+    {
+        return "Shatter";
+    }
+    @Override 
+    public String getefftype()
+    {
+        return "Other";
+    }
+    @Override
+    public String geteffname() 
+    {
+       String name;
+       if (duration<100)
+       {
+            name="Shatter Effect, "+this.duration+" turn(s)";
+            return name;
+       }
+       else
+       {
+            name="Shatter Effect";
+            return name;
+       }
+    }
+    public ShatterE (int nchance, int dur)
+    {
+        this.duration=dur;
+        this.oduration=dur;
+        this.chance=nchance;
+        this.hashcode=Card_HashCode.RandomCode();
+    }
+    public void onApply (Character target)
+    {
+        target.binaries.add("Shattered");
+        target.SHLD=0;
+        ArrayList<StatEff>modexception= new ArrayList<StatEff>();
+        if (target.effects.size()>0)
+        {
+            modexception.addAll(target.effects);
+        }
+        for (StatEff eff: modexception)
+        {
+            if (eff.getefftype().equalsIgnoreCase("Defence"))
+            {
+                target.remove(eff.hashcode, "normal");
+            }
+        }
+    }
+    @Override
+    public void Nullified (Character target)
+    {
+        target.binaries.remove("Shattered");
+    }
+}
 class SnareE extends OtherEff 
 {
     @Override
@@ -710,55 +890,5 @@ class Tracer extends OtherEff
     @Override
     public void onApply (Character hero) 
     {
-    }
-}
-class WMTarget extends OtherEff  
-{ 
-    public WMTarget () 
-    {
-        this.hashcode=Card_HashCode.RandomCode(); this.power=5; this.stackable=true;
-    }
-    @Override
-    public void onApply (Character target)
-    {
-        target.DV+=power;
-        target.immunities.add("Invisible");
-        ArrayList<StatEff> concurrentmodificationexception2electricboogaloo= new ArrayList<StatEff>();
-        for (StatEff eff: target.effects)
-        {
-            if (eff.getimmunityname().equalsIgnoreCase("Invisible"))
-            {
-                concurrentmodificationexception2electricboogaloo.add(eff);
-            }
-        }
-        for (StatEff eff: concurrentmodificationexception2electricboogaloo)
-        {
-            target.remove(eff.hashcode, "normal");
-        }
-    }
-    @Override
-    public String getimmunityname()
-    {
-        return "Target";
-    }
-    @Override 
-    public String getefftype()
-    {
-        return "Other";
-    }
-    @Override
-    public String geteffname()
-    {
-        return "Target Effect: 5";
-    }
-    @Override
-    public void onTurnEnd (Character hero)
-    {
-    }
-    @Override
-    public void Nullified(Character target)
-    {
-        target.DV-=power;
-        target.immunities.remove("Invisible");
     }
 }

@@ -107,22 +107,14 @@ class Counter extends BuffEff
     {          
     }
     @Override
-    public void Attacked (Character hero, Character attacker, int ignore) //dmg based on status effects like damage up weakness and resistance
+    public void Attacked (Character hero, Character attacker, int ignore) //dmg is elusive
     {
-        int dmg=this.power; 
         if (!(attacker.ignores.contains("Counter"))&&!(hero.binaries.contains("Stunned")))
-        {
-            if (!(hero.binaries.contains("Missed"))&&!(hero.immunities.contains("Missed")))
-            Damage_Stuff.CheckBlind(hero);
-            if (!(hero.binaries.contains("Missed"))&&!(hero.immunities.contains("Missed")))
-            Damage_Stuff.CheckEvade(hero, attacker);
-        }
-        if (!(attacker.ignores.contains("Counter"))&&!(hero.binaries.contains("Stunned"))&&!(hero.binaries.contains("Missed")))
         {   
-            dmg=Damage_Stuff.DamageFormula(hero, attacker, dmg);
-            dmg=Damage_Stuff.CheckGuard(hero, attacker, dmg);
-            System.out.println (hero.Cname+" counterattacks!");
-            attacker.TakeDamage(attacker, hero, dmg, false); 
+            int dmg=this.power; 
+            dmg-=attacker.ADR;
+            System.out.println (hero.Cname+" counterattacks for "+dmg+" damage!");
+            attacker.TakeDamage(attacker, dmg, false);  
             if (statstrings.size()>0)
             {
                 for (String[] array: statstrings)
@@ -132,9 +124,8 @@ class Counter extends BuffEff
                     StatEff.CheckApply(hero, attacker, New);
                 }
             }
+            hero.remove(this.hashcode, "normal"); //counter is consumed after use
         }
-        if (hero.binaries.contains("Missed"))
-        hero.binaries.remove("Missed");
     }
 }
 class Evasion extends BuffEff 
@@ -327,7 +318,7 @@ class Invisible extends BuffEff
 }
 class MightyBlows extends BuffEff 
 {
-    ApplyShatter n= new ApplyShatter(50, 0, false);
+    ApplyShatter n= new ApplyShatter(50, 0, false, false);
     @Override
     public String getimmunityname()
     {
