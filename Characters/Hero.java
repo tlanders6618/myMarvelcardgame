@@ -14,7 +14,8 @@ public class Hero extends Character
 {
     public Hero (int Pindex)
     {
-        index=Pindex; //character's semi-unique identifier number                
+        index=Pindex; //character's semi-unique identifier number     
+        this.pdesc=Character.MakeDesc(Pindex, false);
         //set identifiers
         HP=InHP (index, false);
         maxHP=HP;
@@ -31,14 +32,14 @@ public class Hero extends Character
             case 5: StaticPassive.WM(this); break;
             case 6: ActivePassive.CaptainA(this); break;
             case 9: ActivePassive.StarLord(this); break; 
-            case 11: ActivePassive.FuryJr (this, true, false, false, false); break;
+            case 11: ActivePassive.FuryJr (this, "onturn", false); break;
             case 18: ActivePassive.Spidey(this, null, false, false); break;
             case 23: ActivePassive.CM(this, true, 0); break;
             case 24: ActivePassive.Binary(this); break;
             case 28: StaticPassive.DOOM(this, "turn", this); break;
             case 32: StaticPassive.BB(this, false); break;
             case 33: StaticPassive.Deadpool(this, "turn", null); break;
-            case 35: ActivePassive.Cain(this, true, false, false, 616); break;
+            case 35: ActivePassive.Cain(this, "turn", 616); break;
             case 40: ActivePassive.Sandy(this, "turn"); break;
         }
         super.onTurn(notbonus);
@@ -58,7 +59,7 @@ public class Hero extends Character
         {
             switch (index)
             {
-                case 11: ActivePassive.FuryJr(this, false, true, summoned, false); break;
+                case 11: ActivePassive.FuryJr(this, "allyturn", summoned); break;
                 case 24: ActivePassive.Binary(this); break;
                 case 40: ActivePassive.Sandy(this, "turn"); break;
             }
@@ -90,15 +91,16 @@ public class Hero extends Character
             case 23: StaticPassive.CM(this, true); break;
             case 25: this.passivecount=10; this.Cchance+=50; Tracker t=new Tracker("Control Points: "); this.effects.add(t); t.onApply(this); 
             StaticPassive.Symbiote (this, 0, true); break;
-            case 26: int ignore=StaticPassive.MODOC(this, null, false, true, 0); break;
+            case 26: int ignore=StaticPassive.MODOC(this, null, "start", 0); break;
             case 27: StaticPassive.Ultron(this); break;
             case 28: StaticPassive.DOOM(this, "start", this); break;
             case 30: StaticPassive.Brawn(this); break;
             case 31: StaticPassive.Hulk(this, true); break;
             case 32: StaticPassive.BB(this, true); break;
-            case 35: ActivePassive.Cain(this, false, false, true, 616); break;
+            case 35: ActivePassive.Cain(this, "start", 616); break;
             case 40: StaticPassive.Sandy(this); break;
             case 41: StaticPassive.Rhino(this); break;
+            case 81: StaticPassive.DD(this, null, true); break;
         }
     }
     @Override
@@ -117,7 +119,7 @@ public class Hero extends Character
         {
             case 39: 
             if (eff.getimmunityname().equals("Shock"))
-            eff=StaticPassive.InstaConversion(this, eff, "IntensifyE", eff.power, eff.duration); 
+            eff=StaticPassive.InstaConversion(this, eff, "Intensify Effect", eff.power, eff.duration); 
             break;
         }
         this.effects.add(eff);  
@@ -193,7 +195,7 @@ public class Hero extends Character
                 case 13: StaticPassive.Drax(dealer, victim, false); break;
                 case 14: ActivePassive.X23(dealer, victim, false, true); break;
                 case 25: StaticPassive.Flash(dealer); break;
-                case 26: int ignore=StaticPassive.MODOC(dealer, victim, false, false, 616); break;
+                case 26: int ignore=StaticPassive.MODOC(dealer, victim, "attack", 616); break;
                 case 33: StaticPassive.Deadpool(dealer, "attack", victim); break;
                 case 36: StaticPassive.Vulture(dealer, victim); break;
             }
@@ -261,7 +263,7 @@ public class Hero extends Character
             case 20: ActivePassive.Superior(this, victim, false); break;
             case 23: StaticPassive.CM(this, false); break;
             case 33: StaticPassive.Deadpool(this, "attack", victim); break;
-            case 35: ActivePassive.Cain(this, false, false, false, 616); break;
+            case 35: ActivePassive.Cain(this, "attack", 616); break;
         }
     }
     @Override
@@ -273,22 +275,33 @@ public class Hero extends Character
         }
     }
     @Override
-    public void onAttacked(Character attacked, Character attacker, int dmg)
+    public void onAttacked(Character attacker, int dmg)
     {
-        switch (attacked.index) //for passives that trigger even if the hero died from the attack
+        switch (this.index) //for passives that trigger even if the hero died from the attack
         {
-            case 25: ActivePassive.Flash(attacked, -3); break;
-            case 28: StaticPassive.DOOM(attacked, "attacked", attacker); break;
+            case 25: ActivePassive.Flash(this, -3); break;
+            case 28: StaticPassive.DOOM(this, "attacked", attacker); break;
         }
-        if (attacked.dead==false)
+        if (this.dead==false)
         {
-            for (StatEff eff: attacked.effects)
+            ArrayList<StatEff> concurrentmodificationexception3electricboogalooboogaloo= new ArrayList<StatEff>(); //counter is removed after use
+            concurrentmodificationexception3electricboogalooboogaloo.addAll(this.effects);
+            boolean counter=false; //only activate counter once per attack
+            for (StatEff eff: concurrentmodificationexception3electricboogalooboogaloo)
             {
-                eff.Attacked(attacked, attacker, dmg);
+                if (eff.getimmunityname().equals("Counter")&&counter==false)
+                {
+                    eff.Attacked(this, attacker, dmg); counter=true;
+                }               
+                else if (!(eff.getimmunityname().equals("Counter")))
+                {
+                    eff.Attacked(this, attacker, dmg);
+                }
             }
-            switch (attacked.index)
+            switch (this.index)
             {
-                case 15: ActivePassive.Wolvie(attacked, true); break;
+                case 15: ActivePassive.Wolvie(this, true); break;
+                case 81: StaticPassive.DD(this, attacker, false); break;
             }
         } 
     }
@@ -328,7 +341,7 @@ public class Hero extends Character
     {
         switch (target.index)
         {
-            case 26: dmg=StaticPassive.MODOC(target, dealer, true, false, dmg); break;
+            case 26: dmg=StaticPassive.MODOC(target, dealer, "attacked", dmg); break;
         }
         int odmg=dmg;
         if (dealer.ignores.contains("Shield")||dealer.ignores.contains("Defence"))
@@ -421,7 +434,7 @@ public class Hero extends Character
         {
             case 10: StaticPassive.FurySr(this, newhp); break;
             case 31: StaticPassive.Hulk(this, false); break;
-            case 35: ActivePassive.Cain(this, false, true, false, oldhp); break;
+            case 35: ActivePassive.Cain(this, "change", oldhp); break;
         }
     }
     @Override
@@ -450,10 +463,12 @@ public class Hero extends Character
         }
         switch (this.index)
         {
-            case 5: case 16:    
+            case 5: case 16:
             if (this.passivefriend[0]!=null&&this.passivefriend[0].dead==false)
             {
-                this.passivefriend[0].remove(passivecount, "normal"); //remove heat signature detection/lethal protector's resistance
+                this.passivefriend[0].remove(passivecount, "normal"); //remove heat signature detection's target/lethal protector's resistance
+                if (this.index==5)
+                this.passivefriend[0].immunities.remove("Invisible"); //undo heat signature's effects
             }
             break;     
         }
@@ -589,6 +604,7 @@ public class Hero extends Character
                 case 24: StaticPassive.Binary(this, false); break;
             }
             this.index=newindex; 
+            this.pdesc=Character.MakeDesc(newindex, false);
             switch (this.index) //for gaining immunities when transforming
             {
                 case 24: StaticPassive.Binary(this, true); break;

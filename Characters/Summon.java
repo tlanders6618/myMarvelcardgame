@@ -18,6 +18,7 @@ public class Summon extends Character
         summoned=true;
         hash=Card_HashCode.RandomCode();
         size=SetSizeSum(index);
+        this.pdesc=Character.MakeDesc(Sindex, true);
         if (Sindex==13)
         {
             //clone health, name, and abilities depend on who they're a clone of
@@ -255,13 +256,23 @@ public class Summon extends Character
     {
     }
     @Override
-    public void onAttacked(Character attacked, Character attacker, int dmg)
+    public void onAttacked(Character attacker, int dmg)
     {
-        if (attacked.dead==false)
+        if (this.dead==false)
         {
-            for (StatEff eff: attacked.effects)
+            ArrayList<StatEff> concurrentmodificationexception3electricboogalooboogaloo= new ArrayList<StatEff>();
+            concurrentmodificationexception3electricboogalooboogaloo.addAll(this.effects);
+            boolean counter=false; //only activate counter once per attack
+            for (StatEff eff: concurrentmodificationexception3electricboogalooboogaloo)
             {
-                eff.Attacked(attacked, attacker, dmg);
+                if (eff.getimmunityname().equals("Counter")&&counter==false)
+                {
+                    eff.Attacked(this, attacker, dmg); counter=true;
+                }               
+                else if (!(eff.getimmunityname().equals("Counter")))
+                {
+                    eff.Attacked(this, attacker, dmg);
+                }
             }
         } 
     }
@@ -482,6 +493,7 @@ public class Summon extends Character
                 }
             }
             this.index=newindex; 
+            this.pdesc=Character.MakeDesc(newindex, true);
             CheckSumDupes(this);
         }
         else

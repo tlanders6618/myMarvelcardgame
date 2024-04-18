@@ -13,6 +13,7 @@ public abstract class Character
 {
     //base stats
     String Cname="J. Jonah Jameson";    
+    String pdesc; //describes hero passive(s)
     int size=1;
     int HP=0; //health
     int maxHP;
@@ -132,6 +133,8 @@ public abstract class Character
                 System.out.println (a+": "+this.abilities[i].GetAbName(this));  
             }
         }
+        System.out.println("6: Check an ability's description");
+        System.out.println("7: Check the description of this character's passive(s)");
         if (skip==true)
         {
             System.out.println ("0: Skip turn");
@@ -141,24 +144,29 @@ public abstract class Character
         {
             choice=Damage_Stuff.GetInput(); 
             --choice; //to get the index number since the number entered was the ability number
-            good=false;
             if (choice==-1&&skip==true) //skipped turn
             {
                 good=true;
             }
             else if (choice<5&&choice>=0&&!(this.abilities[choice]==null)&&this.abilities[choice].CheckUse(this)==false)
             {
-                good=false;
                 System.out.println("Selected ability is not currently usable. Pick another one.");
             }
             else if (choice<5&&choice>=0&&!(this.abilities[choice]==null)&&this.activeability!=null&&this.activeability.unbound==true&&this.abilities[choice].unbound==true)
             {
-                good=false;
                 System.out.println("Unbound abilities may only be used once per turn.");
             }
             else if (choice<5&&choice>=0&&!(this.abilities[choice]==null)&&this.abilities[choice].CheckUse(this)==true) 
             {
                 good=true;
+            }
+            else if (choice==5)
+            {
+                Card_HashCode.GetDesc(this);
+            }
+            else if (choice==6)
+            {
+                Card_HashCode.GetPDesc(this);
             }
         }
         while (good==false);
@@ -350,7 +358,7 @@ public abstract class Character
         dealer.onAttack(target); //activate relevant passives after attacking
         if (target.dead==false)
         {
-            target.onAttacked(target, dealer, dmg);
+            target.onAttacked(dealer, dmg);
         }
         Character[] friends=Battle.GetTeammates(target);
         for (Character friend: friends)
@@ -381,7 +389,7 @@ public abstract class Character
             }
         }
         dealer.onAttack(target);
-        target.onAttacked(target, dealer, 0);
+        target.onAttacked(dealer, 0);
         Character[] friends=Battle.GetTeammates(target);
         for (Character friend: friends)
         {
@@ -414,7 +422,7 @@ public abstract class Character
         }
         dealer.onAttack(target);
         if (target.dead==false)
-        target.onAttacked(target, dealer, 0);
+        target.onAttacked(dealer, 0);
         Character[] friends=Battle.GetTeammates(target);
         for (Character friend: friends)
         {
@@ -426,8 +434,8 @@ public abstract class Character
         return target;
     }
     public abstract void onCrit (Character target); //called after successful crit; for passives
-    public abstract void onAttack (Character victim);
-    public abstract void onAttacked(Character attacked, Character attacker, int dmg);
+    public abstract void onAttack (Character personIjustattacked);
+    public abstract void onAttacked(Character attacker, int dmg);
     public abstract int TakeDamage (Character target, Character dealer, int dmg, boolean aoe); //takedamage checks hero shield and calls tookdamage
     public abstract int TakeDamage (Character target, int dmg, boolean dot); 
     public abstract void TookDamage (Character hero, Character dealer, int dmg); //triggers relevant passives and checks if hero should be dead
@@ -573,10 +581,12 @@ public abstract class Character
                 case 6: case 9: case 10: case 14: case 19: case 21: case 29: case 33: case 36: case 37:
                 return 220;
             
-                case 1: case 2: case 3: case 4: case 5: case 7: case 8: case 11: case 18: case 20: case 23: case 24: case 25: case 34: case 39: case 40:
+                case 1: case 2: case 3: case 4: case 5: case 7: case 8: case 11: case 18: case 20: case 23: case 24: case 25: case 34: case 39: case 40: 
+                case 81: case 82: case 84:
                 return 230;
             
                 case 12: case 13: case 15: case 16: case 17: case 22: case 27: case 28: case 30: case 32: case 35: case 38: case 41:
+                case 83: case 85:
                 return 240;
                 
                 //Special carrots
@@ -653,6 +663,11 @@ public abstract class Character
                 case 39: return "Electro (Classic)";
                 case 40: return "Sandman (Classic)";
                 case 41: return "Rhino (Classic)";
+                case 81: return "Daredevil (Matt Murdock)";
+                case 82: return "Iron Fist (Danny Rand)";
+                case 83: return "Luke Cage (Modern)";
+                case 84: return "Namor (Modern)";
+                case 85: return "Silver Surfer (Classic)";
             }    
             return "ERROR. INDEX NUMBER NOT FOUND";
         }
@@ -696,6 +711,79 @@ public abstract class Character
         for (StatEff eff: ban)
         {
             eff.UseBanish();
+        }
+    }
+    public static String MakeDesc (int index, boolean summoned) //descriptions of every character's passives
+    {
+        if (summoned==false) 
+        {
+            switch (index)
+            {
+                case 1: return "When an ally Protected by Moon Knight is attacked, counter for 55 damage."; 
+                case 2: return "With Intensify, ignore Protect, become immune to Steal, and gain +50% status chance. Bleeds applied to Protected enemies have +1 duration."; 
+                case 4: return "When an Intensify is Stolen or Nullified from self, gain an Empowerment with equal value.";
+                case 5: return "On War Machine's first turn, apply a Target: 5 Effect to an enemy, preventing Invisible."; 
+                case 6: return "Gain Shield: 20 on fight start and on turn."; 
+                case 7: String boo= "On fight start, apply Redwing, granting 50% damage reduction and debuff immunity once when taking 120+ damage from an attack.";
+                boo=boo+" Apply a small Mend to heroes who consume Redwing."; 
+                return boo;
+                case 8: return "Attacks ignore Defence."; 
+                case 9: return "Every other turn, apply Confidence: 15 to self and allies."; 
+                case 10: return "Summons Nick Fury LMD (Summon) when falling below 90 HP for the first time."; 
+                case 12: String ga="On fight start, apply Obsession to an enemy. Apply +1 on attack (max 3).";
+                ga+=" Gain immunity to buffs and Persuaded, ignore targeting effects, and always takes status effect damage on turn end."; 
+                return ga; 
+                case 13: return "Do +15 damage and apply debuffs with +15 strength when attacking enemies with 75% HP or more."; 
+                case 14: return "Gain +50% crit chance against enemies below 90 HP. On crit, 50% chance to gain Regen: 15 for 1 turn."; 
+                case 15: String loo="Gain Regen: 15 for 1 turn when attacked. ";
+                loo+="After taking 180 damage, clear status effects on self and enter Berserker Frenzy, granting +15 damage reduction but making attacks Random Target."; 
+                return loo;
+                case 16: return "On fight start, choose an ally to gain Resistance; when they're attacked, counter for 40 damage. Ignore Evade but take more damage while Burning."; 
+                case 17: return "On kill, gain Focus for 1 turn. Ignore Evade but take more damage while Burning."; 
+                case 18: return "Evade all enemy AoE attacks. On turn, gain Evade. With Evade, become the target when an injured ally is attacked."; 
+                case 20: return "Attacks against enemies with Tracers are Inescapable."; 
+                case 23: return "Gain immunity to Poison. On turn, when taking 80+ damage, and when attacking, gain 1 E; at 5, Transform into Binary."; 
+                case 24: return "Gain immunity to non-Other status effects. On any turn, lose 1 E to do 5 Elusive damage to all enemies; at 0, Transform into Captain Marvel."; 
+                case 25: String clown="While above 5 C, gain +50% status chance; while below, apply Bleed: 10 for 1 turn and do +15 damage to self and enemies when attacking. ";
+                clown+="Ignore Evade but take more damage while Burning."; 
+                return clown;
+                case 26: String fool="Gain Shield: 100 on fight start; while active, gain debuff immunity and take -100 damage from attacks that do 100+ damage."; 
+                fool+="\nAttacks ignore targeting effects and apply a 1 turn Shatter or disable debuff based on the target's abilities.";
+                return fool;
+                case 27: return "Gain immunity to Bleed, Poison, Copy, Snare, Control, and Steal; take no Wither damage."; 
+                case 28: return "Gain immunity to Control, Shock, Burn, Persuaded, and Freeze; once per turn, apply Shock: 20 for 1 turn when attacked."; 
+                case 30: return "Gain immunity to Poison and Control. Brawn can Nullify Heal and Defence effects, and gains copies of effects he Nullified. ";
+                case 31: return "Gain immunity to Poison, Control, Terror, and Persuaded. Take less and deal more damage for every 50 missing HP.";
+                case 32: return "Every other turn, gain 1 E; lose all when attacking to do +20 damage for each. Gain immunity to Control.";
+                case 33: return "On turn, regain 30 HP. Do +15 damage against Summons and reduce all cooldowns by 1 turn on kill.";
+                case 35: String stupid="Gain immunity to Stun and Snare. Gain +10 damage reduction and Control immunity while above 100 HP. "; 
+                stupid+="Gain 1 M on turn and attack (max 5); while at 5, become debuff immune.";
+                return stupid;
+                case 36: return "50% chance to apply Wound for 1 turn when attacking enemies below 120 HP.";
+                case 39: return "Convert all Shocks on self to Intensify Effects with equal value.";
+                case 40: return "Gain immunity to Bleed, Disarm, and Shock, and ignore Counters; when receiving 2 Burns, convert them into a Stun Effect for 1 turn.";
+                case 41: return "On fight start, gain Resistance. Take -10 Bleed damage. Gain immunity to max HP reduction, Suppression, Vulnerable, and Terror.";
+                case 81: return "Ignore Blind and Invisible. Ignore the Counter activation limit.";
+                default: return "This character doesn't have any passive abilities.";
+            }    
+        }
+        else //summon names
+        {
+            switch (index)
+            {
+                case 1: return "Gain immunity to Bleed, Poison, and Copy; take no Wither damage. On Summon, Protect Nick Fury (Classic)."; 
+                case 28: return "Gain immunity to Bleed, Poison, and Copy; take no Wither damage.";
+                case 3: return "Gain immunity to Bleed, Poison, and Copy; take no Wither damage. On turn, apply Target: 5 to the lowest HP enemy.";
+                case 4: return "Gain immunity to Bleed, Poison, and Copy; take no Wither damage. When gaining a buff, grant Ultron a copy."; 
+                case 5: return "Gain immunity to Bleed, Poison, Persuaded, Control, and Copy; take no Wither damage. Die when Dr. Doom dies."; 
+                case 6: return "Gain immunity to Persuaded. 50% chance to Provoke a random enemy when Summoned; take -10 damage from Provoked enemies."; 
+                case 7: return "Gain Taunt on Summon. Holographic Decoy is permanently Stunned and immune to status effects."; 
+                case 8: return "On Summon and every other turn, Protect an ally for 1 turn. Gain immunity to Bleed, Poison, and Shock; take no Wither damage but take +15 damage from Burn."; 
+                case 9: return "Do +5 damage for each other HYDRA Trooper."; 
+                case 11: return "On Summon, gain Focus and Protect the summoner. Gain immunity to non-Other effects."; 
+                case 12: return "Gain immunity to Persuaded and +20 damage reduction. Lose this damage reduction and gain Stun and Target: 40 for 1 turn after attacking."; 
+                default: return "This character doesn't have any passive abilities.";
+            }    
         }
     }
 }

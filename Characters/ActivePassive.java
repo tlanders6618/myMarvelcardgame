@@ -105,9 +105,9 @@ public class ActivePassive
             }
         }
     }
-    public static void Cain (Character marko, boolean turn, boolean change, boolean start, int old)
+    public static void Cain (Character marko, String time, int old)
     {
-        if (turn==true&&marko.passivecount<5) //onturn
+        if (time.equals("turn")&&marko.passivecount<5) //onturn
         {
             marko.passivecount++;
             System.out.println(marko.Cname+" gained 1 Momentum.");
@@ -123,7 +123,7 @@ public class ActivePassive
                 }
             }
         }
-        else if (change==true) //hpchange
+        else if (time.equals("change")) //hpchange
         {
             if (old>100&marko.HP<=100) //fallen below threshold; lost bonuses
             {
@@ -154,13 +154,13 @@ public class ActivePassive
                 Tracker salt= new Tracker("Cyttorak's Blessing active"); marko.effects.add(salt);
             }
         }
-        else if (start==true) //fightstart
+        else if (time.equals("start")) //fightstart
         {
             marko.immunities.add("Snare"); marko.immunities.add("Stun"); marko.ADR+=10; marko.immunities.add("Control");
             Tracker rage= new Tracker("Momentum: "); marko.effects.add(rage); rage.onApply(marko);
             Tracker salt= new Tracker("Cyttorak's Blessing active"); marko.effects.add(salt);
         }
-        else if (marko.passivecount<5) //onattack
+        else if (time.equals("attack")&&marko.passivecount<5) //onattack
         {
             marko.passivecount++;
             System.out.println(marko.Cname+" gained 1 Momentum.");
@@ -302,16 +302,9 @@ public class ActivePassive
             {
                 int dmg=40;
                 System.out.println ("\nThis one is under our protection!");
-                if (!(eddie.binaries.contains("Missed"))&&!(eddie.immunities.contains("Missed")))
-                Damage_Stuff.CheckBlind(eddie);
-                if (!(eddie.binaries.contains("Missed"))&&!(eddie.immunities.contains("Missed")))
-                Damage_Stuff.CheckEvade(eddie, attacker);
-                if (!(eddie.binaries.contains("Missed")))
-                {
-                    dmg=Damage_Stuff.DamageFormula(eddie, attacker, dmg);
-                    dmg=Damage_Stuff.CheckGuard(eddie, attacker, dmg);
-                    attacker.TakeDamage(attacker, eddie, dmg, false);                         
-                }
+                dmg-=attacker.ADR;
+                System.out.println ("\n"+eddie.Cname+" did "+dmg+" damage to "+attacker.Cname);
+                attacker.TakeDamage(attacker, dmg, false);  
             }
         }
         if (eddie.binaries.contains("Missed")) //if his counterattack was evaded before; needed since miss is normally only cleared after using an ab
@@ -448,15 +441,15 @@ public class ActivePassive
         }
         return true;
     }
-    public static void FuryJr (Character marcus, boolean selfturn, boolean allyturn, boolean summoned, boolean activate)
+    public static void FuryJr (Character marcus, String cause, boolean summoned)
     {
-        if (activate==true) //called by fury's kill mode ability
+        if (cause.equals("activate")) //called by fury's kill mode ability
         {
             marcus.passivecount=1; marcus.Cchance+=50; marcus.BD+=15;
             System.out.println ("Kill Mode enabled.");
             Tracker a= new Tracker ("Kill Mode active"); marcus.effects.add(a);
         }
-        else if (selfturn==true) //called onturn
+        else if (cause.equals("onturn")) //called onturn
         {
             if (marcus.passivecount==1) //killmode is active
             {
@@ -493,7 +486,7 @@ public class ActivePassive
                 }
             }
         }
-        else if (allyturn==true&&marcus.passivecount==1&&summoned==false&&marcus.dead==false) //called on ally turn
+        else if (cause.equals("allyturn")&&marcus.passivecount==1&&summoned==false&&marcus.dead==false) //called on ally turn
         {
             marcus.HP-=15;
             System.out.println ("\n"+marcus.Cname+" lost 15 health");
@@ -561,21 +554,12 @@ public class ActivePassive
                 {
                     int dmg=55;
                     System.out.println ("\nThe Lunar Protector strikes back!");
-                    if (!(knight.binaries.contains("Missed"))&&!(knight.immunities.contains("Missed")))
-                    Damage_Stuff.CheckBlind(knight);
-                    if (!(knight.binaries.contains("Missed"))&&!(knight.immunities.contains("Missed")))
-                    Damage_Stuff.CheckEvade(knight, attacker);
-                    if (!(knight.binaries.contains("Missed")))
-                    {
-                        dmg=Damage_Stuff.DamageFormula(knight, attacker, dmg);
-                        dmg=Damage_Stuff.CheckGuard(knight, attacker, dmg);
-                        attacker.TakeDamage(attacker, knight, dmg, false);                         
-                    }
+                    dmg-=attacker.ADR;
+                    System.out.println ("\n"+knight.Cname+" did "+dmg+" damage to "+attacker.Cname);
+                    attacker.TakeDamage(attacker, dmg, false);  
                     break;
                 }
             }
         }
-        if (knight.binaries.contains("Missed")) //if his counterattack was evaded before; needed since miss is normally only cleared after using an ab
-        knight.binaries.remove("Missed");
     }    
 }

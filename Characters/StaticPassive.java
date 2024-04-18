@@ -10,7 +10,7 @@ package myMarvelcardgamepack;
 import java.util.ArrayList;
 public class StaticPassive 
 {
-    public static StatEff InstaConversion (Character max, StatEff e, String toadd, int strength, int dur) //add; for electro, zzzax, apocalypse, etc
+    public static StatEff InstaConversion (Character max, StatEff e, String toadd, int strength, int dur) //hero.add; for electro, zzzax, etc
     {
         String[] string={toadd, Integer.toString(e.chance), Integer.toString(strength), Integer.toString(dur), "true"}; String[][] her=StatFactory.MakeParam(string, null);
         StatEff brand=StatFactory.MakeStat(her, max);
@@ -24,10 +24,29 @@ public class StaticPassive
         else
         venom.DV+=vuln;
     }
+    public static void DD (Character matt, Character attacker, boolean start)
+    {
+        if (start==true) //fightstart
+        {
+            matt.ignores.add("Blind"); matt.ignores.add("Invisible");
+        }
+        else //attacked
+        {
+            ArrayList<StatEff> concurrentmodificationexception3electricboogalooboogaloo= new ArrayList<StatEff>(); //counter is removed after use :)
+            concurrentmodificationexception3electricboogalooboogaloo.addAll(matt.effects);
+            for (StatEff eff: concurrentmodificationexception3electricboogalooboogaloo)
+            {
+                if (eff.getimmunityname().equals("Counter")) //trigger all his remaining Counters
+                {
+                    eff.Attacked(matt, attacker, 0); //dmg dealt by the attacker doesn't matter for counter so it'll just send over 0
+                }  
+            }
+        }
+    }
     public static void Rhino (Character alexei) //fightstart
     {
-        alexei.immunities.add("Vulnerable"); alexei.immunities.add("Suppression"); alexei.immunities.add("Reduce"); alexei.BlDR+=10; 
-        ResistanceE me= new ResistanceE(500, 10, 616); alexei.add(me);
+        alexei.immunities.add("Vulnerable"); alexei.immunities.add("Suppression"); alexei.immunities.add("Reduce"); alexei.immunities.add("Terror"); 
+        alexei.BlDR+=10; ResistanceE me= new ResistanceE(500, 10, 616); alexei.add(me);
     }
     public static void Sandy (Character will) //fightstart
     {
@@ -98,7 +117,7 @@ public class StaticPassive
     {
         if (start==true)
         {
-            banner.immunities.add("Terror"); banner.immunities.add("Provoke"); banner.immunities.add("Poison"); banner.immunities.add("Control"); 
+            banner.immunities.add("Terror"); banner.immunities.add("Poison"); banner.immunities.add("Control"); 
             banner.immunities.add("Persuaded"); Tracker rage= new Tracker ("Rage: "); banner.effects.add(rage); rage.onApply(banner);
         }
         else
@@ -176,18 +195,18 @@ public class StaticPassive
     {
         CoinFlip.RobotImmunities(hypocrite, true); hypocrite.immunities.add("Snare"); hypocrite.immunities.add("Steal"); hypocrite.immunities.add("Control");
     }
-    public static int MODOC (Character george, Character target, boolean shield, boolean start, int dmg)
+    public static int MODOC (Character george, Character target, String cause, int dmg)
     {
-        if (start==true) //onfightstart
+        if (cause.equals("start")) //onfightstart
         {
             CoinFlip.IgnoreTargeting(george, true); george.SHLD=100; george.passivecount=1; george.immunities.add("Debuffs");
         }
-        else if (shield==false) //apply debuffs when attacking; called by beforeattack
+        else if (cause.equals("attack")) //apply debuffs when attacking; called by beforeattack
         {
             boolean stop=false;
             for (int i=0; i<5; i++)
             {
-                if (stop==true) //stop checking for other kinds of abilities
+                if (stop==true) //stop checking for other kinds of abilities bc debuff has been determined
                 break;
                 for (Ability a: target.abilities)
                 {
@@ -247,7 +266,7 @@ public class StaticPassive
                 }
             }
         }
-        else if (george.passivecount==1) //shield is true; called at start of takedamage; passive only applies until shield is broken
+        else if (cause.equals("attacked")&&george.passivecount==1) //called at start of takedamage; passive only applies until shield is broken
         {
             if (!(target.ignores.contains("Shield"))&&!(target.ignores.contains("Defence"))) 
             {
@@ -477,10 +496,26 @@ public class StaticPassive
                 System.out.println ("Player 2, choose an enemy to target.");
             }
             Character[] foes=Battle.TargetFilter(machine, "enemy", "single");
-            WMTarget bay= new WMTarget();
+            TargetE bay= new TargetE(500, 5, 616);
             StatEff.CheckApply(machine, foes[0], bay);
-            machine.passivefriend[0]=foes[0];
-            machine.passivecount=bay.hashcode;
+            if (foes[0].effects.contains(bay))
+            {
+                machine.passivefriend[0]=foes[0];
+                machine.passivecount=bay.hashcode;
+                foes[0].immunities.add("Invisible");
+                ArrayList<StatEff> concurrentmodificationexception2electricboogaloo= new ArrayList<StatEff>();
+                for (StatEff eff: foes[0].effects)
+                {
+                    if (eff.getimmunityname().equalsIgnoreCase("Invisible"))
+                    {
+                        concurrentmodificationexception2electricboogaloo.add(eff);
+                    }
+                }
+                for (StatEff eff: concurrentmodificationexception2electricboogaloo)
+                {
+                    foes[0].remove(eff.hashcode, "normal");
+                }
+            }
             CoinFlip.AddInescapable (machine, false);
         }
     }
