@@ -1,3 +1,4 @@
+
 package myMarvelcardgamepack;
 
 /**
@@ -31,18 +32,18 @@ public class Battle
         {
             if (tturns%2!=0) //odd number means player 1's turn
             {
-                PlayerTurn(team1, true, false);
+                gamewinner=PlayerTurn(team1, true, false);
                 Battle.CheckActive(true);               
             }
             else if (tturns%2==0)
             {
-                PlayerTurn(team2, false, false);
+                gamewinner=PlayerTurn(team2, false, false);
                 Battle.CheckActive(false);        
                 ++round;
             }
+            winner=CheckWin(tturns%2); 
             ++tturns;
             Scoreboard.UpdateScore(team1, team2); 
-            winner=CheckWin();
             if (winner==1)
             {
                 Pwinner=true; gamewinner=true;
@@ -54,6 +55,7 @@ public class Battle
         }
         /*
         System.out.println ("\nTotal turns taken: "+tturns); //for data gathering purposes; 28, 30
+        System.out.println ("\nRounds taken: "+round);
         for (Character h: team1)
         {
             if (h!=null)
@@ -128,14 +130,14 @@ public class Battle
         team[2]=three;
         return team;
     }
-    public static void PlayerTurn (Character[] champions, boolean affil, boolean bonus) //affiliation, or team, and whether it's a bonus turn or not
+    public static boolean PlayerTurn (Character[] champions, boolean team, boolean bonusturn) //passes on boolean from battle.turn to end the game early if needed
     {
         boolean fine=false; Character hero=null;
-        while (affil==true&&fine==false) //ensures hero is usable
+        while (team==true&&fine==false) //ensures hero is usable
         {
             if (champions[P1active]==null) //change the P1 active value until it's a valid character
             {
-                Battle.CheckActive(affil); 
+                Battle.CheckActive(team); 
             }
             else if (champions[P1active].binaries.contains("Banished")) //turn skip or remove banish if alone
             {
@@ -160,10 +162,10 @@ public class Battle
                 {
                     System.out.println ("\n"+champions[P1active].Cname+" skips their turn due to being Banished.");
                     champions[P1active].BanishTick(); //ensures banished heroes take no turns but still have their banish duration reduced 
-                    Battle.CheckActive(affil);
+                    Battle.CheckActive(team);
                 }
             }
-            else if (champions[P1active].binaries.contains("Stunned")) //turn skip if not alone, but stateffs still tick
+            else if (champions[P1active].binaries.contains("Stunned")) //turn skip, but stateffs still tick
             {
                 System.out.println ("\n"+champions[P1active].Cname+" skips their turn due to being Stunned.");
                 champions[P1active].onTurn(true);
@@ -190,25 +192,24 @@ public class Battle
                         }
                     } 
                 }
-                if (p1solo==false)
-                Battle.CheckActive(affil);
-                else
-                {
-                    hero=champions[P1active];
-                    fine=true;
-                }
+                Battle.CheckActive(team);
             }
             else if (champions[P1active]!=null) //can proceed to their turn
             {
                 hero=champions[P1active];
                 fine=true;
             }
+            if (p2heroes==0) //for abilities like sandman's sandstorm that can potentially kill enemies in-between turns
+            {
+                Scoreboard.UpdateScore(team1, team2);
+                return true;
+            }
         }
-        while (affil==false&&fine==false) //same thing, but for player 2's team
+        while (team==false&&fine==false) //same thing, but for player 2's team
         {
             if (champions[P2active]==null)
             {  
-                Battle.CheckActive(affil);
+                Battle.CheckActive(team);
             }
             else if (champions[P2active].binaries.contains("Banished"))
             {
@@ -233,7 +234,7 @@ public class Battle
                 {
                     System.out.println ("\n"+champions[P1active].Cname+" skips their turn due to being Banished.");
                     champions[P1active].BanishTick(); //ensures banished heroes take no turns but still have their banish duration reduced 
-                    Battle.CheckActive(affil);
+                    Battle.CheckActive(team);
                 }
             }
             else if (champions[P2active].binaries.contains("Stunned"))
@@ -263,23 +264,22 @@ public class Battle
                         }
                     } 
                 }
-                if (p2solo==false)
-                Battle.CheckActive(affil);
-                else
-                {
-                    hero=champions[P2active];
-                    fine=true;
-                }
+                Battle.CheckActive(team);
             }
             else if (champions[P2active]!=null)
             {
                 hero=champions[P2active];
                 fine=true;
             }
+            if (p1heroes==0) //for abilities like sandman's sandstorm that can potentially kill enemies in-between turns
+            {
+                Scoreboard.UpdateScore(team1, team2);
+                return true;
+            }
         }
-        Battle.Turn(hero, bonus);
+        return Battle.Turn(hero, bonusturn);
     }
-    public static void Turn (Character hero, boolean bonus) //what happens on a character's turn
+    public static boolean Turn (Character hero, boolean bonus) //what happens on a character's turn; returns true if game ends before a hero finishes their turn 
     {
         if (hero.activeability!=null&&hero.activeability.channelled==true) //activeability set later/on previous turn, when chooseab is called
         {
@@ -313,6 +313,16 @@ public class Battle
                     }
                 }
             }
+            if (hero.team1==true&&p2heroes==0)
+            {
+                Scoreboard.UpdateScore(team1, team2); //show that all enemies are dead
+                return true; //end the game because the enemy team died from the channelled ability; no point in taking a turn now
+            }
+            else if (hero.team1==false&&p1heroes==0)
+            {
+                Scoreboard.UpdateScore(team1, team2);
+                return true;
+            }
         }
         ArrayList<StatEff>concurrent= new ArrayList<StatEff>(); //to avoid concurrent modification exception
         if (hero.effects.size()!=0) //DoT effs tick if they have any
@@ -326,13 +336,18 @@ public class Battle
         Ability activeAb=null;
         ArrayList<Character> targets= new ArrayList<Character>(); //chars to hit with ab
         ArrayList<StatEff> selfadd= new ArrayList<StatEff>(); //status effects for hero to apply to self
-        if (bonus==false) //makes distinction between bonus turns and normal turns to avoid quicksilver taking infinite turns
-        hero.onTurn(true);
-        else
-        hero.onTurn(false);
         Scoreboard.UpdateScore(team1, team2);
         if (hero.dead==false) //if they have not died from DoT damage
         {
+            if (bonus==false) //makes distinction between bonus turns and normal turns to avoid quicksilver taking infinite turns
+            hero.onTurn(true);
+            else
+            hero.onTurn(false);
+            Scoreboard.UpdateScore(team1, team2);
+            if (hero.team1==true&&p2heroes==0)
+            return true; //end the game because the enemy team died from a passive or ability, like sandman's sandstorm
+            else if (hero.team1==false&&p1heroes==0)
+            return true; 
             boolean flag=false;
             ArrayList<StatEff> selfadd2= new ArrayList<StatEff>(); //to save unbound ab's stateffs to be applied at turn end
             while (flag==false) 
@@ -340,14 +355,16 @@ public class Battle
                 activeAb=hero.ChooseAb(); //hero chooses an ab to use, which then becomes their activeability
                 if (activeAb==null) //hero chose to skip turn; end instantly since there's no ab to use
                 break;
-                else 
+                else  
                 {
                     targets=Battle.ChooseTarget(hero, activeAb.friendly, activeAb.target); //choose targets and use the ab
                     selfadd2=activeAb.UseAb(hero, activeAb, targets);
                     if (selfadd2!=null) //abs only return null if they can't be used due to a lack of targets; if null, restart the loop and choose something usable this time
                     {
                         selfadd.addAll(selfadd2);
-                        if (activeAb.unbound==false) //if unbound, loop to use a second ability; chooseab already prevents infinite unbound looping
+                        if (activeAb.unbound==true) //update scoreboard to immediately see effect of used unbound ab, and keep looping and use another ab
+                        Scoreboard.UpdateScore(team1, team2); 
+                        else //end the loop and end turn; chooseab already prevents infinite spamming of unbound abs so there are no infinite turns 
                         flag=true;
                     }
                 }
@@ -407,6 +424,7 @@ public class Battle
                 h.Undo (hero); 
             }
         }
+        return false;
     }
     public static ArrayList ChooseTarget (Character hero, String friendly, String type) 
     {
@@ -624,13 +642,21 @@ public class Battle
             }
             else //the hero already goes last
             {
-                if (Battle.tturns!=1||snared==team1[P1active]) //can't be first before their team's first character has taken a turn or else it would be like applying speed
+                Character[] buck=new Character[6];
+                buck[0]=snared; //hero already goes last, so the snare now makes them go first
+                team1[index]=null;
+                for (int e=1; e<6; e++)
                 {
-                    Character temp=team1[0];
-                    team1[0]=snared;
-                    team1[index]=temp;
-                    team1=NullShift(team1);
+                    buck[e]=team1[e-1];
                 }
+                team1=buck; 
+                do //this bypasses the usual playerturn method to skip the snared hero so the next one in the turn order goes instead, to avoid the snared one taking 2 turns
+                {
+                    Battle.CheckActive(true); 
+                } 
+                while(team2[P1active]==null); //skip the null slots until the next hero in turn order is located
+                if (team2[P1active]==snared) 
+                Battle.CheckActive(true);
             }
         }
         else if (snared.team1==false&&p2solo==false) 
@@ -652,13 +678,21 @@ public class Battle
             }
             else //the hero already goes last
             {
-                if (Battle.tturns!=1||snared==team2[P2active]) //but if the one being snared is the one taking their turn, there's no problem since their turn is ending
+                Character[] buck=new Character[6];
+                buck[0]=snared; //hero already goes last, so the snare now makes them go first
+                team2[index]=null;
+                for (int e=1; e<6; e++)
                 {
-                    Character temp=team2[0];
-                    team2[0]=snared;
-                    team2[index]=temp;
-                    team2=NullShift(team2);
+                    buck[e]=team2[e-1];
                 }
+                team2=buck; 
+                do //this bypasses the usual playerturn method to skip the snared hero so the next one in the turn order goes instead, to avoid the snared one taking 2 turns
+                {
+                    Battle.CheckActive(false); 
+                } 
+                while(team2[P2active]==null); //skip the null slots until the next hero in turn order is located
+                if (team2[P2active]==snared) 
+                Battle.CheckActive(false);
             }
         }
     }
@@ -682,9 +716,26 @@ public class Battle
             {
                 index=p1heroes-1; //the number of characters is how many turns they have to wait until they take their next one; with speed, it's one less
             }
-            Character temp=team1[index];
-            team1[index]=sped;
-            team1[oindex]=temp;
+            //swapping places with the next person in the turn order caused a ton of bugs, so this now works differently
+            Character[] buck=new Character[6];
+            buck[index]=sped; //the sped up character's place is predetermined and placed in a new array
+            team1[oindex]=null; 
+            ArrayList<Character> jimbom= CoinFlip.ToList(team1); //convert the team to a list and remove the nulls
+            ArrayList<Character> killers=new ArrayList<Character>();
+            for (Character c: jimbom)
+            {
+                if (c==null)
+                killers.add(c);
+            }
+            jimbom.removeAll(killers);
+            for (int e=0; e<6; e++) //sped's teammates fill in the blank spots in the new array in the same order they take turns, leaving sped's place intact
+            {
+                if (buck[e]==null&&jimbom.size()>0)
+                {
+                    buck[e]=jimbom.get(0); jimbom.remove(0);
+                }
+            }
+            team1=buck; 
             team1=NullShift(team1);
         }
         else if (sped.team1==false&&p2solo==false) //speed and snare are useless if there's only one hero
@@ -704,9 +755,26 @@ public class Battle
             {
                 index=p2heroes-1; //the number of characters is how many turns they have to wait until they take their next one; with speed, it's one less
             }
-            Character temp=team2[index];
-            team2[index]=sped;
-            team2[oindex]=temp;
+            //swapping places with the next person in the turn order caused a ton of bugs, so this now works differently
+            Character[] buck=new Character[6];
+            buck[index]=sped; //the sped up character's place is predetermined and placed in a new array
+            team2[oindex]=null; 
+            ArrayList<Character> jimbom= CoinFlip.ToList(team2); //convert the team to a list and remove the nulls
+            ArrayList<Character> killers=new ArrayList<Character>();
+            for (Character c: jimbom)
+            {
+                if (c==null)
+                killers.add(c);
+            }
+            jimbom.removeAll(killers);
+            for (int e=0; e<6; e++) //sped's teammates fill in the blank spots in the new array in the same order they take turns, leaving sped's place intact
+            {
+                if (buck[e]==null&&jimbom.size()>0)
+                {
+                    buck[e]=jimbom.get(0); jimbom.remove(0);
+                }
+            }
+            team2=buck; 
             team2=NullShift(team2);
         }
     }
@@ -848,19 +916,30 @@ public class Battle
         System.out.println(friend.passivefriend[0].Cname+" Summoned "+friend.Cname);
         friend.onSummon(friend);
     }
-    public static int CheckWin ()
+    public static int CheckWin (int turn) //turn is tturns%2
     {
-        if (p1heroes==0) //all 6 characters on team 1 are dead
+        //if both team's heroes are dead (e.g. a lone ultron drone kills the last enemy), the winner is whoever's turn it is 
+        if (turn!=0) //player 1's turn; always odd numbers, starting with turn 1
         {
-            return 2; //player 2 wins
+            if (p2heroes==0)
+            { 
+                return 1; //player 1 is the winner
+            }
         }
-        else if (p2heroes==0)
+        else if (turn==0) //player 2' turn; always an even number, starting with turn 2
         {
-            return 1;
+            if (p1heroes==0) 
+            { 
+                return 2; //player 2 wins
+            }
         }
         else
         {
-            return 0; //no winner yet
+            if (p1heroes==0) 
+            return 2; //player 2 wins
+            else if (p2heroes==0)
+            return 1;
         }
+        return 0; //no winner yet
     }
 }

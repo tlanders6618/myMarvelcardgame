@@ -43,6 +43,73 @@ public class Card_HashCode
         else 
         return true;
     }
+    public static void GetDesc (Character hero) //print desc of chosen ability of hero
+    {
+        System.out.print("\n");
+        for (int i=0; i<5; i++)
+        {
+            int a=i+1;
+            if (hero.abilities[i]!=null)
+            {
+                System.out.println (a+": "+hero.abilities[i].GetAbName(hero));  
+            }
+        }
+        int choice; //player chooses which ab they want desc of
+        do
+        {
+            choice=Damage_Stuff.GetInput(); 
+            --choice; //to get the index number since the number entered was the ability number
+        }
+        while (!(choice<5&&choice>=0&&hero.abilities[choice]!=null));
+        hero.abilities[choice].PrintDesc(false);
+        System.out.print("\n");
+        //print this stuff again since chooseab's loop takes still input but doesn't show options again
+        if (hero.team1==true)
+        System.out.println ("\nPlayer 1, choose an ability for "+hero.Cname+" to use. Type its number, not its name.");
+        else
+        System.out.println ("\nPlayer 2, choose an ability for "+hero.Cname+" to use. Type its number, not its name.");
+        boolean skip=Card_HashCode.CheckSkip(hero); //allows heroes with no usable abilities to skip their turn
+        for (int i=0; i<5; i++)
+        {
+            int a=i+1;
+            if (hero.abilities[i]!=null)
+            {
+                System.out.println (a+": "+hero.abilities[i].GetAbName(hero));  
+            }
+        }
+        System.out.println("6: Check an ability's description");
+        System.out.println("7: Check the description of this character's passive(s)");
+        if (skip==true)
+        {
+            System.out.println ("0: Skip turn");
+        }
+    }
+    public static void GetPDesc (Character hero) //print desc of passive of hero
+    {
+        System.out.print("\n");
+        System.out.print(hero.pdesc);
+        System.out.print("\n");
+        //print this stuff again since chooseab's loop takes still input but doesn't show options again
+        if (hero.team1==true)
+        System.out.println ("\nPlayer 1, choose an ability for "+hero.Cname+" to use. Type its number, not its name.");
+        else
+        System.out.println ("\nPlayer 2, choose an ability for "+hero.Cname+" to use. Type its number, not its name.");
+        boolean skip=Card_HashCode.CheckSkip(hero); //allows heroes with no usable abilities to skip their turn
+        for (int i=0; i<5; i++)
+        {
+            int a=i+1;
+            if (hero.abilities[i]!=null)
+            {
+                System.out.println (a+": "+hero.abilities[i].GetAbName(hero));  
+            }
+        }
+        System.out.println("6: Check an ability's description");
+        System.out.println("7: Check the description of this character's passive(s)");
+        if (skip==true)
+        {
+            System.out.println ("0: Skip turn");
+        }
+    }
     public static void RandomStat (Character hero, Character target, String kind) 
     {
         String[][] ps=null;

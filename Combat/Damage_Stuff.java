@@ -202,7 +202,7 @@ public class Damage_Stuff
                         if (dmg<=0)
                         {
                             dmg=0;
-                            break; //no point in wasting guards on nothing
+                            break; 
                         }
                     }
                 }
