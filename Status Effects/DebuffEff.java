@@ -132,6 +132,7 @@ class Bleed extends DebuffEff
 }
 class Blind extends DebuffEff
 {
+    boolean mimi;
     @Override
     public String getimmunityname()
     {
@@ -166,18 +167,24 @@ class Blind extends DebuffEff
         this.oduration=ndur;
         this.hashcode=Card_HashCode.RandomCode();
         if (q.index==73)
-        this.power=100;
+        mimi=true;
         else
-        this.power=50;
+        mimi=false;
     }
     public void onApply (Character target)
     {
-        target.accuracy-=this.power;
+        if (mimi==true)
+        target.accuracy-=100;
+        else
+        target.accuracy-=50;
     }
     @Override
     public void Nullified (Character target)
     {
-        target.accuracy+=this.power;
+        if (mimi==true)
+        target.accuracy+=100;
+        else
+        target.accuracy+=50;
     }
 }
 class Burn extends DebuffEff 
@@ -318,7 +325,7 @@ class Countdown extends DebuffEff
                 {
                     if (eff[0].equalsIgnoreCase("Ricochet")) 
                     {
-                        Ability.DoRicochetDmg (dmg, hero, true, null);
+                        Ability.DoRicochetDmg (dmg, hero, hero, true, null);
                     }
                 }
             }
@@ -340,6 +347,7 @@ class Countdown extends DebuffEff
 }
 class Daze extends DebuffEff 
 {
+    boolean mimi;
     @Override
     public String getimmunityname()
     {
@@ -376,19 +384,25 @@ class Daze extends DebuffEff
         this.chance=nchance;
         this.hashcode=Card_HashCode.RandomCode();
         if (q.index==73)
-        this.power=100;
+        mimi=true;
         else
-        this.power=50;
+        mimi=false;
     }
     @Override
     public void onApply (Character target)
     {
-        target.Cchance-=this.power;
+        if (mimi==true)
+        target.Cchance-=100;
+        else
+        target.Cchance-=50;
     }
     @Override
     public void Nullified (Character target)
     {
-        target.Cchance+=this.power;
+        if (mimi==true)
+        target.Cchance+=100;
+        else
+        target.Cchance+=50;
     }
 }
 class Debilitate extends DebuffEff
@@ -1004,6 +1018,54 @@ class Stun extends DebuffEff
     public void Nullified (Character target)
     {
         target.binaries.remove("Stunned");
+    }
+}
+class Suppression extends DebuffEff 
+{
+    @Override
+    public String getimmunityname()
+    {
+        return "Suppression";
+    }
+    @Override 
+    public String getefftype()
+    {
+        return "Debuffs";
+    }
+    @Override
+    public String getalttype() 
+    {
+        return "nondamaging";
+    }
+    @Override
+    public String geteffname() 
+    {
+       String name;
+       if (duration<100)
+       {
+            name="Suppression, "+this.duration+" turn(s)";
+            return name;
+       }
+       else
+       {
+            name="Suppression";
+            return name;
+       }
+    }
+    public Suppression (int nchance, int dur)
+    {
+        this.duration=dur;
+        this.oduration=dur;
+        this.chance=nchance;
+        this.hashcode=Card_HashCode.RandomCode();
+    }
+    @Override
+    public void onApply (Character target)
+    {
+    }
+    @Override
+    public void Nullified (Character target)
+    {
     }
 }
 class Target extends DebuffEff 

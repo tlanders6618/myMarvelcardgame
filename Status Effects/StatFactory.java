@@ -49,6 +49,7 @@ public class StatFactory
             case "Disorient": eff=new Disorient (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3])); break;
             case "Disrupt": eff=new Disrupt (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3])); break;
             case "Drain": eff=new Drain (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][2]), Integer.valueOf(param[0][3])); break;
+            case "Empower": eff= new Empower(Integer.valueOf(param[0][1]), Integer.valueOf(param[0][2]), Integer.valueOf(param[0][3]), Q.Cname, Q.index); break;
             case "Evade": eff= new Evade (Integer.valueOf(param[0][1])); break;
             case "Evade Effect": eff= new EvadeE (Integer.valueOf(param[0][1])); break;
             case "Evasion": eff= new Evasion (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3])); break;
@@ -78,6 +79,7 @@ public class StatFactory
             case "Speed": eff=new Speed(Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3])); break;
             case "Stun": eff=new Stun (Integer.valueOf(param[0][1])); break;
             case "Stun Effect": eff=new StunE (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3])); break;
+            case "Suppression": eff= new Suppression(Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3])); break;
             case "Target": eff=new Target (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][2]), Integer.valueOf(param[0][3])); break;
             case "Target Effect": eff=new TargetE (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][2]), Integer.valueOf(param[0][3])); break;
             case "Taunt": eff=new Taunt (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3])); break;

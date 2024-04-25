@@ -9,7 +9,7 @@ package myMarvelcardgamepack;
  */
 public abstract class StatEff 
 {   
-    int duration=616; int chance=616; int power=616;
+    int duration=616; int chance=500; int power=616;
     int oduration=616; //for copy/steal 
     int hashcode; boolean stackable=false; 
     public void StatEff ()

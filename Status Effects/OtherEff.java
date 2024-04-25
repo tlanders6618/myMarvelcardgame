@@ -141,7 +141,7 @@ class Empower extends OtherEff
 {
     String name; //of hero who made the empowerment
     int index; //of hero who made the empowerment
-    int uses; //most cases 1, but not for iron man, whose empower can be used twice or more
+    int uses; //most cases 1
     boolean used=false;
     @Override
     public String getimmunityname()
@@ -158,9 +158,10 @@ class Empower extends OtherEff
     {
         return "Empower "+power+": "+name+", "+uses+" use(s)";
     }
-    public Empower (int power, int use, String nname, int index)
+    public Empower (int chance, int power, int use, String nname, int index)
     {
         name=nname;
+        this.chance=chance;
         this.index=index;
         this.power=power;
         uses=use;
@@ -174,15 +175,21 @@ class Empower extends OtherEff
     public int UseEmpower(Character hero, Ability ab, boolean use) //use is true for applying effects and false when undoing an empowerment 
     {
         int value=0; 
-        if (use==true) //try to activate empowerment
+        if (use==true&&uses>0) //try to activate empowerment
         {
             switch (index) //has to be this way since every empowerment is unique
             {
-                case 4: case 39: //39 is for damagecounterremove when intense==true; or else the dmg boost only applies to the first enemy hit by the attack
+                case 4: case 39: //39 is for damagecounterremove when intense==true, or else the dmg boost only applies to the first enemy hit by the attack
                 if (ab instanceof AttackAb) //damage boost only applies to abs that do dmg
                 {
                     used=true;
                     value=this.power; break;
+                }
+                case 88:
+                if (ab.attack==true)
+                {
+                    used=true;
+                    String[] poio={"Poison", "50", "10", "2", "false"}; String[][] dp=StatFactory.MakeParam(poio, null); ab.AddTempString(dp); break;
                 }
             }
         }
@@ -201,7 +208,7 @@ class Empower extends OtherEff
     {
         if (uses<=0)
         {
-            if (index==39)
+            if (index==39) //silent empower that lets electro's ult work properly
             hero.remove(this.hashcode, "silent");
             else
             hero.remove(this.hashcode, "normal");
