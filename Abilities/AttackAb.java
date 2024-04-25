@@ -132,13 +132,12 @@ class AttackAb extends Ability
                             change=ob.Use(user, chump); //apply unique ability functions before attacking; this only affects before abs
                             damage+=change;
                         } 
-                        if (blind==false) //only check blind once per attack
-                        Damage_Stuff.CheckBlind(user);
                         if (elusive==true) 
                         {
                             damage-=chump.ADR;
                             if (damage<0)
                             damage=0;
+                            if (this.odamage>0||this.damage>0) //only print damage if attack was meant to do damage
                             System.out.println ("\n"+user.Cname+" did "+damage+" damage to "+chump.Cname);
                             chump.TakeDamage(chump, damage, false);
                         }
@@ -152,7 +151,10 @@ class AttackAb extends Ability
                         }
                         else 
                         {
+                            if (this.odamage>0||this.damage>0)
                             chump=user.Attack(user, chump, damage, aoe); //damage formula is calculated here
+                            else
+                            chump=user.AttackNoDamage(user, chump, aoe); //let chump know he's been attacked
                         }
                         for (SpecialAbility ob: special)
                         {
@@ -365,13 +367,12 @@ class AttackAb extends Ability
                             change=ob.Use(user, chump); //apply unique ability functions before attacking; this only affects before abs
                             damage+=change;
                         } 
-                        if (blind==false) //only check blind once per attack
-                        Damage_Stuff.CheckBlind(user);
                         if (elusive==true) 
                         {
                             damage-=chump.ADR;
                             if (damage<0)
                             damage=0;
+                            if (this.odamage>0||this.damage>0) //only print damage if attack was meant to do damage
                             System.out.println ("\n"+user.Cname+" did "+damage+" damage to "+chump.Cname);
                             chump.TakeDamage(chump, damage, false);
                         }
@@ -385,7 +386,10 @@ class AttackAb extends Ability
                         }
                         else 
                         {
+                            if (this.odamage>0||this.damage>0)
                             chump=user.Attack(user, chump, damage, aoe); //damage formula is calculated here
+                            else
+                            chump=user.AttackNoDamage(user, chump, aoe); //let chump know he's been attacked
                         }
                         for (SpecialAbility ob: special)
                         {

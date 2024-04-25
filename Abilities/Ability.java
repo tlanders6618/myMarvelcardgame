@@ -32,9 +32,10 @@ public abstract class Ability
     {
         /* statstrings/tempstatstrings are added when the ab is created under ab list
          * when using an ab, first multiuse, channelled, and aoe are checked for
-         * then the target is selected from the target array and empowerments are applied
-         * blind and its miss chance are checked for, and then beforeabs are applied
-         * the user attacks/uses the ab, and afterabs are applied
+         * then the target(s) is selected from the target array and empowerments are applied
+         * beforeabs are applied and the user attacks/uses the ab
+         * blind and evade are checked for under the attack method
+         * the damage formula is also calculated under attack, and after, afterabs are applied
          * statstrings are gathered and sent away to be turned into stateffs and applied, and tempstatstrings are erased
          * miss and empowerments are removed
          * multihit and aoe cause the above to repeat until their ends
@@ -98,10 +99,15 @@ public abstract class Ability
                 a=e[0][1]+"% chance to apply ";
             }
             String s="";
-            if (Integer.valueOf(e[0][2])<616)
+            if (Integer.valueOf(e[0][2])<616) //only print strength if it has one
             s=s+": "+e[0][2];
-            if (Integer.valueOf(e[0][3])<616)
-            s=s+" for "+e[0][3]+" turn(s)";
+            if (Integer.valueOf(e[0][3])<616) //same for turns
+            {
+                if (e[0][0].equals("Empower"))
+                s=s+" for "+e[0][3]+" use(s)";
+                else
+                s=s+" for "+e[0][3]+" turn(s)";
+            }
             System.out.print(a+e[0][0]+s+". ");
         }
         for (SpecialAbility a: this.special)
@@ -214,8 +220,6 @@ public abstract class Ability
                     {
                         if (chump.team1!=user.team1) //hitting an enemy
                         {
-                            if (blind==false) //only check blind once per attack
-                            Damage_Stuff.CheckBlind(user);
                             chump=user.AttackNoDamage(user, chump, aoe); //let chump know he's been attacked
                         }
                     }
@@ -341,7 +345,7 @@ public abstract class Ability
     }
     public void InterruptChannelled (Character hero, Ability ab) //same for all non basicabs
     {
-        if (!(hero.immunities.contains("Interrupt"))&&interrupt==false)
+        if ((hero.dead==false&&!(hero.immunities.contains("Interrupt")))&&interrupt==false) //death must always interrupt, to avoid channels activating on resurrect
         {
             interrupt=true;
             System.out.println(hero.Cname+"'s Channelling was interrupted!");
@@ -447,8 +451,6 @@ public abstract class Ability
                     {
                         if (chump.team1!=user.team1) //hitting an enemy
                         {
-                            if (blind==false) //only check blind once per attack
-                            Damage_Stuff.CheckBlind(user);
                             chump=user.AttackNoDamage(user, chump, aoe); //let chump know he's been attacked
                         }
                     }
@@ -597,11 +599,11 @@ public abstract class Ability
         }
         return abilities;
     }
-    public static void DoRicochetDmg (int dmg, Character user, boolean shock, String[][] e) //this both calculates and deals Ricochet damage to a random enemy
+    public static void DoRicochetDmg (int dmg, Character user, Character targ, boolean shock, String[][] e) //this both calculates and deals Ricochet damage to a random enemy
     {
         double d=dmg/2; //dmg dealt divided by 2
         dmg=5*(int)(Math.floor(d/5)); //ricochet damage; rounded down
-        Character villain=Ability.GetRandomHero(user, shock, true); //random enemy, or teammate if the Ricochet is from a Shock
+        Character villain=Ability.GetRandomHero(user, targ, shock, true); //random enemy, or teammate if the Ricochet is from a Shock
         if (villain!=null)
         {
             dmg-=villain.ADR;
@@ -625,7 +627,7 @@ public abstract class Ability
             }
         }
     }
-    public static Character GetRandomHero(Character hero, boolean shock, boolean ricochet) //hero is the character calling the method
+    public static Character GetRandomHero(Character hero, Character targ, boolean shock, boolean ricochet) //hero is the character calling the method
     {
         //Determine team of the caller
         boolean team=hero.team1; 
@@ -647,6 +649,13 @@ public abstract class Ability
             else //get a random teammate
             enemies=Battle.GetTeammates(hero);
             ArrayList<Character>nenemies= CoinFlip.ToList(enemies);
+            ArrayList<Character> time= new ArrayList<Character>();
+            time.addAll(nenemies);
+            for (Character c: time)
+            {
+                if (c.binaries.contains("Banished")) //cannot be hurt by ricochet dmg if banished; theyre completely out of play
+                nenemies.remove(c);
+            }
             boolean flag=true;
             Character villain=null; 
             //Randomly choose an enemy
@@ -656,7 +665,7 @@ public abstract class Ability
                 {
                     int rando = (int)(Math.random()*nenemies.size());
                     villain=nenemies.get(rando);
-                    if (villain!=null&&!(villain.binaries.contains("Banished")))
+                    if (villain!=null&&villain!=hero&&villain!=targ) //cannot do ricochet dmg to self if caused by shock, or to enemy who was hit by attack that caused ricochet
                     {
                         return villain;
                     }

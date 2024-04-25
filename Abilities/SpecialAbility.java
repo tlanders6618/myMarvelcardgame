@@ -28,6 +28,10 @@ public abstract class SpecialAbility
    public void Undo (Character victim) //only for helpers; not before or after abs
    {
    }
+   public boolean CheckApply ()
+   {
+       return false;
+   }
 }
 //a target's helpers trigger onattacked and all helpers in hero.helpers are called/undone in battle, AFTER their hero's turn ends
 class BonusTurnHelper extends SpecialAbility 
@@ -81,7 +85,7 @@ class Chain extends SpecialAbility //both chain and multichain have been merged 
         }
         else
         {
-            targets.add(Ability.GetRandomHero (user, false, false));
+            targets.add(Ability.GetRandomHero (user, victim, false, false));
         }
         if ((multi==true&&victim.dead==true&&user.dead==false&&targets.size()>0&&ab.GetMultihit(false)>-1)||(multi==false&&victim.dead==true&&user.dead==false&&targets.size()>0))
         { //usability check

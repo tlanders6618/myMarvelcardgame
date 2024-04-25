@@ -17,15 +17,16 @@ public class Ability_List_Summon
         Ability toret= null;
         switch (index) 
         {
-            case 1: toret=MakeAbNickLMD(counter); break;
-            case 27: toret=MakeAbSpiderling(counter); break;
-            case 28: toret=MakeAbNaught(counter); break;
-            case 2: toret=MakeAbRTrooper(counter); break;
-            case 3: toret=MakeAbCrushbot(counter); break;
-            case 4: toret=MakeAbDrone(counter); break;
-            case 5: toret=MakeAbLilDoomie(counter); break;
-            case 6: toret=MakeAbDaemon(counter); break;
+            case 1: return MakeAbNickLMD(counter); 
+            case 27: return MakeAbSpiderling(counter); 
+            case 28: return MakeAbNaught(counter);
+            case 2: return MakeAbRTrooper(counter); 
+            case 3: return MakeAbCrushbot(counter); 
+            case 4: return MakeAbDrone(counter); 
+            case 5: return MakeAbLilDoomie(counter); 
+            case 6: return MakeAbDaemon(counter);
             case 7: return null;
+            case 12: return MakeAbGiganto(counter);
             default: System.out.println ("Problem getting summon abilities");
         }
         return toret;
@@ -39,6 +40,15 @@ public class Ability_List_Summon
             case 2:  
             case 3: 
             case 4:
+        }
+        return null; 
+    }
+    public static Ability MakeAbGiganto (int counter)
+    {
+        switch (counter)
+        {
+            case 0: BasicAb rend= new BasicAb("Chomp", "single", "enemy", 60);
+            return rend;
         }
         return null; 
     }

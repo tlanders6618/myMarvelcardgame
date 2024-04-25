@@ -80,7 +80,11 @@ class ActivatePassive extends AfterAbility //ability activates a hero's passive 
     @Override
     public void Use (Character user, Character target, int ignore)
     {
-        switch (user.index)
+        switch (user.index) //for specific passives
+        {
+            case 25: ActivePassive.Flash(user, num); break; //has to be after attacking, or he'll switch states before attacking and bonus dmg/bleed will be improperly applied 
+        }
+        switch (num) //these are not passives, just too specific for an afterab, so anyone who uses/copies the ability should be able to do this
         {
             case 17: //macdonald eating 
             if (target.dead==true)
@@ -94,7 +98,132 @@ class ActivatePassive extends AfterAbility //ability activates a hero's passive 
                 StatEff.applyfail(user, drugs, "chance");
             }
             break;
-            case 25: ActivePassive.Flash(user, num); break;
+            case 84: //namor's tidal wave
+            ArrayList<StatEff> joker= new ArrayList<StatEff>(); joker.addAll(target.effects);
+            for (StatEff e: joker)
+            {
+                if (e.getimmunityname().equals("Burn")&&e.getefftype().equals("Debuffs"))
+                {
+                    StatEff hell=StaticPassive.InstaConversion(target, e, "Target Effect", 5, e.duration);
+                    target.remove(e.hashcode, "normal");
+                    target.add(hell);
+                }
+            }
+            break;
+            case 86: //kraven ambush
+            if (target.dead==true)
+            {
+                ArrayList<StatEff> jonkler= new ArrayList<StatEff>(); jonkler.addAll(user.effects);
+                for (StatEff e: jonkler)
+                {
+                    String name=e.getimmunityname();
+                    if ((name.equals("Intensify")||name.equals("Focus"))&&e.getefftype().equals("Buffs"))
+                    {
+                        StatEff hell=StaticPassive.InstaConversion(user, e, name+" Effect", e.power, 616);
+                        user.remove(e.hashcode, "normal");
+                        user.add(hell);
+                    }
+                }
+            }
+            break;
+        }
+    }
+}
+class Amplify extends AfterAbility 
+{
+    int chance=0;
+    String effname;
+    String efftype;
+    int pow=0;
+    boolean together;
+    public Amplify (int c, String name, String type, int p, boolean t)
+    {
+        chance=c; effname=name; efftype=type; pow=p; together=t;
+        String Chance;
+        if (this.chance>=500)
+        Chance="Amplifies ";
+        else 
+        Chance=this.chance+"% chance to Amplify ";
+        String targ;
+        if (efftype.equals("nondamaging"))
+        targ=efftype+" Debuffs";
+        else if (efftype.equals("damaging"))
+        targ=efftype+" status effects";
+        else if (!(effname.equals("any")))
+        targ=effname+" "+efftype;
+        else
+        {
+            if (efftype.equals("Buffs")||efftype.equals("Debuffs"))
+            targ=efftype;
+            else
+            targ=efftype+" effects";
+        }
+        this.desc=Chance+"all "+targ+" on the target by "+pow+". ";
+    }
+    @Override
+    public void Use (Character user, Character target, int ignoreme)
+    {
+        boolean valid=true;
+        if (user.team1!=target.team1&&(user.binaries.contains("Missed"))) //need to check for miss before affecting an enemy
+        valid=false;
+        if (valid==true&&!(target.immunities.contains("Amplify"))&&!(target.immunities.contains("Other"))) 
+        {
+            ArrayList <StatEff> effs=null; //the effs on the target eligible to be amplified
+            if (efftype.equals("nondamaging"))
+            effs=CoinFlip.GetEffsND(target, false); 
+            else if (efftype.equals("damaging effects")) 
+            effs=CoinFlip.GetEffsD(target, false); 
+            else if (efftype.equals("damaging debuffs")) 
+            effs=CoinFlip.GetEffsD(target, true); 
+            else
+            effs=CoinFlip.GetEffs(target, effname, efftype); 
+            if (effs.size()>0)
+            {
+                int todo=effs.size(); boolean succeed;
+                if (together==true)
+                {
+                    succeed=CoinFlip.Flip(chance+user.Cchance); 
+                    if (succeed==false)
+                    {
+                        System.out.println(user.Cname+"'s Amplify failed to apply due to chance.");
+                        todo=0;
+                    }
+                }
+                else
+                {
+                    for (int i=0; i<effs.size(); i++)
+                    {
+                        succeed=CoinFlip.Flip(chance+user.Cchance); 
+                        if (succeed==false)
+                        {
+                            System.out.println(user.Cname+"'s Amplify failed to apply due to chance.");
+                            --todo;
+                        }
+                    }
+                }
+                if (todo>0)
+                {
+                    for (StatEff e: effs)
+                    {
+                        if (e.power<500) //don't affect debuffs like shatter and neutralise with no strength values
+                        {
+                            System.out.println(target.Cname+"'s "+e.geteffname()+" had its strength increased by "+pow+"!");
+                            e.Nullified(target);
+                            e.power+=pow;
+                            if (e.getalttype().equals("damaging")&&e.power<0) //damaging debuffs can't have negative strength; nondamaging ones can
+                            e.power=0;
+                            e.onApply(target);
+                            --todo;
+                            if (todo<=0)
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        else if (!(user.binaries.contains("Missed"))) //if fail is caused by a miss, print nothing
+        {
+            System.out.println (user.Cname+"'s Amplify failed to apply due to an immunity.");
         }
     }
 }
@@ -110,9 +239,9 @@ class Assist extends AfterAbility //either random allies hitting enemy or chosen
     boolean together;
     boolean skull; //to trigger red skull's damagecounter ability bc this is the easiest way to do it
     boolean self; //for crossbones 
-    public Assist (boolean f, int n, int b, boolean r, int s, String[][] L, int c, boolean t)
+    public Assist (boolean f, int n, int b, boolean r, int cc, String[][] L, int c, boolean t)
     {
-        friendly=f; num=n; bonus=b; random=r; chance=c; together=t; Cchance=s; apply=L;
+        friendly=f; num=n; bonus=b; random=r; chance=c; together=t; Cchance=cc; apply=L;
         String Random;
         if (this.random==true&&num==1)
         Random="Call a random ";
@@ -1027,7 +1156,7 @@ class Nullify extends AfterAbility
     String effname;
     int chance; 
     int number; //of buffs to nullify
-    String type; //whether all buffs are nullified or only a few; chosen or andom
+    String type; //whether all buffs are nullified or only a few; chosen or random
     String efftype="Buffs";
     boolean together; //true for together and false for separate
     boolean self;
@@ -1053,7 +1182,7 @@ class Nullify extends AfterAbility
         else if (effname.equals("any"))
         Buff="buff(s)";
         else
-        Buff=effname+" buff(s)";
+        Buff=effname+" buffs";
         String Self;
         if (self==true)
         Self="self. ";
@@ -1260,7 +1389,9 @@ class Purify extends AfterAbility
         else 
         Type=type+" ";
         String Buff;
-        if (effname.equals("any"))
+        if (type.equals("all"))
+        Buff="debuffs";
+        else if (effname.equals("any"))
         Buff="debuff(s)";
         else
         Buff=effname+" debuffs";
@@ -1547,7 +1678,7 @@ class Ricochet extends AfterAbility //do ricochet damage
         {
             boolean success=CoinFlip.Flip(chance+user.Cchance); 
             if (success==true&&dmg>5) //sends over ab's dmg dealt for ricochet calculation
-            Ability.DoRicochetDmg (dmg, user, false, string); 
+            Ability.DoRicochetDmg (dmg, user, target, false, string); 
             else if (dmg>5) //don't print failure message if failure was due to low dmg
             System.out.println(user.Cname+"'s Ricochet failed to apply due to chance.");
         }

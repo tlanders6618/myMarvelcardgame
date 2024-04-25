@@ -59,7 +59,8 @@ class ActivateP extends BeforeAbility //ability activates a hero's passive
 }
 class ApplyShatter extends BeforeAbility //shatter applies before attacking, and thus cannot simply be added to statstrings; this is used for mighty blows too for the same reason
 {
-    int chance; int duration; boolean debuff; boolean effect;
+    int chance; int duration; boolean debuff; boolean effect; 
+    boolean applied=false; //whether shatter was successfully applied or not; for mr fantastic and peter parker so they can't evade aoe abs that apply shatter
     public ApplyShatter (int chancer, int dur, boolean deb, boolean E)
     {
        chance=chancer; duration=dur; debuff=deb; String start; effect=E;
@@ -128,6 +129,7 @@ class ApplyShatter extends BeforeAbility //shatter applies before attacking, and
             {
                 if (debuff==false&&target.CheckFor("Shatter", false)==false) //mainly for kk; no need to say they're shattered if they already have a shatter on them
                 System.out.println(target.Cname+" was Shattered!");
+                applied=true;
                 target.SHLD=0;
                 ArrayList<StatEff>modexception= new ArrayList<StatEff>();
                 if (target.effects.size()>0)
@@ -158,6 +160,16 @@ class ApplyShatter extends BeforeAbility //shatter applies before attacking, and
         }
         return 0;
     }
+    @Override
+    public void Use (Character user, Character victim, int ignore) //afterab
+    {
+        this.applied=false; //resets after use
+    }
+    @Override
+    public boolean CheckApply ()
+    {
+       return applied;
+    }
 }
 class BeforeNullify extends BeforeAbility //same as nullify but quick; only wm and brawn use this for now
 {
@@ -165,7 +177,7 @@ class BeforeNullify extends BeforeAbility //same as nullify but quick; only wm a
     String[] efftype; //since amadeus can nullify things other than buffs
     int chance; 
     int number;
-    String type;
+    String type; //chosen, random, all
     boolean together; //true for together and false for separate
     public BeforeNullify (int echance, int num, String type, String ename, boolean self, boolean tog, String[] etype)
     {
@@ -654,7 +666,7 @@ class DamageCounterRemove extends BeforeAbility //increase damage based on numbe
         }
         if (aoe==true&&increase>0&&(Battle.team1[Battle.P1active]==hero||Battle.team2[Battle.P2active]==hero)) //to avoid applying empower after an assist
         {
-            Empower e= new Empower(increase, 1, "THIS IS A BUG", 39);
+            Empower e= new Empower(500, increase, 1, "THIS IS A BUG", 39);
             hero.effects.add(e); //so the damage boost affects all targets hit by aoe attack instead of only the first; should be applied and consumed without player seeing it
         }
         return increase;
@@ -845,7 +857,7 @@ class DebuffMod extends BeforeAbility //for altering the debuffs an ab applies, 
                     {
                         Damage_Stuff.CheckBlind(user); user.activeability.blind=true;
                     }
-                    if (user.activeability!=null&&user.activeability.evade==false)
+                    if (!(user.binaries.contains("Missed"))&&user.activeability!=null&&user.activeability.evade==false)
                     {
                         Damage_Stuff.CheckEvade(user, target); 
                         user.activeability.evade=true;
@@ -1006,6 +1018,11 @@ class DebuffMod extends BeforeAbility //for altering the debuffs an ab applies, 
                 n= new ApplyShatter(100+(50*user.passivecount), user.passivecount, true, false);
                 else
                 n= new ApplyShatter(100, 0, false, false);
+                if (user.activeability!=null&&user.activeability.blind==false)
+                {
+                    Damage_Stuff.CheckBlind(user); user.activeability.blind=true;
+                }
+                if (!(user.binaries.contains("Missed")))
                 n.Use(user, target);
                 user.passivecount=0; 
                 return boost;
@@ -1020,9 +1037,43 @@ class DebuffMod extends BeforeAbility //for altering the debuffs an ab applies, 
                 return 30;
             }
             break;
-            case 36: //vulture
-            Card_HashCode.RandomStat(user, target, "disable debuffs");
-            break;
+            case 36: Card_HashCode.RandomStat(user, target, "disable debuffs"); break; //vulture
+            case 84: //namor's trident of neptune; giganto must be on his team and alive and unstunned for the assist to work
+            if (user.passivefriend[0]!=null&&user.passivefriend[0].summoned==true&&user.passivefriend[0].index==12) //has summoned giganto
+            {
+                if (user.passivefriend[0].team1==user.team1&&user.passivefriend[0].dead==false&&!(user.passivefriend[0].binaries.contains("Stunned"))) //not dominated by supergiant 
+                {
+                    Assist number= new Assist(true, 1, 0, true, 0, null, 500, true);
+                    boolean okie=CoinFlip.Flip(500+user.Cchance);
+                    if (okie==true)
+                    {
+                        if (user.activeability!=null) //become elusive
+                        {
+                            user.activeability.blind=true; user.activeability.evade=true; user.activeability.elusive=true;
+                        }
+                        ArrayList<Character> friend= new ArrayList<Character>(); friend.add(user.passivefriend[0]);
+                        number.UseAssist(friend, target, user);
+                    }
+                    else
+                    System.out.println(user.Cname+"'s Assist failed to apply due to chance");  
+                }
+                else //can't do assist, so do dmg
+                {
+                    if (user.activeability!=null) //if not assisting, attack isn't elusive
+                    {
+                        user.activeability.blind=false; user.activeability.evade=false; user.activeability.elusive=false;
+                    }
+                    return 45;
+                }
+            }
+            else //can't do assist, so do dmg
+            {
+                if (user.activeability!=null)
+                {
+                    user.activeability.blind=false; user.activeability.evade=false; user.activeability.elusive=false;
+                }
+                return 45;
+            }
         }
         return 0;
     }
@@ -1043,7 +1094,11 @@ class Ignore extends BeforeAbility
       C="When enemy health is below "+number+",";
       else if (cond.equals("passive"))
       C="Conditionally";
-      if(toignore.equals("Missed"))
+      else if (cond.substring(0, 8).equals("self has"))
+      C="When self has "+cond.substring(9)+",";
+      else if (cond.substring(0, 9).equals("enemy has"))
+      C="When the target has "+cond.substring(10)+",";
+      if (toignore.equals("Missed"))
       this.desc=C+" ignore Miss. ";
       else if (toignore.equals("inescapable"))
       this.desc=C+" "+toignore+". ";
@@ -1053,6 +1108,11 @@ class Ignore extends BeforeAbility
    @Override
    public int Use (Character hero, Character target) //beforeab; also activated during target selection 
    {
+      String hold=condition; 
+      if (condition.contains("enemy has"))
+      condition=condition.substring(0, 9); //to activate enemy has case
+      else if (condition.contains("self has"))
+      condition=condition.substring(0, 8);
       switch (condition) //if conditions are met, add whatever needs to be ignored to the hero's ignore arraylist
       {
          case "always": 
@@ -1062,7 +1122,7 @@ class Ignore extends BeforeAbility
          }
          break;
          case "enemy health below": 
-         if (target!=null&&target.HP<=condnumber) 
+         if (success==false&&target!=null&&target.HP<=condnumber) 
          {
              Ignore.Execute(hero, toig, true); success=true;
          }
@@ -1073,7 +1133,20 @@ class Ignore extends BeforeAbility
              Ignore.Execute (hero, toig, true); success=true;
          }
          break;
+         case "enemy has": 
+         if (success==false&&target!=null&&target.CheckFor(hold.substring(10), false)==true) //check second part of original condition to see what to checkfor
+         {
+             Ignore.Execute (hero, toig, true); success=true;
+         }
+         break;
+         case "self has": 
+         if (success==false&&hero.CheckFor(hold.substring(9), false)==true) 
+         {
+             Ignore.Execute (hero, toig, true); success=true;
+         }
+         break;
       }
+      condition=hold;
       return 0;
    }
    @Override
