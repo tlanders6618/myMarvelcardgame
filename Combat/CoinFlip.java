@@ -101,6 +101,31 @@ public class CoinFlip
         }
         return effs;
     }
+    public static ArrayList GetEffsD (Character hero, boolean debuff) //for damaging debuffs/effects
+    {
+        ArrayList<StatEff> effs=new ArrayList<StatEff>();
+        for (StatEff eff: hero.effects)
+        {
+            if (eff.getalttype().equals("damaging"))
+            {
+                if (debuff==true)
+                {
+                    if (eff.getefftype().equalsIgnoreCase("Debuffs"))
+                    {
+                        effs.add(eff); 
+                    }
+                }
+                else
+                {
+                    if (eff.getefftype().equalsIgnoreCase("Debuffs")||eff.getefftype().equalsIgnoreCase("Other"))
+                    {
+                        effs.add(eff); 
+                    }
+                }
+            }
+        }
+        return effs;
+    }
     public static int GetStatCount (Character hero, String name, String type)
     {
         int num=0;

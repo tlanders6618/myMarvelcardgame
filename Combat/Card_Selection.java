@@ -34,7 +34,7 @@ public class Card_Selection
             {
                 Cname=Damage_Stuff.GetInput(); 
                 good=false;
-                if (Cname==616||Cname<=0||Cname>82||(Cname>41&&Cname<81)) //updated as more characters are released in each version
+                if (Cname==616||Cname<=0||Cname>88||(Cname>41&&Cname<81)) //updated as more characters are released in each version
                 {
                     System.out.println("Index number not found.");
                 }
@@ -66,7 +66,7 @@ public class Card_Selection
         do
         {
             rename=Damage_Stuff.GetInput();
-            if (rename==616||rename<=0||rename>82||(rename>41&&rename<81))
+            if (rename==616||rename<=0||rename>88||(rename>41&&rename<81))
             {
                 System.out.println("Index number not found.");
             }
@@ -141,15 +141,13 @@ public class Card_Selection
         ArrayList<Character> team=CoinFlip.ToList(list);
         ArrayList<Character> safe=new ArrayList<Character>();
         ArrayList<Character> remove=new ArrayList<Character>();
-        switch (hero.index) //for heroes like kraven and superior spidey who only conditionally ignore targeting effects 
+        if (hero.index==20) //since superior spidey only conditionally ignores targeting effects 
         {
-            case 20: //inescapable
             for (Character c: list)
             {
-                if (c!=null&&c.CheckFor("Tracer", false)==true&&c.targetable==true&&!(c.binaries.contains("Banished")))
+                if (c.CheckFor("Tracer", false)==true&&c.targetable==true&&!(c.binaries.contains("Banished"))) //inescapable
                 safe.add(c);
             }
-            break;
         }
         if (hero.activeability!=null) //war machine's passive triggers before he uses any abilities
         {
@@ -174,8 +172,8 @@ public class Card_Selection
             remove.removeAll(remove);
         }
         if (team.size()>1&&!(hero.ignores.contains("Untargetable"))&&((hero.team1==true&&Battle.p2solo!=true)||(hero.team1==false&&Battle.p1solo!=true)))
-        { //untargetable enemies are not untargetable if they are alone
-            for (Character c: team)
+        { 
+            for (Character c: team) //untargetable enemies are not untargetable if they are alone
             {
                 if (c.targetable==false)
                 {
@@ -192,7 +190,11 @@ public class Card_Selection
         {
             for (Character c: team)
             {
-                if (!(hero.ignores.contains("Invisible"))&&c.binaries.contains("Invisible"))
+                if (hero.index==86&&c.binaries.contains("Invisible")&&c.CheckFor("Snare", false)==true) //kraven passive
+                {
+                    //don't remove them, but don't add them to safe either; kraven treats snared invisible heroes like normal, meaning he can't target them through provoke/taunt
+                }
+                else if (!(hero.ignores.contains("Invisible"))&&c.binaries.contains("Invisible"))
                 {
                     remove.add(c);
                 }

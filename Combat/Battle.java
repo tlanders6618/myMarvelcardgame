@@ -466,11 +466,11 @@ public class Battle
         {
             if (friendly.equalsIgnoreCase("enemy"))
             {
-                targets[0]=Ability.GetRandomHero(hero, false, false);
+                targets[0]=Ability.GetRandomHero(hero, hero, false, false);
             }
             else if (friendly.equalsIgnoreCase("ally exclusive"))
             {
-                targets[0]=Ability.GetRandomHero(hero, true, false);
+                targets[0]=Ability.GetRandomHero(hero, hero, true, false);
             }
         }
         else if (type.equals("lowest"))
@@ -634,11 +634,29 @@ public class Battle
             }
             if (index!=(p1heroes-1)) //the hero isn't already last in their turn order; move them down one in the new turn order
             {
-                index+=1;
-                Character temp=team1[index];
-                team1[index]=snared;
-                team1[oindex]=temp;
+                Character[] buck=new Character[6];
+                team1[index]=null;
+                index+=1;   
+                buck[index]=snared;
+                ArrayList<Character> jimbom= CoinFlip.ToList(team1); //convert the team to a list and remove the nulls
+                ArrayList<Character> killers=new ArrayList<Character>();
+                for (Character c: jimbom)
+                {
+                    if (c==null)
+                    killers.add(c);
+                }
+                jimbom.removeAll(killers);
+                for (int e=0; e<6; e++) //snared's teammates fill in the blank spots in the new array in the same order they take turns, leaving snared's place intact
+                {
+                    if (buck[e]==null&&jimbom.size()>0)
+                    {
+                        buck[e]=jimbom.get(0); jimbom.remove(0);
+                    }
+                }
+                team1=buck; 
                 team1=NullShift(team1);
+                if (team2[P1active]==snared) 
+                Battle.CheckActive(true);
             }
             else //the hero already goes last
             {
@@ -670,11 +688,29 @@ public class Battle
             }
             if (index!=(p2heroes-1)) 
             {
-                index+=1;
-                Character temp=team2[index];
-                team2[index]=snared;
-                team2[oindex]=temp;
+                Character[] buck=new Character[6];
+                team2[index]=null;
+                index+=1;   
+                buck[index]=snared;
+                ArrayList<Character> jimbom= CoinFlip.ToList(team2); //convert the team to a list and remove the nulls
+                ArrayList<Character> killers=new ArrayList<Character>();
+                for (Character c: jimbom)
+                {
+                    if (c==null)
+                    killers.add(c);
+                }
+                jimbom.removeAll(killers);
+                for (int e=0; e<6; e++) //snared's teammates fill in the blank spots in the new array in the same order they take turns, leaving snared's place intact
+                {
+                    if (buck[e]==null&&jimbom.size()>0)
+                    {
+                        buck[e]=jimbom.get(0); jimbom.remove(0);
+                    }
+                }
+                team2=buck; 
                 team2=NullShift(team2);
+                if (team2[P2active]==snared) 
+                Battle.CheckActive(false);
             }
             else //the hero already goes last
             {
@@ -914,7 +950,7 @@ public class Battle
             p2heroes++;
         }
         System.out.println(friend.passivefriend[0].Cname+" Summoned "+friend.Cname);
-        friend.onSummon(friend);
+        friend.onSummon();
     }
     public static int CheckWin (int turn) //turn is tturns%2
     {

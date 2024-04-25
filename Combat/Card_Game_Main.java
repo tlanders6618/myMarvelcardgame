@@ -24,8 +24,8 @@ public class Card_Game_Main
         int[] charnames= new int[6];
         bans[6]=24; bans[7]=62; bans[8]=122; bans[9]=170; bans[10]=184; //players cannot pick gauntlet thanos, binary, etc        
         //Selecting cards
-        System.out.println ("Welcome. The current version is 4.1.8. The latest playable character is Iron Fist (Danny Rand). "); 
-        System.out.println ("Please check the character overview list for the full list of playable characters.");
+        System.out.println ("Welcome. The current version is 4.1.12. The latest playable character is Scorpion (Modern). "); 
+        System.out.println ("Currently, characters are playable from: 2.0, 2.1, 2.8, and 2.9.");
         System.out.println ("Remember, characters will take turns in the order they are picked.");
         System.out.println ("\nEnter draft mode (allows character banning and up to one character swap)? Type yes or no.");
         boolean issue=true; 
