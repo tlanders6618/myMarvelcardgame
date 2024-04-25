@@ -101,6 +101,8 @@ public class Hero extends Character
             case 40: StaticPassive.Sandy(this); break;
             case 41: StaticPassive.Rhino(this); break;
             case 81: StaticPassive.DD(this, null, true); break;
+            case 83: int care=StaticPassive.LukeCage(this, 0, true); break;
+            case 85: StaticPassive.Surfer(this); break;
         }
     }
     @Override
@@ -153,7 +155,8 @@ public class Hero extends Character
                 if (how.equals("normal"))           
                 {
                     System.out.println (this.Cname+"'s "+eff.getimmunityname()+" expired."); 
-                }                
+                }               
+                this.effects.remove(eff);
                 switch (this.index)
                 {
                     case 2: 
@@ -172,8 +175,7 @@ public class Hero extends Character
                     if (name.equals("Burn"))
                     StaticPassive.Symbiote(this, -5, false);
                     break;
-                }     
-                this.effects.remove(eff);
+                }    
                 break; //end the for each loop
             }
         }
@@ -198,6 +200,7 @@ public class Hero extends Character
                 case 26: int ignore=StaticPassive.MODOC(dealer, victim, "attack", 616); break;
                 case 33: StaticPassive.Deadpool(dealer, "attack", victim); break;
                 case 36: StaticPassive.Vulture(dealer, victim); break;
+                case 86: StaticPassive.Kraven(this, victim, true); break;
             }
         }
     }
@@ -264,6 +267,7 @@ public class Hero extends Character
             case 23: StaticPassive.CM(this, false); break;
             case 33: StaticPassive.Deadpool(this, "attack", victim); break;
             case 35: ActivePassive.Cain(this, "attack", 616); break;
+            case 86: StaticPassive.Kraven(this, victim, false); break;
         }
     }
     @Override
@@ -325,7 +329,7 @@ public class Hero extends Character
             switch (hero.index)
             {
                 case 18: 
-                if (!(hero.binaries.contains("Stunned"))&&ally.HP<ally.maxHP&&hero.CheckFor("Evade", false)==true)
+                if (!(hero.binaries.contains("Stunned"))&&ally.HP<hero.HP&&hero.CheckFor("Evade", false)==true)
                 {
                     System.out.println("With great power, there must also come great responsibility."); 
                     System.out.println(hero.Cname+" took the attack for "+ally.Cname+"!");
@@ -342,6 +346,7 @@ public class Hero extends Character
         switch (target.index)
         {
             case 26: dmg=StaticPassive.MODOC(target, dealer, "attacked", dmg); break;
+            case 83: dmg=StaticPassive.LukeCage(target, dmg, false); break;
         }
         int odmg=dmg;
         if (dealer.ignores.contains("Shield")||dealer.ignores.contains("Defence"))

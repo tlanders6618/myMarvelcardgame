@@ -336,9 +336,14 @@ public abstract class Character
         BeforeAttack(dealer, target, false);
         if (!(dealer.binaries.contains("Missed"))&&!(dealer.immunities.contains("Missed"))) //only check if dealer isn't immune to miss and hasn't missed already; can't miss twice 
         { 
+            if (dealer.activeability.blind==false)
+            {
+                Damage_Stuff.CheckBlind(dealer);
+                dealer.activeability.blind=true;
+            }
             if (dealer.activeability.evade==false)
             {
-                Damage_Stuff.CheckEvade(dealer, target); //blind is checked when activating the ab; evade is checked here once the target has been selected
+                Damage_Stuff.CheckEvade(dealer, target); 
                 dealer.activeability.evade=true;
             }
         }
@@ -382,6 +387,11 @@ public abstract class Character
         BeforeAttack(dealer, target, false);
         if ((!(dealer.binaries.contains("Missed"))&&!(dealer.immunities.contains("Missed"))))
         {
+            if (dealer.activeability.blind==false)
+            {
+                Damage_Stuff.CheckBlind(dealer);
+                dealer.activeability.blind=true;
+            }
             if (dealer.activeability.evade==false)
             {
                 Damage_Stuff.CheckEvade(dealer, target); 
@@ -407,9 +417,14 @@ public abstract class Character
         BeforeAttack(dealer, target, false);
         if ((!(dealer.binaries.contains("Missed"))&&!(dealer.immunities.contains("Missed"))))
         {
+            if (dealer.activeability.blind==false)
+            {
+                Damage_Stuff.CheckBlind(dealer);
+                dealer.activeability.blind=true;
+            }
             if (dealer.activeability.evade==false)
             {
-                Damage_Stuff.CheckEvade(dealer, target); //blind is checked when activating the ab; evade is checked here once the target has been selected
+                Damage_Stuff.CheckEvade(dealer, target); 
                 dealer.activeability.evade=true;
             }
         }
@@ -547,7 +562,7 @@ public abstract class Character
             if (dmg>0)
             {
                 knull=this.TakeDamage(this, dmg, true);
-                Ability.DoRicochetDmg(dmg, this, true, null);
+                Ability.DoRicochetDmg(dmg, this, this, true, null);
             }
         }
         else if (type.equalsIgnoreCase("Wither"))
@@ -582,11 +597,11 @@ public abstract class Character
                 return 220;
             
                 case 1: case 2: case 3: case 4: case 5: case 7: case 8: case 11: case 18: case 20: case 23: case 24: case 25: case 34: case 39: case 40: 
-                case 81: case 82: case 84:
+                case 81: case 82: case 84: case 86: case 88:
                 return 230;
             
                 case 12: case 13: case 15: case 16: case 17: case 22: case 27: case 28: case 30: case 32: case 35: case 38: case 41:
-                case 83: case 85:
+                case 83: case 85: case 87:
                 return 240;
                 
                 //Special carrots
@@ -668,6 +683,9 @@ public abstract class Character
                 case 83: return "Luke Cage (Modern)";
                 case 84: return "Namor (Modern)";
                 case 85: return "Silver Surfer (Classic)";
+                case 86: return "Kraven the Hunter (Classic)";
+                case 87: return "Lizard (Classic)";
+                case 88: return "Scorpion (Modern)";
             }    
             return "ERROR. INDEX NUMBER NOT FOUND";
         }
@@ -740,7 +758,7 @@ public abstract class Character
                 return loo;
                 case 16: return "On fight start, choose an ally to gain Resistance; when they're attacked, counter for 40 damage. Ignore Evade but take more damage while Burning."; 
                 case 17: return "On kill, gain Focus for 1 turn. Ignore Evade but take more damage while Burning."; 
-                case 18: return "Evade all enemy AoE attacks. On turn, gain Evade. With Evade, become the target when an injured ally is attacked."; 
+                case 18: return "Evade all enemy AoE attacks. On turn, gain Evade. While he has Evade, Spider-Man becomes the target when an ally with less HP than him is attacked."; 
                 case 20: return "Attacks against enemies with Tracers are Inescapable."; 
                 case 23: return "Gain immunity to Poison. On turn, when taking 80+ damage, and when attacking, gain 1 E; at 5, Transform into Binary."; 
                 case 24: return "Gain immunity to non-Other status effects. On any turn, lose 1 E to do 5 Elusive damage to all enemies; at 0, Transform into Captain Marvel."; 
@@ -764,6 +782,9 @@ public abstract class Character
                 case 40: return "Gain immunity to Bleed, Disarm, and Shock, and ignore Counters; when receiving 2 Burns, convert them into a Stun Effect for 1 turn.";
                 case 41: return "On fight start, gain Resistance. Take -10 Bleed damage. Gain immunity to max HP reduction, Suppression, Vulnerable, and Terror.";
                 case 81: return "Ignore Blind and Invisible. Ignore the Counter activation limit.";
+                case 83: return "Gain immunity to Bleed, Shock, and Burn. Take -25 damage from attacks that do under 50 damage.";
+                case 85: return "Gain immunity to Debuffs, Buffs, Heal, Defence, and Other. Channelled abilities cannot be interrupted.";
+                case 86: return "Attacks against Snared enemies ignore Invisible, Evade, and Blind.";
                 default: return "This character doesn't have any passive abilities.";
             }    
         }

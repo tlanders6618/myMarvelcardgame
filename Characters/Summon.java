@@ -31,18 +31,19 @@ public class Summon extends Character
         }
         maxHP=HP;
     }
-    public void onSummon (Summon lad)
+    public void onSummon ()
     {
-        switch (lad.index) //for triggering on summon passives
+        switch (this.index) //for triggering on summon passives
         {
-            case 1: SummonPassive.NickLMD(lad); break;
-            case 3: SummonPassive.Crushbot(lad, true); break;
-            case 4: SummonPassive.Drone(lad, true, null); break;
-            case 5: SummonPassive.LilDoomie(lad, true, null); break;
-            case 6: int ignore=SummonPassive.Daemon(lad, true, null, 0); break;
-            case 7: SummonPassive.Decoy(lad); break;
+            case 1: SummonPassive.NickLMD(this); break;
+            case 3: SummonPassive.Crushbot(this, true); break;
+            case 4: SummonPassive.Drone(this, true, null); break;
+            case 5: SummonPassive.LilDoomie(this, true, null); break;
+            case 6: int ignore=SummonPassive.Daemon(this, true, null, 0); break;
+            case 7: SummonPassive.Decoy(this); break;
+            case 12: SummonPassive.Giganto(this, "spawn"); break;
         }
-        CheckSumDupes(lad);
+        CheckSumDupes(this);
     }
     public void CheckSumDupes (Character lad)
     {
@@ -130,10 +131,9 @@ public class Summon extends Character
         switch (index)
         {
             case 12: case 13: case 14: case 15: case 16:
-            index=2; break;
-            default: index=1;
+            return 2;
+            default: return 1;
         }
-        return index;
     }
     //Below are overridden to avoid conflict between summmon and hero indexes
     @Override
@@ -145,9 +145,11 @@ public class Summon extends Character
         {
             case 4: 
             if (type.equals("Buffs"))
-            {
-                SummonPassive.Drone(this, false, eff); 
-            }
+            SummonPassive.Drone(this, false, eff); 
+            break;
+            case 12:
+            if (name.equals("Stun"))
+            SummonPassive.Giganto(this, "gain");
             break;
         }
         for (StatEff e: this.effects) //for stateffs that react to other stateffs
@@ -176,6 +178,15 @@ public class Summon extends Character
                     System.out.println (this.Cname+"'s "+eff.getimmunityname()+" expired."); 
                 }      
                 this.effects.remove(eff);
+                switch (this.index)
+                {
+                    case 12: 
+                    if (name.equals("Stun"))
+                    {
+                        SummonPassive.Giganto(this, "lose"); 
+                        break; //out of switch
+                    }
+                }  
                 break; //end the for each loop
             }
         }
@@ -189,9 +200,9 @@ public class Summon extends Character
             case 7: 
             if (this.team1==true) 
             {
-                if (Battle.p1solo==true) //to prevent infinite turns if a decoy is the only one left alive on its team
+                if (Battle.p1solo==true) //to prevent infinite turn skipping if a decoy is the only one left alive on its team
                 this.binaries.remove("Stunned");
-                else //to prevent infinite turns if there is more than one hero on the team, but they're all decoys
+                else //to prevent infinite turn skipping if there is more than one hero on the team, but they're all decoys
                 {
                     Character[] team=Battle.GetTeammates(this); boolean solo=true;
                     for (Character c: team)
@@ -250,6 +261,10 @@ public class Summon extends Character
     @Override
     public void onAttack (Character victim)
     {
+        switch (this.index)
+        {
+            case 12: SummonPassive.Giganto(this, "attack"); break;
+        }
     }
     @Override
     public void onCrit (Character target)

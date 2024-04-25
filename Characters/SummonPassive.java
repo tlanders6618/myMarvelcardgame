@@ -10,6 +10,30 @@ package myMarvelcardgamepack;
 import java.util.ArrayList;
 public class SummonPassive
 {
+    public static void Giganto (Character og, String duty)
+    {
+        if (duty.equals("spawn")) //onsummon
+        {
+            og.ADR+=20; og.immunities.add("Persuaded"); 
+            if (og.passivefriend[0].index==84) //summoned by namor
+            {
+                og.passivefriend[0].passivefriend[0]=og; //so namor's "trident of neptune" works properly
+            }
+        }
+        else if (duty.equals("attack")) //onattack
+        {
+            String[] sonk={"Stun Effect", "500", "616", "1", "true"}; String[][] money=StatFactory.MakeParam(sonk, null); og.activeability.AddTempString(money); 
+            String[] sank={"Target Effect", "500", "40", "1", "true"}; String[][] lmoney=StatFactory.MakeParam(sank, null); og.activeability.AddTempString(lmoney); 
+        }
+        else if (duty.equals("gain")&&og.passivecount==0) //add
+        {
+            og.ADR-=20; og.passivecount=1;
+        }
+        else if (duty.equals("lose")&&og.passivecount==1) //remove
+        {
+            og.ADR+=20; og.passivecount=0;
+        }
+    }
     public static void Decoy (Character decoy) //onsummon
     {
         decoy.add(new Taunt(500, 616)); CoinFlip.StatImmune(decoy, true); decoy.binaries.add("Stunned");
@@ -22,7 +46,7 @@ public class SummonPassive
             if (yes==true)
             {
                 Provoke g= new Provoke(500, 1, matt);
-                Character jill=Ability.GetRandomHero(matt, false, false);
+                Character jill=Ability.GetRandomHero(matt, attacker, false, false);
                 StatEff.CheckApply(matt, jill, g);
             }
             else

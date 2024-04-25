@@ -10,11 +10,11 @@ package myMarvelcardgamepack;
 import java.util.ArrayList;
 public class StaticPassive 
 {
-    public static StatEff InstaConversion (Character max, StatEff e, String toadd, int strength, int dur) //hero.add; for electro, zzzax, etc
+    public static StatEff InstaConversion (Character target, StatEff e, String toadd, int strength, int dur) //hero.add; for electro, zzzax, etc
     {
         String[] string={toadd, Integer.toString(e.chance), Integer.toString(strength), Integer.toString(dur), "true"}; String[][] her=StatFactory.MakeParam(string, null);
-        StatEff brand=StatFactory.MakeStat(her, max);
-        System.out.println(max.Cname+"'s "+e.geteffname()+" was converted into a "+brand.geteffname()+"!");
+        StatEff brand=StatFactory.MakeStat(her, target);
+        System.out.println(target.Cname+"'s "+e.geteffname()+" was converted into a "+brand.geteffname()+"!");
         return brand;
     }
     public static void Symbiote (Character venom, int vuln, boolean start) //efficient since they all have the same passive; fightstart and add/remove
@@ -24,13 +24,47 @@ public class StaticPassive
         else
         venom.DV+=vuln;
     }
+    //2.9: Fearsome Foes of Spider-Man
+    public static void Kraven (Character sergei, Character prey, boolean attacking) //beforeattack and onattack
+    {
+        if (attacking==true&&prey.CheckFor("Snare", false)==true)
+        {
+            sergei.ignores.add("Blind"); sergei.ignores.add("Evade");
+            sergei.passivecount=1;
+        }
+        else if (attacking==false&&sergei.passivecount==1) //don't want to remove bonuses if they weren't gained in the first place
+        {
+            sergei.ignores.remove("Blind"); sergei.ignores.remove("Evade");
+            sergei.passivecount=0;
+        }
+    }
+    //2.8: Defenders
+    public static void Surfer (Character norrin) //fightstart
+    {
+        CoinFlip.StatImmune(norrin, true); norrin.immunities.add("Interrupt");
+    }
+    public static int LukeCage (Character carl, int dmg, boolean start)
+    {
+        if (start==true) //fightstart
+        {
+            carl.immunities.add("Burn"); carl.immunities.add("Bleed"); carl.immunities.add("Shock");
+        }
+        else if (dmg>0&&dmg<50)//takedamage
+        {
+            System.out.println("Unbreakable!"); dmg-=25;
+        }
+        if (dmg<0)
+        return 0;
+        else
+        return dmg;
+    }
     public static void DD (Character matt, Character attacker, boolean start)
     {
         if (start==true) //fightstart
         {
             matt.ignores.add("Blind"); matt.ignores.add("Invisible");
         }
-        else //attacked
+        else //attacked; counter doesn't trigger if stunned or attacker ignores it so no need to check for it here
         {
             ArrayList<StatEff> concurrentmodificationexception3electricboogalooboogaloo= new ArrayList<StatEff>(); //counter is removed after use :)
             concurrentmodificationexception3electricboogalooboogaloo.addAll(matt.effects);
@@ -43,6 +77,7 @@ public class StaticPassive
             }
         }
     }
+    //2.1: Sinister 6
     public static void Rhino (Character alexei) //fightstart
     {
         alexei.immunities.add("Vulnerable"); alexei.immunities.add("Suppression"); alexei.immunities.add("Reduce"); alexei.immunities.add("Terror"); 
@@ -61,6 +96,7 @@ public class StaticPassive
             adrian.activeability.AddTempString(hannity);
         }
     }
+    //2.0: Original
     public static void Deadpool (Character wade, String cause, Character vic) 
     {
         if (cause.equals("heal")&&!(wade.binaries.contains("Stunned"))) //onturn

@@ -10,6 +10,7 @@ package myMarvelcardgamepack;
 import java.util.ArrayList;
 public class ActivePassive 
 {
+    //2.1: Sinister 6
     public static void Sandy (Character baker, String o)
     {
         if (o.equals("ult")) //activatep; use sandstorm 
@@ -105,6 +106,7 @@ public class ActivePassive
             }
         }
     }
+    //2.0: Original
     public static void Cain (Character marko, String time, int old)
     {
         if (time.equals("turn")&&marko.passivecount<5) //onturn
@@ -248,7 +250,7 @@ public class ActivePassive
         if (carol.passivecount>=5) 
         carol.Transform(24, false);
     }
-    public static void Superior (Character tolliver, Character evildoer, boolean attack) //attack and onattack; cardselection lets him select targets with tracers
+    public static void Superior (Character tolliver, Character evildoer, boolean attack) //beforeattack and onattack; cardselection lets him select targets with tracers
     {
         if (attack==true&&evildoer.CheckFor("Tracer", false)==true)
         {
@@ -278,8 +280,22 @@ public class ActivePassive
             {
                 if (!(peter.binaries.contains("Shattered"))&&!(peter.binaries.contains("Stunned"))) //conditions that would prevent him from evading
                 {
-                    System.out.println ("\n"+peter.Cname+" Evaded "+villain.Cname+"'s attack!");
-                    villain.binaries.add("Missed");
+                    boolean go=true;
+                    if (villain.activeability!=null)
+                    {
+                        for (SpecialAbility a: villain.activeability.special)
+                        {
+                            if (a instanceof ApplyShatter&&a.CheckApply()==true) //cannot evade attacks that apply shatter
+                            {
+                                go=false; break;
+                            }
+                        }
+                    }
+                    if (go==true)
+                    {
+                        System.out.println ("\n"+peter.Cname+" Evaded "+villain.Cname+"'s attack!");
+                        villain.binaries.add("Missed");
+                    }
                 }
             }   
         }
@@ -526,7 +542,7 @@ public class ActivePassive
     }
     public static void IM (Character tony, StatEff buff) //called by hero.remove
     {
-        Empower emp= new Empower (buff.power, buff.duration, tony.Cname, 4); 
+        Empower emp= new Empower (500, buff.power, buff.duration, tony.Cname, 4); 
         tony.add(emp);
     }
     public static void Gamora (Character gam, StatEff buff, boolean add) //add is whether the buff is being added or removed; called by hero.remove and hero.add
