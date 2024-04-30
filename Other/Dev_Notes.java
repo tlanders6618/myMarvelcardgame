@@ -50,25 +50,22 @@ public class Dev_Notes
      * 
      * all new methods go under cardhashcode which is empty for some reason
      * 
+     * make sure all basicabs work with assist as intended from now on
+     * 
      * Always add ricochet before multichain in an ability's afterabs
      * always add ignore miss as an ability's first beforeab OR change every miss to check for ignoring miss and remove immunity to miss from game
-     * daredevil blindside empowerment has to add an obj to beforeab that makes the ab miss; cannot add missed without letting beforeab make char immune to miss
      * iceman's passive can just use debuffmod for deciding whether to apply freeze or not
      * 
      * To Do
-     * double check glossary desc before doing multitarget
-     * attack method no longer trigger onattacked for aoe abs; attackab must trigger it if ab is aoe
+     * test drain, both on attacks and the stateff 
+     * when adding vulnerable remember to make its effect unaffected by strength bc amplify
      * 
      * Keep in mind:
      * For unique Other effects, check for their interaction methods, e.g. characters cannot evade while submerged so change evade criteria
      * Sourceless damage (e.g. reflection) must print the took damage statement on their own; tookdamage will not
-     * 
-     * Known issues   
-     * using counter causes null exception, most likely due to checking for a stateff to apply and finding none
-     * 
-     * to test:
-     * counter attack must trigger the took damage method for the attacker, with boolean true
-     * drain works
+     * New characters need inhp and setname, then passive descs and abs, then passives + adding them to hero methods, then testing and check balancing before release
+     * All AoE attack abs call the attack method, which contains onattack, so all AoE attacks trigger onattack once for each target hit, instead of once after the attack ends
      * 
      * */
+     
 } 
