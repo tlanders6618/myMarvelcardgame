@@ -7,14 +7,14 @@ public class Test
    public static void main (String[] args)
    {
        //System.out.println(System.getProperty("java.class.version")); //55 means 11, 56 means 12, etc
-       Character Char11= new Hero (34); //Char11.binaries.add("Stunned"); 
-       Character Char12= new Hero (25); //Char12.binaries.add("Stunned"); 
-       Character Char13= new Hero (23); Char13.binaries.add("Stunned");
-       Character Char21= new Hero (21); //Char21.binaries.add("Stunned"); 
-       Character Char22= new Summon (12); Char22.binaries.add("Stunned"); 
-       Character Char23= new Summon (4); Char23.binaries.add("Stunned"); 
+       Character Char11= new Hero (1); //Char11.binaries.add("Stunned"); 
+       Character Char12= new Hero (90); //Char12.binaries.add("Stunned"); 
+       Character Char13= new Hero (16); //Char13.binaries.add("Stunned"); 
+       Character Char21= new Hero (28); //Char21.binaries.add("Stunned"); 
+       Character Char22= new Hero (31); //Char22.binaries.add("Stunned"); 
+       Character Char23= new Hero (13); //Char23.binaries.add("Stunned"); 
        boolean Pwinner=false;  
-       Char11.passivecount=5; Char21.add(new Neutralise (100, 455)); Char21.add(new Disarm (100, 999)); //Char21.add(new Bulwark(100, 7)); //Char21.add(new Shatter(2, 3));
+       //Char21.add(new Terror(0, 999, Char12)); //Char21.add(new Poison (100, 15, 999)); //Char11.add(new Blind (0, 3, new Hero(73))); 
        System.out.println("\nDonut forget to update card selection indexes");
        Pwinner=Battle.main(Char11, Char12, Char13, Char21, Char22, Char23);
        if (Pwinner==true)
@@ -28,9 +28,12 @@ public class Test
        Card_Game_Main.trash.close();
        /*
         * To do/to test today:
-        * test that extend doesn't affect immortal/stun
+        * once added to the game, test that extend does/doesn't affect immortal/stun
         */
+       
        //random number=Min + (int)(Math.random() * ((Max - Min) + 1))
+       //int rounded down to nearest multiple=5*(int)(Math.floor([double number]/5)); (can also be Math.ceil for rounding up)
+       
        /** 
         for (int r = 0; i < arr.length; r++) 
        { //this is equal to the row 
