@@ -7,8 +7,8 @@
 * Download the latest version of the myMarvelcardgame.jar file from above (the one with the higher number), by clicking on it and selecting "download" on the right hand side (the other is a backup, in case there's an issue with the current version)
 * Drag the jar from your downloads folder to your desktop
 * Right click your desktop, and make a new text document by moving your cursor down to "New", and "Text Document"
-* Open the text document and type "java -jar [name of the jar file goes here, including the .jar part; e.g. myMarvelcardgame_3_9_0.jar]" (without the quotation marks)
-* ![image](https://github.com/tlanders6618/myMarvelcardgame/assets/113645988/8b6e3c81-60b3-4320-aede-f75607c2d9e2)
+* Open the text document and type java -jar [name of the jar file, including the .jar part]; see below image
+ ![image](https://github.com/tlanders6618/myMarvelcardgame/assets/113645988/8b6e3c81-60b3-4320-aede-f75607c2d9e2)
 
 * Go to file, and select save as
 * Go to "save as type" and change the file's type from .txt to all files
