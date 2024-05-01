@@ -53,11 +53,14 @@ class BleedE extends OtherEff
     @Override
     public void onTurnStart (Character hero)
     {
-        hero.DOTdmg(this.power, "bleed");
-        --this.duration;
-        if (this.duration<=0)
+        if (hero!=null) //after hero dies, their spot in the team array becomes null; if they die from one dot and another tries to tick down, it causes a null exception
         {
-            hero.remove(this.hashcode, "normal");
+            hero.DOTdmg(this.power, "bleed");
+            --this.duration;
+            if (this.duration<=0)
+            {
+                hero.remove(this.hashcode, "normal");
+            }
         }
     }
     @Override
@@ -718,6 +721,7 @@ class ShatterE extends OtherEff
         this.oduration=dur;
         this.chance=nchance;
         this.hashcode=Card_HashCode.RandomCode();
+        this.stackable=true;
     }
     public void onApply (Character target)
     {
@@ -784,6 +788,53 @@ class SnareE extends OtherEff
     public void Nullified (Character target)
     {
         Battle.Speeded(target);
+    }
+}
+class Soaked extends OtherEff
+{
+    @Override
+    public String getimmunityname()
+    {
+        return "Soaked";
+    }
+    @Override 
+    public String getefftype()
+    {
+        return "Other";
+    }
+    public void onApply (Character target)
+    {
+        target.immunities.add("Evade"); target.immunities.add("Evasion");
+        ArrayList<StatEff>modexception= new ArrayList<StatEff>();
+        if (target.effects.size()>0)
+        {
+            modexception.addAll(target.effects);
+        }
+        for (StatEff eff: modexception)
+        {
+            if (eff.getimmunityname().equals("Evade")||eff.getimmunityname().equals("Evasion"))
+            {
+                target.remove(eff.hashcode, "normal");
+            }
+        }
+    }
+    public Soaked (int nchance, int d)
+    {
+        this.chance=nchance;
+        this.hashcode=Card_HashCode.RandomCode();
+        this.duration=d; 
+        this.oduration=d;
+        this.stackable=true;
+    }
+    @Override
+    public String geteffname() 
+    {
+       return "Soaked Effect, "+duration+ " turn(s)"; 
+    }
+    @Override
+    public void Nullified (Character target)
+    {
+        target.immunities.remove("Evade"); target.immunities.remove("Evasion");
     }
 }
 class StunE extends OtherEff

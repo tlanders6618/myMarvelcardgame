@@ -57,7 +57,7 @@ class Barrier extends DefEff
     public void Attacked (Character hero, Character attacker, int dmg)
     {
         this.power-=dmg;
-        hero.BHP-=dmg;
+        hero.BHP-=dmg; 
         if (this.power<0)
         this.power=0;
         if (hero.BHP<0)

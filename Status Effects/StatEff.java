@@ -34,7 +34,7 @@ public abstract class StatEff
     public abstract void onApply(Character target);
     public abstract String getimmunityname(); //just the generic name of the eff, e.g. Target
     public abstract String getefftype();
-    public String getalttype() //this is primarily for debuffeffs to override; damaging vs non damaging
+    public String getalttype() //this is primarily for debuffeffs to override; damaging vs non damaging; also used for things like iceman's freeze 
     {
         return "knull";
     }
@@ -63,9 +63,9 @@ public abstract class StatEff
     {
         return 0;
     }
-    public int UseTerrorProvoke() //return hashcode of lad caller is afraid of unless lad is invisible or dead
+    public Character UseTerrorProvoke() //return lad caller is afraid of/provoked by
     {
-        return 616;
+        return null;
     }
     public void Attacked(Character hero, Character attacker, int dmg) //called when hero is attacked; used for paralyse, counter, reflect, etc
     {
@@ -139,7 +139,7 @@ public abstract class StatEff
                     }
                 }
             }
-            if (good==true) //no duplicates on teammates but still need to check for duplicates on self
+            if (good==true) //no duplicates on teammates but still need to check for duplicates on self; no double snare/speed allowed
             {
                 boolean apple=effect.CheckStacking(target, effect, effect.stackable); 
                 if (apple==true)

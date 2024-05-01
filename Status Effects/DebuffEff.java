@@ -113,11 +113,14 @@ class Bleed extends DebuffEff
     @Override
     public void onTurnStart (Character hero)
     {
-        hero.DOTdmg(this.power, "bleed");
-        --this.duration;
-        if (this.duration<=0)
+        if (hero!=null) //after hero dies, their spot in the team array becomes null; if they die from one dot and another tries to tick down, it causes a null exception
         {
-            hero.remove(this.hashcode, "normal");
+            hero.DOTdmg(this.power, "bleed");
+            --this.duration;
+            if (this.duration<=0)
+            {
+                hero.remove(this.hashcode, "normal");
+            }
         }
     }
     @Override
@@ -238,11 +241,14 @@ class Burn extends DebuffEff
     @Override
     public void onTurnStart (Character hero)
     {
-        hero.DOTdmg(this.power, "burn");
-        --this.duration;
-        if (this.duration<=0)
+        if (hero!=null) //after hero dies, their spot in the team array becomes null; if they die from one dot and another tries to tick down, it causes a null exception
         {
-            hero.remove(this.hashcode, "normal");
+            hero.DOTdmg(this.power, "burn");
+            --this.duration;
+            if (this.duration<=0)
+            {
+                hero.remove(this.hashcode, "normal");
+            }
         }
     }
     @Override
@@ -719,11 +725,14 @@ class Poison extends DebuffEff
     @Override
     public void onTurnStart (Character hero)
     {
-        hero.DOTdmg(this.power, "poison");
-        --this.duration;
-        if (this.duration<=0)
+        if (hero!=null) //after hero dies, their spot in the team array becomes null; if they die from one dot and another tries to tick down, it causes a null exception
         {
-            hero.remove(this.hashcode, "normal");
+            hero.DOTdmg(this.power, "poison");
+            --this.duration;
+            if (this.duration<=0)
+            {
+                hero.remove(this.hashcode, "normal");
+            }
         }
     }
     @Override
@@ -786,7 +795,7 @@ class Provoke extends DebuffEff
         ArrayList<StatEff> remove= new ArrayList<StatEff>();
         for (StatEff e: target.effects)
         {
-            if (e.getimmunityname().equals("Terror")&&e.UseTerrorProvoke()==progenitor.hash) //can't be forced to both attack and not attack the same person
+            if (e.getimmunityname().equals("Terror")&&e.UseTerrorProvoke()==progenitor) //can't be forced to both attack and not attack the same person
             {
                 remove.add(e);
             }
@@ -797,12 +806,12 @@ class Provoke extends DebuffEff
         }
     }
     @Override
-    public int UseTerrorProvoke ()
+    public Character UseTerrorProvoke ()
     {
         if (!(progenitor.binaries.contains("Invisible"))&&progenitor.targetable==true&&!(progenitor.binaries.contains("Banished"))) 
-        return progenitor.hash; //if they're taunting, protecting, or protected, provoke still applies; they just need to be targetable 
+        return progenitor; //if they're taunting, protecting, or protected, provoke still applies; they just need to be targetable 
         else 
-        return 0;
+        return null;
     }
 }
 class Shatter extends DebuffEff 
@@ -911,11 +920,14 @@ class Shock extends DebuffEff
     @Override
     public void onTurnStart (Character hero)
     {
-        hero.DOTdmg(this.power, "shock");
-        --this.duration;
-        if (this.duration<=0)
+        if (hero!=null) //after hero dies, their spot in the team array becomes null; if they die from one dot and another tries to tick down, it causes a null exception
         {
-            hero.remove(this.hashcode, "normal");
+            hero.DOTdmg(this.power, "shock");
+            --this.duration;
+            if (this.duration<=0)
+            {
+                hero.remove(this.hashcode, "normal");
+            }
         }
     }
     @Override
@@ -1164,7 +1176,7 @@ class Terror extends DebuffEff
         ArrayList<StatEff> remove= new ArrayList<StatEff>();
         for (StatEff e: target.effects)
         {
-            if (e.getimmunityname().equals("Provoke")&&e.UseTerrorProvoke()==progenitor.hash) //can't be forced to both attack and not attack the same person
+            if (e.getimmunityname().equals("Provoke")&&e.UseTerrorProvoke()==progenitor) //can't be forced to both attack and not attack the same person
             {
                 remove.add(e);
             }
@@ -1175,12 +1187,12 @@ class Terror extends DebuffEff
         }
     }
     @Override
-    public int UseTerrorProvoke ()
+    public Character UseTerrorProvoke ()
     {
         if (progenitor.CheckFor("Taunt", false)==false&&progenitor.CheckFor("Protect", false)==false) //taunt and protect supersede terror
-        return progenitor.hash;
+        return progenitor;
         else 
-        return 0;
+        return null;
     }
 }
 class Undermine extends DebuffEff 

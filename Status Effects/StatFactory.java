@@ -76,6 +76,7 @@ public class StatFactory
             case "Shock": eff= new Shock (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][2]), Integer.valueOf(param[0][3])); break;
             case "Snare": eff= new Snare (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3])); break;
             case "Snare Effect": eff= new SnareE (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3])); break;
+            case "Soaked": eff=new Soaked (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3])); break;
             case "Speed": eff=new Speed(Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3])); break;
             case "Stun": eff=new Stun (Integer.valueOf(param[0][1])); break;
             case "Stun Effect": eff=new StunE (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3])); break;
