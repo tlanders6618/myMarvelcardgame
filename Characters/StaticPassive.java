@@ -39,9 +39,17 @@ public class StaticPassive
         }
     }
     //2.8: Defenders
-    public static void Surfer (Character norrin) //fightstart
+    public static void Surfer (Character radd)
     {
-        CoinFlip.StatImmune(norrin, true); norrin.immunities.add("Interrupt");
+        CoinFlip.StatImmune(radd, true); radd.immunities.add("Interrupt");
+        ArrayList<StatEff> effects= new ArrayList<StatEff>(); effects.addAll(radd.effects);
+        for (StatEff e: effects) //in case redwing, lethal protector, etc is used before surfer gains his immunities, this removes the stateffs
+        {
+            if (radd.immunities.contains(e.getefftype()))
+            {
+                radd.remove(e.hashcode, "silent"); System.out.println(radd.Cname+"'s "+e.geteffname()+" was removed due to an immunity.");
+            }
+        }
     }
     public static int LukeCage (Character carl, int dmg, boolean start)
     {
@@ -82,10 +90,6 @@ public class StaticPassive
     {
         alexei.immunities.add("Vulnerable"); alexei.immunities.add("Suppression"); alexei.immunities.add("Reduce"); alexei.immunities.add("Terror"); 
         alexei.BlDR+=10; ResistanceE me= new ResistanceE(500, 10, 616); alexei.add(me);
-    }
-    public static void Sandy (Character will) //fightstart
-    {
-        will.immunities.add("Bleed"); will.immunities.add("Shock"); will.immunities.add("Disarm"); will.ignores.add("Counter");
     }
     public static void Vulture (Character adrian, Character prey) //beforeattack
     {
@@ -399,11 +403,11 @@ public class StaticPassive
         Character[] friends=null;
         friends=Battle.GetTeammates(eddie);
         ResistanceE res= new ResistanceE (500, 10, 616);
-        int index=Card_Selection.ChooseTargetFriend (friends);
-        StatEff.CheckApply(eddie, friends[index], res);
+        Character allt=Card_Selection.ChooseTargetFriend (friends);
+        StatEff.CheckApply(eddie, allt, res);
         eddie.passivecount=res.hashcode;
-        eddie.passivefriend[0]=friends[index];
-        friends[index].add(new Tracker ("Watched by Venom (Eddie Brock)"));
+        eddie.passivefriend[0]=allt;
+        allt.add(new Tracker ("Watched by Venom (Eddie Brock)"));
     }
     public static void WolvieTracker (Character wolvie) //initialise tracker on fightstart
     {
@@ -514,8 +518,8 @@ public class StaticPassive
         {
             friends=Battle.team2;
         }
-        int index=Card_Selection.ChooseTargetFriend (friends);
-        friends[index].add(red);
+        Character alliance=Card_Selection.ChooseTargetFriend (friends);
+        alliance.add(red);
     }
     public static void WM (Character machine) //triggered onturn
     {

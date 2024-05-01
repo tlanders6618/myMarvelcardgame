@@ -162,6 +162,14 @@ public class Summon extends Character
             System.out.println ("\n"+this.Cname+" gained a(n) "+eff.geteffname());
         }
         eff.onApply(this);
+        Character[] foes=Battle.GetTeam(CoinFlip.TeamFlip(this.team1));
+        for (Character c: foes)
+        {
+            if (c!=null)
+            {
+                c.onEnemyGain(this, eff);
+            }
+        }
     }
     @Override
     public void remove (int removalcode, String how) //removes status effects
@@ -190,6 +198,10 @@ public class Summon extends Character
                 break; //end the for each loop
             }
         }
+    }
+    @Override
+    public void onEnemyGain (Character foe, StatEff e)
+    {
     }
     @Override
     public void onTurn (boolean notbonus)
@@ -424,7 +436,7 @@ public class Summon extends Character
         {
             if (friend!=null&&!(friend.binaries.contains("Banished")))
             {
-                friend.onAllyDeath(friend, this, killer);
+                friend.onAllyDeath(this, killer);
             }
         }
         boolean foe=CoinFlip.TeamFlip(this.team1); //to get their enemies
@@ -433,23 +445,23 @@ public class Summon extends Character
         {
             if (ant!=null&&!(ant.binaries.contains("Banished")))
             {
-                ant.onEnemyDeath(ant, this, killer);
+                ant.onEnemyDeath(this, killer);
             }
         }
         Battle.AddDead(this);
     }
     @Override
-    public void onAllyDeath (Character bystander, Character deadfriend, Character killer)
+    public void onAllyDeath (Character deadfriend, Character killer)
     {
-        switch (bystander.index)
+        switch (this.index)
         {
-            case 5: SummonPassive.LilDoomie(bystander, false, deadfriend); break;
+            case 5: SummonPassive.LilDoomie(this, false, deadfriend); break;
         }
     }
     @Override
-    public void onEnemyDeath (Character bystander, Character deadfoe, Character killer)
+    public void onEnemyDeath (Character deadfoe, Character killer)
     {
-        if (killer!=null&&bystander.hash==killer.hash)
+        if (killer!=null&&this.hash==killer.hash)
         {
             killer.onKill(deadfoe);
         }

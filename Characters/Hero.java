@@ -79,7 +79,7 @@ public class Hero extends Character
     @Override
     public void onFightStart()
     {
-        switch (this.index)
+        switch (this.index) //passives that only add immunities can be done here instead of taking up space in staticpassive
         {
             case 6: ActivePassive.CaptainA(this); break;
             case 7: StaticPassive.Falcon(this); break;
@@ -87,10 +87,10 @@ public class Hero extends Character
             case 12: StaticPassive.DraxOG(this); break;
             case 15: StaticPassive.WolvieTracker(this); break;
             case 16: StaticPassive.OGVenom (this); StaticPassive.Symbiote (this, 0, true); break;
-            case 17: StaticPassive.Symbiote (this, 0, true); break;
+            case 17: case 90: StaticPassive.Symbiote (this, 0, true); break;
             case 23: StaticPassive.CM(this, true); break;
             case 25: this.passivecount=10; this.Cchance+=50; Tracker t=new Tracker("Control Points: "); this.effects.add(t); t.onApply(this); 
-            StaticPassive.Symbiote (this, 0, true); break;
+            StaticPassive.Symbiote (this, 0, true); break; //agent venom
             case 26: int ignore=StaticPassive.MODOC(this, null, "start", 0); break;
             case 27: StaticPassive.Ultron(this); break;
             case 28: StaticPassive.DOOM(this, "start", this); break;
@@ -98,11 +98,13 @@ public class Hero extends Character
             case 31: StaticPassive.Hulk(this, true); break;
             case 32: StaticPassive.BB(this, true); break;
             case 35: ActivePassive.Cain(this, "start", 616); break;
-            case 40: StaticPassive.Sandy(this); break;
+            case 40: this.immunities.add("Bleed"); this.immunities.add("Shock"); this.immunities.add("Disarm"); this.ignores.add("Counter"); break; //sandman
             case 41: StaticPassive.Rhino(this); break;
             case 81: StaticPassive.DD(this, null, true); break;
             case 83: int care=StaticPassive.LukeCage(this, 0, true); break;
-            case 85: StaticPassive.Surfer(this); break;
+            case 85: StaticPassive.Surfer(this); break; 
+            case 89: this.immunities.add("Bleed"); this.immunities.add("Burn"); this.immunities.add("Soaked"); this.ShDR-=10; break; //hydro man
+            case 92: ActivePassive.Roblin(this, this, "start"); break;
         }
     }
     @Override
@@ -140,6 +142,22 @@ public class Hero extends Character
             if (eff.getimmunityname().equals("Burn"))
             ActivePassive.Sandy(this, "burn");
             break;
+            case 90:
+            if (eff.getimmunityname().equals("Burn"))
+            StaticPassive.Symbiote(this, 10, false);
+            break;
+            case 92:
+            if (eff.getimmunityname().equals("Intensify")&&eff.getefftype().equals("Other")&&eff.power==5)
+            ActivePassive.Roblin(this, this, "gain");
+            break;
+        }
+        Character[] foes=Battle.GetTeam(CoinFlip.TeamFlip(this.team1));
+        for (Character c: foes)
+        {
+            if (c!=null)
+            {
+                c.onEnemyGain(this, eff);
+            }
         }
     }
     @Override
@@ -175,8 +193,26 @@ public class Hero extends Character
                     if (name.equals("Burn"))
                     StaticPassive.Symbiote(this, -5, false);
                     break;
+                    case 90:
+                    if (name.equals("Burn"))
+                    StaticPassive.Symbiote(this, -10, false);
+                    break;
                 }    
                 break; //end the for each loop
+            }
+        }
+    }
+    @Override
+    public void onEnemyGain (Character foe, StatEff e)
+    {
+        if (!(this.binaries.contains("Banished")))
+        {
+            switch (this.index)
+            {
+                case 90: 
+                if (e.getimmunityname().equals("Bleed"))
+                ActivePassive.Carnage(this, e.oduration); 
+                break;
             }
         }
     }
@@ -268,6 +304,7 @@ public class Hero extends Character
             case 33: StaticPassive.Deadpool(this, "attack", victim); break;
             case 35: ActivePassive.Cain(this, "attack", 616); break;
             case 86: StaticPassive.Kraven(this, victim, false); break;
+            case 92: ActivePassive.Roblin(this, victim, "attack"); break;
         }
     }
     @Override
@@ -324,7 +361,7 @@ public class Hero extends Character
     @Override
     public Character onAllyTargeted (Character hero, Character dealer, Character ally, int dmg, boolean aoe)
     {
-        if (!(hero.binaries.contains("Banished"))&&aoe==false)
+        if (!(hero.binaries.contains("Banished"))&&aoe==false) //aoe abilities target everyone, so they're considered as targeting no one
         {
             switch (hero.index)
             {
@@ -387,7 +424,7 @@ public class Hero extends Character
         return odmg;
     }
     @Override
-    public void TookDamage (Character hero, boolean dot, int dmg) //true for dot and false for all other types
+    public void TookDamage (Character hero, boolean dot, int dmg) //do hpchange and check if hero should be dead; for sourceless dmg
     { 
         hero.dmgtaken+=dmg;
         int h=hero.HP; h+=dmg; //for tracking hp changes for passives
@@ -497,43 +534,51 @@ public class Hero extends Character
         Character[] people=Battle.GetTeammates(this);
         for (Character friend: people)
         {
-            if (friend!=null&&!(friend.binaries.contains("Banished")))
+            if (friend!=null)
             {
-                friend.onAllyDeath(friend, this, killer);
+                friend.onAllyDeath(this, killer);
             }
         }
         Character[] enemies=Battle.GetTeam(CoinFlip.TeamFlip(this.team1));
         for (Character ant: enemies)
         {
-            if (ant!=null&&!(ant.binaries.contains("Banished")))
+            if (ant!=null)
             {
-                ant.onEnemyDeath(ant, this, killer);
+                ant.onEnemyDeath(this, killer);
             }
         }
         Battle.AddDead(this);
     }
     @Override
-    public void onAllyDeath (Character hero, Character deadfriend, Character killer)
+    public void onAllyDeath (Character deadfriend, Character killer)
     {
-        if (killer!=null&&!(hero.binaries.contains("Stunned"))&&!(hero.binaries.contains("Banished")))
+        if (!(this.binaries.contains("Banished")))
         {
         }
     }
     @Override
-    public void onEnemyDeath (Character hero, Character deadfoe, Character killer)
+    public void onEnemyDeath (Character deadfoe, Character killer)
     {
-        if (killer!=null&&hero.hash==killer.hash)
+        if (!(this.binaries.contains("Banished")))
         {
-            killer.onKill(deadfoe);
+            switch (this.index)
+            {
+                case 92: ActivePassive.Roblin(this, deadfoe, "death"); break;
+            }
         }
+        if (killer!=null&&this.hash==killer.hash)
+        this.onKill(deadfoe);
     }
     @Override
     public void onKill (Character victim)
     {
-        switch (this.index)
+        if (!(this.binaries.contains("Banished")))
         {
-            case 17: ActivePassive.Venom(this); break;
-            case 33: StaticPassive.Deadpool(this, "kill", victim); break;
+            switch (this.index)
+            {
+                case 17: case 90: ActivePassive.Venom(this); break; //macdonald and college have the same passive for some reason, so this is efficient albeit mildly confusing
+                case 33: StaticPassive.Deadpool(this, "kill", victim); break;
+            }
         }
     } 
     @Override 
@@ -621,20 +666,23 @@ public class Hero extends Character
     @Override
     public void onAllySummon (Character hero, Summon newfriend)
     {
-        if (!(hero.binaries.contains("Stunned"))&&!(hero.binaries.contains("Banished")))
+        if (!(hero.binaries.contains("Banished")))
         {
         }
     }
     @Override
     public void onEnemySummon (Character hero, Summon newfoe)
     {
-        if (!(hero.binaries.contains("Stunned"))&&!(hero.binaries.contains("Banished")))
+        if (!(hero.binaries.contains("Banished")))
         {
         }
     }
     @Override
     public void onAllyControlled (Character ally, Character controller) //ally is one being controlled
     {
+        if (!(this.binaries.contains("Banished")))
+        {
+        }
     }
     @Override
     public void onSelfControlled (Character controller)

@@ -57,6 +57,7 @@ public abstract class Character
     }
     public abstract void add (StatEff eff); //adding a stateff    
     public abstract void remove (int removalcode, String nullify); //removes status effects
+    public abstract void onEnemyGain (Character enemy, StatEff e); //for when an enemy gains a stateff
     public boolean CheckFor (String eff, boolean type)
     {
         if (type==false)
@@ -457,8 +458,8 @@ public abstract class Character
     public abstract void TookDamage (Character hero, boolean dot, int dmg); 
     public abstract void onLethalDamage (Character killer, String dmgtype);
     public abstract void onDeath (Character killer, String dmgtype);
-    public abstract void onAllyDeath (Character bystander, Character deadfriend, Character killer);
-    public abstract void onEnemyDeath (Character bystander, Character deadfoe, Character killer);
+    public abstract void onAllyDeath (Character deadfriend, Character killer);
+    public abstract void onEnemyDeath (Character deadfoe, Character killer);
     public abstract void onKill (Character victim);
     public abstract void onRez (Character healer); //needs to call hpchange
     public void LoseMaxHP (Character attacker, int lossy)
@@ -491,7 +492,7 @@ public abstract class Character
             else
             System.out.println(this.Cname+" lost "+lossy+" health!");
             int h=this.HP;
-            Damage_Stuff.CheckBarrier(this, attacker, lossy);
+            Damage_Stuff.CheckBarrier(this, null, lossy); //attacker has to be null or barrier won't have its value reduced by the health loss; see checkbarrier for why
             if (this.HP<=0)
             this.HP=0;
             if (this.HP==0&&(dot.equals("Poison")||dot.equals("Wither"))&&!(this.binaries.contains("Immortal")))
@@ -593,11 +594,11 @@ public abstract class Character
                 //case
                 //return 200;
             
-                case 6: case 9: case 10: case 14: case 19: case 21: case 29: case 33: case 36: case 37:
+                case 6: case 9: case 10: case 14: case 19: case 21: case 29: case 33: case 36: case 37: case 91:
                 return 220;
             
                 case 1: case 2: case 3: case 4: case 5: case 7: case 8: case 11: case 18: case 20: case 23: case 24: case 25: case 34: case 39: case 40: 
-                case 81: case 82: case 84: case 86: case 88:
+                case 81: case 82: case 84: case 86: case 88: case 89: case 90: case 92:
                 return 230;
             
                 case 12: case 13: case 15: case 16: case 17: case 22: case 27: case 28: case 30: case 32: case 35: case 38: case 41:
@@ -686,6 +687,10 @@ public abstract class Character
                 case 86: return "Kraven the Hunter (Classic)";
                 case 87: return "Lizard (Classic)";
                 case 88: return "Scorpion (Modern)";
+                case 89: return "Hydro-Man (Classic)";
+                case 90: return "Carnage (Classic)";
+                case 91: return "Green Goblin (Classic)";
+                case 92: return "Green Goblin (Red Goblin)";
             }    
             return "ERROR. INDEX NUMBER NOT FOUND";
         }
@@ -756,14 +761,14 @@ public abstract class Character
                 case 15: String loo="Gain Regen: 15 for 1 turn when attacked. ";
                 loo+="After taking 180 damage, clear status effects on self and enter Berserker Frenzy, granting +15 damage reduction but making attacks Random Target."; 
                 return loo;
-                case 16: return "On fight start, choose an ally to gain Resistance; when they're attacked, counter for 40 damage. Ignore Evade but take more damage while Burning."; 
-                case 17: return "On kill, gain Focus for 1 turn. Ignore Evade but take more damage while Burning."; 
+                case 16: return "On fight start, choose an ally to gain Resistance; when they're attacked, counter for 40 damage. Ignore Evade but take +5 damage while Burning."; 
+                case 17: return "On kill, gain Focus for 1 turn. Ignore Evade but take +5 damage while Burning."; 
                 case 18: return "Evade all enemy AoE attacks. On turn, gain Evade. While he has Evade, Spider-Man becomes the target when an ally with less HP than him is attacked."; 
                 case 20: return "Attacks against enemies with Tracers are Inescapable."; 
                 case 23: return "Gain immunity to Poison. On turn, when taking 80+ damage, and when attacking, gain 1 E; at 5, Transform into Binary."; 
                 case 24: return "Gain immunity to non-Other status effects. On any turn, lose 1 E to do 5 Elusive damage to all enemies; at 0, Transform into Captain Marvel."; 
                 case 25: String clown="While above 5 C, gain +50% status chance; while below, apply Bleed: 10 for 1 turn and do +15 damage to self and enemies when attacking. ";
-                clown+="Ignore Evade but take more damage while Burning."; 
+                clown+="Ignore Evade but take +5 damage while Burning."; 
                 return clown;
                 case 26: String fool="Gain Shield: 100 on fight start; while active, gain debuff immunity and take -100 damage from attacks that do 100+ damage."; 
                 fool+="\nAttacks ignore targeting effects and apply a 1 turn Shatter or disable debuff based on the target's abilities.";
@@ -785,6 +790,10 @@ public abstract class Character
                 case 83: return "Gain immunity to Bleed, Shock, and Burn. Take -25 damage from attacks that do under 50 damage.";
                 case 85: return "Gain immunity to Debuffs, Buffs, Heal, Defence, and Other. Channelled abilities cannot be interrupted.";
                 case 86: return "Attacks against Snared enemies ignore Invisible, Evade, and Blind.";
+                case 89: return "Gain immunity to Bleed, Burn, and Soaked, but take +10 damage from Shock.";
+                case 90: return "When an enemy gains Bleed, gain Intensify: 5 with equal duration. On kill, gain Focus for 1 turn. Ignore Evade but take +10 damage while Burning."; 
+                case 91: return "Pumpkin Bombs can apply Weakness: 20, Poison: 15, or Target: 10, for 2 turns.";
+                case 92: return "Gain immunity to Burn. On attack, gain Intensify: 5. With 3, ignore Evade; with 5, gain +50% status chance. Lose all Intensify on enemy death.";
                 default: return "This character doesn't have any passive abilities.";
             }    
         }

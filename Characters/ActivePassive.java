@@ -10,6 +10,64 @@ package myMarvelcardgamepack;
 import java.util.ArrayList;
 public class ActivePassive 
 {
+    //2.9: Fearsome Foes of Spider-Man
+    public static void Roblin (Character kasborn, Character spider, String oc)
+    {
+        if (oc.equals("start")) //fightstart
+        {
+            kasborn.immunities.add("Burn"); kasborn.immunities.add("Snare");
+        }
+        else if (oc.equals("attack")&&spider.dead==false) //onattack; don't gain intensify if attack killed its target
+        {
+            IntensifyE pumpkin= new IntensifyE(500, 5, 616); 
+            boolean goal=CoinFlip.Flip(500+kasborn.Cchance);
+            if (goal==true) 
+            StatEff.CheckApply(kasborn, kasborn, pumpkin);
+            else
+            StatEff.applyfail(kasborn, pumpkin, "chance");
+        }
+        else if (oc.equals("gain")) //add; successfuly gaining intensifye from passive
+        {
+            ++kasborn.passivecount; 
+            if (kasborn.passivecount==3)
+            kasborn.ignores.add("Evade");
+            if (kasborn.passivecount==5)
+            kasborn.Cchance+=50;
+        }
+        else if (oc.equals("death")) //enemydeath
+        {
+            ArrayList<StatEff> popcorn= new ArrayList<StatEff>();
+            popcorn.addAll(kasborn.effects);
+            for (StatEff e: popcorn)
+            {
+                if (e.getimmunityname().equals("Intensify")&&e.getefftype().equals("Other"))
+                {
+                    kasborn.remove(e.hashcode, "normal");
+                }
+            }
+            if (kasborn.passivecount>=5)
+            {
+                kasborn.ignores.remove("Evade"); kasborn.Cchance-=50;
+            }
+            else if (kasborn.passivecount>=3)
+            kasborn.ignores.remove("Evade");
+            kasborn.passivecount=0;
+        }
+    }
+    public static void Carnage (Character cletus, int dur) //onenemygain
+    {
+        if (!(cletus.binaries.contains("Stunned")))
+        {
+            IntensifyE john= new IntensifyE(500, 5, dur);
+            boolean goal=CoinFlip.Flip(500+cletus.Cchance);
+            if (goal==true) //if bleed was applied by a teammate or enemy (i.e. on someone else's turn), carriage gains the intensify immediately
+            StatEff.CheckApply(cletus, cletus, john);
+            else
+            StatEff.applyfail(cletus, john, "chance");
+            if (Battle.team1[Battle.P1active]==cletus||Battle.team2[Battle.P2active]==cletus) //but if gained on cottage's turn, it needs +1 dur so it doesn't prematurely tick
+            john.duration++;
+        }
+    }
     //2.1: Sinister 6
     public static void Sandy (Character baker, String o)
     {
@@ -64,7 +122,7 @@ public class ActivePassive
                 {
                     if (chump!=null)
                     {
-                        int damage=10;
+                        int damage=20;
                         damage-=chump.ADR;
                         if (damage<0)
                         damage=0;
@@ -276,7 +334,7 @@ public class ActivePassive
         }
         else if (aoe==true) //called by hero.ontargeted, before he can take dmg
         {
-            if (!(villain.binaries.contains("Missed"))&&!(villain.immunities.contains("Missed"))&&!(villain.ignores.contains("Evade")))
+            if (!(villain.binaries.contains("Missed"))&&!(villain.immunities.contains("Missed"))&&!(villain.ignores.contains("Evade"))&&peter.CheckFor("Soaked", false)==false)
             {
                 if (!(peter.binaries.contains("Shattered"))&&!(peter.binaries.contains("Stunned"))) //conditions that would prevent him from evading
                 {
@@ -302,13 +360,7 @@ public class ActivePassive
     }
     public static void Venom (Character macdonald) //called by hero.onkill
     {
-        boolean yes=CoinFlip.Flip(500+macdonald.Cchance);
-        Focus add= new Focus (500, 1);
-        if (yes==true)
-        StatEff.CheckApply(macdonald, macdonald, add);
-        else
-        StatEff.applyfail(macdonald, add, "chance");
-        add.duration+=1; //to prevent it from instantly expiring when the current turn ends
+        String[] focusi={"Focus", "500", "616", "1", "true"}; String[][] focus=StatFactory.MakeParam(focusi, null); macdonald.activeability.AddTempString(focus);
     }
     public static void OGVenom (Character eddie, Character attacked, Character attacker) //called by hero.onallyattacked
     {
@@ -374,9 +426,9 @@ public class ActivePassive
                 StatEff.CheckApply(wolvie, wolvie, f);
                 else
                 StatEff.applyfail(wolvie, f, "chance");
-                BasicAb slash= new BasicAb ("X-Slash", "random", "enemy", 35); 
+                BasicAb slash= new BasicAb ("X-Slash", "random 1", "enemy", 35); 
                 String[] bleed= {"Bleed", "50", "20", "1", "false"}; String[][] real=StatFactory.MakeParam(bleed, null); slash.AddStatString(real);
-                BasicAb punch =new BasicAb ("Primal Punch", "random", "enemy", 45); 
+                BasicAb punch =new BasicAb ("Primal Punch", "random 1", "enemy", 35); punch.special.add(new Purify(50, 1, "random", "any", true, true));
                 wolvie.abilities[0]=slash;
                 wolvie.abilities[1]=punch;
             }
