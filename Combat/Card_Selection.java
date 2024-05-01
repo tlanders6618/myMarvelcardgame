@@ -34,7 +34,7 @@ public class Card_Selection
             {
                 Cname=Damage_Stuff.GetInput(); 
                 good=false;
-                if (Cname==616||Cname<=0||Cname>88||(Cname>41&&Cname<81)) //updated as more characters are released in each version
+                if (Cname==616||Cname<=0||Cname>92||(Cname>41&&Cname<81)) //updated as more characters are released in each version
                 {
                     System.out.println("Index number not found.");
                 }
@@ -66,7 +66,7 @@ public class Card_Selection
         do
         {
             rename=Damage_Stuff.GetInput();
-            if (rename==616||rename<=0||rename>88||(rename>41&&rename<81))
+            if (rename==616||rename<=0||rename>92||(rename>41&&rename<81))
             {
                 System.out.println("Index number not found.");
             }
@@ -90,14 +90,14 @@ public class Card_Selection
         }
         return true;
     }
-    public static int ChooseTargetFriend (Character[] list) //for targeting allies
+    public static Character ChooseTargetFriend (Character[] list) //for targeting allies
     {
         int targ=616; boolean typo=true;
         for (int i=0; i<6; i++)
         {
             if (list[i]!=null&&list[i].binaries.contains("Banished"))
             {
-                list[i]=null;
+                list[i]=null; //banished heroes cannot be targeted
             }
         } 
         int available=0;
@@ -105,10 +105,10 @@ public class Card_Selection
         {
             if (list[i]!=null&&!(list[i].binaries.contains("Banished")))
             {
-                ++available;
+                ++available; //count number of non banished heroes
             }
         }
-        if (available>0) //the hero must have at least one person they can target, to avoid an infinite loop
+        if (available>0) //the hero must have at least one person they can target
         {
             for (int i=0; i<6; i++)
             {
@@ -133,23 +133,18 @@ public class Card_Selection
             }
             while (typo==true);             
         }
-        return targ;
+        if (targ!=616)
+        return list[targ];
+        else
+        return null;
     }
-    public static Character ChooseTargetFoe (Character hero, Character[] list) //targeting an enemy
+    public static Character[] ChooseTargetFoe (Character hero, Character[] list) //targeting an enemy
     {
         int targ=56; boolean typo=true;
         ArrayList<Character> team=CoinFlip.ToList(list);
         ArrayList<Character> safe=new ArrayList<Character>();
-        ArrayList<Character> remove=new ArrayList<Character>();
-        if (hero.index==20) //since superior spidey only conditionally ignores targeting effects 
-        {
-            for (Character c: list)
-            {
-                if (c.CheckFor("Tracer", false)==true&&c.targetable==true&&!(c.binaries.contains("Banished"))) //inescapable
-                safe.add(c);
-            }
-        }
-        if (hero.activeability!=null) //war machine's passive triggers before he uses any abilities
+        ArrayList<Character> remove=new ArrayList<Character>();        
+        if (hero.activeability!=null) //war machine's passive triggers before he uses any abilities, so null check is needed to avoid nullexception
         {
             for (SpecialAbility s: hero.activeability.special) //has to be called here or else the ignore is applied after target filtering
             {
@@ -186,13 +181,21 @@ public class Card_Selection
             team.removeAll(remove);
             remove.removeAll(remove);
         }
+        if (hero.index==20) //since superior spidey only conditionally ignores targeting effects 
+        {
+            for (Character c: team)
+            {
+                if (c.CheckFor("Tracer", false)==true) //inescapable
+                safe.add(c);
+            }
+        }
         if (team.size()>1&&((hero.team1==true&&Battle.p2solo!=true)||(hero.team1==false&&Battle.p1solo!=true))) 
         {
             for (Character c: team)
             {
                 if (hero.index==86&&c.binaries.contains("Invisible")&&c.CheckFor("Snare", false)==true) //kraven passive
                 {
-                    //don't remove them, but don't add them to safe either; kraven treats snared invisible heroes like normal, meaning he can't target them through provoke/taunt
+                    //don't remove them, but don't add them to safe either; kraven treats snared invisible heroes like normal, so he can't target them through provoke/taunt
                 }
                 else if (!(hero.ignores.contains("Invisible"))&&c.binaries.contains("Invisible"))
                 {
@@ -207,29 +210,25 @@ public class Card_Selection
         }
         if (team.size()>1&&((hero.team1==true&&Battle.p2solo!=true)||(hero.team1==false&&Battle.p1solo!=true))) 
         {
-            if (hero.CheckFor("Terror", false)==true&&!(hero.ignores.contains("Terror")))
+            if (hero.CheckFor("Terror", false)==true&&!(hero.ignores.contains("Terror"))) //terror only works if the one the hero is terrified of isn't alone
             {
-                ArrayList <Integer> afraid= new ArrayList <Integer>(); //terror only works if the one the hero is terrified of isn't alone
+                ArrayList <Character> afraid= new ArrayList <Character>(); 
                 for (StatEff eff: hero.effects)
                 {
                     if (eff.getimmunityname().equalsIgnoreCase("Terror"))
                     {
-                        int h=eff.UseTerrorProvoke();
-                        if (h!=0)
-                        {
-                            Integer a=h; afraid.add(a); //getting and storing the hash of the character who applied terror
-                        }
+                        Character temp=eff.UseTerrorProvoke();
+                        if (temp!=null)
+                        afraid.add(temp); //getting and storing the character who applied terror
                     }
                 } 
                 for (Character c: team)
                 {
-                    for (Integer ig: afraid)
+                    for (Character boy: afraid)
                     {
-                        int h=(int) ig;
-                        if (h==c.hash) //the enemy the hero is terrified of is only untargetable as long as there are other valid targets
+                        if (boy==c&&team.size()-remove.size()>1) //the enemy the hero is terrified of is only untargetable as long as there are other valid targets
                         {
                             remove.add(c); //the hero cannot target the one who terrified them 
-                            break;
                         }
                     }
                 }
@@ -240,37 +239,58 @@ public class Card_Selection
             team.removeAll(remove);
             remove.removeAll(remove);
         }
-        ArrayList <Integer> nafraid= new ArrayList <Integer>();
+        ArrayList <Character> nafraid= new ArrayList <Character>(); 
         if (hero.CheckFor("Provoke", false)==true&&!(hero.ignores.contains("Provoke")))
         {
             for (StatEff eff: hero.effects)
             {
                 if (eff.getimmunityname().equalsIgnoreCase("Provoke"))
                 {
-                    int h=eff.UseTerrorProvoke();
-                    if (h!=0)
-                    {
-                        Integer a=h; nafraid.add(a);
-                    }
+                    Character temp=eff.UseTerrorProvoke();
+                    if (temp!=null)
+                    nafraid.add(temp);
                 }
             } 
+        } 
+        ArrayList<Character> pfriends= new ArrayList<Character>();
+        for (Character c: list)
+        {
+            if (c!=null&&c.team1==hero.team1) //for both/either multitargets; invisible and untargetable don't matter for teammates, but Provoke does
+            {
+                for (Character aggro: nafraid) //if provoked by ally, can only target that ally; if only provoked by enemies, can target any allies
+                {
+                    if (c==aggro)
+                    pfriends.add(c);
+                }
+            }
         }
-        ArrayList <Integer> priority= new ArrayList<Integer>(); //taunt takes priority over provoke
+        if (pfriends.size()>0) //provoked by at least one ally
+        safe.addAll(pfriends);
+        else //provoked by no allies, so can target any of them
+        {
+            for (Character c: list)
+            {
+                if (c!=null&&c.team1==hero.team1) 
+                safe.add(c);
+            }
+        }
+        ArrayList <Character> priority= new ArrayList<Character>(); //taunt takes priority over provoke
         if (!(hero.ignores.contains("Taunt")))
         {
             for (Character target: team)
             {
-                for (StatEff e: target.effects)
+                if (target.team1!=hero.team1) //taunt has no effect on allies
                 {
-                    if (e.getimmunityname().equals("Taunt")&&e.getefftype().equals("Defence")&&!(hero.ignores.contains("Defence")))
+                    for (StatEff e: target.effects)
                     {
-                        int h=target.hash;
-                        Integer a=h; priority.add(a);
-                    }
-                    else if (e.getimmunityname().equals("Taunt")&&e.getefftype().equals("Other"))
-                    {
-                        int h=target.hash;
-                        Integer a=h; priority.add(a);
+                        if (e.getimmunityname().equals("Taunt")&&e.getefftype().equals("Defence")&&!(hero.ignores.contains("Defence")))
+                        {
+                            priority.add(target); break; //stop searching target's effects
+                        }
+                        else if (e.getimmunityname().equals("Taunt")&&e.getefftype().equals("Other"))
+                        {
+                            priority.add(target); break;
+                        }
                     }
                 }
             } 
@@ -281,12 +301,27 @@ public class Card_Selection
             {
                 for (Character c: team)
                 {
-                    for (Integer ig: nafraid)
+                    if (!(nafraid.contains(c)))
                     {
-                        int h= (int) ig;
-                        if (h!=c.hash)
+                        remove.add(c); //can only target the one who applied provoke; remove everyone without it
+                    }
+                }
+                if (team.size()-remove.size()<nafraid.size()) //if provoked by a teammate then add them here, since team normally only contains enemies
+                {
+                    if (hero.team1==true)
+                    {
+                        for (Character c: Battle.team1)
                         {
-                            remove.add(c); //can only target the one who applied provoke
+                            if (nafraid.contains(c))
+                            team.add(c); 
+                        }
+                    }
+                    else
+                    {
+                        for (Character c: Battle.team2)
+                        {
+                            if (nafraid.contains(c))
+                            team.add(c); 
                         }
                     }
                 }
@@ -296,17 +331,8 @@ public class Card_Selection
         {
             for (Character c: team)
             {
-                boolean taunt=false;
-                for (Integer ig: priority)
-                {
-                    int h= (int) ig;
-                    if (h==c.hash)
-                    {
-                        taunt=true; //non taunters cannot be attacked
-                    }
-                }
-                if (taunt==false)
-                remove.add(c);
+                if (!(priority.contains(c)))
+                remove.add(c); //non taunters cannot be targeted
             }
         }
         if (remove.size()>0)
@@ -320,7 +346,7 @@ public class Card_Selection
             team.add(c); //characters who the hero can target due to their conditional inescapable or whatever; simpler to add them back at end than rewrite the normal process
         }
         int i=team.size();
-        Character[] nlist= new Character[i]; //put all valid targets into new array
+        Character[] nlist= new Character[i+1]; //put all valid targets into new array
         for (int h=0; h<i; h++)
         {
             nlist[h]=team.get(h);
@@ -344,7 +370,7 @@ public class Card_Selection
             }
         }
         while (typo==true);
-        Character target=nlist[targ];
-        return target;
+        nlist[i]=nlist[targ]; //player's chosen target is at end of array
+        return nlist; //returns filtered list for sake of multitarget
     }
 }

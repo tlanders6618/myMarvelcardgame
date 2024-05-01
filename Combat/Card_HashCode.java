@@ -5,7 +5,7 @@ package myMarvelcardgamepack;
  * Designer: Timothy Landers
  * Date: 8/8/22
  * Filename: Card_HashCode
- * Purpose: Gives objects unique identifier numbers.
+ * Purpose: Gives objects unique identifier numbers, checks if a hero meets the turn skip criteria, prints ab and passive descriptions, and generates random stateffs.
  */
 public class Card_HashCode
 {
@@ -129,7 +129,7 @@ public class Card_HashCode
                 String[] porridge={"Focus", "500", "616", "2", "true"}; ps=StatFactory.MakeParam(porridge, null);
             }
             break;
-            case "disable debuffs": int choose=1+(int)(Math.random() * ((3 - 1) + 1));
+            case "statdisable debuffs": int choose=1+(int)(Math.random() * ((3 - 1) + 1));
             if (choose==1) 
             {
                 String[] porridge={"Afflicted", "100", "616", "1", "false"}; ps=StatFactory.MakeParam(porridge, null);
@@ -143,18 +143,60 @@ public class Card_HashCode
                 String[] porridge={"Undermine", "100", "616", "1", "false"}; ps=StatFactory.MakeParam(porridge, null);
             }
             break;
+            case "Goblin": int decisivestrike=1+(int)(Math.random() * ((3 - 1) + 1));
+            if (decisivestrike==1) 
+            {
+                String[] porridge={"Weakness", "100", "20", "2", "false"}; ps=StatFactory.MakeParam(porridge, null);
+            }
+            else if (decisivestrike==2) 
+            {
+                String[] porridge={"Poison", "100", "15", "2", "false"}; ps=StatFactory.MakeParam(porridge, null);
+            }
+            else if (decisivestrike==3) 
+            {
+                String[] porridge={"Target", "100", "10", "2", "false"}; ps=StatFactory.MakeParam(porridge, null);
+            }
+            break;
+            case "disable debuffs": int decisive=1+(int)(Math.random() * ((4 - 1) + 1));
+            if (decisive==1) 
+            {
+                String[] porridge={"Afflicted", "100", "616", "1", "false"}; ps=StatFactory.MakeParam(porridge, null);
+            }
+            else if (decisive==2) 
+            {
+                String[] porridge={"Neutralise", "100", "616", "1", "false"}; ps=StatFactory.MakeParam(porridge, null);
+            }
+            else if (decisive==3) 
+            {
+                String[] porridge={"Undermine", "100", "616", "1", "false"}; ps=StatFactory.MakeParam(porridge, null);
+            }
+            else if (decisive==4) 
+            {
+                String[] porridge={"Disarm", "100", "616", "1", "false"}; ps=StatFactory.MakeParam(porridge, null);
+            }
+            break;
         }
         if (hero.activeability!=null&&(Battle.team1[Battle.P1active]==hero||Battle.team2[Battle.P2active]==hero)) //to prevent bugs with assist
         hero.activeability.AddTempString(ps); 
         else
         {
-            if (ps[0][4].equals("true")||hero==target) //don't forget to check application chance first since checkapply doesn't
+            if (ps[0][4].equals("true")||hero==target)
             {
-                StatEff e=StatFactory.MakeStat(ps, hero); StatEff.CheckApply(hero, hero, e); 
+                StatEff e=StatFactory.MakeStat(ps, hero); 
+                boolean go=CoinFlip.Flip(Integer.valueOf(ps[0][1])+hero.Cchance);
+                if (go==true)
+                StatEff.CheckApply(hero, hero, e); 
+                else
+                StatEff.applyfail(hero, e, "chance");
             }
             else 
             {
-                StatEff e=StatFactory.MakeStat(ps, hero); StatEff.CheckApply(hero, target, e);
+                StatEff e=StatFactory.MakeStat(ps, hero); 
+                boolean go=CoinFlip.Flip(Integer.valueOf(ps[0][1])+hero.Cchance);
+                if (go==true)
+                StatEff.CheckApply(hero, target, e); 
+                else
+                StatEff.applyfail(hero, e, "chance");
             }
         }
     }

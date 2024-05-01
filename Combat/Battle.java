@@ -462,15 +462,22 @@ public class Battle
                 }
             }
         }
-        else if (type.equalsIgnoreCase ("random"))
+        else if (type.substring(0, type.length()-2).equalsIgnoreCase ("random")) //substring won't cause any index exception since shortest type is AoE, which has length of 3
         {
-            if (friendly.equalsIgnoreCase("enemy"))
+            int val=Integer.valueOf(type.substring(type.length()-1));
+            if (friendly.equalsIgnoreCase("enemy")) 
             {
-                targets[0]=Ability.GetRandomHero(hero, hero, false, false);
+                for (int i=0; i<val; i++) //get as many random enemies as needed; for heroes like green goblin with multihit attacks where each hit has a different target
+                {
+                    targets[i]=Ability.GetRandomHero(hero, hero, false, false);
+                }
             }
             else if (friendly.equalsIgnoreCase("ally exclusive"))
             {
-                targets[0]=Ability.GetRandomHero(hero, hero, true, false);
+                for (int i=0; i<val; i++)
+                {
+                    targets[i]=Ability.GetRandomHero(hero, hero, true, false);
+                }
             }
         }
         else if (type.equals("lowest"))
@@ -518,11 +525,10 @@ public class Battle
     {
         //used to let player choose target, after accounting for targeting effects
         Character[] targets= new Character[6];
-        Character[] list= new Character[6]; //in future will need method to switch list into size 12 in case of friendly being both or either
+        Character[] list= new Character[12]; //contains targets
         if (friendly.equalsIgnoreCase("enemy"))
         {
-            boolean meat=CoinFlip.TeamFlip(hero.team1);
-            list=Battle.GetTeam(meat); 
+            list=Battle.GetTeam(CoinFlip.TeamFlip(hero.team1));
         }
         else if (friendly.equalsIgnoreCase("ally inclusive"))
         {
@@ -532,32 +538,94 @@ public class Battle
         {
             list=Battle.GetTeammates(hero);
         }
-        System.out.println ("\nChoose a target. Type the number that appears before their name.");
-        if (!(friendly.equalsIgnoreCase("enemy"))) //choosing a teammate
+        else if (friendly.equalsIgnoreCase("both inclusive")||friendly.equalsIgnoreCase("either inclusive"))
         {
-            int select=Card_Selection.ChooseTargetFriend(list);
-            if (select!=616)
+            Character[] pol=Battle.GetTeam(CoinFlip.TeamFlip(hero.team1));
+            Character[] pot=Battle.GetTeam(hero.team1);
+            for (int i=0; i<6; i++)
             {
-                targets[0]=list[select];
+                list[i]=pol[i];
+            }
+            for (int i=0; i<6; i++)
+            {
+                list[i+6]=pot[i];
             }
         }
-        else //choose an enemy after checking targeting effects
+        else if (friendly.equalsIgnoreCase("both exclusive")||friendly.equalsIgnoreCase("either exclusive"))
         {
-            Character select=Card_Selection.ChooseTargetFoe(hero, list);
-            targets[0]=select;
+            Character[] pol=Battle.GetTeam(CoinFlip.TeamFlip(hero.team1));
+            Character[] pot=Battle.GetTeammates(hero);
+            for (int i=0; i<6; i++)
+            {
+                list[i]=pol[i];
+            }
+            for (int i=0; i<6; i++)
+            {
+                list[i+6]=pot[i];
+            }
+        }
+        System.out.println ("\nChoose a target. Type the number that appears before their name."); 
+        if (friendly.equalsIgnoreCase("ally inclusive")||friendly.equalsIgnoreCase("ally exclusive")) //choosing a teammate
+        {
+            targets[0]=Card_Selection.ChooseTargetFriend(list); 
+        }
+        else //choose an enemy after checking targeting effects, or choose a teammate if multitarget both/either; foe works either way
+        {
+            list=Card_Selection.ChooseTargetFoe(hero, list); 
+            targets[0]=list[list.length-1];
         }
         if (type.equalsIgnoreCase("Multitarget"))
         {
-            System.out.println ("Choose a second target. Type the number that appears before their name.");
-            switch (friendly)
+            for (int i=0; i<list.length; i++)
             {
-                case "Both exclusive": break;
-                case "Both inclusive": break;
-                case "Ally inclusive": break;
-                case "Ally exclusive": break;
-                case "Enemy": break;
+                if (list[i]==targets[0]) //character will be in list twice since targets[0] is stored in the last spot of the list
+                {
+                    list[i]=null; //cannot choose same target twice with Multitarget
+                }
             }
-            //targets[1]= the second target
+            boolean valid=false;
+            for (Character c: list)
+            {
+                if (c!=null) //there is at least one valid target remaining
+                {
+                    valid=true; break;
+                }
+            }
+            if (valid==true)
+            {
+                switch (friendly)
+                {
+                    case "both inclusive": case "both exclusive": //both means one target from each team; one friendly and one enemy
+                    if (targets[0].team1==hero.team1) //first target was an ally
+                    {
+                        System.out.println ("Choose a second target. Type the number that appears before their name.");
+                        for (int i=0; i<list.length; i++)
+                        {
+                            if (list[i].team1==hero.team1) //second target must be an enemy, so remove allies from target list
+                            list[i]=null;
+                        }
+                    }
+                    else if (targets[0].team1!=hero.team1&&((hero.team1==true&&p1solo==false)||(hero.team1==false&&p2solo==false))) //first target was an enemy
+                    {
+                        System.out.println ("Choose a second target. Type the number that appears before their name."); //only print message if hero isnt alone on their team
+                        for (int i=0; i<list.length; i++)
+                        {
+                            if (list[i].team1!=hero.team1) //second target must be an ally, so remove enemies from target list
+                            list[i]=null;
+                        }
+                    }
+                    list=Card_Selection.ChooseTargetFoe(hero, list); targets[1]=list[list.length-1];
+                    break;
+                    case "ally inclusive": case "ally exclusive": 
+                    System.out.println ("Choose a second target. Type the number that appears before their name."); 
+                    targets[1]=Card_Selection.ChooseTargetFriend(list); 
+                    break;
+                    case "enemy": case "either inclusive": case "either exclusive": 
+                    System.out.println ("Choose a second target. Type the number that appears before their name."); 
+                    list=Card_Selection.ChooseTargetFoe(hero, list); targets[1]=list[list.length-1];
+                    break;
+                }
+            }
         }
         return targets;
     }
@@ -655,7 +723,7 @@ public class Battle
                 }
                 team1=buck; 
                 team1=NullShift(team1);
-                if (team2[P1active]==snared) 
+                if (team1[P1active]==snared) 
                 Battle.CheckActive(true);
             }
             else //the hero already goes last
@@ -672,8 +740,8 @@ public class Battle
                 {
                     Battle.CheckActive(true); 
                 } 
-                while(team2[P1active]==null); //skip the null slots until the next hero in turn order is located
-                if (team2[P1active]==snared) 
+                while(team1[P1active]==null); //skip the null slots until the next hero in turn order is located
+                if (team1[P1active]==snared) 
                 Battle.CheckActive(true);
             }
         }

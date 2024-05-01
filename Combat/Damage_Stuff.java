@@ -26,13 +26,13 @@ public class Damage_Stuff
             }
             else if (hero.BHP>=dmg) 
             {
-                if (dealer==null)//update barrier strength if dmg was done by dot
+                if (dealer==null) //update barrier strength if dmg was dot, sourceless, or hp loss, since hploss attacks have base dmg of 0 so they don't update barrier in .attacked
                 {
-                    for (StatEff e: hero.effects)
+                    for (StatEff e: hero.effects) //barrier.attacked is already triggered by hero.attacked; so only call it here if hero took dmg when the dealer was null; see above
                     {
-                        if (e.getimmunityname().equals("Barrier")) //attacked is otherwise only triggered when taking dmg from another hero
+                        if (e.getimmunityname().equals("Barrier")) 
                         {
-                            e.Attacked(hero, dealer, dmg); //need barrier to trigger attacked here too in order to adjust its value and avoid bugs
+                            e.Attacked(hero, dealer, dmg); 
                         }
                     }
                 }
@@ -138,7 +138,7 @@ public class Damage_Stuff
     {
         if (!(dealer.binaries.contains("Missed"))&&!(dealer.immunities.contains("Missed"))&&(target.CheckFor("Evade", false)==true||target.CheckFor("Evasion", false)==true))
         {
-            if (!(dealer.ignores.contains("Evade"))&&!(target.binaries.contains("Shattered"))&&!(target.binaries.contains("Stunned")))
+            if (!(dealer.ignores.contains("Evade"))&&!(target.binaries.contains("Shattered"))&&!(target.binaries.contains("Stunned"))&&target.CheckFor("Soaked", false)==false)
             {
                 for (StatEff effect: target.effects)
                 {
