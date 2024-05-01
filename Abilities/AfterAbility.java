@@ -126,6 +126,12 @@ class ActivatePassive extends AfterAbility //ability activates a hero's passive 
                 }
             }
             break;
+            case 89: //hydro man's drown, since the health loss is only conditional
+            if (target.CheckFor("Soaked", false)==true&&!(user.binaries.contains("Missed")))
+            {
+                target.LoseHP (user, 60, "knull");
+            }
+            break;
         }
     }
 }
@@ -865,12 +871,12 @@ class Confidence extends AfterAbility
 }
 class Extend extends AfterAbility
 {
-    String[] effname; //name of eff(s) to extend since mandarin can extend more than just one type
-    String[] efftype; //including nondmging debuffs
     int chance; 
     int number; //of effs to extend
     int turns; //number of turns to extend eff by 
     String type; //whether all effs are extended or just some; chosen or random
+    String[] effname; //name of eff(s) to extend since mandarin can extend more than just one type
+    String[] efftype; //including nondmging debuffs
     boolean together; //true for together and false for separate
     boolean self;
     boolean immortalstun=false; //whether immortality or stun can be extended or not
@@ -926,7 +932,7 @@ class Extend extends AfterAbility
         Self="self";
         else
         Self="the target";
-        this.desc=Chance+Type+Name+"on "+Self+". ";
+        this.desc=Chance+Type+Name+"on "+Self+" by "+turns+" turn(s). ";
     }
     @Override
     public void Use (Character user, Character target, int ignoreme)

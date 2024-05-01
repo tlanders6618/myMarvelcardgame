@@ -56,13 +56,13 @@ class AttackAb extends Ability
         if (printed==false) //whether basicab.printdesc was called or not, since it already prints that it's a basic attack
         System.out.print("Attack ability. "); 
         if (this.lose==true)
-        System.out.print("Causes "+damage+" health loss. ");
+        System.out.print("Causes "+damage+" HP loss. ");
         else if (this.max==true)
         System.out.print("Reduces max HP by "+damage+". ");
         else
         System.out.print("Does "+damage+" damage. ");
         if (this.multihit>0)
-        System.out.print("Multihit. ");
+        System.out.print("Multihit: "+this.omulti+". ");
         super.PrintDesc(false);
     }
     @Override
@@ -228,6 +228,14 @@ class AttackAb extends Ability
             }
             if (aoe==true)
             {
+                for (String[][] array: statstrings) //statstrings are checked once for each of the ab's targets, which would cause effs meant for self to be applied multiple times
+                {  
+                    if (array[0][4].equalsIgnoreCase("true aoe")) //this allows them to only be applied once per ab use
+                    {
+                        StatEff New=StatFactory.MakeStat(array, user); 
+                        toadd.add(New);
+                    }
+                }
                 for (StatEff eff: user.effects) //undo empowerments
                 {
                     if (eff.getimmunityname().equalsIgnoreCase("Empower"))
@@ -462,6 +470,14 @@ class AttackAb extends Ability
             }
             if (aoe==true)
             {
+                for (String[][] array: statstrings) //statstrings are checked once for each of the ab's targets, which would cause effs meant for self to be applied multiple times
+                {  
+                    if (array[0][4].equalsIgnoreCase("true aoe")) //this allows them to only be applied once per ab use
+                    {
+                        StatEff New=StatFactory.MakeStat(array, user); 
+                        toadd.add(New);
+                    }
+                }
                 for (StatEff eff: user.effects) //undo empowerments
                 {
                     if (eff.getimmunityname().equalsIgnoreCase("Empower"))

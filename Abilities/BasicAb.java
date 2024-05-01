@@ -221,6 +221,14 @@ class BasicAb extends AttackAb
             --uses;
             if (aoe==true)
             {
+                for (String[][] array: statstrings) //statstrings are checked once for each of the ab's targets, which would cause effs meant for self to be applied multiple times
+                {  
+                    if (array[0][4].equalsIgnoreCase("true aoe")) //this allows them to only be applied once per ab use
+                    {
+                        StatEff New=StatFactory.MakeStat(array, user); 
+                        toadd.add(New);
+                    }
+                }
                 for (StatEff eff: user.effects) //undo empowerments
                 {
                     if (eff.getimmunityname().equalsIgnoreCase("Empower"))

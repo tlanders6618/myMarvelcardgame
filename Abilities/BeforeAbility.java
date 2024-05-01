@@ -428,7 +428,10 @@ class Boost extends BeforeAbility //for abs with increased stat chance
 }
 class ChooseStat extends BeforeAbility //choose one effect to apply with the ability
 {
-   String[][] choice1; String[][] choice2; String[][] choice3; int choicenum=0;
+   String[][] choice1; 
+   String[][] choice2; 
+   String[][] choice3; 
+   int choicenum=0;
    public ChooseStat(String[][] one, String[][] two, String[][] three)
    {
       choice1=one; choice2=two; choice3=three;
@@ -466,7 +469,7 @@ class ChooseStat extends BeforeAbility //choose one effect to apply with the abi
       {
          choice=Damage_Stuff.GetInput();
       }
-      while (choice>4&&choice<0&&choice>choicenum);       
+      while (choice<=0&&choice>choicenum);       
       if (choice==1)
       {
          hero.activeability.AddTempString(choice1);
@@ -591,7 +594,7 @@ class DamageCounterRemove extends BeforeAbility //increase damage based on numbe
     int amount; //how much extra dmg each stateff grants
     boolean self;
     boolean intense; //whether to add the value of removed buffs to the bonus damage before removing them
-    boolean aoe; 
+    boolean aoe; //if attack is aoe or not; if so, add empowerment
     public DamageCounterRemove(String nname, boolean etype, int namount, boolean self, boolean i, boolean aoe)
     {
         amount=namount; name=nname; type=etype; this.self=self; intense=i; this.aoe=aoe;
@@ -922,11 +925,11 @@ class DebuffMod extends BeforeAbility //for altering the debuffs an ab applies, 
             case 20: //superior
             if (target.CheckFor("Tracer", false)==true)
             {
-                String []akaban={"Countdown", "100", "75", "1", "false"}; String[][] niharu=StatFactory.MakeParam(akaban, null); user.activeability.AddTempString(niharu);
+                String []akaban={"Countdown", "100", "65", "1", "false"}; String[][] niharu=StatFactory.MakeParam(akaban, null); user.activeability.AddTempString(niharu);
             }
             else
             {
-                String []akaban={"Countdown", "100", "65", "1", "false"}; String[][] niharu=StatFactory.MakeParam(akaban, null); user.activeability.AddTempString(niharu);
+                String []akaban={"Countdown", "100", "55", "1", "false"}; String[][] niharu=StatFactory.MakeParam(akaban, null); user.activeability.AddTempString(niharu);
             }
             break;
             case 22: //KK
@@ -1037,7 +1040,7 @@ class DebuffMod extends BeforeAbility //for altering the debuffs an ab applies, 
                 return 30;
             }
             break;
-            case 36: Card_HashCode.RandomStat(user, target, "disable debuffs"); break; //vulture
+            case 36: Card_HashCode.RandomStat(user, target, "statdisable debuffs"); break; //vulture
             case 84: //namor's trident of neptune; giganto must be on his team and alive and unstunned for the assist to work
             if (user.passivefriend[0]!=null&&user.passivefriend[0].summoned==true&&user.passivefriend[0].index==12) //has summoned giganto
             {
@@ -1074,6 +1077,7 @@ class DebuffMod extends BeforeAbility //for altering the debuffs an ab applies, 
                 }
                 return 45;
             }
+            case 91: Card_HashCode.RandomStat(user, target, "Goblin"); break; //green goblin
         }
         return 0;
     }

@@ -61,8 +61,14 @@ public abstract class Ability
         System.out.print("Single target. ");
         else if (this.target.equals("multitarget"))
         System.out.print("Multitarget. ");
-        else if (this.target.equals("random"))
-        System.out.print("Random target. ");
+        else if (this.target.substring(0, this.target.length()-2).equals("random"))
+        {
+            System.out.print("Random target. "); 
+            if (Integer.valueOf(this.target.substring(this.target.length()-1))==2) //random 2
+            System.out.print("Repeat this attack. ");
+            else if (Integer.valueOf(this.target.substring(this.target.length()-1))==3) //random 3
+            System.out.print("Repeat this attack twice. ");
+        }
         else if (this.target.equalsIgnoreCase("aoe"))
         System.out.print("AoE. ");
         else if (this.target.equals("lowest"))
@@ -84,7 +90,7 @@ public abstract class Ability
         for (String[][] e: this.statstrings)
         {
             String a;
-            if (e[0][4].equals("true"))
+            if (e[0][4].equals("true")||e[0][4].equals("true aoe"))
             {
                 if (Integer.valueOf(e[0][1])>=500)
                 a="Gain ";
@@ -238,7 +244,7 @@ public abstract class Ability
                         {
                             otherapply.add(New);
                         }
-                        else
+                        else if (array[0][4].equalsIgnoreCase("knull"))
                         {
                             if (user.hash==chump.hash)
                             {
@@ -261,7 +267,7 @@ public abstract class Ability
                        {
                            otherapply.add(New);
                        }
-                       else
+                       else if (array[0][4].equalsIgnoreCase("knull"))
                        {
                             if (user.hash==chump.hash)
                             {
@@ -309,8 +315,16 @@ public abstract class Ability
                 }
                 --uses;
             }
-            if (aoe==true)
+            if (aoe==true) 
             {
+                for (String[][] array: statstrings) //statstrings are checked once for each of the ab's targets, which would cause effs meant for self to be applied multiple times
+                {  
+                    if (array[0][4].equalsIgnoreCase("true aoe")) //this allows them to only be applied once per ab use
+                    {
+                        StatEff New=StatFactory.MakeStat(array, user); 
+                        toadd.add(New);
+                    }
+                }
                 for (StatEff eff: user.effects) //undo empowerments
                 {
                     if (eff.getimmunityname().equalsIgnoreCase("Empower"))
@@ -343,11 +357,12 @@ public abstract class Ability
         ctargets=targets;
         hero.effects.add(new Tracker ("Channelling "+ab.oname)); //so it's impossible to forget someone is channelling
     }
-    public void InterruptChannelled (Character hero, Ability ab) //same for all non basicabs
+    public void InterruptChannelled (Character hero, Ability ab) //same for all non abs
     {
-        if ((hero.dead==false&&!(hero.immunities.contains("Interrupt")))&&interrupt==false) //death must always interrupt, to avoid channels activating on resurrect
+        if (interrupt==false&&(hero.dead==true||(hero.dead==false&&!(hero.immunities.contains("Interrupt"))))) //death must always interrupt, to avoid channels activating on resurrect
         {
             interrupt=true;
+            if (hero.dead==false)
             System.out.println(hero.Cname+"'s Channelling was interrupted!");
             StatEff remove= null;
             for (StatEff e: hero.effects)
@@ -541,6 +556,14 @@ public abstract class Ability
             }
             if (aoe==true)
             {
+                for (String[][] array: statstrings) //statstrings are checked once for each of the ab's targets, which would cause effs meant for self to be applied multiple times
+                {  
+                    if (array[0][4].equalsIgnoreCase("true aoe")) //this allows them to only be applied once per ab use
+                    {
+                        StatEff New=StatFactory.MakeStat(array, user); 
+                        toadd.add(New);
+                    }
+                }
                 for (StatEff eff: user.effects) //undo empowerments
                 {
                     if (eff.getimmunityname().equalsIgnoreCase("Empower"))
