@@ -38,7 +38,7 @@ public class Hero extends Character
             case 24: ActivePassive.Binary(this); break;
             case 28: StaticPassive.DOOM(this, "turn", this); break;
             case 32: StaticPassive.BB(this, false); break;
-            case 33: StaticPassive.Deadpool(this, "turn", null); break;
+            case 33: StaticPassive.Deadpool(this, "heal", null); break;
             case 35: ActivePassive.Cain(this, "turn", 616); break;
             case 40: ActivePassive.Sandy(this, "turn"); break;
         }
@@ -50,6 +50,7 @@ public class Hero extends Character
         switch (this.index)
         {
             case 12: ActivePassive.DraxOG(this, false, null, null); break;
+            case 13: StaticPassive.Drax(this, null, "turnend"); break;
         }
     }
     @Override
@@ -230,7 +231,7 @@ public class Hero extends Character
         {
             switch (dealer.index)
             {
-                case 13: StaticPassive.Drax(dealer, victim, false); break;
+                case 13: StaticPassive.Drax(dealer, victim, "battack"); break;
                 case 14: ActivePassive.X23(dealer, victim, false, true); break;
                 case 25: StaticPassive.Flash(dealer); break;
                 case 26: int ignore=StaticPassive.MODOC(dealer, victim, "attack", 616); break;
@@ -297,7 +298,7 @@ public class Hero extends Character
         switch (this.index)
         {
             case 12: ActivePassive.DraxOG(this, true, victim, null); break;
-            case 13: StaticPassive.Drax (this, null, false); break;
+            case 13: StaticPassive.Drax (this, null, "onattack"); break;
             case 14: ActivePassive.X23(this, victim, false, false); break;
             case 20: ActivePassive.Superior(this, victim, false); break;
             case 23: StaticPassive.CM(this, false); break;
@@ -474,9 +475,10 @@ public class Hero extends Character
     {
         switch (this.index)
         {
-            case 10: StaticPassive.FurySr(this, newhp); break;
+            case 10: StaticPassive.FurySr(this); break;
             case 31: StaticPassive.Hulk(this, false); break;
             case 35: ActivePassive.Cain(this, "change", oldhp); break;
+            case 94: StaticPassive.Phil(this); break;
         }
     }
     @Override
@@ -511,6 +513,18 @@ public class Hero extends Character
                 this.passivefriend[0].remove(passivecount, "normal"); //remove heat signature detection's target/lethal protector's resistance
                 if (this.index==5)
                 this.passivefriend[0].immunities.remove("Invisible"); //undo heat signature's effects
+                else if (this.index==16) 
+                {
+                    StatEff r=null; //remove the lethal protector tracker
+                    for (StatEff e: this.passivefriend[0].effects)
+                    {
+                        if (e.getefftype().equals("Secret")&&e.geteffname().equals("Watched by Venom (Eddie Brock)"))
+                        { System.out.println("9");
+                            r=e; break;
+                        }
+                    }
+                    this.passivefriend[0].remove(r.hashcode, "silent");
+                }
             }
             break;     
         }
@@ -564,6 +578,7 @@ public class Hero extends Character
             switch (this.index)
             {
                 case 92: ActivePassive.Roblin(this, deadfoe, "death"); break;
+                case 93: ActivePassive.OGHobby(this, killer); break;
             }
         }
         if (killer!=null&&this.hash==killer.hash)
@@ -584,6 +599,24 @@ public class Hero extends Character
     @Override 
     public void onRez (Character healer)
     {
+        switch (this.index)
+        {
+            case 16: 
+            if (this.passivefriend[0].dead==false) //readd tracker that was removed on venom's death
+            this.passivefriend[0].add(new Tracker ("Watched by Venom (Eddie Brock)"));
+            break;
+        }
+    }
+    @Override
+    public void onAllyRez (Character ally, Character healer)
+    {
+        switch (this.index)
+        {
+            case 16: 
+            if (ally==this.passivefriend[0]) //readd tracker that was removed on the ally's death
+            ally.add(new Tracker ("Watched by Venom (Eddie Brock)"));
+            break;
+        }
     }
     @Override
     public void Transform (int newindex, boolean greater) //new index is the index number of the character being transformed into

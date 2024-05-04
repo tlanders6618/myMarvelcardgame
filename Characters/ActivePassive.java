@@ -11,6 +11,30 @@ import java.util.ArrayList;
 public class ActivePassive 
 {
     //2.9: Fearsome Foes of Spider-Man
+    public static void OGHobby (Character kingsley, Character killer) //onenemydeath
+    {
+        if (killer!=null) //occurs even if stunned
+        {
+            if (killer.passivefriend[0]!=null&&killer.passivefriend[0]==kingsley) //all summons save their summoners as passivefriend[0]
+            {
+                kingsley.Healed(100, true);
+                FocusE pumpkin= new FocusE(500, 1); 
+                boolean goal=CoinFlip.Flip(500+kingsley.Cchance);
+                if (goal==true) 
+                StatEff.CheckApply(kingsley, kingsley, pumpkin);
+                else
+                StatEff.applyfail(kingsley, pumpkin, "chance");
+                for (int i=0; i<5; i++)
+                {
+                    if (kingsley.abilities[i]!=null&&!(kingsley.abilities[i] instanceof BasicAb)&&kingsley.abilities[i].dcd>0)
+                    {
+                        System.out.println(kingsley.Cname+"'s "+kingsley.abilities[i].GetAbName(kingsley)+" had its cooldown reset.");
+                        kingsley.abilities[i].CDReduction(100);
+                    }
+                }
+            }
+        }
+    }
     public static void Roblin (Character kasborn, Character spider, String oc)
     {
         if (oc.equals("start")) //fightstart
@@ -38,11 +62,13 @@ public class ActivePassive
         {
             ArrayList<StatEff> popcorn= new ArrayList<StatEff>();
             popcorn.addAll(kasborn.effects);
+            if (kasborn.passivecount>0) //or else there are no effs to remove
+            System.out.println(kasborn.Cname+"'s Intensify Effect(s) expired."); //instead of printing it 3-5+ times (once for each eff), print one message for all of them
             for (StatEff e: popcorn)
             {
                 if (e.getimmunityname().equals("Intensify")&&e.getefftype().equals("Other"))
                 {
-                    kasborn.remove(e.hashcode, "normal");
+                    kasborn.remove(e.hashcode, "silent");
                 }
             }
             if (kasborn.passivecount>=5)

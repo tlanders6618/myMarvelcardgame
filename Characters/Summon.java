@@ -105,32 +105,33 @@ public class Summon extends Character
     }
     public static String AlterSumName (int index, int counter) //adds a number to summon name to avoid confusion; e.g. Thug 1, Thug 2
     {
-        String name;
         switch (index)
         {
-            case 1: name="Nick Fury LMD "+counter+" (Summon)"; break;
-            case 2: name="AIM Rocket Trooper "+counter+" (Summon)";break;
-            case 3: name="AIM Crushbot "+counter+" (Summon)"; break;
-            case 4: name="Ultron Drone "+counter+" (Summon)"; break;
-            case 5: name="Doombot "+counter+" (Summon)"; break;
-            case 6: name="Lesser Demon "+counter+" (Summon)"; break;
-            case 7: name="Holographic Decoy "+counter+" (Summon)"; break;
-            case 8: name="Ice Golem "+counter+" (Summon)"; break;
-            case 9: name="HYDRA Trooper "+counter+" (Summon)"; break;
-            case 10: name="Thug "+counter+" (Summon)"; break;
-            case 11: name="Mirror Image "+counter+" (Summon)"; break;
-            case 12: name="Giganto "+counter+" (Summon)"; break;
-            case 27: name="Spiderling "+counter+" (Summon)"; break;
-            case 28: name="Arachnaught "+counter+" (Summon)"; break;
-            default: name="Error altering Summon name";
+            case 1: return "Nick Fury LMD "+counter+" (Summon)"; 
+            case 2: return "AIM Rocket Trooper "+counter+" (Summon)";
+            case 3: return "AIM Crushbot "+counter+" (Summon)";
+            case 4: return "Ultron Drone "+counter+" (Summon)"; 
+            case 5: return "Doombot "+counter+" (Summon)"; 
+            case 6: return "Lesser Demon "+counter+" (Summon)"; 
+            case 7: return "Holographic Decoy "+counter+" (Summon)"; 
+            case 8: return "Ice Golem "+counter+" (Summon)"; 
+            case 9: return "HYDRA Trooper "+counter+" (Summon)"; 
+            case 10: return "Thug "+counter+" (Summon)";
+            case 11: return "Mirror Image "+counter+" (Summon)"; 
+            case 12: return "Giganto "+counter+" (Summon)"; 
+            case 14: return "Bruin Franchisee "+counter+" (Summon)";
+            case 15: return "Ringer Franchisee "+counter+" (Summon)";
+            case 16: return "Squid Franchisee "+counter+" (Summon)";
+            case 27: return "Spiderling "+counter+" (Summon)";
+            case 28: return "Arachnaught "+counter+" (Summon)"; 
+            default: return "Error altering Summon name";
         }    
-        return name;
     }
     public static int SetSizeSum (int index)
     {
         switch (index)
         {
-            case 12: case 13: case 14: case 15: case 16:
+            case 12: case 14: case 15: case 16: //giganto and franchisees
             return 2;
             default: return 1;
         }
@@ -472,6 +473,10 @@ public class Summon extends Character
     } 
     @Override 
     public void onRez (Character healer)
+    {
+    }
+    @Override
+    public void onAllyRez (Character ally, Character healer)
     {
     }
     @Override

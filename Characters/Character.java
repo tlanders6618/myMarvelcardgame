@@ -1,5 +1,4 @@
 package myMarvelcardgamepack;
-
         
 /**
 * Designer: Timothy Landers
@@ -234,9 +233,8 @@ public abstract class Character
         }
         return amount;
     }
-    public void CheckDrain (Character target, int amount)
+    public void CheckDrain (Character target, int amount) //this is now under the attack method instead of each attackab and basicab
     {
-        //this is now under the attack method instead of each attackab and basicab
         if (this.lifesteal<=0||target.immunities.contains("Drained")||this.binaries.contains("Wounded"))
         {
             //can't heal
@@ -251,12 +249,12 @@ public abstract class Character
             }
             amount=this.GetHealAmount(amount, false);
             if (this.HP<this.maxHP)
-            this.HP+=amount;
-            System.out.println("\n"+this.Cname+" healed themself for "+amount+" health!");
-            if (this.HP>this.maxHP)
             {
-                this.HP=this.maxHP;
+                this.HP+=amount;
+                System.out.println("\n"+this.Cname+" healed themself for "+amount+" health!");
             }
+            if (this.HP>this.maxHP)
+            this.HP=this.maxHP;
             this.HPChange(h, this.HP);
         }
     }
@@ -462,6 +460,7 @@ public abstract class Character
     public abstract void onEnemyDeath (Character deadfoe, Character killer);
     public abstract void onKill (Character victim);
     public abstract void onRez (Character healer); //needs to call hpchange
+    public abstract void onAllyRez (Character ally, Character healer); //to reapply passive bonuses to allies
     public void LoseMaxHP (Character attacker, int lossy)
     {
         if (!(this.immunities.contains("Reduce")))
@@ -524,54 +523,57 @@ public abstract class Character
     }
     public void DOTdmg (int dmg, String type)
     {
-        int knull; //since the take damage methods require return values, this will store them
-        if (type.equalsIgnoreCase("bleed"))
+        if (this.dead==false)
         {
-            dmg=(dmg-this.ADR-this.BlDR); //factoring in damage resistance
-            if (dmg<=0)
-            dmg=0;
-            System.out.println ("\n"+this.Cname+" took "+dmg+" Bleed damage"); 
-            if (dmg>0)
+            int knull; //since the take damage methods require return values, this will store them
+            if (type.equalsIgnoreCase("bleed"))
             {
-                knull=this.TakeDamage(this, dmg, true);
+                dmg=(dmg-this.ADR-this.BlDR); //factoring in damage resistance
+                if (dmg<=0)
+                dmg=0;
+                System.out.println ("\n"+this.Cname+" took "+dmg+" Bleed damage"); 
+                if (dmg>0)
+                {
+                    knull=this.TakeDamage(this, dmg, true);
+                }
             }
-        }
-        else if (type.equalsIgnoreCase("burn"))
-        {
-            dmg=(dmg-this.ADR-this.BuDR);
-            if (dmg<=0)
-            dmg=0;
-            System.out.println ("\n"+this.Cname+" took "+dmg+" Burn damage"); 
-            if (dmg>0)
+            else if (type.equalsIgnoreCase("burn"))
             {
-                knull=this.TakeDamage(this, dmg, true);
+                dmg=(dmg-this.ADR-this.BuDR);
+                if (dmg<=0)
+                dmg=0;
+                System.out.println ("\n"+this.Cname+" took "+dmg+" Burn damage"); 
+                if (dmg>0)
+                {
+                    knull=this.TakeDamage(this, dmg, true);
+                }
             }
-        }
-        else if (type.equalsIgnoreCase("poison"))
-        {
-            dmg=(dmg-this.PoDR);
-            if (dmg<=0)
-            dmg=0;
-            this.LoseHP(null, dmg, "Poison");
-        }
-        else if (type.equalsIgnoreCase("shock"))
-        {
-            dmg=(dmg-this.ADR-this.ShDR);
-            if (dmg<=0)
-            dmg=0;
-            System.out.println ("\n"+this.Cname+" took "+dmg+" Shock damage"); 
-            if (dmg>0)
+            else if (type.equalsIgnoreCase("poison"))
             {
-                knull=this.TakeDamage(this, dmg, true);
-                Ability.DoRicochetDmg(dmg, this, this, true, null);
+                dmg=(dmg-this.PoDR);
+                if (dmg<=0)
+                dmg=0;
+                this.LoseHP(null, dmg, "Poison");
             }
-        }
-        else if (type.equalsIgnoreCase("Wither"))
-        {
-            dmg-=this.WiDR;
-            if (dmg<=0)
-            dmg=0;
-            this.LoseHP(null, dmg, "Wither");
+            else if (type.equalsIgnoreCase("shock"))
+            {
+                dmg=(dmg-this.ADR-this.ShDR);
+                if (dmg<=0)
+                dmg=0;
+                System.out.println ("\n"+this.Cname+" took "+dmg+" Shock damage"); 
+                if (dmg>0)
+                {
+                    knull=this.TakeDamage(this, dmg, true);
+                    Ability.DoRicochetDmg(dmg, this, this, true, null);
+                }
+            }
+            else if (type.equalsIgnoreCase("Wither"))
+            {
+                dmg-=this.WiDR;
+                if (dmg<=0)
+                dmg=0;
+                this.LoseHP(null, dmg, "Wither");
+            }
         }
     }
     public static String GetHP (Character hero)
@@ -594,11 +596,11 @@ public abstract class Character
                 //case
                 //return 200;
             
-                case 6: case 9: case 10: case 14: case 19: case 21: case 29: case 33: case 36: case 37: case 91:
+                case 6: case 9: case 10: case 14: case 19: case 21: case 29: case 33: case 36: case 37: case 91: case 93:
                 return 220;
             
                 case 1: case 2: case 3: case 4: case 5: case 7: case 8: case 11: case 18: case 20: case 23: case 24: case 25: case 34: case 39: case 40: 
-                case 81: case 82: case 84: case 86: case 88: case 89: case 90: case 92:
+                case 81: case 82: case 84: case 86: case 88: case 89: case 90: case 92: case 94:
                 return 230;
             
                 case 12: case 13: case 15: case 16: case 17: case 22: case 27: case 28: case 30: case 32: case 35: case 38: case 41:
@@ -626,6 +628,8 @@ public abstract class Character
                 case 8: return 70;
                 
                 case 4: case 28: return 80;
+                
+                case 14: case 15: case 16: return 120;
             
                 case 12: return 200;
             }   
@@ -691,6 +695,8 @@ public abstract class Character
                 case 90: return "Carnage (Classic)";
                 case 91: return "Green Goblin (Classic)";
                 case 92: return "Green Goblin (Red Goblin)";
+                case 93: return "Hobgoblin (Roderick Kingsley)";
+                case 94: return "Hobgoblin (Phil Urich)";
             }    
             return "ERROR. INDEX NUMBER NOT FOUND";
         }
@@ -710,6 +716,9 @@ public abstract class Character
                 case 10: return "Thug (Summon)"; 
                 case 11: return "Mirror Image (Summon)"; 
                 case 12: return "Giganto (Summon)"; 
+                case 14: return "Bruin Franchisee (Summon)";
+                case 15: return "Ringer Franchisee (Summon)";
+                case 16: return "Squid Franchisee (Summon)";
                 case 27: return "Spiderling (Summon)"; 
                 case 28: return "Arachnaught (Summon)"; 
             }    
@@ -794,10 +803,12 @@ public abstract class Character
                 case 90: return "When an enemy gains Bleed, gain Intensify: 5 with equal duration. On kill, gain Focus for 1 turn. Ignore Evade but take +10 damage while Burning."; 
                 case 91: return "Pumpkin Bombs can apply Weakness: 20, Poison: 15, or Target: 10, for 2 turns.";
                 case 92: return "Gain immunity to Burn. On attack, gain Intensify: 5. With 3, ignore Evade; with 5, gain +50% status chance. Lose all Intensify on enemy death.";
+                case 93: return "On Franchisee kill, regain 100 HP, gain Focus for 1 turn, and reset all cooldowns.";
+                case 94: return "When falling below 130 HP for the first time, gain Focus for 1 turn and reset the cooldown of a chosen ability.";
                 default: return "This character doesn't have any passive abilities.";
             }    
         }
-        else //summon names
+        else //summon 
         {
             switch (index)
             {
@@ -811,7 +822,11 @@ public abstract class Character
                 case 8: return "On Summon and every other turn, Protect an ally for 1 turn. Gain immunity to Bleed, Poison, and Shock; take no Wither damage but take +15 damage from Burn."; 
                 case 9: return "Do +5 damage for each other HYDRA Trooper."; 
                 case 11: return "On Summon, gain Focus and Protect the summoner. Gain immunity to non-Other effects."; 
-                case 12: return "Gain immunity to Persuaded and +20 damage reduction. Lose this damage reduction and gain Stun and Target: 40 for 1 turn after attacking."; 
+                case 12: String son="Gain immunity to Persuaded and +20 damage reduction. Lose this damage reduction and gain Stun and Target: 40 for 1 turn after attacking."; 
+                son+=" Giganto is counted as 2 characters for the purpose of the team size limit."; return son;
+                case 14: return "Bruin is counted as 2 characters for the purpose of the team size limit.";
+                case 15: return "Ringer is counted as 2 characters for the purpose of the team size limit.";
+                case 16: return "Squid is counted as 2 characters for the purpose of the team size limit.";
                 default: return "This character doesn't have any passive abilities.";
             }    
         }

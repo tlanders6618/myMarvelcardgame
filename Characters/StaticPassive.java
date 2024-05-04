@@ -25,6 +25,59 @@ public class StaticPassive
         venom.DV+=vuln;
     }
     //2.9: Fearsome Foes of Spider-Man
+    public static void Phil (Character nye) ///hpchange
+    {
+        if (nye.passivecount==0&&nye.HP<130&&!(nye.binaries.contains("Stunned")))
+        {
+            System.out.println("\nOutburst!");
+            nye.passivecount=1;
+            //gain drain
+            Drain putty= new Drain(500, false, 1); 
+            boolean goal=CoinFlip.Flip(500+nye.Cchance);
+            if (goal==true) 
+            StatEff.CheckApply(nye, nye, putty);
+            else
+            StatEff.applyfail(nye, putty, "chance");
+            //gain focus
+            FocusE pumpkin= new FocusE(500, 1); 
+            goal=CoinFlip.Flip(500+nye.Cchance);
+            if (goal==true) 
+            StatEff.CheckApply(nye, nye, pumpkin);
+            else
+            StatEff.applyfail(nye, pumpkin, "chance");
+            //reset one cd
+            Ability victim=null; 
+            if (nye.team1==true)
+            System.out.println ("\nPlayer 1, choose one of "+nye.Cname+"'s abilities to have its cooldown reset. Type its number, not its name.");
+            else
+            System.out.println ("\nPlayer 2, choose one of "+nye.Cname+"'s abilities to have its cooldown reset. Type its number, not its name.");
+            for (int i=0; i<5; i++)
+            {
+                int a=i+1;
+                if (nye.abilities[i]!=null&&!(nye.abilities[i] instanceof BasicAb))
+                {
+                    System.out.println (a+": "+nye.abilities[i].GetAbName(nye));  
+                }
+            }
+            int choice=-1; boolean good=false;
+            do
+            {
+                choice=Damage_Stuff.GetInput(); 
+                --choice; //to get the index number since the number entered was the ability number
+                if (choice<5&&choice>=0&&nye.abilities[choice]!=null&&!(nye.abilities[choice] instanceof BasicAb))
+                {
+                    good=true;
+                    victim=nye.abilities[choice];
+                }
+            }
+            while (good==false);
+            if (victim.dcd>0)
+            {
+                System.out.println(nye.Cname+"'s "+victim.GetAbName(nye)+" had its cooldown reset.");
+                victim.CDReduction(100);
+            }
+        }
+    }
     public static void Kraven (Character sergei, Character prey, boolean attacking) //beforeattack and onattack
     {
         if (attacking==true&&prey.CheckFor("Snare", false)==true)
@@ -164,16 +217,18 @@ public class StaticPassive
         {
             int dif=banner.maxHP-banner.HP;
             int number=0;
-            if (dif>=50&&dif<100)
+            if (dif>=40&&dif<80)
             number=5;
-            else if (dif>=100&&dif<150)
+            else if (dif>=80&&dif<120)
             number=10;
-            else if (dif>=150&&dif<200)
+            else if (dif>=120&&dif<160)
             number=15;
-            else if (dif>=200&&dif<250)
+            else if (dif>=160&&dif<200)
             number=20;
-            else if (dif>=250&&dif<300) //technically possible with apocalypse, but 300 missing health is impossible so it stops checking here
+            else if (dif>=200&&dif<240) 
             number=25;
+            else if (dif>=240&&dif<280) //more than 280 missing health is currently (4.1) impossible so it stops checking here
+            number=30;
             banner.ADR=number; banner.PBD=number; banner.passivecount=number;
             for (StatEff e: banner.effects) //update rage tracker
             {
@@ -415,42 +470,20 @@ public class StaticPassive
         wolvie.effects.add(frenzy);
         frenzy.onApply(wolvie);
     }
-    public static void Drax (Character arthur, Character target, boolean knife) //in here bc I assume this'll be used once per fight due to its strict requirements
+    public static void Drax (Character arthur, Character target, String time) //in here bc I assume this'll be used once per fight due to its strict requirements
     {
-        if (knife==true) //called by twin blades
+        if (time.equals("knife")) //called by activatep on twin blades
         {
-            arthur.passivecount=1;
+            arthur.passivecount=1; //indicates that twin blades is active, so the next attack should apply its bonuses if possible; if not, wait until an attack does to remove it
         }
-        else if (target==null) //called by hero.onattack; undoes passive after attack finished; onturnend would cause bugs by applying bd to all aoe instead of those with high hp
-        {
-            if (arthur.passivecount==-2)
-            {
-                arthur.passivecount=0;
-                arthur.BD-=30;
-                StatEff bl=null;
-                for (StatEff e: arthur.effects)
-                {
-                    if (e.geteffname().equals("Twin Blades active"))
-                    {
-                        bl=e; break;
-                    }
-                }
-                arthur.remove(bl.hashcode, "silent");
-            }
-            else if (arthur.passivecount==-1)
-            {
-                arthur.passivecount=0;
-                arthur.BD-=15;
-            }
-        }
-        else //activate his passive; called by both hero.beforeattack and knife slash since debuffmod occurs before attacking
+        else if (time.equals("battack")) //activate his passive; called by both hero.beforeattack and knife slash since debuffmod occurs before attacking
         {
             int HP=target.maxHP;
             double tenth=HP*0.75; //75% of target maxhp
-            tenth=5*(int)Math.ceil(tenth/5); //rounded up to nearest multiple of 5
-            if (target.HP>=tenth) //then passive triggers
+            HP=5*(int)Math.ceil(tenth/5.0); //rounded up to nearest multiple of 5
+            if (target.HP>=HP) //then passive triggers
             {
-                if (arthur.passivecount==1) //triggers twice
+                if (arthur.passivecount==1||arthur.passivecount==10) //twin blades
                 {
                     arthur.passivecount=-2;
                     arthur.BD+=30;
@@ -460,6 +493,33 @@ public class StaticPassive
                     arthur.passivecount=-1;
                     arthur.BD+=15;
                 }
+            }
+        }
+        else if (time.equals("onattack")) //hero.onattack; undoes passive bd after attack finished
+        {
+            if (arthur.passivecount==-2) //twin blades active
+            {
+                arthur.passivecount=10; arthur.BD-=30; //instead of 1, becomes 10 to indicate that twin blades was used
+            }
+            else if (arthur.passivecount==-1)
+            {
+                arthur.passivecount=0; arthur.BD-=15;
+            }
+        }
+        else if (time.equals("turnend")&&arthur.activeability!=null&&arthur.activeability!=arthur.abilities[1]) //reset twin blades, but only if he used it already; see below 
+        {
+            if (arthur.passivecount==10) //attacks with twin blades active that didn't trigger it (e.g. against an enemy with 5 HP) shouldn't cause it to be removed
+            {
+                arthur.passivecount=0;
+                StatEff bl=null;
+                for (StatEff e: arthur.effects)
+                {
+                    if (e.geteffname().equals("Twin Blades active"))
+                    {
+                        bl=e; break;
+                    }
+                }
+                arthur.remove(bl.hashcode, "silent");
             }
         }
     }
@@ -484,9 +544,9 @@ public class StaticPassive
         drax.passivecount=1;
         drax.ignores.remove("Invisible");
     }
-    public static void FurySr (Character fury, int hp) //after an hpchange
+    public static void FurySr (Character fury) //after an hpchange
     {
-        if (fury.passivecount==0&&hp<=90&&!(fury.binaries.contains("Stunned")))
+        if (fury.passivecount==0&&fury.HP<=90&&!(fury.binaries.contains("Stunned")))
         {
             Summon lmd= new Summon(1);
             lmd.team1=fury.team1;
