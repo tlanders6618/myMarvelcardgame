@@ -199,7 +199,7 @@ public class Battle
                 hero=champions[P1active];
                 fine=true;
             }
-            if (p2heroes==0) //for abilities like sandman's sandstorm that can potentially kill enemies in-between turns
+            if (p1heroes==0||p2heroes==0) //for abilities like sandman's sandstorm that can potentially kill enemies and end the game in-between turns
             {
                 Scoreboard.UpdateScore(team1, team2);
                 return true;
@@ -271,7 +271,7 @@ public class Battle
                 hero=champions[P2active];
                 fine=true;
             }
-            if (p1heroes==0) //for abilities like sandman's sandstorm that can potentially kill enemies in-between turns
+            if (p1heroes==0||p2heroes==0) //for abilities like sandman's sandstorm that can potentially kill enemies and end the game in-between turns
             {
                 Scoreboard.UpdateScore(team1, team2);
                 return true;
@@ -428,10 +428,16 @@ public class Battle
     }
     public static ArrayList ChooseTarget (Character hero, String friendly, String type) 
     {
-        //friendly means (single) ally, enemy, both, either, self, ally inc(lusive), ally exc(lusive)
+        //friendly means ally, enemy, both inc/exc, either inc/exc, self, ally inc/exc
         //type is single, multi, random, or aoe, fixed
-        Character[] targets= new Character[6];
-        if (type.equalsIgnoreCase("Single")||type.equalsIgnoreCase("Multitarget"))
+        Character[] targets= new Character[12];
+        if (type.equalsIgnoreCase("self"))
+        {
+            ArrayList<Character> me= new ArrayList<Character>();
+            me.add(hero);
+            return me;
+        }
+        else if (type.equalsIgnoreCase("Single")||type.equalsIgnoreCase("Multitarget"))
         {
             targets=Battle.TargetFilter(hero, friendly, type); //standard selection
         }
@@ -459,24 +465,6 @@ public class Battle
                 {
                     ArrayList<Character> knull= new ArrayList<Character>();
                     return knull;
-                }
-            }
-        }
-        else if (type.substring(0, type.length()-2).equalsIgnoreCase ("random")) //substring won't cause any index exception since shortest type is AoE, which has length of 3
-        {
-            int val=Integer.valueOf(type.substring(type.length()-1));
-            if (friendly.equalsIgnoreCase("enemy")) 
-            {
-                for (int i=0; i<val; i++) //get as many random enemies as needed; for heroes like green goblin with multihit attacks where each hit has a different target
-                {
-                    targets[i]=Ability.GetRandomHero(hero, hero, false, false);
-                }
-            }
-            else if (friendly.equalsIgnoreCase("ally exclusive"))
-            {
-                for (int i=0; i<val; i++)
-                {
-                    targets[i]=Ability.GetRandomHero(hero, hero, true, false);
                 }
             }
         }
@@ -509,23 +497,73 @@ public class Battle
             }
             targets[0]=low;
         }
+        else if (type.substring(0, 6).equalsIgnoreCase ("random")) //substring shouldn't cause any index exceptions since it's checked last, after ones like aoe
+        {
+            if (type.substring(7).equals("Bleed")) //prioritises enemies with X; for heroes like phil urich
+            {
+                if (friendly.equalsIgnoreCase("enemy")) 
+                {
+                    boolean bleed=false;
+                    if (hero.team1==true) //check if any enemies even have bleed so it can be prioritised
+                    {
+                        for (Character c: team2) 
+                        {
+                            if (c!=null&&c.CheckFor(type.substring(7), false)==true)
+                            {
+                                bleed=true; break;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        for (Character c: team1)
+                        {
+                            if (c!=null&&c.CheckFor(type.substring(7), false)==true)
+                            {
+                                bleed=true; break;
+                            }
+                        }
+                    }
+                    if (bleed==true) //if someone has bleed, keep getting random enemies until one with bleed is selected to be target
+                    {
+                        Character t=null;
+                        do
+                        {
+                            t=Ability.GetRandomHero(hero, hero, false, false);
+                        }
+                        while (t.CheckFor(type.substring(7), false)==false);
+                        targets[0]=t;
+                    }
+                    else //if no one has bleed, then do normal random target
+                    targets[0]=Ability.GetRandomHero(hero, hero, false, false);
+                }
+            }
+            else //random 1, random 2, etc
+            {
+                int val=Integer.valueOf(type.substring(7));
+                if (friendly.equalsIgnoreCase("enemy")) 
+                {
+                    for (int i=0; i<val; i++) //get as many random enemies as needed; for heroes like green goblin with multihit attacks where each hit has a different target
+                    {
+                        targets[i]=Ability.GetRandomHero(hero, hero, false, false);
+                    }
+                }
+                else if (friendly.equalsIgnoreCase("ally exclusive"))
+                {
+                    for (int i=0; i<val; i++)
+                    {
+                        targets[i]=Ability.GetRandomHero(hero, hero, true, false);
+                    }
+                }
+            }
+        }
         ArrayList toret=CoinFlip.ToList(targets);
-        if (type.equalsIgnoreCase("self"))
-        {
-            ArrayList<Character> me= new ArrayList<Character>();
-            me.add(hero);
-            return me;
-        }
-        else
-        {
-            return toret;
-        }
+        return toret;
     }
-    public static Character[] TargetFilter(Character hero, String friendly, String type)
+    public static Character[] TargetFilter(Character hero, String friendly, String type) //used to let player choose target after accounting for targeting effects
     {
-        //used to let player choose target, after accounting for targeting effects
-        Character[] targets= new Character[6];
-        Character[] list= new Character[12]; //contains targets
+        Character[] list= new Character[12]; //contains all possible targets
+        Character[] targets= new Character[6]; //the one that's returned; contains actual targets
         if (friendly.equalsIgnoreCase("enemy"))
         {
             list=Battle.GetTeam(CoinFlip.TeamFlip(hero.team1));
