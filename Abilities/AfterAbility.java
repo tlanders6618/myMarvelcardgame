@@ -211,7 +211,8 @@ class Amplify extends AfterAbility
                 {
                     for (StatEff e: effs)
                     {
-                        if (e.power<500) //don't affect debuffs like shatter and neutralise with no strength values
+                        if (e.power<500&&(e.getimmunityname().equals(effname)||effname.equals("any"))&&(e.getefftype().equals(efftype)||efftype.equals("any"))) 
+                        //don't amplify effs like neutralise with no strength values
                         {
                             System.out.println(target.Cname+"'s "+e.geteffname()+" had its strength increased by "+pow+"!");
                             e.Nullified(target);

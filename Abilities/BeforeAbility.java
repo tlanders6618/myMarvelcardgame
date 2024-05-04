@@ -31,7 +31,7 @@ class ActivateP extends BeforeAbility //ability activates a hero's passive
         switch (user.index)
         {
             case 11: ActivePassive.FuryJr(user, "activate", false); break; //kill mode activation
-            case 13: StaticPassive.Drax(user, null, true); break; //twin blades activation
+            case 13: StaticPassive.Drax(user, null, "knife"); break; //twin blades activation
             case 23: ++user.passivecount; System.out.println(user.Cname+" gained 1 Energy."); //gain energy when using her abs
             for (StatEff e: user.effects) 
             {
@@ -902,12 +902,12 @@ class DebuffMod extends BeforeAbility //for altering the debuffs an ab applies, 
             Card_HashCode.RandomStat(user, target, "Ultron");
             break;
             case 13: //modern drax
-            StaticPassive.Drax(user, target, false); //check which debuff to apply
+            StaticPassive.Drax(user, target, "battack"); //check which debuff to apply
             if (user.passivecount==-2) //double passive proc
             {
                 String[] bloody= {"Bleed", "100", "65", "2", "false"}; String[][] gore= StatFactory.MakeParam(bloody, null); user.activeability.AddTempString(gore);
             }
-            else if (user.passivecount==-1) //passive proc
+            else if (user.passivecount==-1) //regular passive proc
             {
                 String[] bloody= {"Bleed", "100", "50", "2", "false"}; String[][] gore= StatFactory.MakeParam(bloody, null); user.activeability.AddTempString(gore);
             }
@@ -1207,17 +1207,28 @@ class Ignore extends BeforeAbility
 }
 class SelfDMG extends BeforeAbility
 {
-    int amount;
-    public SelfDMG (int amot)
+    int amount; boolean loss;
+    public SelfDMG (int amot, boolean loss)
     {
-        amount=amot; this.desc="Deals "+amount+" damage to self. ";
+        amount=amot; this.loss=loss;
+        if (loss==false)
+        this.desc="Deals "+amount+" damage to self. ";
+        else
+        this.desc="Lose "+amount+" HP. ";
     }
     @Override
     public int Use (Character hero, Character ignored)
     {
-        amount-=hero.ADR; 
-        System.out.println (hero.Cname+" took "+amount+" damage");
-        hero.TakeDamage(hero, amount, false);
+        if (loss==false)
+        {
+            amount-=hero.ADR; 
+            System.out.println (hero.Cname+" took "+amount+" damage");
+            hero.TakeDamage(hero, amount, false);
+        }
+        else
+        {
+            hero.LoseHP(null, amount, "knull");
+        }
         return 0;
     }
 }

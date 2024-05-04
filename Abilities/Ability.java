@@ -54,25 +54,31 @@ public abstract class Ability
         System.out.print("Affects self. ");
         else if (this.friendly.equals("ally inclusive"))
         System.out.print("Affects allies and/or self. ");
-        else //friendly is both or either
+        else 
         System.out.print("Affects allies and/or enemies. ");
         //target is single, self, multitarg, random, or aoe 
-        if (this.target.equals("single")) 
+        if (this.target.equals("self"))
+        {
+            //stop here and do nothing; also to avoid index exception below
+        }
+        else if (this.target.equals("single")) 
         System.out.print("Single target. ");
         else if (this.target.equals("multitarget"))
         System.out.print("Multitarget. ");
-        else if (this.target.substring(0, this.target.length()-2).equals("random"))
-        {
-            System.out.print("Random target. "); 
-            if (Integer.valueOf(this.target.substring(this.target.length()-1))==2) //random 2
-            System.out.print("Repeat this attack. ");
-            else if (Integer.valueOf(this.target.substring(this.target.length()-1))==3) //random 3
-            System.out.print("Repeat this attack twice. ");
-        }
         else if (this.target.equalsIgnoreCase("aoe"))
         System.out.print("AoE. ");
         else if (this.target.equals("lowest"))
         System.out.print("Targets the character with the lowest HP. ");
+        else if (this.target.substring(0, 6).equals("random")) //should be no problem with index exceptions as long as random target is checked for last
+        {
+            System.out.print("Random target. "); 
+            if (this.target.substring(7).equals("Bleed"))
+            System.out.print("Prioritises enemies with "+this.target.substring(7)+". ");
+            else if (Integer.valueOf(this.target.substring(this.target.length()-1))==2) //random 2
+            System.out.print("Repeat this attack. ");
+            else if (Integer.valueOf(this.target.substring(this.target.length()-1))==3) //random 3
+            System.out.print("Repeat this attack twice. ");
+        }
         if (this.cd>1)
         System.out.print(this.cd+" turn cooldown. ");
         if (this.elusive==true)

@@ -70,6 +70,8 @@ public class Ability_List_Player
             case 90: return MakeAbCabbage(counter);
             case 91: return MakeAbGobby(counter);
             case 92: return MakeAbRoblin(counter);
+            case 93: return MakeAbHobgobby(counter);
+            case 94: return MakeAbUrich(counter);
             default: System.out.println ("Problem getting hero abilities");
         }
         return null;
@@ -88,6 +90,42 @@ public class Ability_List_Player
         }
     }
     //2.9: Fearsome Foes of Spider-Man
+    public static Ability MakeAbUrich (int counter)
+    {
+        switch (counter)
+        {
+            case 0: BasicAb cdart =new BasicAb ("Flying Punch", "single", "enemy", 45); 
+            return cdart;
+            case 1: AttackAb bat= new AttackAb("Razor Bats", "single", "enemy", 15, 3, 1);
+            String[] sting= {"Bleed", "100", "15", "2", "false"}; String[][] sing=StatFactory.MakeParam(sting, null); bat.AddStatString(sing);
+            return bat;
+            case 2: AttackAb darn= new AttackAb ("Lunatic Laugh", "random Bleed", "enemy", 40, 3); darn.special.add(new Amplify(100, "Bleed", "Debuffs", 20, true));
+            return darn;
+            case 3: AttackAb sword= new AttackAb("Flaming Sword", "single", "enemy", 30, 3); sword.together=true;
+            String[] run={"Burn", "100", "30", "2", "false"}; String[][] hide=StatFactory.MakeParam(run, null); sword.AddStatString(hide);
+            String[] lope={"Wound", "100", "616", "2", "false"}; String[][] subprime=StatFactory.MakeParam(lope, null); sword.AddStatString(subprime);
+            return sword;
+            default: return null;
+        }
+    }
+    public static Ability MakeAbHobgobby (int counter)
+    {
+        switch (counter)
+        {
+            case 0: BasicAb cdart =new BasicAb ("Glider Slam", "single", "enemy", 40); 
+            return cdart;
+            case 1: AttackAb lol= new AttackAb("Shock Gloves", "single", "enemy", 90, 3);
+            String[] frozen={"Blind", "100", "616", "1", "false"}; String[][] intime=StatFactory.MakeParam(frozen, null); lol.AddStatString(intime);
+            String[] easygame={"Provoke", "100", "616", "1", "false"}; String[][] easylife=StatFactory.MakeParam(easygame, null); lol.AddStatString(easylife);
+            return lol;
+            case 2: AttackAb jack= new AttackAb("Explosive Jack-o'-Lantern", "single", "enemy", 90, 3);
+            String[] target={"Target", "100", "10", "2", "false"}; String[][] haha=StatFactory.MakeParam(target, null); jack.AddStatString(haha);
+            return jack;
+            case 3: OtherAb french= new OtherAb("Villain Franchisor", "self", "self", 0); french.special.add(new Summoning(14, 15, 16)); french.special.add(new SelfDMG(60, true));
+            return french;
+            default: return null;
+        }
+    }
     public static Ability MakeAbRoblin (int counter)
     {
         switch (counter)
@@ -238,7 +276,7 @@ public class Ability_List_Player
             case 3: HealAb restore= new HealAb("Restore", "single", "ally exclusive", 4); restore.channelled=true; restore.special.add(new Mend(500, 100));
             return restore;
             case 4: HealAb sentinel= new HealAb("Sentinel of the Spaceways", "AoE", "ally exclusive", 4); 
-            sentinel.channelled=true; sentinel.special.add(new Purify(500, 616, "all", "any", false, true)); sentinel.special.add(new Confidence(500, 20)); 
+            sentinel.channelled=true; sentinel.special.add(new Purify(500, 616, "all", "any", false, true)); sentinel.special.add(new Confidence(500, 30)); 
             return sentinel;
             default: return null;
         }
@@ -726,6 +764,7 @@ public class Ability_List_Player
             swarm.desc="100% chance to apply Countdown: 55 for 1 turn(s). If the target has Tracer, apply Countdown: 65 instead.";
             return swarm;
             case 3: OtherAb summon=new OtherAb("Superior Spider", "self", "self", 0); summon.special.add(new Summoning(27));
+            String[] evade={"Evasion", "500", "616", "1", "true"}; String[][] goat=StatFactory.MakeParam(evade, null); summon.AddStatString(goat);
             return summon;
             default: return null;
         }
@@ -835,7 +874,7 @@ public class Ability_List_Player
         {
             case 0: BasicAb headbutt =new BasicAb ("Headbutt", "single", "enemy", 40); 
             return headbutt; 
-            case 1: OtherAb twins= new OtherAb("Twin Blades", "self", "self", 0); twins.desc="Drax's next activation of his passive occurs twice.";
+            case 1: OtherAb twins= new OtherAb("Twin Blades", "self", "self", 0); twins.desc="Drax's next attack that would activate his passive activates it twice.";
             if (copy==false)
             {
                 twins.special.add(new ActivateP()); twins.special.add (new Update (13));
@@ -1017,7 +1056,7 @@ public class Ability_List_Player
             case 1: BuffAb boost= new BuffAb ("Power Boost", "self", "self", 0); 
             String[] Antidisestablishmentarianism={"Intensify", "500", "30", "2", "true"}; String[][] redo=StatFactory.MakeParam(Antidisestablishmentarianism, null);
             String[] rewind={"Debilitate", "500", "15", "2", "true"}; String[][] overpower=StatFactory.MakeParam(rewind, null);
-            boost.AddStatString (redo); boost.AddStatString (overpower); boost.special.add (new SelfDMG (45));
+            boost.AddStatString (redo); boost.AddStatString (overpower); boost.special.add (new SelfDMG (45, false));
             return boost;
             case 2: HealAb recharge= new HealAb ("Recharge", "self", "self", 3); 
             recharge.special.add (new Confidence (500, 30)); recharge.special.add (new Purify (500, 1, "random", "any", true, true));
