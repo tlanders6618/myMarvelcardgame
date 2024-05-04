@@ -48,7 +48,7 @@ public class StatFactory
             case "Disarm": eff=new Disarm (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3])); break;
             case "Disorient": eff=new Disorient (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3])); break;
             case "Disrupt": eff=new Disrupt (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3])); break;
-            case "Drain": eff=new Drain (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][2]), Integer.valueOf(param[0][3])); break;
+            case "Drain": eff=new Drain (Integer.valueOf(param[0][1]), Boolean.valueOf(param[0][2]), Integer.valueOf(param[0][3])); break;
             case "Empower": eff= new Empower(Integer.valueOf(param[0][1]), Integer.valueOf(param[0][2]), Integer.valueOf(param[0][3]), Q.Cname, Q.index); break;
             case "Evade": eff= new Evade (Integer.valueOf(param[0][1])); break;
             case "Evade Effect": eff= new EvadeE (Integer.valueOf(param[0][1])); break;
@@ -101,11 +101,11 @@ class Tracker extends StatEff //displays a character's relevant personal statist
     int info; //value of stat being tracked
     public Tracker(String nname)
     {
-        name=nname; oname=name;
+        name=nname; oname=name; this.hashcode=Card_HashCode.RandomCode();
     }
     public Tracker (String nname, int dur) //for the weaver and kang
     {
-        name=nname; oname=name; this.duration=dur;
+        name=nname; oname=name; this.duration=dur; this.hashcode=Card_HashCode.RandomCode();
     }
     @Override
     public String geteffname()
@@ -121,7 +121,7 @@ class Tracker extends StatEff //displays a character's relevant personal statist
     {
         switch (oname)
         {
-            case "Damage Taken: ": info=target.dmgtaken; name=oname+info; break;
+            case "Damage Taken: ": info=target.dmgtaken; name=oname+info+"/180"; break;
             case "Energy: ": case "Control Points: ": case "Rage: ": case "Electrons: ": case "Momentum: ":
             info=target.passivecount; name=oname+info; 
             break;
@@ -151,7 +151,7 @@ class Tracker extends StatEff //displays a character's relevant personal statist
             }
             else
             {
-                name=(oname+info);
+                name=oname+info+"/180";
             }
             break;
             case "Control Points: ": case "Electrons: ": 
@@ -178,7 +178,7 @@ class Tracker extends StatEff //displays a character's relevant personal statist
             }
             else
             {
-                name=(oname+info);
+                name=oname+info+"/180";
             }
             break;
             case "Energy: ": case "Control Points: ": case "Rage: ":

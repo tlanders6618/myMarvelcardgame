@@ -15,6 +15,7 @@ public abstract class HealEff extends StatEff
 }
 class Drain extends HealEff
 {
+    boolean half;
     @Override
     public String getimmunityname()
     {
@@ -29,33 +30,42 @@ class Drain extends HealEff
     public String geteffname()
     {
         String name="Error fetching Drain name"; //just in case something is wrong with power
-        if (this.power==50)
+        if (this.half==true)
         {
             name="Drain: Half, "+this.duration+" turn(s)";
         }
-        else if (this.power==100)
+        else 
         {
             name="Drain: Full, "+this.duration+" turn(s)";
         }
         return name;
     }
-    public Drain (int nchance, int pow, int ndur) //50 for drain half and 100 for drain full
+    public Drain (int nchance, boolean half, int ndur) //50 for drain half and 100 for drain full
     {
         this.duration=ndur;
         this.oduration=ndur;
         this.chance=nchance;
-        this.power=pow;
+        if (half==false)
+        this.half=false;
+        else 
+        this.half=true;
         this.hashcode=Card_HashCode.RandomCode();
     }
     @Override
     public void onApply (Character target)
     {
-        target.lifesteal+=this.power;
+        if (this.half==true)
+        target.lifesteal+=50;
+        else
+        target.lifesteal+=100;
     }
     @Override
     public void Nullified (Character target)
     {
-        target.lifesteal-=this.power;
+        if (this.half==true)
+        target.lifesteal-=50;
+        else
+        target.lifesteal-=100;
     }
 }
 class Recovery extends HealEff 
