@@ -8,6 +8,7 @@ package myMarvelcardgamepack;
 import java.util.Scanner; import java.util.ArrayList;
 public class Damage_Stuff
 {
+    static boolean print=false; //whether to print that the hero's attack failed to crit; only if crit chance was over 0, as decided below in getcc and getcritdmg
     public static int DamageFormula (Character dealer, Character chump, int dmg)
     {
         int CC=GetCC(dealer, chump);
@@ -15,6 +16,7 @@ public class Damage_Stuff
         dmg=GetCritdmg(dealer, dmg, crit, chump);
         dmg=DamageIncrease(dealer, chump, dmg);
         dmg=DamageDecrease(dealer, crit, chump, dmg);
+        print=false;
         return dmg;
     }
     public static void CheckBarrier (Character hero, Character dealer, int dmg) //called as part of every damage calculation; for taking health dmg 
@@ -72,21 +74,27 @@ public class Damage_Stuff
     public static int GetCC (Character dealer, Character chump) //crit chance
     {
         int CC=dealer.CC;
-        if (CC>0)
+        if (CC>0) //player is expecting (potential) crit if hero's cc is over 0, before accounting for other stateffs, so print something to acknowledge the crit calculation
         {
-            CC+=(chump.CritVul-chump.CritDR);
+            CC+=chump.CritVul; print=true;
         }
+        CC-=chump.CritDR;
         return CC;
     }
     public static int GetCritdmg (Character dealer, int dmg, boolean crit, Character chump) 
     {
-        if (crit==true)
+        if (crit==true) //the attack is a critical hit; damage is increased accordingly
         {
-            //the attack is a critical hit; damage is increased accordingly
+            if (print==true)
             System.out.println(dealer.Cname+"'s attack was critical!");
             double ndmg= dmg*dealer.critdmg;
             dmg=5*(int)(Math.floor(ndmg/5)); //crit damage rounded down to nearest 5
             dealer.onCrit(chump);
+        }
+        else
+        {
+            if (print==true)
+            System.out.println(dealer.Cname+"'s attack failed to crit.");
         }
         return dmg;
     }

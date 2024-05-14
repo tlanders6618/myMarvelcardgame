@@ -46,8 +46,8 @@ public class Scoreboard
         table21.setEnabled(false);
         table11.getTableHeader().setReorderingAllowed(false); 
         table21.getTableHeader().setReorderingAllowed(false);
-        //check for a second set of tables, if needed
-        if (Battle.p1heroes>3)//(team1.length>3)//(Battle.p1heroes>3)
+        //check for a second set of tables, if needed, for summons
+        if (Battle.p1heroes>3)
         {
             row12=GetRows(team1, false);  
             column12=GetColumns(team1, false);
@@ -59,7 +59,7 @@ public class Scoreboard
             Scroll12.setPreferredSize(new Dimension(675,100));   
             BottomPanel.add (Scroll12, BorderLayout.WEST);
         }
-        if (Battle.p2heroes>3)//(team2.length>3)//(Battle.p2heroes>3)
+        if (Battle.p2heroes>3)
         {
             row22=GetRows(team2, false); column22=GetColumns(team2, false);
             table22= new JTable(row22, column22); 
@@ -98,7 +98,7 @@ public class Scoreboard
         //reset first column width
         table11.getColumnModel().getColumn(0).setMinWidth(90); table11.getColumnModel().getColumn(0).setMaxWidth(90);
         table21.getColumnModel().getColumn(0).setMinWidth(90); table21.getColumnModel().getColumn(0).setMaxWidth(90);
-        if (Battle.p1heroes>3)//(team1.length>3)//(Battle.p1heroes>3)
+        if (Battle.p1heroes>3)
         {
             String[][] newrow12=GetRows(team1, false);
             String[] newcolumn12=GetColumns(team1, false);
@@ -121,7 +121,7 @@ public class Scoreboard
         {
             table12.setModel(new DefaultTableModel());
         }
-        if (Battle.p2heroes>3)//(team2.length>3)//(Battle.p2heroes>3)
+        if (Battle.p2heroes>3)
         {
             String[][] newrow22=GetRows(team2, false);
             String[] newcolumn22=GetColumns(team2, false);
@@ -150,14 +150,24 @@ public class Scoreboard
     {
         //first row is team, second is health, third for shield, everything else is stateff
         //format is row then column
-        int max=1; ArrayList <String> manywords= new ArrayList<String>(); int length=champs.length;
+        int max=1; //minimum of one so the status effects label has space to be displayed
+        ArrayList <String> manywords= new ArrayList<String>(); int length=champs.length;
         if (halftocheck==true)
         {
             for (int i=0; i<3; i++)
             {
-                if (champs[i]!=null&&champs[i].effects.size()>max)
+                if (champs[i]!=null) //since the stateff display has been condensed (see bottom of this method), the row count is no longer equivalent to the biggest effects.size
                 {
-                    max=champs[i].effects.size(); //no more rows than there are status effects
+                    ArrayList<String> unique= new ArrayList<String>(); //to avoid creating too many extra rows, now rows are counted based on unique stateffs
+                    for (StatEff e: champs[i].effects) //this is bc ones with the same name are now combined to become (#) effname, and only take up a single row now
+                    {
+                        if (!(unique.contains(e.geteffname())))
+                        {
+                            unique.add(e.geteffname());
+                        }
+                    }
+                    if (unique.size()>max)
+                    max=unique.size(); //no more rows than there are unique status effects
                 }
             } 
         }
@@ -165,13 +175,22 @@ public class Scoreboard
         {
             for (int i=3; i<6; i++)
             {
-                if (champs[i]!=null&&champs[i].effects.size()>max)
+                if (champs[i]!=null) 
                 {
-                    max=champs[i].effects.size(); //no more rows than there are status effects
+                    ArrayList<String> unique= new ArrayList<String>();
+                    for (StatEff e: champs[i].effects) 
+                    {
+                        if (!(unique.contains(e.geteffname())))
+                        {
+                            unique.add(e.geteffname());
+                        }
+                    }
+                    if (unique.size()>max)
+                    max=unique.size(); 
                 }
             } 
         }
-        max+=3; //to make space for the team and shield and health
+        max+=3; //to make space for the team and shield and health labels
         String[][] labels=new String[max][length+1]; //+1 since there's an extra column listing what each row is for
         int counter=1; 
         labels[0][0]="Team"; labels[1][0]="Health"; labels[2][0]="Shield"; labels[3][0]="Status effects";
@@ -258,10 +277,25 @@ public class Scoreboard
             {
                 if (champs[i]!=null)
                 {
-                    for (StatEff eff: champs[i].effects)
+                    ArrayList<String> completed= new ArrayList<String>();
+                    for (StatEff eff: champs[i].effects) 
                     {
-                        labels[statcount][counter]=eff.geteffname();
-                        ++statcount;
+                        String name=eff.geteffname(); int num=1; //scoreboard will no longer simply copy all of a hero's stateffs to be displayed solely bc of Roblin
+                        for (StatEff eff2: champs[i].effects) //condenses stateffs so instead of listing three diferent Bleed: 5's, (3) Bleed: 5 will be shown instead
+                        {
+                            if (eff2!=eff&&eff2.geteffname().equals(name)) //this will improve readability and reduce clutter
+                            {
+                                ++num; //tracks how many identical stateffs there are, not counting the original eff
+                            }
+                        }
+                        if (!(completed.contains(name))) //if (3) Bleed: 5 is already displayed, don't show anymore Bleed: 5's because they're already accounted for
+                        {
+                            completed.add(name); //add the original effname so no duplicates are displayed, as noted above
+                            if (num>1) //turn Bleed: 5 into (3) Bleed: 5
+                            name="("+num+") "+name;
+                            labels[statcount][counter]=name; //display the (3) Bleed: 5
+                            ++statcount;
+                        }
                     }
                 }
                 statcount=3; ++counter;
@@ -273,10 +307,25 @@ public class Scoreboard
             {
                 if (champs[i]!=null)
                 {
-                    for (StatEff eff: champs[i].effects)
+                    ArrayList<String> completed= new ArrayList<String>();
+                    for (StatEff eff: champs[i].effects) 
                     {
-                        labels[statcount][counter]=eff.geteffname();
-                        ++statcount;
+                        String name=eff.geteffname(); int num=1; 
+                        for (StatEff eff2: champs[i].effects) 
+                        {
+                            if (eff2!=eff&&eff2.geteffname().equals(name)) 
+                            {
+                                ++num; 
+                            }
+                        }
+                        if (!(completed.contains(name))) 
+                        {
+                            completed.add(name); 
+                            if (num>1)
+                            name="("+num+") "+name;
+                            labels[statcount][counter]=name; 
+                            ++statcount;
+                        }
                     }
                 }
                 statcount=3; ++counter;

@@ -165,33 +165,14 @@ public class Battle
                     Battle.CheckActive(team);
                 }
             }
-            else if (champions[P1active].binaries.contains("Stunned")) //turn skip, but stateffs still tick
+            else if (champions[P1active].binaries.contains("Stunned")) //turn skip, but stateffs and cds still tick
             {
                 System.out.println ("\n"+champions[P1active].Cname+" skips their turn due to being Stunned.");
-                champions[P1active].onTurn(true);
-                ArrayList<StatEff> modificationexception= new ArrayList<StatEff>(); modificationexception.addAll(champions[P1active].effects);
-                for (StatEff e: modificationexception)
-                {
-                    e.onTurnStart(champions[P1active]);
-                }
+                champions[P1active].onTurnStart(); //tick down all regen and dot effs 
                 if (champions[P1active]!=null) //since dying makes their spot in the team array null, a null check and an alive check are the same thing
-                {
-                    for (StatEff e: modificationexception)
-                    {
-                        e.onTurnEnd(champions[P1active]);
-                    }
-                }
+                champions[P1active].onTurn(true); //activate some passives
                 if (champions[P1active]!=null)
-                {
-                    champions[P1active].onTurnEnd(true);
-                    for (Ability ab: champions[P1active].abilities)
-                    {
-                        if (ab!=null)
-                        {
-                            ab.CDReduction(1);
-                        }
-                    } 
-                }
+                champions[P1active].onTurnEnd(true); //tick down remaining stateffs and reduce cds
                 Battle.CheckActive(team);
             }
             else if (champions[P1active]!=null) //can proceed to their turn
@@ -240,30 +221,11 @@ public class Battle
             else if (champions[P2active].binaries.contains("Stunned"))
             {
                 System.out.println ("\n"+champions[P2active].Cname+" skips their turn due to being Stunned.");
-                champions[P2active].onTurn(true);
-                ArrayList<StatEff> modificationexception= new ArrayList<StatEff>(); modificationexception.addAll(champions[P2active].effects);
-                for (StatEff e: modificationexception)
-                {
-                    e.onTurnStart(champions[P2active]);
-                }
+                champions[P2active].onTurnStart(); //tick down all regen and dot effs 
+                if (champions[P2active]!=null) //since dying makes their spot in the team array null, a null check and an alive check are the same thing
+                champions[P2active].onTurn(true); //activate some passives
                 if (champions[P2active]!=null)
-                {
-                    for (StatEff e: modificationexception)
-                    {
-                        e.onTurnEnd(champions[P2active]);
-                    }
-                }
-                if (champions[P2active]!=null)
-                {
-                    champions[P2active].onTurnEnd(true);
-                    for (Ability ab: champions[P2active].abilities)
-                    {
-                        if (ab!=null)
-                        {
-                            ab.CDReduction(1);
-                        }
-                    } 
-                }
+                champions[P2active].onTurnEnd(true); //tick down remaining stateffs and reduce cds
                 Battle.CheckActive(team);
             }
             else if (champions[P2active]!=null)
@@ -324,28 +286,20 @@ public class Battle
                 return true;
             }
         }
-        ArrayList<StatEff>concurrent= new ArrayList<StatEff>(); //to avoid concurrent modification exception
-        if (hero.effects.size()!=0) //DoT effs tick if they have any
-        {
-            concurrent.addAll(hero.effects);
-            for (StatEff eff: concurrent)
-            {
-                eff.onTurnStart(hero); 
-            }  
-        }   
         Ability activeAb=null;
         ArrayList<Character> targets= new ArrayList<Character>(); //chars to hit with ab
         ArrayList<StatEff> selfadd= new ArrayList<StatEff>(); //status effects for hero to apply to self
-        Scoreboard.UpdateScore(team1, team2);
+        hero.onTurnStart(); //tick down all regen and dot effs 
+        Scoreboard.UpdateScore(team1, team2); //show effects of dot dmg/regen
         if (hero.dead==false) //if they have not died from DoT damage
         {
-            if (bonus==false) //makes distinction between bonus turns and normal turns to avoid quicksilver taking infinite turns
+            if (bonus==false) //makes distinction between bonus turns and normal turns primarily to avoid quicksilver taking infinite turns
             hero.onTurn(true);
             else
             hero.onTurn(false);
             Scoreboard.UpdateScore(team1, team2);
             if (hero.team1==true&&p2heroes==0)
-            return true; //end the game because the enemy team died from a passive or ability, like sandman's sandstorm
+            return true; //end the game because the enemy team died from a passive or channelled ability, e.g. sandman's sandstorm
             else if (hero.team1==false&&p1heroes==0)
             return true; 
             boolean flag=false;
@@ -369,33 +323,17 @@ public class Battle
                     }
                 }
             }
-            ArrayList<StatEff>modexception= new ArrayList<StatEff>(); //to avoid concurrent modification exception
-            if (hero.effects.size()!=0) //if they have any non-DoT stateffs, they tick down
-            {
-                modexception.addAll(hero.effects);
-                for (StatEff eff: modexception)
-                {
-                    eff.onTurnEnd(hero);
-                } 
-            }
-            for (Ability ab: hero.abilities) //after turn end, all the hero's cds tick down
-            {
-                if (ab!=null)
-                {
-                    ab.CDReduction(1);
-                }
-            } 
-            if (hero.dead==false) //finally, hero ends their turn
+            if (hero.dead==false) //finally, hero ends their turn and applies stateffs from their abilities to self
             {
                 if (bonus==false)
-                hero.onTurnEnd(true);             
+                hero.onTurnEnd(true);
                 else
-                hero.onTurnEnd(false);   
-                if (selfadd.size()>0) //if the ab buffs the hero, the effs must be added after their turn end so they don't prematurely tick down
+                hero.onTurnEnd(false);
+                if (selfadd.size()>0&&hero.dead==false) //if the ab buffs the hero, the effs must be added after their turn end so they don't prematurely tick down
                 {
                     for (StatEff eff: selfadd)
                     {
-                        eff.CheckApply(hero, hero, eff);
+                        eff.CheckApply(hero, hero, eff); 
                     }
                 }
             }
