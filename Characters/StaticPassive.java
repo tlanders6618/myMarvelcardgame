@@ -24,6 +24,40 @@ public class StaticPassive
         else
         venom.DV+=vuln;
     }
+    //2.10: Marvellous Mutants
+    //Colossus's passive is so simple, it doesn't deserve its own method; it's under fightstart, add, and remove
+    public static void Frost (Character emma, boolean gain, boolean start)
+    {
+        if (gain==true) //onfightstart and hero.transform
+        {
+            emma.ADR+=15; emma.WiDR+=999;
+            emma.immunities.add("Heal"); emma.immunities.add("Stun"); emma.immunities.add("Control"); emma.immunities.add("Bleed"); 
+            emma.immunities.add("Burn"); emma.immunities.add("Poison"); emma.immunities.add("Shock");
+            ArrayList<StatEff> jail= new ArrayList<StatEff>(); jail.addAll(emma.effects);
+            for (StatEff e: jail)
+            {
+                String n=e.getimmunityname();
+                if (e.getefftype().equals("Heal")||n.equals("Stun")||(e.getalttype().equals("damaging")&&!(n.equals("Countdown")&&!(n.equals("Wither")))))
+                emma.remove(e.hashcode, "normal");
+            }
+            if (start==false) //transforming into diamond form
+            {
+                Taunt elephant=new Taunt (500, 1); //gains taunt due to passive, so anyone transforming into her would gain her passive and thus taunt
+                boolean dew=CoinFlip.Flip(500+emma.Cchance);
+                if (dew==true)
+                StatEff.CheckApply(emma, emma, elephant);
+                else
+                StatEff.applyfail(emma, elephant, "chance");
+                elephant.duration++; //to avoid premature expiry
+            }
+        }
+        else //transforming into telepath form; called by hero.transform
+        {
+            emma.ADR-=15; emma.WiDR-=999;
+            emma.immunities.remove("Heal"); emma.immunities.remove("Stun"); emma.immunities.remove("Control"); emma.immunities.remove("Bleed"); 
+            emma.immunities.remove("Burn"); emma.immunities.remove("Poison"); emma.immunities.remove("Shock");
+        }
+    }
     //2.9: Fearsome Foes of Spider-Man
     public static void Phil (Character nye) ///hpchange
     {
@@ -158,7 +192,7 @@ public class StaticPassive
     {
         if (cause.equals("heal")&&!(wade.binaries.contains("Stunned"))) //onturn
         {
-            wade.Healed(30, true);
+            wade.Healed(30, true, false);
         }
         else if (vic!=null&&cause.equals("kill")) //onkill
         {
@@ -171,7 +205,7 @@ public class StaticPassive
                     {
                         System.out.println(""); t--; //to put space in between kill message and cd reduction, but only once and only if there are any cds to reduce
                     }
-                    System.out.println(a.GetAbName(wade)+" had its cooldown reduced by 1 turn(s).");
+                    System.out.println(wade.Cname+"'s "+a.GetAbName(wade)+" had its cooldown reduced by 1 turn(s).");
                     a.CDReduction(1);
                 }
             }
@@ -395,8 +429,8 @@ public class StaticPassive
     {
         if (in==true)
         {
-            binary.passivecount=10;
-            System.out.println(binary.Cname+" gained 10 Energy.");
+            binary.passivecount=5;
+            System.out.println(binary.Cname+" gained "+binary.passivecount+" Energy.");
             for (StatEff e: binary.effects) //update displayed energy count
             {
                 if (e instanceof Tracker)
@@ -404,11 +438,11 @@ public class StaticPassive
                     e.Attacked(binary, null, 616);
                 }
             }
-            binary.immunities.add("Buffs"); binary.immunities.add("Debuffs"); binary.immunities.add("Heal"); binary.immunities.add("Defence");
+            CoinFlip.StatImmune(binary, true);
             ArrayList<StatEff> r= new ArrayList<StatEff>();
             for (StatEff e: binary.effects)
             {
-                if (!(e instanceof Tracker)&&!(e.getefftype().equals("Other")))
+                if (!(e instanceof Tracker))
                 r.add(e);
             }
             for (StatEff e: r)
@@ -417,15 +451,13 @@ public class StaticPassive
             }
         }
         else //leaving binary state
-        {
-            binary.immunities.remove("Buffs"); binary.immunities.remove("Debuffs"); binary.immunities.remove("Heal"); binary.immunities.remove("Defence");
-        }
+        CoinFlip.StatImmune(binary, false);
     }
     public static void CM (Character carol, boolean start) 
     {
         if (start==true) //fightstart
         {
-            carol.immunities.add("Poison");
+            carol.immunities.add("Poison"); carol.BuDR+=999; carol.ShDR+=999;
             Tracker NRG= new Tracker("Energy: ");
             carol.effects.add(NRG);
             NRG.onApply(carol);
@@ -511,15 +543,18 @@ public class StaticPassive
             if (arthur.passivecount==10) //attacks with twin blades active that didn't trigger it (e.g. against an enemy with 5 HP) shouldn't cause it to be removed
             {
                 arthur.passivecount=0;
-                StatEff bl=null;
-                for (StatEff e: arthur.effects)
+                if (arthur.dead==false) //if he died, effects would already be empty; otherwise, remove twin blades tracker to show it's been used
                 {
-                    if (e.geteffname().equals("Twin Blades active"))
+                    StatEff bl=null;
+                    for (StatEff e: arthur.effects)
                     {
-                        bl=e; break;
+                        if (e.geteffname().equals("Twin Blades active"))
+                        {
+                            bl=e; break;
+                        }
                     }
+                    arthur.remove(bl.hashcode, "silent");
                 }
-                arthur.remove(bl.hashcode, "silent");
             }
         }
     }

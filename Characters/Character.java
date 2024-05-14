@@ -81,6 +81,170 @@ public abstract class Character
         }
         return false;
     }
+    public void onTurnStart () //ticks down stateffs that tick on turnstart, aka dot and regen, so the various types can be printed in a combined message
+    {
+        ArrayList<StatEff> concurrentmodificationexception4electricboogalooboogaloo2= new ArrayList<StatEff>();
+        concurrentmodificationexception4electricboogalooboogaloo2.addAll(this.effects);
+        boolean bleed=false, burn=false, shock=false, poison=false, wither=false, regen=false, wound=false, immune=false;
+        int BlT=0, BuT=0, ShT=0, PoT=0, WiT=0, ReT=0; //total dmg/healing values of the effs
+        for (StatEff e: concurrentmodificationexception4electricboogalooboogaloo2) //gathers aggregate strength of the effs
+        {
+            if (this.effects.contains(e)) //if something like wolvie's frenzy removes the eff from him in the middle of the loop, skip the removed eff 
+            {
+                int dmg=0; //this method condenses dot dmg to one message to reduce clutter; instead of printing "took 5 burn dmg" 5 times, now print "took 25 burn dmg" one time
+                String name=e.getimmunityname(); dmg=e.power-this.ADR; 
+                if (name.equals("Bleed")) 
+                {
+                    dmg-=this.BlDR; BlT+=dmg; //System.out.println("Took "+dmg+" bleed dmg");
+                    if (e.power>0) //due to angel; don't want to print taking 0 damage from an eff with 0 strength bc it's redundant
+                    bleed=true;
+                }
+                else if (name.equals("Burn"))
+                {
+                    dmg-=this.BuDR; BuT+=dmg; //System.out.println("Took "+dmg+" burn dmg");
+                    if (e.power>0) 
+                    burn=true;
+                }
+                else if (name.equals("Shock"))
+                {
+                    dmg-=this.ShDR; ShT+=dmg; //System.out.println("Took "+dmg+" shock dmg");
+                    if (e.power>0) 
+                    shock=true; 
+                }
+                else if (name.equals("Poison"))
+                {
+                    if (!(this.immunities.contains("Lose")))
+                    {
+                        dmg-=this.PoDR; PoT+=dmg; //System.out.println("Took "+dmg+" poison dmg");
+                        if (e.power>0) 
+                        poison=true; 
+                    }
+                    else
+                    {
+                        poison=true; immune=true;
+                    }
+                }
+                else if (name.equals("Wither"))
+                {
+                    if (!(this.immunities.contains("Lose")))
+                    {
+                        dmg-=this.WiDR; WiT+=dmg; //System.out.println("Took "+dmg+" wither dmg");
+                        if (e.power>0) 
+                        wither=true; 
+                    }
+                    else
+                    {
+                        wither=true; immune=true;
+                    }
+                }
+                else if (name.equals("Regen"))
+                {
+                    regen=true; int p=CoinFlip.GetStatCount(this, "Poison", "any"); p*=10; dmg-=p; ReT+=dmg; 
+                }
+                else if (name.equals("Recovery")) //to get accurate number of healing to be printed
+                {
+                    int r=CoinFlip.GetStatCount(this, "Regen", "Heal"); dmg*=r; ReT+=dmg; 
+                }
+                e.onTurnStart(this); //calls onturnstart on the eff to ensure dmg is done in the order the effs were applied, for fairness, instead of as a big lump sum later on
+                if (this.dead==true) //can no longer be healed/take dot dmg, so end loop 
+                break;
+            }
+        }
+        if (BlT<0) //taking negative dmg is not possible, so the printed message must reflect that 
+        BlT=0;
+        if (BuT<0)
+        BuT=0;
+        if (ShT<0)
+        ShT=0;
+        if (PoT<0)
+        PoT=0;
+        if (WiT<0)
+        WiT=0;
+        if (ReT<0)
+        ReT=0;
+        if (bleed==true) //if they had the eff, print how much total dmg/healing they took from it, even if it's 0, to avoid player confusion
+        System.out.println("\n"+this.Cname+" took "+BlT+" Bleed damage."); 
+        if (burn==true)
+        System.out.println("\n"+this.Cname+" took "+BuT+" Burn damage."); 
+        if (shock==true)
+        System.out.println("\n"+this.Cname+" took "+ShT+" Shock damage."); 
+        if (poison==true)
+        {
+            if (immune==true)
+            System.out.println("\n"+this.Cname+" no health from Poison due to an immunity!"); 
+            else
+            System.out.println("\n"+this.Cname+" lost "+PoT+" health from Poison."); 
+        }
+        if (wither==true)
+        {
+            if (immune==true)
+            System.out.println("\n"+this.Cname+" no health from Wither due to an immunity!"); 
+            else
+            System.out.println("\n"+this.Cname+" lost "+WiT+" health from Wither."); 
+        }
+        if (regen==true)
+        {
+            if (this.CheckFor("Wound", false)==true)
+            System.out.println("\n"+this.Cname+" could not be healed due to being Wounded!");
+            else
+            System.out.println("\n"+this.Cname+" was healed for "+ReT+" health!"); 
+        }
+    }
+    public void DOTdmg (int dmg, String type) //take dot dmg
+    {
+        if (this.dead==false)
+        {
+            int knull; //since the take damage methods require return values, this will store them
+            if (type.equalsIgnoreCase("bleed"))
+            {
+                dmg=(dmg-this.ADR-this.BlDR); //factoring in damage resistance
+                /*if (dmg<=0)
+                dmg=0;
+                System.out.println ("\n"+this.Cname+" took "+dmg+" Bleed damage"); */
+                if (dmg>0)
+                {
+                    knull=this.TakeDamage(this, dmg, true);
+                }
+            }
+            else if (type.equalsIgnoreCase("burn"))
+            {
+                dmg=(dmg-this.ADR-this.BuDR);
+                /*if (dmg<=0)
+                dmg=0;
+                System.out.println ("\n"+this.Cname+" took "+dmg+" Burn damage"); */
+                if (dmg>0)
+                {
+                    knull=this.TakeDamage(this, dmg, true);
+                }
+            }
+            else if (type.equalsIgnoreCase("poison"))
+            {
+                dmg=(dmg-this.PoDR);
+                if (dmg<=0)
+                dmg=0;
+                this.LoseHP(null, dmg, "Poison");
+            }
+            else if (type.equalsIgnoreCase("shock"))
+            {
+                dmg=(dmg-this.ADR-this.ShDR);
+                /*if (dmg<=0)
+                dmg=0;
+                System.out.println ("\n"+this.Cname+" took "+dmg+" Shock damage"); */
+                if (dmg>0)
+                {
+                    knull=this.TakeDamage(this, dmg, true);
+                    Ability.DoRicochetDmg(dmg, this, this, true, null);
+                }
+            }
+            else if (type.equalsIgnoreCase("Wither"))
+            {
+                dmg-=this.WiDR;
+                if (dmg<=0)
+                dmg=0;
+                this.LoseHP(null, dmg, "Wither");
+            }
+        }
+    }
     public void onTurn (boolean ignoreme) //onturn passives present in both overridden subclasses; this just notifies allies and enemies the hero took their turn
     {
         ++this.turn;
@@ -102,7 +266,7 @@ public abstract class Character
                 foe.onEnemyTurn(this, this.summoned);
             }
         }
-        if (this.team1==true) //potentially notify dead friends like Phoenix that it's time to revive
+        if (this.team1==true) //notify dead friends like Phoenix that it's potentially time to revive
         {
             for (Character deadlad: Battle.team1dead)
             {
@@ -117,7 +281,23 @@ public abstract class Character
             }
         }
     }
-    public abstract void onTurnEnd (boolean notbonus);
+    public void onTurnEnd (boolean notbonus) //generic turnend function; turnend passives overrride this; tick down stateffs and reduce cds
+    {
+        ArrayList<StatEff> exception= new ArrayList<StatEff>(); exception.addAll(this.effects);
+        for (StatEff e: exception)
+        {
+            if (this.dead==false)
+            e.onTurnEnd(this);
+        }
+        if (this.dead==false) //ab cds reduced at end of turn; if hero dies from dot before turnend, they don't get cd reduction
+        {
+            for (Ability ab: this.abilities)
+            {
+                if (ab!=null)
+                ab.CDReduction(1);
+            } 
+        }
+    }
     public Ability ChooseAb () //called by turn in battle
     {
         if (this.team1==true)
@@ -181,16 +361,18 @@ public abstract class Character
         }
     }
     public abstract void HPChange (int oldhp, int newhp);
-    public void Healed (int regener, boolean passive) //passive refers to the "recover up to X missing health" type of healing abs
+    public void Healed (int regener, boolean passive, boolean regen) //passive refers to the "recover up to X missing health" type of healing abs
     {
         boolean nowound=true; int h=this.HP;
         if (passive==false&&this.immunities.contains("Heal")) //passive healing isn't considered to be a heal ability
         {
+            if (regen==false) //don't print anything for regen; that's already handled by hero.onTurnStart
             System.out.println(this.Cname+" could not be healed due to an immunity!");
             nowound=false;
         }
         else if (passive==false&&this.binaries.contains("Wounded"))
         {
+            if (regen==false)
             System.out.println(this.Cname+" could not be healed due to being Wounded!");
             nowound=false;
         }
@@ -200,9 +382,9 @@ public abstract class Character
             if (regener+this.HP>this.maxHP) //can't have more health than the maximum amount
             regener=this.maxHP-this.HP;
             this.HP+=regener;
-            if (passive==false)
+            if (passive==false&&regen==false)
             System.out.println("\n"+this.Cname+" was healed for "+regener+" health!");
-            else if (passive==true)
+            else if (passive==true&&regen==false)
             System.out.println ("\n"+this.Cname+" regained "+regener+" health!");
             this.HPChange(h, this.HP);
         }
@@ -230,7 +412,7 @@ public abstract class Character
         if (amount<0)
         {
             amount=0;
-        }
+        } 
         return amount;
     }
     public void CheckDrain (Character target, int amount) //this is now under the attack method instead of each attackab and basicab
@@ -485,9 +667,13 @@ public abstract class Character
         if (!(this.immunities.contains("Lose")))
         {
             if (dot.equals("Poison"))
-            System.out.println(this.Cname+" lost "+lossy+" health from Poison!");
+            {
+                //System.out.println(this.Cname+" lost "+lossy+" health from Poison!");
+            }
             else if (dot.equals("Wither"))
-            System.out.println(this.Cname+" lost "+lossy+" health from Wither!");
+            {
+                //System.out.println(this.Cname+" lost "+lossy+" health from Wither!");
+            }
             else
             System.out.println(this.Cname+" lost "+lossy+" health!");
             int h=this.HP;
@@ -514,66 +700,15 @@ public abstract class Character
         else
         {
             if (dot.equals("Poison"))
-            System.out.println(this.Cname+" lost no health from Poison due to an immunity!");
+            {
+                //System.out.println(this.Cname+" lost no health from Poison due to an immunity!");
+            }
             else if (dot.equals("Wither"))
-            System.out.println(this.Cname+" lost no health from Wither due to an immunity!");
+            {
+                //System.out.println(this.Cname+" lost no health from Wither due to an immunity!");
+            }
             else
             System.out.println(attacker.Cname+"'s health loss failed due to"+this.Cname+"'s immunity.");
-        }
-    }
-    public void DOTdmg (int dmg, String type)
-    {
-        if (this.dead==false)
-        {
-            int knull; //since the take damage methods require return values, this will store them
-            if (type.equalsIgnoreCase("bleed"))
-            {
-                dmg=(dmg-this.ADR-this.BlDR); //factoring in damage resistance
-                if (dmg<=0)
-                dmg=0;
-                System.out.println ("\n"+this.Cname+" took "+dmg+" Bleed damage"); 
-                if (dmg>0)
-                {
-                    knull=this.TakeDamage(this, dmg, true);
-                }
-            }
-            else if (type.equalsIgnoreCase("burn"))
-            {
-                dmg=(dmg-this.ADR-this.BuDR);
-                if (dmg<=0)
-                dmg=0;
-                System.out.println ("\n"+this.Cname+" took "+dmg+" Burn damage"); 
-                if (dmg>0)
-                {
-                    knull=this.TakeDamage(this, dmg, true);
-                }
-            }
-            else if (type.equalsIgnoreCase("poison"))
-            {
-                dmg=(dmg-this.PoDR);
-                if (dmg<=0)
-                dmg=0;
-                this.LoseHP(null, dmg, "Poison");
-            }
-            else if (type.equalsIgnoreCase("shock"))
-            {
-                dmg=(dmg-this.ADR-this.ShDR);
-                if (dmg<=0)
-                dmg=0;
-                System.out.println ("\n"+this.Cname+" took "+dmg+" Shock damage"); 
-                if (dmg>0)
-                {
-                    knull=this.TakeDamage(this, dmg, true);
-                    Ability.DoRicochetDmg(dmg, this, this, true, null);
-                }
-            }
-            else if (type.equalsIgnoreCase("Wither"))
-            {
-                dmg-=this.WiDR;
-                if (dmg<=0)
-                dmg=0;
-                this.LoseHP(null, dmg, "Wither");
-            }
         }
     }
     public static String GetHP (Character hero)
@@ -593,18 +728,15 @@ public abstract class Character
         {
             switch (index)
             {
-                //case
-                //return 200;
-            
-                case 6: case 9: case 10: case 14: case 19: case 21: case 29: case 33: case 36: case 37: case 91: case 93:
+                case 6: case 9: case 10: case 14: case 19: case 21: case 29: case 33: case 36: case 37: case 91: case 93: case 95: case 96:
                 return 220;
             
                 case 1: case 2: case 3: case 4: case 5: case 7: case 8: case 11: case 18: case 20: case 23: case 24: case 25: case 34: case 39: case 40: 
-                case 81: case 82: case 84: case 86: case 88: case 89: case 90: case 92: case 94:
+                case 81: case 82: case 84: case 86: case 88: case 89: case 90: case 92: case 94: case 97: case 98:
                 return 230;
             
                 case 12: case 13: case 15: case 16: case 17: case 22: case 27: case 28: case 30: case 32: case 35: case 38: case 41:
-                case 83: case 85: case 87:
+                case 83: case 85: case 87: case 99:
                 return 240;
                 
                 //Special carrots
@@ -697,6 +829,11 @@ public abstract class Character
                 case 92: return "Green Goblin (Red Goblin)";
                 case 93: return "Hobgoblin (Roderick Kingsley)";
                 case 94: return "Hobgoblin (Phil Urich)";
+                case 95: return "Emma Frost (Classic)";
+                case 96: return "Emma Frost (Diamond Form)";
+                case 97: return "Angel (Modern)";
+                case 98: return "Angel (Archangel)";
+                case 99: return "Colossus (Classic)";
             }    
             return "ERROR. INDEX NUMBER NOT FOUND";
         }
@@ -774,8 +911,10 @@ public abstract class Character
                 case 17: return "On kill, gain Focus for 1 turn. Ignore Evade but take +5 damage while Burning."; 
                 case 18: return "Evade all enemy AoE attacks. On turn, gain Evade. While he has Evade, Spider-Man becomes the target when an ally with less HP than him is attacked."; 
                 case 20: return "Attacks against enemies with Tracers are Inescapable."; 
-                case 23: return "Gain immunity to Poison. On turn, when taking 80+ damage, and when attacking, gain 1 E; at 5, Transform into Binary."; 
-                case 24: return "Gain immunity to non-Other status effects. On any turn, lose 1 E to do 5 Elusive damage to all enemies; at 0, Transform into Captain Marvel."; 
+                case 23: String mlb="Gain immunity to Poison and take no damage from Shock or Burn. On turn, when taking 80+ damage, and when attacking, gain 1 E. "; 
+                String blm="At 5 E, lose all status effects and Transform into Binary.";
+                return mlb+blm;
+                case 24: return "Gain immunity to status effects. On any turn, lose 1 E to do 10 Elusive damage to all enemies."; 
                 case 25: String clown="While above 5 C, gain +50% status chance; while below, apply Bleed: 10 for 1 turn and do +15 damage to self and enemies when attacking. ";
                 clown+="Ignore Evade but take +5 damage while Burning."; 
                 return clown;
@@ -787,7 +926,7 @@ public abstract class Character
                 case 30: return "Gain immunity to Poison and Control. Brawn can Nullify Heal and Defence effects, and gains copies of effects he Nullified. ";
                 case 31: return "Gain immunity to Poison, Control, Terror, and Persuaded. Take less and deal more damage for every 50 missing HP.";
                 case 32: return "Every other turn, gain 1 E; lose all when attacking to do +20 damage for each. Gain immunity to Control.";
-                case 33: return "On turn, regain 30 HP. Do +15 damage against Summons and reduce all cooldowns by 1 turn on kill.";
+                case 33: return "On turn, gain 30 HP. Do +15 damage against Summons and reduce all cooldowns by 1 turn on kill.";
                 case 35: String stupid="Gain immunity to Stun and Snare. Gain +10 damage reduction and Control immunity while above 100 HP. "; 
                 stupid+="Gain 1 M on turn and attack (max 5); while at 5, become debuff immune.";
                 return stupid;
@@ -803,8 +942,14 @@ public abstract class Character
                 case 90: return "When an enemy gains Bleed, gain Intensify: 5 with equal duration. On kill, gain Focus for 1 turn. Ignore Evade but take +10 damage while Burning."; 
                 case 91: return "Pumpkin Bombs can apply Weakness: 20, Poison: 15, or Target: 10, for 2 turns.";
                 case 92: return "Gain immunity to Burn. On attack, gain Intensify: 5. With 3, ignore Evade; with 5, gain +50% status chance. Lose all Intensify on enemy death.";
-                case 93: return "On Franchisee kill, regain 100 HP, gain Focus for 1 turn, and reset all cooldowns.";
+                case 93: return "On Franchisee kill, gain 100 HP, gain Focus for 1 turn, and reset all cooldowns.";
                 case 94: return "When falling below 130 HP for the first time, gain Focus for 1 turn and reset the cooldown of a chosen ability.";
+                case 96: return "Gain +15 damage reduction and immunity to Bleed, Poison, Burn, Shock, Stun, Control, and Heal; take no Wither damage. On Transform, gain Taunt for 1 turn.";
+                case 97: return "100% chance to gain Bleed: 0 for 2 turns when taking damage. On turn, gain 15 HP per Bleed on self.";
+                case 98: String str="On attack, flat 50% chance to apply Bleed: 15 for 2 turns and flat 50% chance to apply Poison: 15 for 2 turns.";
+                String train="\nIf the target has 3 Bleed, apply Weakness: 30 for 1 turn and if they have 3 Poison, apply Wound for 1 turn.";
+                return str+train;
+                case 99: return "Gain immunity to Bleed, Burn, and Freeze; with Taunt, incoming attacks have -50% crit chance.";
                 default: return "This character doesn't have any passive abilities.";
             }    
         }

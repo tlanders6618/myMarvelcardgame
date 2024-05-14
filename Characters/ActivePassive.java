@@ -10,14 +10,54 @@ package myMarvelcardgamepack;
 import java.util.ArrayList;
 public class ActivePassive 
 {
+    //2.10: Marvellous Mutants
+    public static void AA (Character aa, Character vic) //onattack
+    {
+        boolean bleed=CoinFlip.Flip(50);
+        if (bleed==true)
+        {
+            String[] blood={"Bleed", "500", "15", "2", "false"}; String[][] rb=StatFactory.MakeParam(blood, null); aa.activeability.AddTempString(rb);
+            //System.out.println("Bleed: "+CoinFlip.GetStatCount(vic, "Bleed", "any"));
+        }
+        if (CoinFlip.GetStatCount(vic, "Bleed", "any")>=3) //must be separate from above or else feather fling doesn't consistently apply the bonus debuff
+        {
+            String[] sick={"Weakness", "500", "30", "1", "false"}; String[][] sickness=StatFactory.MakeParam(sick, null); aa.activeability.AddTempString(sickness);
+        }
+        boolean poison=CoinFlip.Flip(50);
+        if (poison==true)
+        {
+            String[] hemlock={"Poison", "500", "15", "2", "false"}; String[][] hemlocket=StatFactory.MakeParam(hemlock, null); aa.activeability.AddTempString(hemlocket);
+            //System.out.println("Poison: "+CoinFlip.GetStatCount(vic, "Poison", "any"));
+        }
+        if (CoinFlip.GetStatCount(vic, "Poison", "any")>=3) 
+        {
+            String[] dead={"Wound", "500", "616", "1", "false"}; String[][] death=StatFactory.MakeParam(dead, null); aa.activeability.AddTempString(death);
+        }
+    }
+    public static void Angel (Character warren, boolean turn, int dmg)
+    {
+        if (turn==true&&warren.CheckFor("Bleed", false)==true) //onturn; occurs even if stunned; don't want to print "angel was healed for 0 health" if he has no bleeds to heal with
+        {
+            int num=CoinFlip.GetStatCount(warren, "Bleed", "any"); num*=20; warren.Healed(num, true, false);
+        }
+        else if (dmg>0) //both verions of took damage; occurs even if stunned
+        {
+            BleedE bleed= new BleedE(500, 0, 2);
+            boolean it=CoinFlip.Flip(500+warren.Cchance);
+            if (it==true)
+            StatEff.CheckApply(warren, warren, bleed);
+            else
+            StatEff.applyfail(warren, bleed, "chance");
+        }
+    }
     //2.9: Fearsome Foes of Spider-Man
     public static void OGHobby (Character kingsley, Character killer) //onenemydeath
     {
-        if (killer!=null) //occurs even if stunned
+        if (killer!=null) //passive occurs even if stunned
         {
             if (killer.passivefriend[0]!=null&&killer.passivefriend[0]==kingsley) //all summons save their summoners as passivefriend[0]
             {
-                kingsley.Healed(100, true);
+                kingsley.Healed(100, true, false);
                 FocusE pumpkin= new FocusE(500, 1); 
                 boolean goal=CoinFlip.Flip(500+kingsley.Cchance);
                 if (goal==true) 
@@ -283,7 +323,7 @@ public class ActivePassive
     }
     public static void Binary (Character binary) //for consuming energy; onturn, onallyturn, onenemyturn
     {
-        if (binary.dead==false&&!(binary.binaries.contains("Banished"))&&!(binary.binaries.contains("Stunned")))
+        if (binary.dead==false&&!(binary.binaries.contains("Banished"))&&!(binary.binaries.contains("Stunned"))&&binary.passivecount>0)
         {
             binary.passivecount--;
             System.out.println(binary.Cname+" lost 1 Energy.");
@@ -292,7 +332,7 @@ public class ActivePassive
             {
                 if (n!=null)
                 {
-                    int damage=5;
+                    int damage=10;
                     damage-=n.ADR;
                     if (damage<0)
                     damage=0;
@@ -306,15 +346,23 @@ public class ActivePassive
                     e.Attacked(binary, null, 616);
                 }
             }
-        }
-        if (binary.dead==false&&binary.passivecount<=0)
-        {
-            System.out.println(binary.Cname+" ran out of Energy."); binary.Transform(23, false);
+            if (binary.passivecount==0)
+            {
+                System.out.println(binary.Cname+" ran out of Energy."); //binary.Transform(23, false);
+                ArrayList<StatEff> jerker= new ArrayList<StatEff>(); jerker.addAll(binary.effects);
+                for (StatEff e: jerker) //remove tracker since it is useless now that she has no way to gain any energy
+                {
+                    if (e instanceof Tracker && e.geteffname().equals("Energy: 0"))
+                    {
+                        binary.remove(e.hashcode, "silent");
+                    }
+                }
+            }
         }
     }
     public static void CM (Character carol, boolean turn, int dmg)
     {
-        if (turn==true&&!(carol.binaries.contains("Stunned"))&&!(carol.binaries.contains("Banished"))) //onturn
+        if (turn==true&&!(carol.binaries.contains("Stunned"))) //onturn
         {
             System.out.println(carol.Cname+" gained 1 Energy.");
             ++carol.passivecount;
@@ -485,7 +533,7 @@ public class ActivePassive
     }
     public static boolean DraxOG (Character drax, boolean attack, Character victim, String dmgtype) //called by onattack and turnend
     {
-        if (drax==victim) //undying rage was possibly triggered by drax taking lethaldmg
+        if (drax==victim) //onlethaldmg; check if undying rage should be triggered
         {
             if (!(drax.binaries.contains("Stunned"))&&dmgtype.equalsIgnoreCase("dot")) 
             { 
@@ -494,12 +542,12 @@ public class ActivePassive
                     System.out.println("\nDrax's rage is undying!");
                 }
                 drax.binaries.add("Death"); 
-                return false; //whether he dies or not
+                return false; //whether he should die or not
             } 
             else
             return true;
         }
-        else if (attack==false&&drax.binaries.contains("Death")) //turn end after undying rage was triggered
+        else if (attack==false&&drax.dead==false&&drax.binaries.contains("Death")) //onturnend; if undying rage was triggered earlier, he finally dies now
         {
             int deaths=0;
             for (String b: drax.binaries)
@@ -515,7 +563,7 @@ public class ActivePassive
             }
             drax.onDeath(null, "DoT");
         }
-        else if (attack==true) //add one more obsession to the target
+        else if (attack==true) //onattack; add one more obsession to the target
         {
             if (victim==drax.passivefriend[0]&&drax.passivecount<3&&(!(drax.binaries.contains("Missed"))))
             {
@@ -627,15 +675,11 @@ public class ActivePassive
     {
         if (add==true)
         {
-            gam.Cchance+=50;
-            gam.ignores.add("Protect");
-            gam.immunities.add("Steal");
+            gam.Cchance+=50; gam.ignores.add("Protect"); gam.immunities.add("Steal"); gam.ignores.add("Counter");
         }
         else
         {
-            gam.Cchance-=50; 
-            gam.ignores.remove("Protect");
-            gam.immunities.remove("Steal");
+            gam.Cchance-=50; gam.ignores.remove("Protect"); gam.immunities.remove("Steal"); gam.ignores.remove("Counter");
         }
     }
     public static void MoonKnight(Character knight, Character attacked, Character attacker) //called by onallyattacked

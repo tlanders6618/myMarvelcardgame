@@ -249,11 +249,12 @@ public class Summon extends Character
             }
             break;
         }
-        super.onTurn(notbonus);
+        super.onTurn(notbonus); //call onallyturn and onenemyturn
     }
     @Override
     public void onTurnEnd (boolean notbonus)
     {
+        super.onTurnEnd(notbonus); //tick stateffs and reduce cds; passives go beneath, after stateffs have ticked
     }
     @Override
     public void onAllyTurn (Character ally, boolean summoned) //ally is the one triggering call and this is one reacting; true if teammate is a summon
@@ -411,7 +412,7 @@ public class Summon extends Character
         {
             System.out.println(killer.Cname+" killed "+this.Cname);
         }
-        else
+        else //if (!(dmgtype.equalsIgnoreCase("DOT")))
         {
             System.out.println(this.Cname+" has died");
         }

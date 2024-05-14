@@ -41,12 +41,14 @@ public class Hero extends Character
             case 33: StaticPassive.Deadpool(this, "heal", null); break;
             case 35: ActivePassive.Cain(this, "turn", 616); break;
             case 40: ActivePassive.Sandy(this, "turn"); break;
+            case 97: ActivePassive.Angel(this, true, 0); break;
         }
-        super.onTurn(notbonus);
+        super.onTurn(notbonus); //call on allyturn and onenemyturn
     }
     @Override
     public void onTurnEnd (boolean notbonus)
     {
+        super.onTurnEnd(notbonus); //tick stateffs and cds
         switch (this.index)
         {
             case 12: ActivePassive.DraxOG(this, false, null, null); break;
@@ -106,6 +108,8 @@ public class Hero extends Character
             case 85: StaticPassive.Surfer(this); break; 
             case 89: this.immunities.add("Bleed"); this.immunities.add("Burn"); this.immunities.add("Soaked"); this.ShDR-=10; break; //hydro man
             case 92: ActivePassive.Roblin(this, this, "start"); break;
+            case 96: StaticPassive.Frost(this, true, true); break;
+            case 99: this.immunities.add("Bleed"); this.immunities.add("Burn"); this.immunities.add("Freeze"); break; //colossus
         }
     }
     @Override
@@ -128,28 +132,32 @@ public class Hero extends Character
             break;
         }
         this.effects.add(eff);  
-        eff.onApply(this);
+        eff.onApply(this); String name=eff.getimmunityname();
         switch (this.index) //after gaining effect
         {
             case 2: 
-            if (eff.getimmunityname().equals("Intensify")&&eff.getefftype().equals("Buffs"))
+            if (name.equals("Intensify")&&eff.getefftype().equals("Buffs"))
             ActivePassive.Gamora(this, eff, true); 
             break;
             case 16: case 17: case 25:
-            if (eff.getimmunityname().equals("Burn"))
+            if (name.equals("Burn"))
             StaticPassive.Symbiote(this, 5, false);
             break;
             case 40:
-            if (eff.getimmunityname().equals("Burn"))
+            if (name.equals("Burn"))
             ActivePassive.Sandy(this, "burn");
             break;
             case 90:
-            if (eff.getimmunityname().equals("Burn"))
+            if (name.equals("Burn"))
             StaticPassive.Symbiote(this, 10, false);
             break;
             case 92:
-            if (eff.getimmunityname().equals("Intensify")&&eff.getefftype().equals("Other")&&eff.power==5)
+            if (name.equals("Intensify")&&eff.getefftype().equals("Other")&&eff.power==5)
             ActivePassive.Roblin(this, this, "gain");
+            break;
+            case 99:
+            if (name.equals("Taunt"))
+            this.CritDR+=50;
             break;
         }
         Character[] foes=Battle.GetTeam(CoinFlip.TeamFlip(this.team1));
@@ -197,6 +205,10 @@ public class Hero extends Character
                     case 90:
                     if (name.equals("Burn"))
                     StaticPassive.Symbiote(this, -10, false);
+                    break;
+                    case 99:
+                    if (name.equals("Taunt"))
+                    this.CritDR-=50;
                     break;
                 }    
                 break; //end the for each loop
@@ -306,6 +318,7 @@ public class Hero extends Character
             case 35: ActivePassive.Cain(this, "attack", 616); break;
             case 86: StaticPassive.Kraven(this, victim, false); break;
             case 92: ActivePassive.Roblin(this, victim, "attack"); break;
+            case 98: ActivePassive.AA(this, victim); break;
         }
     }
     @Override
@@ -445,6 +458,7 @@ public class Hero extends Character
             switch (hero.index)
             {
                 case 15: ActivePassive.Wolvie(hero, false); break;
+                case 97: ActivePassive.Angel(hero, false, dmg); break;
             }
         }
     }
@@ -467,6 +481,7 @@ public class Hero extends Character
             {
                 case 15: ActivePassive.Wolvie(hero, false); break;
                 case 23: ActivePassive.CM(hero, false, dmg); break;
+                case 97: ActivePassive.Angel(hero, false, dmg); break;
             }
         }
     }
@@ -501,7 +516,7 @@ public class Hero extends Character
         {
             System.out.println(killer.Cname+" killed "+this.Cname);
         }
-        else
+        else //if (!(dmgtype.equalsIgnoreCase("DOT"))) 
         {
             System.out.println(this.Cname+" has died");
         }
@@ -519,7 +534,7 @@ public class Hero extends Character
                     for (StatEff e: this.passivefriend[0].effects)
                     {
                         if (e.getefftype().equals("Secret")&&e.geteffname().equals("Watched by Venom (Eddie Brock)"))
-                        { System.out.println("9");
+                        {
                             r=e; break;
                         }
                     }
@@ -682,15 +697,17 @@ public class Hero extends Character
                     this.remove(eff.hashcode, "normal"); 
                 }
             }
-            switch (this.index) //for getting rid of immunities when undoing transformation
+            switch (this.index) //for getting rid of immunities when exiting a transformed form
             {
                 case 24: StaticPassive.Binary(this, false); break;
+                case 96: StaticPassive.Frost(this, false, false); break;
             }
             this.index=newindex; 
             this.pdesc=Character.MakeDesc(newindex, false);
-            switch (this.index) //for gaining immunities when transforming
+            switch (this.index) //for gaining immunities when becoming a new character
             {
                 case 24: StaticPassive.Binary(this, true); break;
+                case 96: StaticPassive.Frost(this, true, false); break;
             }
         }
         else
