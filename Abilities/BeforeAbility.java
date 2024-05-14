@@ -32,13 +32,13 @@ class ActivateP extends BeforeAbility //ability activates a hero's passive
         {
             case 11: ActivePassive.FuryJr(user, "activate", false); break; //kill mode activation
             case 13: StaticPassive.Drax(user, null, "knife"); break; //twin blades activation
-            case 23: ++user.passivecount; System.out.println(user.Cname+" gained 1 Energy."); //gain energy when using her abs
+            /*case 23: ++user.passivecount; System.out.println(user.Cname+" gained 1 Energy."); //gain energy when using her abs
             for (StatEff e: user.effects) 
             {
                 if (e instanceof Tracker)
                 e.Attacked(user, null, 616);
             }
-            break;
+            break;*/
             case 39: StatEff delete=null; //electro's shocking touch 
             for (StatEff e: user.effects)
             {

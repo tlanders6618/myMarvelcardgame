@@ -88,39 +88,42 @@ public abstract class Ability
         if (this.singleuse==true)
         System.out.print("Single use. ");
         if (this.multiuse>0)
-        System.out.print("Multiuse. ");
+        System.out.print("Multiuse: "+this.multiuse+". ");
         if (this.control==true)
         System.out.print("Control. ");
         if (this.unbound==true)
         System.out.print("Unbound. ");
         for (String[][] e: this.statstrings)
         {
-            String a;
-            if (e[0][4].equals("true")||e[0][4].equals("true aoe"))
+            if (!(e[0][0].equals("Empower"))) //empower descriptions must be done manually due to their wide range of effects; they don't fit the regular format
             {
-                if (Integer.valueOf(e[0][1])>=500)
-                a="Gain ";
+                String a;
+                if (e[0][4].equals("true")||e[0][4].equals("true aoe"))
+                {
+                    if (Integer.valueOf(e[0][1])>=500)
+                    a="Gain ";
+                    else
+                    a=e[0][1]+"% chance to gain ";
+                }
                 else
-                a=e[0][1]+"% chance to gain ";
+                {
+                    if (Integer.valueOf(e[0][1])>=500)
+                    a="Applies ";
+                    else
+                    a=e[0][1]+"% chance to apply ";
+                }
+                String s="";
+                if (Integer.valueOf(e[0][2])<616) //only print strength if it has one
+                s=s+": "+e[0][2];
+                if (Integer.valueOf(e[0][3])<616) //same for turns
+                {
+                    /*if (e[0][0].equals("Empower"))
+                    s=s+" for "+e[0][3]+" use(s)";
+                    else*/
+                    s=s+" for "+e[0][3]+" turn(s)";
+                }
+                System.out.print(a+e[0][0]+s+". ");
             }
-            else
-            {
-                if (Integer.valueOf(e[0][1])>=500)
-                a="Applies ";
-                else
-                a=e[0][1]+"% chance to apply ";
-            }
-            String s="";
-            if (Integer.valueOf(e[0][2])<616) //only print strength if it has one
-            s=s+": "+e[0][2];
-            if (Integer.valueOf(e[0][3])<616) //same for turns
-            {
-                if (e[0][0].equals("Empower"))
-                s=s+" for "+e[0][3]+" use(s)";
-                else
-                s=s+" for "+e[0][3]+" turn(s)";
-            }
-            System.out.print(a+e[0][0]+s+". ");
         }
         for (SpecialAbility a: this.special)
         {
@@ -578,6 +581,12 @@ public abstract class Ability
                     }
                 }
             }
+            ArrayList<StatEff> errands= new ArrayList<StatEff>(); errands.addAll(user.effects);
+            for (StatEff eff: errands) //even though empowers won't activate again once used, they only expire onturnend
+            {
+                if (eff.getimmunityname().equalsIgnoreCase("Empower"))
+                eff.onTurnEnd(user); //removes used up empowerments from scoreboard after channelled ab use, to avoid confusion/the appearance of a bug
+            }
         }
         //don't go on cooldown bc useab already took care of it
         return toadd;
@@ -641,9 +650,9 @@ public abstract class Ability
                 System.out.println ("\n"+villain.Cname+" took "+dmg+" Ricochet damage"); 
                 villain.TakeDamage(villain, dmg, false); //random enemy takes the damage
             }
-            if (e!=null&&villain.dead==false)
+            if (e!=null)
             {
-                if (e[0][4].equals("false"))
+                if (e[0][4].equals("false")&&villain.dead==false)
                 {
                     StatEff effect=StatFactory.MakeStat(e, user);
                     StatEff.CheckApply(user, villain, effect);
@@ -659,16 +668,17 @@ public abstract class Ability
     public static Character GetRandomHero(Character hero, Character targ, boolean shock, boolean ricochet) //hero is the character calling the method
     {
         //Determine team of the caller
-        boolean team=hero.team1; 
-        if (shock==false) //get the hero's enemies; but if shock is true, leave team as is and get the hero's team for a random teammate
-        {
-            team=CoinFlip.TeamFlip(team);
-        }
+        boolean team=hero.team1;
+        if (ricochet==true&&shock==false) //called by ricochet from an attack; to avoid ricocheting the wrong target if performing an assist on an ally
+        team=targ.team1;
+        else if (shock==false) //need to get one of the hero's enemies; but if shock is true, leave team as is and get the hero's team for a random teammate
+        team=CoinFlip.TeamFlip(team);
         boolean solo;
         if (team==true)
         solo=Battle.p1solo;
         else        
         solo=Battle.p2solo;
+        //Then move on to getting the enemy
         if ((ricochet==true&&solo==false)||ricochet==false) //there must be more than one person on the target's team, or else there's no one to hurt with the ricochet
         {
             //Determine the caller's enemies or teammates

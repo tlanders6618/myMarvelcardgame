@@ -89,7 +89,7 @@ class Chain extends SpecialAbility //both chain and multichain have been merged 
         }
         if ((multi==true&&victim.dead==true&&user.dead==false&&targets.size()>0&&ab.GetMultihit(false)>-1)||(multi==false&&victim.dead==true&&user.dead==false&&targets.size()>0))
         { //usability check
-            if (multi==false)
+            if (multi==false) //regular chain
             {
                 System.out.println ("\n"+user.Cname+" used "+ab.oname);
                 double d=damage/2;
@@ -116,15 +116,11 @@ class Chain extends SpecialAbility //both chain and multichain have been merged 
                 {
                     while (ab.GetMultihit(false)>-1)
                     {
-                        if (ab.aoe==false)
+                        for (StatEff eff: user.effects) //get empowerments
                         {
-                            for (StatEff eff: user.effects) //get empowerments
+                            if (eff.getimmunityname().equalsIgnoreCase("Empower"))
                             {
-                                if (eff.getimmunityname().equalsIgnoreCase("Empower"))
-                                {
-                                    change=eff.UseEmpower(user, ab, true);
-                                    damage+=change;
-                                }
+                                change=eff.UseEmpower(user, ab, true); damage+=change;
                             }
                         }
                         Damage_Stuff.CheckBlind(user);

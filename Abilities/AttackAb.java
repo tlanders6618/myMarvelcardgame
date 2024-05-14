@@ -486,6 +486,12 @@ class AttackAb extends Ability
                     }
                 }
             }
+            ArrayList<StatEff> errands= new ArrayList<StatEff>(); errands.addAll(user.effects);
+            for (StatEff eff: errands) //even though empowers won't activate again once used, they only expire onturnend
+            {
+                if (eff.getimmunityname().equalsIgnoreCase("Empower"))
+                eff.onTurnEnd(user); //removes used up empowerments from scoreboard after channelled ab use, to avoid confusion/the appearance of a bug
+            }
         } 
         //don't go on cooldown bc useab already took care of it
         return toadd;

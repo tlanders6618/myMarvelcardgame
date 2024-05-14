@@ -132,6 +132,37 @@ class ActivatePassive extends AfterAbility //ability activates a hero's passive 
                 target.LoseHP (user, 60, "knull");
             }
             break;
+            case 97: //angel blood transfusion
+            if (user.CheckFor("Bleed", false)==true) 
+            {
+                if (target.index==103) //no nightcrawler 
+                {
+                    System.out.println("Meingott, that burns!");
+                }
+                else
+                {
+                    ArrayList<StatEff> giggler= new ArrayList<StatEff>(); giggler.addAll(user.effects);
+                    for (StatEff e: giggler)
+                    {
+                        if (e.getimmunityname().equals("Bleed"))
+                        {
+                            user.remove(e.hashcode, "normal"); 
+                            if (user.CheckFor("Afflicted", false)==false) 
+                            {
+                                boolean success=CoinFlip.Flip(500+user.Cchance);
+                                if (success==true&&target.dead==false)
+                                {
+                                    target.Healed(35, false, false);
+                                }
+                            }
+                            else
+                            System.out.println (user.Cname+"'s Mend failed to apply due to a conflicting status effect.");
+                            break;
+                        }
+                    }
+                }
+            }
+            break;
         }
     }
 }
@@ -301,7 +332,7 @@ class Assist extends AfterAbility //either random allies hitting enemy or chosen
         { 
             ArrayList<Character> nchamp=new ArrayList<Character>(); //the characters who will assist, chosen from those who are able to
             if (random==true)
-            nchamp=RandomAssist(user); //chump is the target of the assist and random heroes will attack them
+            nchamp=RandomAssist(chump, user); //chump is the target of the assist and random heroes will attack them
             else
             nchamp=ChosenAssist(chump, user); //chump is the one performing the assist and player chooses who they will perform the assist on
             if (nchamp!=null)
@@ -309,7 +340,7 @@ class Assist extends AfterAbility //either random allies hitting enemy or chosen
         }
         num=tnum; //reset num for next assist usage
     }
-    public ArrayList<Character> RandomAssist (Character user) //randomly select heroes to perform assist
+    public ArrayList<Character> RandomAssist (Character chump, Character user) //randomly select heroes to perform assist; chump is the target
     {
         Character[] targets=null;
         if (friendly==true)
@@ -318,16 +349,19 @@ class Assist extends AfterAbility //either random allies hitting enemy or chosen
         targets=Battle.GetTeam(CoinFlip.TeamFlip(user.team1));
         ArrayList<Character> champs=new ArrayList<Character>();
         int valid=0; //number of ally or enemy heroes who actually have basic attacks and thus are able to perform an assist
-        for (Character a: targets)
+        for (Character a: targets) //cannot call hero to assist a control ability if they're control immune
         {
-            if (a!=null&&!(a.binaries.contains("Banished")))
+            if (a!=null&&!(a.binaries.contains("Banished"))&&a!=chump) //cannot make target perform assist on themself
             {
-                for (Ability f: a.abilities)
+                if (user.activeability.control==false||(user.activeability.control==true&&!(a.immunities.contains("Control")))) 
                 {
-                    if (f instanceof BasicAb)
+                    for (Ability f: a.abilities)
                     {
-                        ++valid; champs.add(a); 
-                        break;
+                        if (f instanceof BasicAb)
+                        {
+                            ++valid; champs.add(a); 
+                            break;
+                        }
                     }
                 }
             }
@@ -352,7 +386,7 @@ class Assist extends AfterAbility //either random allies hitting enemy or chosen
         System.out.println(user.Cname+"'s Assist failed to apply due to a lack of eligible targets.");
         return null;
     }
-    public ArrayList<Character> ChosenAssist (Character hero, Character user)
+    public ArrayList<Character> ChosenAssist (Character hero, Character user) //hero is the one performing assist
     {
         if (user.binaries.contains("Missed")&&hero.team1!=user.team1) //can't force enemy to assist if attack missed
         return null;
@@ -375,11 +409,17 @@ class Assist extends AfterAbility //either random allies hitting enemy or chosen
                 targets=Battle.GetTeammates(user);
                 else
                 targets=Battle.GetTeam(CoinFlip.TeamFlip(user.team1));
-                ArrayList<Character> champs=CoinFlip.ToList(targets);
-                for (int hocley=0; hocley<num; hocley++) //num determines how many characters are affected by the assist
+                ArrayList<Character> champs=CoinFlip.ToList(targets); //heroes to choose from to perform the assist
+                ArrayList<Character> nuhuh=new ArrayList<Character>(); nuhuh.addAll(champs);
+                for (Character c: nuhuh) //cannot call hero to assist a control ability if they're control immune
+                {
+                    if (user.activeability.control==true&&c.immunities.contains("Control"))
+                    champs.remove(c);
+                }
+                for (int hocley=0; hocley<num; hocley++) //num determines how many characters are affected by the assist; cannot choose more heroes than that
                 {
                     int choice=616;
-                    for (int i=0; i<champs.size(); i++)
+                    for (int i=0; i<champs.size(); i++) //choose someone from remaining valid heroes
                     {
                         if (champs.get(i)!=hero) //character cannot perform assist on self
                         System.out.println ((i+1)+": "+champs.get(i).Cname);  
@@ -518,6 +558,18 @@ class Assist extends AfterAbility //either random allies hitting enemy or chosen
                 //then loop to next hero doing assist
             }
         }
+    }
+}
+class BonusTurn extends AfterAbility //for letting ally take bonus turn, but not self
+{
+    public BonusTurn()
+    {
+        this.desc="The target takes a bonus turn. ";
+    }
+    @Override
+    public void Use (Character caster, Character hero, int ignore2)
+    {
+        Battle.Turn(hero, true);
     }
 }
 class CopySteal extends AfterAbility //the only difference is that steal removes the buff; otherwise they're identical so they share a method
@@ -862,7 +914,7 @@ class Confidence extends AfterAbility
             boolean success=CoinFlip.Flip(chance+caller.Cchance);
             if (success==true&&target.dead==false)
             {
-                target.Healed(amount, false);
+                target.Healed(amount, false, false);
                 target.Shielded(amount);
             }
         }
@@ -1133,7 +1185,7 @@ class Mend extends AfterAbility
             boolean success=CoinFlip.Flip(chance+caller.Cchance);
             if (success==true&&target.dead==false)
             {
-                target.Healed(amount, false);
+                target.Healed(amount, false, false);
             }
         }
         else
@@ -1155,7 +1207,7 @@ class MendPassive extends AfterAbility //restoring missing health; for deadpool 
     public void Use(Character caller, Character target, int ignore) 
     {
         if (target.dead==false)
-        target.Healed(amount, true);
+        target.Healed(amount, true, false);
     }
 }
 class Nullify extends AfterAbility
@@ -1614,9 +1666,9 @@ class ReduceCD extends AfterAbility
                 if (a!=null&&a.singleuse==false&&a.dcd>0)
                 {
                     if (amount>0)
-                    System.out.println(a.GetAbName(target)+" had its cooldown reduced by "+amount+" turn(s).");
+                    System.out.println(target.Cname+"'s "+a.GetAbName(target)+" had its cooldown reduced by "+amount+" turn(s).");
                     else 
-                    System.out.println(a.GetAbName(target)+" had its cooldown increased by "+Math.abs(amount)+" turn(s).");
+                    System.out.println(target.Cname+"'s "+a.GetAbName(target)+" had its cooldown increased by "+Math.abs(amount)+" turn(s).");
                     a.CDReduction(amount);
                 }
             }
@@ -1645,9 +1697,9 @@ class ReduceCD extends AfterAbility
             }
             while (good==false);
             if (amount>0)
-            System.out.println(victim.GetAbName(target)+" had its cooldown reduced by "+amount+" turn(s).");
+            System.out.println(target.Cname+"'s "+victim.GetAbName(target)+" had its cooldown reduced by "+amount+" turn(s).");
             else 
-            System.out.println(victim.GetAbName(target)+" had its cooldown increased by "+Math.abs(amount)+" turn(s).");
+            System.out.println(target.Cname+"'s "+victim.GetAbName(target)+" had its cooldown increased by "+Math.abs(amount)+" turn(s).");
             victim.CDReduction(amount);
         }
         else
