@@ -13,6 +13,11 @@ public abstract class DebuffEff extends StatEff
     public DebuffEff ()
     {
     }
+    @Override 
+    public String getefftype()
+    {
+        return "Debuffs";
+    }
 }
 class Afflicted extends DebuffEff 
 {
@@ -20,11 +25,6 @@ class Afflicted extends DebuffEff
     public String getimmunityname()
     {
         return "Afflicted";
-    }
-    @Override 
-    public String getefftype()
-    {
-        return "Debuffs";
     }
     @Override
     public String getalttype() 
@@ -68,11 +68,6 @@ class Bleed extends DebuffEff
     public String getimmunityname()
     {
         return "Bleed";
-    }
-    @Override 
-    public String getefftype()
-    {
-        return "Debuffs";
     }
     @Override
     public String getalttype() 
@@ -141,11 +136,6 @@ class Blind extends DebuffEff
     {
         return "Blind";
     }
-    @Override 
-    public String getefftype()
-    {
-        return "Debuffs";
-    }
     @Override
     public String getalttype() 
     {
@@ -197,11 +187,6 @@ class Burn extends DebuffEff
     {
         return "Burn";
     }
-    @Override 
-    public String getefftype()
-    {
-        return "Debuffs";
-    }
     @Override
     public String getalttype() 
     {
@@ -241,7 +226,7 @@ class Burn extends DebuffEff
     @Override
     public void onTurnStart (Character hero)
     {
-        if (hero!=null) //after hero dies, their spot in the team array becomes null; if they die from one dot and another tries to tick down, it causes a null exception
+        if (hero!=null) //after hero dies, their spot in the team array becomes null; if they die from one dot and another tries to tick down, it would cause a null exception
         {
             hero.DOTdmg(this.power, "burn");
             --this.duration;
@@ -275,11 +260,6 @@ class Countdown extends DebuffEff
     public String getimmunityname()
     {
         return "Countdown";
-    }
-    @Override 
-    public String getefftype()
-    {
-        return "Debuffs";
     }
     @Override
     public String getalttype() 
@@ -359,11 +339,6 @@ class Daze extends DebuffEff
     {
         return "Daze";
     }
-    @Override 
-    public String getefftype()
-    {
-        return "Debuffs";
-    }
     @Override
     public String getalttype() 
     {
@@ -418,11 +393,6 @@ class Debilitate extends DebuffEff
     {
         return "Debilitate";
     }
-    @Override 
-    public String getefftype()
-    {
-        return "Debuffs";
-    }
     @Override
     public String getalttype() 
     {
@@ -468,11 +438,6 @@ class Disarm extends DebuffEff
     {
         return "Disarm";
     }
-    @Override 
-    public String getefftype()
-    {
-        return "Debuffs";
-    }
     @Override
     public String getalttype() 
     {
@@ -507,11 +472,6 @@ class Disorient extends DebuffEff
     public String getimmunityname()
     {
         return "Disorient";
-    }
-    @Override 
-    public String getefftype()
-    {
-        return "Debuffs";
     }
     @Override
     public String getalttype() 
@@ -554,11 +514,6 @@ class Disrupt extends DebuffEff
     public String getimmunityname()
     {
         return "Disrupt";
-    }
-    @Override 
-    public String getefftype()
-    {
-        return "Debuffs";
     }
     @Override
     public String getalttype() 
@@ -604,11 +559,6 @@ class Neutralise extends DebuffEff
     {
         return "Neutralise";
     }
-    @Override 
-    public String getefftype()
-    {
-        return "Debuffs";
-    }
     @Override
     public String getalttype() 
     {
@@ -643,11 +593,6 @@ class PlaceboD extends DebuffEff
     public String getimmunityname()
     {
         return "Placebo (Debuff)";
-    }
-    @Override 
-    public String getefftype()
-    {
-        return "Debuffs";
     }
     @Override
     public String getalttype() 
@@ -687,11 +632,6 @@ class Poison extends DebuffEff
     public String getimmunityname()
     {
         return "Poison";
-    }
-    @Override 
-    public String getefftype()
-    {
-        return "Debuffs";
     }
     @Override
     public String getalttype() 
@@ -757,11 +697,6 @@ class Provoke extends DebuffEff
     {
         return "Provoke";
     }
-    @Override 
-    public String getefftype()
-    {
-        return "Debuffs";
-    }
     @Override
     public String getalttype() 
     {
@@ -821,11 +756,6 @@ class Shatter extends DebuffEff
     {
         return "Shatter";
     }
-    @Override 
-    public String getefftype()
-    {
-        return "Debuffs";
-    }
     @Override
     public String getalttype() 
     {
@@ -882,11 +812,6 @@ class Shock extends DebuffEff
     public String getimmunityname()
     {
         return "Shock";
-    }
-    @Override 
-    public String getefftype()
-    {
-        return "Debuffs";
     }
     @Override
     public String getalttype() 
@@ -947,11 +872,6 @@ class Snare extends DebuffEff
     {
         return "Snare";
     }
-    @Override 
-    public String getefftype() 
-    {
-        return "Debuffs";
-    }
     @Override
     public String getalttype()
     {
@@ -996,11 +916,6 @@ class Stun extends DebuffEff
     {
         return "Stun";
     }
-    @Override 
-    public String getefftype()
-    {
-        return "Debuffs";
-    }
     @Override
     public String getalttype() 
     {
@@ -1038,11 +953,6 @@ class Suppression extends DebuffEff
     public String getimmunityname()
     {
         return "Suppression";
-    }
-    @Override 
-    public String getefftype()
-    {
-        return "Debuffs";
     }
     @Override
     public String getalttype() 
@@ -1086,11 +996,6 @@ class Target extends DebuffEff
     public String getimmunityname()
     {
         return "Target";
-    }
-    @Override 
-    public String getefftype()
-    {
-        return "Debuffs";
     }
     @Override
     public String getalttype() 
@@ -1137,11 +1042,6 @@ class Terror extends DebuffEff
     public String getimmunityname()
     {
         return "Terror";
-    }
-    @Override 
-    public String getefftype()
-    {
-        return "Debuffs";
     }
     @Override
     public String getalttype() 
@@ -1202,11 +1102,6 @@ class Undermine extends DebuffEff
     {
         return "Undermine";
     }
-    @Override 
-    public String getefftype() 
-    {
-        return "Debuffs";
-    }
     @Override
     public String getalttype()
     {
@@ -1245,11 +1140,6 @@ class Weakness extends DebuffEff
     public String getimmunityname()
     {
         return "Weakness";
-    }
-    @Override 
-    public String getefftype()
-    {
-        return "Debuffs";
     }
     @Override
     public String getalttype() 
@@ -1295,11 +1185,6 @@ class Wound extends DebuffEff
     public String getimmunityname()
     {
         return "Wound";
-    }
-    @Override 
-    public String getefftype()
-    {
-        return "Debuffs";
     }
     @Override
     public String getalttype() 

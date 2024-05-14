@@ -14,6 +14,11 @@ public abstract class BuffEff extends StatEff
     public BuffEff ()
     {
     }
+    @Override 
+    public String getefftype() 
+    {
+        return "Buffs";
+    }
 }
 class Bulwark extends BuffEff 
 {
@@ -22,24 +27,16 @@ class Bulwark extends BuffEff
     {
         return "Bulwark";
     }
-    @Override 
-    public String getefftype() 
-    {
-        return "Buffs";
-    }
     @Override
     public String geteffname()
     {
-        String name;
         if (this.duration<100)
         {
-            name="Bulwark, "+this.duration+" turn(s)";
-            return name;
+            return "Bulwark, "+this.duration+" turn(s)";
         }
         else
         {
-            name="Bulwark";
-            return name;
+            return "Bulwark";
         }
     }
     public Bulwark (int nchance, int nduration)
@@ -67,11 +64,6 @@ class Counter extends BuffEff
     public String getimmunityname()
     {
         return "Counter";
-    }
-    @Override 
-    public String getefftype()
-    {
-        return "Buffs";
     }
     @Override
     public String geteffname()
@@ -135,11 +127,6 @@ class Evasion extends BuffEff
     {
         return "Evasion";
     }
-    @Override 
-    public String getefftype() 
-    {
-        return "Buffs";
-    }
     @Override
     public String geteffname()
     {
@@ -173,11 +160,6 @@ class Focus extends BuffEff
     public String getimmunityname()
     {
         return "Focus";
-    }
-    @Override 
-    public String getefftype() 
-    {
-        return "Buffs";
     }
     @Override
     public String geteffname()
@@ -218,11 +200,6 @@ class Intensify extends BuffEff
     public String getimmunityname()
     {
         return "Intensify";
-    }
-    @Override 
-    public String getefftype()
-    {
-        return "Buffs";
     }
     @Override
     public String geteffname()
@@ -265,11 +242,6 @@ class Invisible extends BuffEff
     public String getimmunityname()
     {
         return "Invisible";
-    }
-    @Override 
-    public String getefftype()
-    {
-        return "Buffs";
     }
     @Override
     public String geteffname()
@@ -323,11 +295,6 @@ class MightyBlows extends BuffEff
     public String getimmunityname()
     {
         return "Mighty Blows";
-    }
-    @Override 
-    public String getefftype() 
-    {
-        return "Buffs";
     }
     @Override
     public String geteffname()
@@ -401,11 +368,6 @@ class PlaceboB extends BuffEff
     {
         return "Placebo (Buff)";
     }
-    @Override 
-    public String getefftype()
-    {
-        return "Buffs";
-    }
     @Override
     public String geteffname()
     {
@@ -439,11 +401,6 @@ class Precision extends BuffEff
     public String getimmunityname()
     {
         return "Precision";
-    }
-    @Override 
-    public String getefftype() 
-    {
-        return "Buffs";
     }
     @Override
     public String geteffname()
@@ -486,11 +443,6 @@ class Safeguard extends BuffEff
     {
         return "Safeguard";
     }
-    @Override 
-    public String getefftype() 
-    {
-        return "Buffs";
-    }
     @Override
     public String geteffname()
     {
@@ -530,11 +482,6 @@ class Speed extends BuffEff
     public String getimmunityname()
     {
         return "Speed";
-    }
-    @Override 
-    public String getefftype() 
-    {
-        return "Buffs";
     }
     @Override
     public String geteffname()

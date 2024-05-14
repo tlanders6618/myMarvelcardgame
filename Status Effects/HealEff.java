@@ -12,6 +12,11 @@ public abstract class HealEff extends StatEff
     public HealEff ()
     {
     }
+    @Override 
+    public String getefftype()
+    {
+        return "Heal";
+    }
 }
 class Drain extends HealEff
 {
@@ -20,11 +25,6 @@ class Drain extends HealEff
     public String getimmunityname()
     {
         return "Drain";
-    }
-    @Override 
-    public String getefftype()
-    {
-        return "Heal";
     }
     @Override
     public String geteffname()
@@ -75,11 +75,6 @@ class Recovery extends HealEff
     {
         return "Recovery";
     }
-    @Override 
-    public String getefftype()
-    {
-        return "Heal";
-    }
     @Override
     public String geteffname()
     {
@@ -115,11 +110,6 @@ class Regen extends HealEff
     {
         return "Regen";
     }
-    @Override 
-    public String getefftype()
-    {
-        return "Heal";
-    }
     @Override
     public String geteffname()
     {
@@ -147,7 +137,7 @@ class Regen extends HealEff
     @Override
     public void onTurnStart (Character hero)
     {
-        hero.Healed(this.power, false);
+        hero.Healed(this.power, false, true);
         --this.duration;
         if (this.duration<=0)
         {

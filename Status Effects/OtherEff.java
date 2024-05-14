@@ -13,6 +13,11 @@ public abstract class OtherEff extends StatEff
     public OtherEff ()
     {
     }
+    @Override 
+    public String getefftype()
+    {
+        return "Other";
+    }
 }
 class BleedE extends OtherEff 
 {
@@ -20,11 +25,6 @@ class BleedE extends OtherEff
     public String getimmunityname()
     {
         return "Bleed";
-    }
-    @Override 
-    public String getefftype()
-    {
-        return "Other";
     }
     @Override
     public String geteffname()
@@ -81,11 +81,6 @@ class CounterE extends OtherEff
     {
         return "Counter";
     }
-    @Override 
-    public String getefftype()
-    {
-        return "Other";
-    }
     @Override
     public String geteffname()
     {
@@ -140,6 +135,44 @@ class CounterE extends OtherEff
         }
     }
 }
+class DazeE extends OtherEff 
+{
+    boolean mimi;
+    @Override
+    public String getimmunityname()
+    {
+        return "Daze";
+    }
+    @Override
+    public String geteffname()
+    {
+        if (this.duration<100)
+        {
+            return "Daze Effect, "+this.duration+" turn(s)";
+        }
+        else
+        {
+            return "Daze Effect";
+        }
+    }
+    public DazeE (int nchance, int ndur)
+    {
+        this.duration=ndur;
+        this.oduration=ndur;
+        this.chance=nchance;
+        this.hashcode=Card_HashCode.RandomCode();
+    }
+    @Override
+    public void onApply (Character target)
+    {
+        target.Cchance-=50;
+    }
+    @Override
+    public void Nullified (Character target)
+    {
+        target.Cchance+=50;
+    }
+}
 class Empower extends OtherEff
 {
     String name; //of hero who made the empowerment
@@ -151,15 +184,13 @@ class Empower extends OtherEff
     {
         return "Empower";
     }
-    @Override 
-    public String getefftype()
-    {
-        return "Other";
-    }
     @Override
     public String geteffname() //since every Empower has a unique effect, they don't use standard eff names
     {
+        if (power>0)
         return "Empower "+power+": "+name+", "+uses+" use(s)";
+        else
+        return "Empower: "+name+", "+uses+" use(s)";
     }
     public Empower (int chance, int power, int use, String nname, int index)
     {
@@ -178,36 +209,46 @@ class Empower extends OtherEff
     public int UseEmpower(Character hero, Ability ab, boolean use) //use is true for applying effects and false when undoing an empowerment 
     {
         int value=0; 
-        if (use==true&&uses>0) //try to activate empowerment
+        if (use==true&&uses>0) //try to activate empowerment; called at start of using ab
         {
             switch (index) //has to be this way since every empowerment is unique
             {
                 case 4: case 39: //39 is for damagecounterremove when intense==true, or else the dmg boost only applies to the first enemy hit by the attack
                 if (ab instanceof AttackAb) //damage boost only applies to abs that do dmg
                 {
-                    used=true;
-                    value=this.power; break;
+                    used=true; value=this.power; 
                 }
+                break;
                 case 88:
                 if (ab.attack==true)
                 {
-                    used=true;
-                    String[] poio={"Poison", "50", "10", "2", "false"}; String[][] dp=StatFactory.MakeParam(poio, null); ab.AddTempString(dp); break;
+                    used=true; String[] poio={"Poison", "50", "10", "2", "false"}; String[][] dp=StatFactory.MakeParam(poio, null); ab.AddTempString(dp); 
                 }
+                break;
+                case 95: 
+                if (used==false) //or else aoe abs will activate it multiple times and leave the hero with permanent negative stat chance
+                {
+                    hero.Cchance-=100; used=true;
+                }
+                break;
             }
         }
         else
         {
-            if (used==true)
+            if (used==true) //let empowerment know it's been used and undo its effects if necssary; called at end of using ab
             {
                 used=false;
                 --uses;
+                switch (index) 
+                {
+                    case 95: hero.Cchance+=100; break;
+                }
             }
         }
         return value;
     }
     @Override
-    public void onTurnEnd (Character hero)
+    public void onTurnEnd (Character hero) //solely for removing empowerments
     {
         if (uses<=0)
         {
@@ -224,11 +265,6 @@ class EvadeE extends OtherEff
     public String getimmunityname()
     {
         return "Evade";
-    }
-    @Override 
-    public String getefftype()
-    {
-        return "Other";
     }
     @Override
     public String geteffname()
@@ -256,11 +292,6 @@ class FocusE extends OtherEff
     public String getimmunityname()
     {
         return "Focus";
-    }
-    @Override 
-    public String getefftype() 
-    {
-        return "Other";
     }
     @Override
     public String geteffname()
@@ -298,11 +329,6 @@ class IntensifyE extends OtherEff
     public String getimmunityname()
     {
         return "Intensify";
-    }
-    @Override 
-    public String getefftype()
-    {
-        return "Other";
     }
     @Override
     public String geteffname()
@@ -346,11 +372,6 @@ class Obsession extends OtherEff
     {
         return "Obsession";
     }
-    @Override 
-    public String getefftype()
-    {
-        return "Other";
-    }
     @Override
     public String geteffname()
     {
@@ -391,11 +412,6 @@ class ProtectE extends OtherEff
     public String getimmunityname()
     {
         return "Protect";
-    }
-    @Override 
-    public String getefftype()
-    {
-        return "Other";
     }
     @Override
     public String geteffname()
@@ -539,11 +555,6 @@ class ProtectedE extends OtherEff
     {
         return "Protect";
     }
-    @Override 
-    public String getefftype()
-    {
-        return "Other";
-    }
     public ProtectedE (int ndur)
     {
         this.duration=ndur; this.hashcode=Card_HashCode.RandomCode();
@@ -602,11 +613,6 @@ class Redwing extends OtherEff
     {
         return "Redwing";
     }
-    @Override 
-    public String getefftype()
-    {
-        return "Other"; 
-    }
     @Override
     public String geteffname()
     {
@@ -649,11 +655,6 @@ class ResistanceE extends OtherEff
     {
         return "Resistance";
     }
-    @Override 
-    public String getefftype()
-    {
-        return "Other";
-    }
     @Override
     public String geteffname()
     {
@@ -694,11 +695,6 @@ class ShatterE extends OtherEff
     public String getimmunityname()
     {
         return "Shatter";
-    }
-    @Override 
-    public String getefftype()
-    {
-        return "Other";
     }
     @Override
     public String geteffname() 
@@ -753,11 +749,6 @@ class SnareE extends OtherEff
     {
         return "Snare";
     }
-    @Override 
-    public String getefftype() 
-    {
-        return "Other";
-    }
     @Override
     public String geteffname()
     {
@@ -796,11 +787,6 @@ class Soaked extends OtherEff
     public String getimmunityname()
     {
         return "Soaked";
-    }
-    @Override 
-    public String getefftype()
-    {
-        return "Other";
     }
     public void onApply (Character target)
     {
@@ -844,11 +830,6 @@ class StunE extends OtherEff
     {
         return "Stun";
     }
-    @Override 
-    public String getefftype()
-    {
-        return "Other";
-    }
     public void onApply (Character target)
     {
        target.binaries.add("Stunned");
@@ -882,11 +863,6 @@ class TargetE extends OtherEff
     public String getimmunityname()
     {
         return "Target";
-    }
-    @Override 
-    public String getefftype()
-    {
-        return "Other";
     }
     @Override
     public String geteffname()
@@ -926,11 +902,6 @@ class Tracer extends OtherEff
     public String getimmunityname()
     {
         return "Tracer";
-    }
-    @Override 
-    public String getefftype()
-    {
-        return "Other"; 
     }
     @Override
     public String geteffname()

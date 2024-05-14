@@ -13,6 +13,11 @@ abstract class DefEff extends StatEff
     public DefEff ()
     {
     }
+    @Override 
+    public String getefftype()
+    {
+        return "Defence";
+    }
 }
 class Barrier extends DefEff
 {
@@ -20,11 +25,6 @@ class Barrier extends DefEff
     public String getimmunityname()
     {
         return "Barrier";
-    }
-    @Override 
-    public String getefftype()
-    {
-        return "Defence";
     }
     @Override
     public String geteffname()
@@ -78,11 +78,6 @@ class Evade extends DefEff
     {
         return "Evade";
     }
-    @Override 
-    public String getefftype()
-    {
-        return "Defence";
-    }
     @Override
     public String geteffname()
     {
@@ -121,24 +116,17 @@ class Protect extends DefEff
     {
         return "Protect";
     }
-    @Override 
-    public String getefftype()
-    {
-        return "Defence";
-    }
     @Override
     public String geteffname()
     {
-        String name;
         if (duration>100)
         {
-            name="Protecting: "+weakling.Cname;
+            return "Protecting: "+weakling.Cname;
         }
         else
         {
-            name="Protecting: "+weakling.Cname+", "+this.duration+" turn(s)";
+            return "Protecting: "+weakling.Cname+", "+this.duration+" turn(s)";
         }
-        return name;
     }
     @Override
     public void onTurnEnd(Character hero) 
@@ -268,11 +256,6 @@ class Protected extends DefEff
     {
         return "Protect";
     }
-    @Override 
-    public String getefftype()
-    {
-        return "Defence";
-    }
     public Protected (int ndur)
     {
         this.duration=ndur; this.hashcode=Card_HashCode.RandomCode();
@@ -331,24 +314,17 @@ class Resistance extends DefEff
     {
         return "Resistance";
     }
-    @Override 
-    public String getefftype()
-    {
-        return "Defence";
-    }
     @Override
     public String geteffname()
     {
-        String name;
         if (duration>500)
         {
-            name="Resistance: "+this.power;
+            return "Resistance: "+this.power;
         }
         else
         {
-            name="Resistance: "+this.power+", "+this.duration+" turn(s)";
+            return "Resistance: "+this.power+", "+this.duration+" turn(s)";
         }
-        return name;
     }
     public Resistance (int nchance, int npower, int ndur) 
     {
@@ -375,11 +351,6 @@ class Taunt extends DefEff
     public String getimmunityname()
     {
         return "Taunt";
-    }
-    @Override 
-    public String getefftype()
-    {
-        return "Defence";
     }
     @Override
     public String geteffname()

@@ -44,6 +44,7 @@ public class StatFactory
             case "Counter": eff=new Counter (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][2]), Integer.valueOf(param[0][3]), param[1]); break; 
             case "Counter Effect": eff=new CounterE (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][2]), Integer.valueOf(param[0][3]), param[1]); break; 
             case "Daze": eff=new Daze (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3]), Q); break;  
+            case "Daze Effect": eff=new DazeE (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3])); break;  
             case "Debilitate": eff= new Debilitate (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][2]), Integer.valueOf(param[0][3])); break;
             case "Disarm": eff=new Disarm (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3])); break;
             case "Disorient": eff=new Disorient (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3])); break;
