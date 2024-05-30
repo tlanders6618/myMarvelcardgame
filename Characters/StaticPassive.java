@@ -17,46 +17,42 @@ public class StaticPassive
         System.out.println(target.Cname+"'s "+e.geteffname()+" was converted into a "+brand.geteffname()+"!");
         return brand;
     }
-    public static void Symbiote (Character venom, int vuln, boolean start) //efficient since they all have the same passive; fightstart and add/remove
+    public static void Symbiote (Character venom, int vuln) //efficient since they all have the same passive; add/remove
     {
-        if (start==true)
-        venom.ignores.add("Evade");
-        else
         venom.DV+=vuln;
     }
     //2.10: Marvellous Mutants
-    //Colossus's passive is so simple, it doesn't deserve its own method; it's under fightstart, add, and remove
-    public static void Frost (Character emma, boolean gain, boolean start)
+    public static void Elixir (Character josh) //ondeath
     {
-        if (gain==true) //onfightstart and hero.transform
+        if (josh.passivecount==1)
         {
-            emma.ADR+=15; emma.WiDR+=999;
-            emma.immunities.add("Heal"); emma.immunities.add("Stun"); emma.immunities.add("Control"); emma.immunities.add("Bleed"); 
-            emma.immunities.add("Burn"); emma.immunities.add("Poison"); emma.immunities.add("Shock");
-            ArrayList<StatEff> jail= new ArrayList<StatEff>(); jail.addAll(emma.effects);
-            for (StatEff e: jail)
+            josh.passivecount=0; Rez rez= new Rez(500, 100); rez.Use(josh, josh, 0); ArrayList<StatEff> effects=josh.effects;
+            for (StatEff e: effects)
             {
-                String n=e.getimmunityname();
-                if (e.getefftype().equals("Heal")||n.equals("Stun")||(e.getalttype().equals("damaging")&&!(n.equals("Countdown")&&!(n.equals("Wither")))))
-                emma.remove(e.hashcode, "normal");
-            }
-            if (start==false) //transforming into diamond form
-            {
-                Taunt elephant=new Taunt (500, 1); //gains taunt due to passive, so anyone transforming into her would gain her passive and thus taunt
-                boolean dew=CoinFlip.Flip(500+emma.Cchance);
-                if (dew==true)
-                StatEff.CheckApply(emma, emma, elephant);
-                else
-                StatEff.applyfail(emma, elephant, "chance");
-                elephant.duration++; //to avoid premature expiry
+                if (e instanceof Tracker&& e.getimmunityname().equals("Elixir will Resurrect after dying"))
+                {
+                    josh.remove(e.hashcode, "silent"); break;
+                }
             }
         }
-        else //transforming into telepath form; called by hero.transform
+    }
+    public static void Frost (Character emma) //hero.transform; transforming into diamond form
+    {
+        ArrayList<StatEff> jail= new ArrayList<StatEff>(); jail.addAll(emma.effects);
+        for (StatEff e: jail) //remove stateffs emma is immune to
         {
-            emma.ADR-=15; emma.WiDR-=999;
-            emma.immunities.remove("Heal"); emma.immunities.remove("Stun"); emma.immunities.remove("Control"); emma.immunities.remove("Bleed"); 
-            emma.immunities.remove("Burn"); emma.immunities.remove("Poison"); emma.immunities.remove("Shock");
+            String n=e.getimmunityname();
+            if (e.getefftype().equals("Heal")||n.equals("Stun")||(e.getalttype().equals("damaging")&&!(n.equals("Countdown")&&!(n.equals("Wither")))))
+            emma.remove(e.hashcode, "normal");
         }
+        Taunt elephant=new Taunt (500, 1); //gains taunt due to passive, so anyone transforming into her would gain her passive and thus taunt
+        boolean dew=CoinFlip.Flip(500+emma.Cchance);
+        if (dew==true)
+        StatEff.CheckApply(emma, emma, elephant);
+        else
+        StatEff.applyfail(emma, elephant, "chance");
+        if (Battle.team1[Battle.P1active]==emma||Battle.team2[Battle.P2active]==emma)
+        elephant.duration++; //to avoid premature expiry when transforming on turn, but not when forcibly transformed by ebony maw off turn 
     }
     //2.9: Fearsome Foes of Spider-Man
     public static void Phil (Character nye) ///hpchange
@@ -126,25 +122,9 @@ public class StaticPassive
         }
     }
     //2.8: Defenders
-    public static void Surfer (Character radd)
+    public static int LukeCage (Character carl, int dmg) //takedamage
     {
-        CoinFlip.StatImmune(radd, true); radd.immunities.add("Interrupt");
-        ArrayList<StatEff> effects= new ArrayList<StatEff>(); effects.addAll(radd.effects);
-        for (StatEff e: effects) //in case redwing, lethal protector, etc is used before surfer gains his immunities, this removes the stateffs
-        {
-            if (radd.immunities.contains(e.getefftype()))
-            {
-                radd.remove(e.hashcode, "silent"); System.out.println(radd.Cname+"'s "+e.geteffname()+" was removed due to an immunity.");
-            }
-        }
-    }
-    public static int LukeCage (Character carl, int dmg, boolean start)
-    {
-        if (start==true) //fightstart
-        {
-            carl.immunities.add("Burn"); carl.immunities.add("Bleed"); carl.immunities.add("Shock");
-        }
-        else if (dmg>0&&dmg<50)//takedamage
+        if (dmg>0&&dmg<50)
         {
             System.out.println("Unbreakable!"); dmg-=25;
         }
@@ -153,30 +133,25 @@ public class StaticPassive
         else
         return dmg;
     }
-    public static void DD (Character matt, Character attacker, boolean start)
+    public static void DD (Character matt, Character attacker) //attacked; counter doesn't trigger if stunned or attacker ignores it so no need to check for it here
     {
-        if (start==true) //fightstart
+        ArrayList<StatEff> concurrentmodificationexception3electricboogalooboogaloo= new ArrayList<StatEff>(); //counter is removed after use :)
+        concurrentmodificationexception3electricboogalooboogaloo.addAll(matt.effects);
+        for (StatEff eff: concurrentmodificationexception3electricboogalooboogaloo)
         {
-            matt.ignores.add("Blind"); matt.ignores.add("Invisible");
-        }
-        else //attacked; counter doesn't trigger if stunned or attacker ignores it so no need to check for it here
-        {
-            ArrayList<StatEff> concurrentmodificationexception3electricboogalooboogaloo= new ArrayList<StatEff>(); //counter is removed after use :)
-            concurrentmodificationexception3electricboogalooboogaloo.addAll(matt.effects);
-            for (StatEff eff: concurrentmodificationexception3electricboogalooboogaloo)
-            {
-                if (eff.getimmunityname().equals("Counter")) //trigger all his remaining Counters
-                {
-                    eff.Attacked(matt, attacker, 0); //dmg dealt by the attacker doesn't matter for counter so it'll just send over 0
-                }  
-            }
+            if (eff.getimmunityname().equals("Counter")) //trigger all his remaining Counters
+            eff.Attacked(matt, attacker, 0); //dmg dealt by the attacker doesn't matter for counter so it'll just send over 0
         }
     }
     //2.1: Sinister 6
     public static void Rhino (Character alexei) //fightstart
     {
-        alexei.immunities.add("Vulnerable"); alexei.immunities.add("Suppression"); alexei.immunities.add("Reduce"); alexei.immunities.add("Terror"); 
-        alexei.BlDR+=10; ResistanceE me= new ResistanceE(500, 10, 616); alexei.add(me);
+       ResistanceE me= new ResistanceE(500, 10, 616); 
+       boolean goal=CoinFlip.Flip(500+alexei.Cchance);
+       if (goal==true) 
+       StatEff.CheckApply(alexei, alexei, me);
+       else
+       StatEff.applyfail(alexei, me, "chance");
     }
     public static void Vulture (Character adrian, Character prey) //beforeattack
     {
@@ -222,69 +197,23 @@ public class StaticPassive
             }
         }
     }
-    public static void BB (Character blackagar, boolean start)
+    public static void BB (Character blackagar) //onturn
     {
-        if (start==true) //fightstart
-        {
-            blackagar.immunities.add("Control"); Tracker rage= new Tracker ("Electrons: "); blackagar.effects.add(rage); rage.onApply(blackagar);
-        }
-        else if (!(blackagar.binaries.contains("Stunned"))&&blackagar.turn%2!=0) //odd numbers only since the first turn is turn 0; every other turn; onturn
+        if (!(blackagar.binaries.contains("Stunned"))&&blackagar.turn%2!=0) //odd numbers only since the first turn is turn 0; must trigger every other turn
         {
             blackagar.passivecount++; System.out.println(blackagar.Cname+" gained 1 Electron.");
             for (StatEff e: blackagar.effects) //update tracker to accurately show E since it otherwise only updates onturnend
             {
-                if (e instanceof Tracker&&e.geteffname().equals("Electrons: "+(blackagar.passivecount-1)))
+                if (e instanceof Tracker&&e.getimmunityname().equals("Electrons: "))
                 {
                     e.onTurnEnd(blackagar); break;
                 }
             }
         }
     }
-    public static void Hulk (Character banner, boolean start) //fightstart and hpchange
-    {
-        if (start==true)
-        {
-            banner.immunities.add("Terror"); banner.immunities.add("Poison"); banner.immunities.add("Control"); 
-            banner.immunities.add("Persuaded"); Tracker rage= new Tracker ("Rage: "); banner.effects.add(rage); rage.onApply(banner);
-        }
-        else
-        {
-            int dif=banner.maxHP-banner.HP;
-            int number=0;
-            if (dif>=40&&dif<80)
-            number=5;
-            else if (dif>=80&&dif<120)
-            number=10;
-            else if (dif>=120&&dif<160)
-            number=15;
-            else if (dif>=160&&dif<200)
-            number=20;
-            else if (dif>=200&&dif<240) 
-            number=25;
-            else if (dif>=240&&dif<280) //more than 280 missing health is currently (4.1) impossible so it stops checking here
-            number=30;
-            banner.ADR=number; banner.PBD=number; banner.passivecount=number;
-            for (StatEff e: banner.effects) //update rage tracker
-            {
-                if (e instanceof Tracker)
-                {
-                    e.Attacked(banner, null, 616);
-                }
-            }
-        }
-    }
-    public static void Brawn (Character cho) //fightstart
-    {
-        cho.immunities.add("Poison"); cho.immunities.add("Control");
-    }
     public static void DOOM (Character doctor, String occassion, Character fool)
     {
-        if (occassion.equals("start"))
-        {
-            doctor.immunities.add("Burn"); doctor.immunities.add("Freeze"); doctor.immunities.add("Shock"); doctor.immunities.add("Persuaded"); doctor.immunities.add("Control");
-            Tracker er=new Tracker("Titanium Battlesuit armed"); doctor.effects.add(er);
-        }
-        else if (occassion.equals("turn")&&!(doctor.binaries.contains("Stunned")))
+        if (occassion.equals("turn")&&!(doctor.binaries.contains("Stunned")))
         {
             doctor.passivecount=0; boolean got=false; 
             Tracker er=new Tracker("Titanium Battlesuit armed");
@@ -300,7 +229,7 @@ public class StaticPassive
         }
         else if (occassion.equals("attacked")&&!(doctor.binaries.contains("Stunned")))
         {
-            if (doctor.passivecount==0) //battlesuit armed
+            if (doctor.passivecount==0) //battlesuit is armed
             {
                 doctor.passivecount=1; StatEff too=null;
                 for (StatEff e: doctor.effects)
@@ -320,15 +249,11 @@ public class StaticPassive
             }
         }
     }
-    public static void Ultron (Character hypocrite) //fightstart
-    {
-        CoinFlip.RobotImmunities(hypocrite, true); hypocrite.immunities.add("Snare"); hypocrite.immunities.add("Steal"); hypocrite.immunities.add("Control");
-    }
     public static int MODOC (Character george, Character target, String cause, int dmg)
     {
         if (cause.equals("start")) //onfightstart
         {
-            CoinFlip.IgnoreTargeting(george, true); george.SHLD=100; george.passivecount=1; george.immunities.add("Debuffs");
+            george.SHLD=100; george.passivecount=1; george.immunities.add("Debuffs"); //only gains debuff immunity while shield is active, so this doesnt go under hero.addimmune
         }
         else if (cause.equals("attack")) //apply debuffs when attacking; called by beforeattack
         {
@@ -415,66 +340,25 @@ public class StaticPassive
         }
         return dmg;
     }
-    public static void Flash (Character user) //called beforeattack; here bc it's short
+    public static void Binary (Character binary) //hero.transform; transforming into binary
     {
-        if (user.passivecount<=5) //attacking while losing control 
+        ArrayList<StatEff> r= new ArrayList<StatEff>(); //remove all stateffs from self, plus shield since it's technically a def eff
+        for (StatEff e: binary.effects) 
         {
-            int amount=15-user.ADR; 
-            System.out.println (user.Cname+" took "+amount+" damage");
-            user.TakeDamage(user, amount, false);
-            String[]akaban={"Bleed", "100", "10", "1", "false"}; String[][] niharu=StatFactory.MakeParam(akaban, null); user.activeability.AddTempString(niharu);
+            if (!(e instanceof Tracker))
+            r.add(e);
         }
-    }
-    public static void Binary (Character binary, boolean in) //when transforming into binary; in is whether transform is into binary or out of binary
-    {
-        if (in==true)
+        for (StatEff e: r)
         {
-            binary.passivecount=5;
-            System.out.println(binary.Cname+" gained "+binary.passivecount+" Energy.");
-            for (StatEff e: binary.effects) //update displayed energy count
-            {
-                if (e instanceof Tracker)
-                {
-                    e.Attacked(binary, null, 616);
-                }
-            }
-            CoinFlip.StatImmune(binary, true);
-            ArrayList<StatEff> r= new ArrayList<StatEff>();
-            for (StatEff e: binary.effects)
-            {
-                if (!(e instanceof Tracker))
-                r.add(e);
-            }
-            for (StatEff e: r)
-            {
-                binary.remove(e.hashcode, "normal");
-            }
+            binary.remove(e.hashcode, "normal");
         }
-        else //leaving binary state
-        CoinFlip.StatImmune(binary, false);
-    }
-    public static void CM (Character carol, boolean start) 
-    {
-        if (start==true) //fightstart
+        binary.SHLD=0;
+        binary.passivecount=5;
+        System.out.println(binary.Cname+" gained "+binary.passivecount+" Energy.");
+        for (StatEff e: binary.effects) //update displayed energy count
         {
-            carol.immunities.add("Poison"); carol.BuDR+=999; carol.ShDR+=999;
-            Tracker NRG= new Tracker("Energy: ");
-            carol.effects.add(NRG);
-            NRG.onApply(carol);
-        }
-        else //onattack
-        {
-            System.out.println(carol.Cname+" gained 1 Energy.");
-            ++carol.passivecount;
-            for (StatEff e: carol.effects) //update displayed energy count
-            {
-                if (e instanceof Tracker&&e.geteffname().equals("Energy: "+(carol.passivecount-1)))
-                {
-                    e.Attacked(carol, null, 616);
-                }
-            }
-            if (carol.passivecount>=5) 
-            carol.Transform(24, false);
+            if (e instanceof Tracker&&e.getimmunityname().equals("Energy: "))
+            e.Attacked(binary, null, 616);
         }
     }
     public static void OGVenom (Character eddie) //choose ally to watch over at fight start
@@ -560,9 +444,6 @@ public class StaticPassive
     }
     public static void DraxOG (Character drax) //choosing obsession at fight start
     {
-        CoinFlip.IgnoreTargeting(drax, true);
-        drax.immunities.add("Buffs");
-        drax.immunities.add("Persuaded");
         drax.ignores.add("Invisible"); //so it doesn't interfere with choosing his obsession
         if (drax.team1==true)
         {
@@ -574,10 +455,11 @@ public class StaticPassive
         }
         Character[] foes=Battle.TargetFilter(drax, "enemy", "single");
         Obsession obsess= new Obsession();  
-        foes[0].add(obsess);
+        StatEff.CheckApply(drax, foes[0], obsess);
         drax.passivefriend[0]=foes[0];
-        drax.passivecount=1;
         drax.ignores.remove("Invisible");
+        if (foes[0].effects.contains(obsess)) //only if the apply was successful
+        drax.passivecount=1;
     }
     public static void FurySr (Character fury) //after an hpchange
     {
@@ -588,10 +470,6 @@ public class StaticPassive
             fury.passivecount=1;
             Battle.SummonSomeone(fury, lmd);            
         }
-    }
-    public static void Bucky (Character barnes) //triggered at fight start
-    {
-        barnes.ignores.add("Defence");
     }
     public static void Falcon (Character falcon) //triggered at fight start
     {
@@ -614,7 +492,7 @@ public class StaticPassive
             friends=Battle.team2;
         }
         Character alliance=Card_Selection.ChooseTargetFriend (friends);
-        alliance.add(red);
+        StatEff.CheckApply(falcon, alliance, red);
     }
     public static void WM (Character machine) //triggered onturn
     {

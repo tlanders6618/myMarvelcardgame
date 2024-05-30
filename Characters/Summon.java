@@ -13,7 +13,8 @@ public class Summon extends Character
     public Summon (int Sindex)
     {
         //Same as with characters
-        //Need to manually assign team affiliation when creating a summon; not done in constructor
+        //Need to manually assign team affiliation as well as passivefriend[0] when creating a summon; not done in constructor
+        //passivefriend is set in battle.summonsomeone
         index=Sindex;
         summoned=true;
         hash=Card_HashCode.RandomCode();
@@ -21,12 +22,13 @@ public class Summon extends Character
         this.pdesc=Character.MakeDesc(Sindex, true);
         if (Sindex==13)
         {
-            //clone health, name, and abilities depend on who they're a clone of
+            System.out.println("You forgot to fix the summon constructor for clones."); //clone health, name, and abilities depend on who they're a clone of
         }
         else
         {
             Cname=SetName(index, true);
             HP=InHP (index, true);
+            this.AddImmune(true);
             abilities=Ability.AssignAbSum(index);
         }
         maxHP=HP;
@@ -36,9 +38,6 @@ public class Summon extends Character
         switch (this.index) //for triggering on summon passives
         {
             case 1: SummonPassive.NickLMD(this); break;
-            case 3: SummonPassive.Crushbot(this, true); break;
-            case 4: SummonPassive.Drone(this, true, null); break;
-            case 5: SummonPassive.LilDoomie(this, true, null); break;
             case 6: int ignore=SummonPassive.Daemon(this, true, null, 0); break;
             case 7: SummonPassive.Decoy(this); break;
             case 12: SummonPassive.Giganto(this, "spawn"); break;
@@ -146,7 +145,7 @@ public class Summon extends Character
         {
             case 4: 
             if (type.equals("Buffs"))
-            SummonPassive.Drone(this, false, eff); 
+            SummonPassive.Drone(this, eff); 
             break;
             case 12:
             if (name.equals("Stun"))
@@ -209,7 +208,7 @@ public class Summon extends Character
     {
         switch (this.index)
         {
-            case 3: SummonPassive.Crushbot(this, false); break;
+            case 3: SummonPassive.Crushbot(this); break;
             case 7: 
             if (this.team1==true) 
             {
@@ -457,7 +456,7 @@ public class Summon extends Character
     {
         switch (this.index)
         {
-            case 5: SummonPassive.LilDoomie(this, false, deadfriend); break;
+            case 5: SummonPassive.LilDoomie(this, deadfriend); break;
         }
     }
     @Override
@@ -516,18 +515,14 @@ public class Summon extends Character
                     if (!(eff instanceof Tracker))
                     this.remove(eff.hashcode, "normal"); 
                 }
-                if (this.index==28) //if statement since there are only 2 summons with transform right now
-                {
-                    CoinFlip.RobotImmunities(this, false); //if arachnaught is transforming into someone else, it loses its immunities
-                }
-                else if (newindex==28)
-                {
-                    CoinFlip.RobotImmunities(this, true); //when transforming into an arachnaught, gain its immunities
-                }
             }
+            this.AddImmune(false); //for getting rid of immunities when leaving a transformed form; e.g. a robot transforming would lose robot immunities
             this.index=newindex; 
+            this.passivecount=0;
             this.pdesc=Character.MakeDesc(newindex, true);
+            this.AddImmune(true); //for gaining immunities when transforming into someone; e.g. transforming into a robot would grant robot immunities
             CheckSumDupes(this);
+            //switch statement for triggering ontransform passives would go here, if any summons had passives like that
         }
         else
         System.out.println(this.Cname+"'s Transformation failed due to an immunity.");
@@ -547,5 +542,53 @@ public class Summon extends Character
     @Override
     public void onSelfControlled (Character controller)
     {
+    }
+    @Override
+    public void AddImmune (boolean add) 
+    {
+        if (add==true) //gain immunities on character creation
+        {
+            switch (this.index) 
+            {
+                case 1: //fury lmd
+                CoinFlip.RobotImmunities(this, true); break;
+                case 28: //arachnaught
+                CoinFlip.RobotImmunities(this, true); break;
+                case 3: //crushbot
+                CoinFlip.RobotImmunities(this, true); this.immunities.add("Persuaded"); break;
+                case 4: //ultron drone
+                CoinFlip.RobotImmunities(this, true); this.immunities.add("Persuaded"); this.immunities.add("Control"); break;
+                case 5: //doombot
+                CoinFlip.RobotImmunities(this, true); this.immunities.add("Persuaded"); this.immunities.add("Control"); break;
+                case 6: //lesser demon
+                this.immunities.add("Persuaded"); break;
+                case 7: //holographic decoy
+                CoinFlip.StatImmune(this, true); break;
+                case 12: //giganto
+                this.ADR+=20; this.immunities.add("Persuaded"); break;
+            }    
+        }
+        else //remove immunities when transforming 
+        {
+            switch (this.index) 
+            {
+                case 1: //fury lmd
+                CoinFlip.RobotImmunities(this, false); break;
+                case 28: //arachnaught
+                CoinFlip.RobotImmunities(this, false); break;
+                case 3: //crushbot
+                CoinFlip.RobotImmunities(this, false); this.immunities.remove("Persuaded"); break;
+                case 4: //ultron drone
+                CoinFlip.RobotImmunities(this, false); this.immunities.remove("Persuaded"); this.immunities.remove("Control"); break;
+                case 5: //doombot
+                CoinFlip.RobotImmunities(this, false); this.immunities.remove("Persuaded"); this.immunities.remove("Control"); break;
+                case 6: //lesser demon
+                this.immunities.remove("Persuaded"); break;
+                case 7: //holographic decoy
+                CoinFlip.StatImmune(this, false); break;
+                case 12: //giganto
+                this.ADR-=20; this.immunities.remove("Persuaded"); break;
+            }       
+        }
     }
 }

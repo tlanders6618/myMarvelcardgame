@@ -14,7 +14,6 @@ public class SummonPassive
     {
         if (duty.equals("spawn")) //onsummon
         {
-            og.ADR+=20; og.immunities.add("Persuaded"); 
             if (og.passivefriend[0].index==84) //summoned by namor
             {
                 og.passivefriend[0].passivefriend[0]=og; //so namor's "trident of neptune" works properly
@@ -36,13 +35,13 @@ public class SummonPassive
     }
     public static void Decoy (Character decoy) //onsummon
     {
-        decoy.add(new Taunt(500, 616)); CoinFlip.StatImmune(decoy, true); decoy.binaries.add("Stunned");
+        decoy.add(new Taunt(500, 616)); decoy.binaries.add("Stunned");
     }
     public static int Daemon (Character matt, boolean start, Character attacker, int dmg)
     {
         if (start==true) //onsummon
         {
-            boolean yes=CoinFlip.Flip(50); matt.immunities.add("Persuaded");
+            boolean yes=CoinFlip.Flip(50); 
             if (yes==true)
             {
                 Provoke g= new Provoke(500, 1, matt);
@@ -61,65 +60,46 @@ public class SummonPassive
         }
         return dmg;
     }
-    public static void LilDoomie (Character lil, boolean start, Character ally)
+    public static void LilDoomie (Character lil, Character ally) //allydeath
     {
-        if (start==true) //onsummon
+        if (ally.summoned==false&&ally.index==28&&lil.dead==false) //only triggers if doom dies; it doesn't matter who summoned lil doomie
         {
-            CoinFlip.RobotImmunities(lil, true); lil.immunities.add("Persuaded"); lil.immunities.add("Control");
+            System.out.println("CONNECTION LOST. SELF TERMINATION IN 3...2...1..."); lil.onDeath(null, "self");
         }
-        else //allydeath
+    }
+    public static void Drone (Character husk, StatEff effecter)
+    {
+        if (!(husk.binaries.contains("Stunned"))&&husk.passivefriend[0]!=null) 
         {
-            if (ally==lil.passivefriend[0]&&lil.dead==false)
+            Character target=husk.passivefriend[0]; //aka ultron
+            String name=effecter.getimmunityname(); int dur=effecter.oduration; int pow=effecter.power;
+            String[] morb={name, "500", Integer.toString(pow), Integer.toString(dur), "false"}; String[][] morbintime=StatFactory.MakeParam(morb, null);
+            StatEff e=StatFactory.MakeStat(morbintime, target);  
+            if (target.immunities.contains(e.getefftype())||target.immunities.contains(e.getimmunityname()))
             {
-                System.out.println("CONNECTION LOST. SELF TERMINATION IN 3...2...1...");
-                lil.onDeath(null, "self");
+                System.out.println(husk.Cname+"'s "+e.geteffname()+" could not be applied to "+target.Cname+" due to an immunity.");
+            }
+            else if (husk.CheckFor("Undermine", false)==true&&!(husk.ignores.contains("Undermine")))
+            { 
+                System.out.println(husk.Cname+"'s "+e.geteffname()+" could not be applied to "+target.Cname+" due to a conflicting status effect.");
+            }
+            else if (e.getimmunityname().equals("Speed"))
+            {
+                System.out.println(husk.Cname+"'s "+e.geteffname()+" could not be applied to "+target.Cname+" due to a duplicate status effect.");
+            }
+            else if (target.dead==false)
+            {
+                boolean apple=e.CheckStacking(target, e, e.stackable); 
+                if (apple==true)
+                target.add(e);
+                else
+                System.out.println(husk.Cname+"'s "+e.geteffname()+" could not be applied to "+target.Cname+" due to a duplicate status effect.");
             }
         }
     }
-    public static void Drone (Character husk, boolean start, StatEff effecter)
+    public static void Crushbot (Character bot)
     {
-        if (start==true) //onsummon
-        {
-            CoinFlip.RobotImmunities(husk, true); husk.immunities.add("Persuaded"); husk.immunities.add("Control");
-        }
-        else //hero.add
-        {
-            if (!(husk.binaries.contains("Stunned"))&&husk.passivefriend[0]!=null&&husk.passivefriend[0].index==27) //only works on ultron due to the message printing his name
-            {
-                Character target=husk.passivefriend[0]; //aka ultron
-                String name=effecter.getimmunityname(); int dur=effecter.oduration; int pow=effecter.power;
-                String[] morb={name, "500", Integer.toString(pow), Integer.toString(dur), "false"}; String[][] morbintime=StatFactory.MakeParam(morb, null);
-                StatEff e=StatFactory.MakeStat(morbintime, target);  
-                if (target.immunities.contains(e.getefftype())||target.immunities.contains(e.getimmunityname()))
-                {
-                    System.out.println(husk.Cname+"'s "+e.geteffname()+" could not be applied to Ultron due to an immunity.");
-                }
-                else if (husk.CheckFor("Undermine", false)==true&&!(husk.ignores.contains("Undermine")))
-                { 
-                    System.out.println(husk.Cname+"'s "+e.geteffname()+" could not be applied to Ultron due to a conflicting status effect.");
-                }
-                else if (e.getimmunityname().equals("Speed"))
-                {
-                    System.out.println(husk.Cname+"'s "+e.geteffname()+" could not be applied to Ultron due to a duplicate status effect.");
-                }
-                else if (target.dead==false)
-                {
-                    boolean apple=e.CheckStacking(target, e, e.stackable); 
-                    if (apple==true)
-                    target.add(e);
-                    else
-                    System.out.println(husk.Cname+"'s "+e.geteffname()+" could not be applied to Ultron due to a duplicate status effect.");
-                }
-            }
-        }
-    }
-    public static void Crushbot (Character bot, boolean start)
-    {
-        if (start==true) //onsummon
-        {
-            CoinFlip.RobotImmunities(bot, true); bot.immunities.add("Persuaded");
-        }
-        else if (!(bot.binaries.contains("Stunned"))) //onturn
+        if (!(bot.binaries.contains("Stunned"))) //onturn
         {
             System.out.println("\nSEARCHING...CRUSHBOT TARGET ACQUIRED");
             ArrayList<Character> low=Battle.ChooseTarget(bot, "enemy", "lowest");
@@ -134,7 +114,6 @@ public class SummonPassive
     }
     public static void NickLMD (Summon lmd) //onsummon
     {
-        CoinFlip.RobotImmunities(lmd, true);
         if (lmd.passivefriend[0]!=null&&lmd.passivefriend[0].dead==false)
         {
             StatEff prot= new ProtectE (500, 616);

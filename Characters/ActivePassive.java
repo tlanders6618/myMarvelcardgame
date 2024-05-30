@@ -1,6 +1,5 @@
 package myMarvelcardgamepack;
 
-
 /**
  * Designer: Timothy Landers
  * Date: 24/7/22
@@ -11,6 +10,13 @@ import java.util.ArrayList;
 public class ActivePassive 
 {
     //2.10: Marvellous Mutants
+    public static void Colossus (Character piotr, boolean add) //add and remove
+    {
+        if (add==true)
+        piotr.CritDR+=50;
+        else
+        piotr.CritDR-=50;
+    }
     public static void AA (Character aa, Character vic) //onattack
     {
         boolean bleed=CoinFlip.Flip(50);
@@ -19,6 +25,8 @@ public class ActivePassive
             String[] blood={"Bleed", "500", "15", "2", "false"}; String[][] rb=StatFactory.MakeParam(blood, null); aa.activeability.AddTempString(rb);
             //System.out.println("Bleed: "+CoinFlip.GetStatCount(vic, "Bleed", "any"));
         }
+        else
+        StatEff.applyfail(aa, new Bleed(500, 15, 2), "chance");
         if (CoinFlip.GetStatCount(vic, "Bleed", "any")>=3) //must be separate from above or else feather fling doesn't consistently apply the bonus debuff
         {
             String[] sick={"Weakness", "500", "30", "1", "false"}; String[][] sickness=StatFactory.MakeParam(sick, null); aa.activeability.AddTempString(sickness);
@@ -29,6 +37,8 @@ public class ActivePassive
             String[] hemlock={"Poison", "500", "15", "2", "false"}; String[][] hemlocket=StatFactory.MakeParam(hemlock, null); aa.activeability.AddTempString(hemlocket);
             //System.out.println("Poison: "+CoinFlip.GetStatCount(vic, "Poison", "any"));
         }
+        else
+        StatEff.applyfail(aa, new Poison(500, 15, 2), "chance");
         if (CoinFlip.GetStatCount(vic, "Poison", "any")>=3) 
         {
             String[] dead={"Wound", "500", "616", "1", "false"}; String[][] death=StatFactory.MakeParam(dead, null); aa.activeability.AddTempString(death);
@@ -77,11 +87,7 @@ public class ActivePassive
     }
     public static void Roblin (Character kasborn, Character spider, String oc)
     {
-        if (oc.equals("start")) //fightstart
-        {
-            kasborn.immunities.add("Burn"); kasborn.immunities.add("Snare");
-        }
-        else if (oc.equals("attack")&&spider.dead==false) //onattack; don't gain intensify if attack killed its target
+        if (oc.equals("attack")&&spider.dead==false) //onattack; don't gain intensify if attack killed its target
         {
             IntensifyE pumpkin= new IntensifyE(500, 5, 616); 
             boolean goal=CoinFlip.Flip(500+kasborn.Cchance);
@@ -243,7 +249,7 @@ public class ActivePassive
             }
             for (StatEff e: marko.effects) //update tracker to accurately show M since it otherwise only updates onturnend
             {
-                if (e instanceof Tracker&&e.geteffname().equals("Momentum: "+(marko.passivecount-1)))
+                if (e.getimmunityname().equals("Momentum: "))
                 {
                     e.onTurnEnd(marko); break;
                 }
@@ -257,7 +263,7 @@ public class ActivePassive
                 StatEff too=null;
                 for (StatEff e: marko.effects)
                 {
-                    if (e.geteffname().equals("Cyttorak's Blessing active")&&e instanceof Tracker)
+                    if (e instanceof Tracker&&e.geteffname().equals("Cyttorak's Blessing active"))
                     {
                         too=e; break;
                     }
@@ -280,12 +286,6 @@ public class ActivePassive
                 Tracker salt= new Tracker("Cyttorak's Blessing active"); marko.effects.add(salt);
             }
         }
-        else if (time.equals("start")) //fightstart
-        {
-            marko.immunities.add("Snare"); marko.immunities.add("Stun"); marko.ADR+=10; marko.immunities.add("Control");
-            Tracker rage= new Tracker("Momentum: "); marko.effects.add(rage); rage.onApply(marko);
-            Tracker salt= new Tracker("Cyttorak's Blessing active"); marko.effects.add(salt);
-        }
         else if (time.equals("attack")&&marko.passivecount<5) //onattack
         {
             marko.passivecount++;
@@ -296,34 +296,81 @@ public class ActivePassive
             }
         }
     }
-    public static void Flash (Character eugene, int change) //called by activatep and onattacked
+    public static void Hulk (Character banner) //hpchange
     {
-        int old=eugene.passivecount; 
-        if (change<0)
-        System.out.println(eugene.Cname+" lost "+Math.abs(change)+" Control Points.");
-        else
-        System.out.println(eugene.Cname+" gained "+change+" Control Points.");
-        eugene.passivecount+=change; //tracker auto updates turnend and when attacked so no need to do it here
-        if (eugene.passivecount>10)
-        eugene.passivecount=10;
-        if (eugene.passivecount<0)
-        eugene.passivecount=0;
-        int New=eugene.passivecount;
-        if (old<=5&&New>5) //losing control when at or under 5 C; this is for changing to in check
+        int dif=banner.maxHP-banner.HP;
+        int number=0;
+        if (dif>=40&&dif<80)
+        number=5;
+        else if (dif>=80&&dif<120)
+        number=10;
+        else if (dif>=120&&dif<160)
+        number=15; 
+        else if (dif>=160&&dif<200)
+        number=20;
+        else if (dif>=200&&dif<240) 
+        number=25;
+        else if (dif>=240&&dif<280) //more than 280 missing health is currently (4.1) impossible so it stops checking here
+        number=30;
+        banner.ADR=number; banner.PBD=number; banner.passivecount=number;
+        for (StatEff e: banner.effects) //update rage tracker
         {
-            System.out.println(eugene.Cname+" is In Check.");
-            eugene.BD-=15; eugene.Cchance+=50;
+            if (e instanceof Tracker&&e.getimmunityname().equals("Rage: "))
+            e.Attacked(banner, null, 616);
         }
-        else if (old>5&&New<=5) //in check while at or above 6 C; this is for changing to losing control
+    }
+    public static void Flash (Character eugene, int change, boolean attacking, boolean start) 
+    {
+        if (attacking==false) //activatep from his basic attacks, fightstart, and when attacked; change control point total
         {
-            System.out.println(eugene.Cname+" is Losing Control!");
-            eugene.BD+=15; eugene.Cchance-=50;
+            int old=eugene.passivecount;
+            if (change<0)
+            System.out.println(eugene.Cname+" lost "+Math.abs(change)+" Control Points.");
+            else
+            System.out.println(eugene.Cname+" gained "+change+" Control Points.");
+            eugene.passivecount+=change; 
+            for (StatEff e: eugene.effects) //update tracker
+            {
+                if (e.getimmunityname().equals("Control Points: "))
+                e.Attacked(eugene, null, 616);
+            }
+            if (eugene.passivecount>10)
+            eugene.passivecount=10;
+            if (eugene.passivecount<0)
+            eugene.passivecount=0;
+            if (start==false) //changing status any time after fight start
+            {
+                if (old<=5&&eugene.passivecount>5) //losing control when at or under 5 C; this is for changing to in check
+                {
+                    System.out.println(eugene.Cname+" is In Check.");
+                    eugene.BD-=15; eugene.Cchance+=50;
+                }
+                else if (old>5&&eugene.passivecount<=5) //in check while at or above 6 C; this is for changing to losing control
+                {
+                    System.out.println(eugene.Cname+" is Losing Control!");
+                    eugene.BD+=15; eugene.Cchance-=50;
+                }
+            }
+            else //starts fight in check; can't use above code without giving him negative BD due to going from 0 C to 10
+            {
+                System.out.println(eugene.Cname+" is In Check."); eugene.Cchance+=50;
+            }
+            //otherwise do nothing since flash's current state hasn't changed
         }
-        //otherwise do nothing since flash's current state hasn't changed
+        else //beforeattack; if losing control, take and do extra damage; triggers when assisting as well 
+        {
+            if (eugene.passivecount<=5) 
+            {
+                int amount=15-eugene.ADR; 
+                System.out.println (eugene.Cname+" took "+amount+" damage");
+                eugene.TakeDamage(eugene, amount, false);
+                String[]akaban={"Bleed", "100", "10", "1", "false"}; String[][] niharu=StatFactory.MakeParam(akaban, null); eugene.activeability.AddTempString(niharu);
+            }
+        }
     }
     public static void Binary (Character binary) //for consuming energy; onturn, onallyturn, onenemyturn
     {
-        if (binary.dead==false&&!(binary.binaries.contains("Banished"))&&!(binary.binaries.contains("Stunned"))&&binary.passivecount>0)
+        if (binary.passivecount>0&&binary.dead==false&&!(binary.binaries.contains("Banished"))&&!(binary.binaries.contains("Stunned")))
         {
             binary.passivecount--;
             System.out.println(binary.Cname+" lost 1 Energy.");
@@ -336,12 +383,13 @@ public class ActivePassive
                     damage-=n.ADR;
                     if (damage<0)
                     damage=0;
-                    n.TakeDamage(n, binary, damage, true);
+                    System.out.println ("\n"+binary.Cname+" did "+damage+" damage to "+n.Cname);
+                    n.TakeDamage(n, damage, false); //elusive
                 }
             }
             for (StatEff e: binary.effects) //update displayed energy count
             {
-                if (e instanceof Tracker)
+                if (e instanceof Tracker&&e.getimmunityname().equals("Energy: "))
                 {
                     e.Attacked(binary, null, 616);
                 }
@@ -352,7 +400,7 @@ public class ActivePassive
                 ArrayList<StatEff> jerker= new ArrayList<StatEff>(); jerker.addAll(binary.effects);
                 for (StatEff e: jerker) //remove tracker since it is useless now that she has no way to gain any energy
                 {
-                    if (e instanceof Tracker && e.geteffname().equals("Energy: 0"))
+                    if (e instanceof Tracker&&e.getimmunityname().equals("Energy: "))
                     {
                         binary.remove(e.hashcode, "silent");
                     }
@@ -367,14 +415,19 @@ public class ActivePassive
             System.out.println(carol.Cname+" gained 1 Energy.");
             ++carol.passivecount;
         }
-        else if (dmg>80&&!(carol.binaries.contains("Stunned"))) //tookdamage 
+        else if (turn==false&&dmg>80&&!(carol.binaries.contains("Stunned"))) //tookdamage 
+        {
+            System.out.println(carol.Cname+" gained 1 Energy.");
+            ++carol.passivecount;
+        }
+        else if (turn==false&&dmg==-616) //onattack
         {
             System.out.println(carol.Cname+" gained 1 Energy.");
             ++carol.passivecount;
         }
         for (StatEff e: carol.effects) //update displayed energy count
         {
-            if (e instanceof Tracker)
+            if (e instanceof Tracker&&e.getimmunityname().equals("Energy: "))
             {
                 e.Attacked(carol, null, 616);
             }
@@ -486,8 +539,10 @@ public class ActivePassive
                 {
                     wolvie.remove(e.hashcode, "normal");
                 }
+                //gain passive bonuses
                 wolvie.ADR+=15;
                 wolvie.immunities.add("Persuaded"); wolvie.immunities.add("Control"); CoinFlip.IgnoreTargeting(wolvie, true);
+                //gain buffs
                 boolean yes=CoinFlip.Flip(500+wolvie.Cchance);
                 StatEff d= new IntensifyE(500, 15, 616);
                 if (yes==true)
@@ -500,6 +555,7 @@ public class ActivePassive
                 StatEff.CheckApply(wolvie, wolvie, f);
                 else
                 StatEff.applyfail(wolvie, f, "chance");
+                //abilities must be remade to change them to random target
                 BasicAb slash= new BasicAb ("X-Slash", "random 1", "enemy", 35); 
                 String[] bleed= {"Bleed", "50", "20", "1", "false"}; String[][] real=StatFactory.MakeParam(bleed, null); slash.AddStatString(real);
                 BasicAb punch =new BasicAb ("Primal Punch", "random 1", "enemy", 35); punch.special.add(new Purify(50, 1, "random", "any", true, true));
@@ -573,7 +629,8 @@ public class ActivePassive
                     Obsession obs= new Obsession ();
                     if (yes==true)
                     {
-                        drax.passivefriend[0].add(obs);
+                        StatEff.CheckApply(drax, drax.passivefriend[0], obs);
+                        if (drax.passivefriend[0].effects.contains(obs))
                         drax.passivecount++;
                     }
                     else
@@ -669,7 +726,7 @@ public class ActivePassive
     public static void IM (Character tony, StatEff buff) //called by hero.remove
     {
         Empower emp= new Empower (500, buff.power, buff.duration, tony.Cname, 4); 
-        tony.add(emp);
+        StatEff.CheckApply(tony, tony, emp); 
     }
     public static void Gamora (Character gam, StatEff buff, boolean add) //add is whether the buff is being added or removed; called by hero.remove and hero.add
     {

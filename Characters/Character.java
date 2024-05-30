@@ -54,6 +54,7 @@ public abstract class Character
     public Character ()
     {
     }
+    public abstract void AddImmune (boolean b);
     public abstract void add (StatEff eff); //adding a stateff    
     public abstract void remove (int removalcode, String nullify); //removes status effects
     public abstract void onEnemyGain (Character enemy, StatEff e); //for when an enemy gains a stateff
@@ -139,11 +140,25 @@ public abstract class Character
                 }
                 else if (name.equals("Regen"))
                 {
-                    regen=true; int p=CoinFlip.GetStatCount(this, "Poison", "any"); p*=10; dmg-=p; ReT+=dmg; 
-                }
-                else if (name.equals("Recovery")) //to get accurate number of healing to be printed
-                {
-                    int r=CoinFlip.GetStatCount(this, "Regen", "Heal"); dmg*=r; ReT+=dmg; 
+                    if (this.HP<this.maxHP) //do not print healing message if hero is already full hp
+                    {
+                        regen=true; int p=CoinFlip.GetStatCount(this, "Poison", "any"); p*=10; dmg-=p; 
+                        if (e.getefftype().equals("Heal")) //to get accurate number of healing to be printed; recovery only affects heal effs, not regen Effects
+                        {
+                            for (StatEff read: this.effects)
+                            {
+                                if (read.getimmunityname().equals("Recovery"))
+                                {
+                                    dmg+=read.power;
+                                }
+                            }
+                        }
+                        if (dmg<0)
+                        dmg=0;
+                        if (dmg+this.HP>this.maxHP)
+                        dmg=this.maxHP-this.HP;
+                        ReT+=dmg; 
+                    }
                 }
                 e.onTurnStart(this); //calls onturnstart on the eff to ensure dmg is done in the order the effs were applied, for fairness, instead of as a big lump sum later on
                 if (this.dead==true) //can no longer be healed/take dot dmg, so end loop 
@@ -732,7 +747,7 @@ public abstract class Character
                 return 220;
             
                 case 1: case 2: case 3: case 4: case 5: case 7: case 8: case 11: case 18: case 20: case 23: case 24: case 25: case 34: case 39: case 40: 
-                case 81: case 82: case 84: case 86: case 88: case 89: case 90: case 92: case 94: case 97: case 98:
+                case 81: case 82: case 84: case 86: case 88: case 89: case 90: case 92: case 94: case 97: case 98: case 100: case 101:
                 return 230;
             
                 case 12: case 13: case 15: case 16: case 17: case 22: case 27: case 28: case 30: case 32: case 35: case 38: case 41:
@@ -834,6 +849,8 @@ public abstract class Character
                 case 97: return "Angel (Modern)";
                 case 98: return "Angel (Archangel)";
                 case 99: return "Colossus (Classic)";
+                case 100: return "Elixir (Golden Skin)";
+                case 101: return "Elixir (Black Skin)";
             }    
             return "ERROR. INDEX NUMBER NOT FOUND";
         }
@@ -888,68 +905,114 @@ public abstract class Character
         {
             switch (index)
             {
-                case 1: return "When an ally Protected by Moon Knight is attacked, counter for 55 damage."; 
-                case 2: return "With Intensify, ignore Protect, become immune to Steal, and gain +50% status chance. Bleeds applied to Protected enemies have +1 duration."; 
-                case 4: return "When an Intensify is Stolen or Nullified from self, gain an Empowerment with equal value.";
-                case 5: return "On War Machine's first turn, apply a Target: 5 Effect to an enemy, preventing Invisible."; 
-                case 6: return "Gain Shield: 20 on fight start and on turn."; 
-                case 7: String boo= "On fight start, apply Redwing, granting 50% damage reduction and debuff immunity once when taking 120+ damage from an attack.";
+                case 1: //moon knight 
+                return "When an ally Protected by Moon Knight is attacked, counter for 55 damage.";
+                case 2: //gamora
+                return "With Intensify, ignore Protect and Counter, become immune to Steal, and gain +50% status chance. Bleeds applied to Protected enemies have +1 duration."; 
+                case 4: //iron man
+                return "When an Intensify is Stolen or Nullified from self, gain an Empowerment with equal value.";
+                case 5: //war machine
+                return "On War Machine's first turn, apply a Target: 5 Effect to an enemy, preventing Invisible."; 
+                case 6: //captain america
+                return "Gain Shield: 20 on fight start and on turn."; 
+                case 7: //falcon
+                String boo= "On fight start, apply Redwing, granting 50% damage reduction and debuff immunity once when taking 120+ damage from an attack.";
                 boo=boo+" Apply a small Mend to heroes who consume Redwing."; 
                 return boo;
-                case 8: return "Attacks ignore Defence."; 
-                case 9: return "Every other turn, apply Confidence: 15 to self and allies."; 
-                case 10: return "Summons Nick Fury LMD (Summon) when falling below 90 HP for the first time."; 
-                case 12: String ga="On fight start, apply Obsession to an enemy. Apply +1 on attack (max 3).";
+                case 8: //bucky
+                return "Attacks ignore Defence."; 
+                case 9: //star lord
+                return "Every other turn, apply Confidence: 15 to self and allies."; 
+                case 10: //fury sr
+                return "Summons Nick Fury LMD (Summon) when falling below 90 HP for the first time."; 
+                case 12: //drax og
+                String ga="On fight start, apply Obsession to an enemy. Apply +1 on attack (max 3).";
                 ga+=" Gain immunity to buffs and Persuaded, ignore targeting effects, and always takes status effect damage on turn end."; 
                 return ga; 
-                case 13: return "Do +15 damage and apply debuffs with +15 strength when attacking enemies with 75% HP or more."; 
-                case 14: return "Gain +50% crit chance against enemies below 90 HP. On crit, 50% chance to gain Regen: 15 for 1 turn."; 
-                case 15: String loo="Gain Regen: 15 for 1 turn when attacked. ";
+                case 13: //drax modern
+                return "Do +15 damage and apply debuffs with +15 strength when attacking enemies with 75% HP or more."; 
+                case 14: //x23
+                return "Gain +50% crit chance against enemies below 90 HP. On crit, 50% chance to gain Regen: 15 for 1 turn."; 
+                case 15: //wolverine
+                String loo="Gain Regen: 15 for 1 turn when attacked. ";
                 loo+="After taking 180 damage, clear status effects on self and enter Berserker Frenzy, granting +15 damage reduction but making attacks Random Target."; 
                 return loo;
-                case 16: return "On fight start, choose an ally to gain Resistance; when they're attacked, counter for 40 damage. Ignore Evade but take +5 damage while Burning."; 
-                case 17: return "On kill, gain Focus for 1 turn. Ignore Evade but take +5 damage while Burning."; 
-                case 18: return "Evade all enemy AoE attacks. On turn, gain Evade. While he has Evade, Spider-Man becomes the target when an ally with less HP than him is attacked."; 
-                case 20: return "Attacks against enemies with Tracers are Inescapable."; 
-                case 23: String mlb="Gain immunity to Poison and take no damage from Shock or Burn. On turn, when taking 80+ damage, and when attacking, gain 1 E. "; 
+                case 16: //venom og
+                return "On fight start, choose an ally to gain Resistance; when they're attacked, counter for 40 damage. Ignore Evade but take +5 damage while Burning."; 
+                case 17: //venom gargan
+                return "On kill, gain Focus for 1 turn. Ignore Evade but take +5 damage while Burning."; 
+                case 18: //spidey
+                return "Evade all enemy AoE attacks. On turn, gain Evade. While he has Evade, Spider-Man becomes the target when an ally with less HP than him is attacked."; 
+                case 20: //superior spidey
+                return "Attacks against enemies with Tracers are Inescapable."; 
+                case 23: //captain marvel
+                String mlb="Gain immunity to Poison and take no damage from Shock or Burn. On turn, when taking 80+ damage, and when attacking, gain 1 E. "; 
                 String blm="At 5 E, lose all status effects and Transform into Binary.";
                 return mlb+blm;
-                case 24: return "Gain immunity to status effects. On any turn, lose 1 E to do 10 Elusive damage to all enemies."; 
-                case 25: String clown="While above 5 C, gain +50% status chance; while below, apply Bleed: 10 for 1 turn and do +15 damage to self and enemies when attacking. ";
+                case 24: //binary
+                return "Gain immunity to status effects. On any turn, lose 1 E to do 10 Elusive damage to all enemies."; 
+                case 25: //agent venom
+                String clown="While above 5 C, gain +50% status chance; while below, apply Bleed: 10 for 1 turn and do +15 damage to self and enemies when attacking. ";
                 clown+="Ignore Evade but take +5 damage while Burning."; 
                 return clown;
-                case 26: String fool="Gain Shield: 100 on fight start; while active, gain debuff immunity and take -100 damage from attacks that do 100+ damage."; 
+                case 26: //modok
+                String fool="Gain Shield: 100 on fight start; while active, gain debuff immunity and take -100 damage from attacks that do 100+ damage."; 
                 fool+="\nAttacks ignore targeting effects and apply a 1 turn Shatter or disable debuff based on the target's abilities.";
                 return fool;
-                case 27: return "Gain immunity to Bleed, Poison, Copy, Snare, Control, and Steal; take no Wither damage."; 
-                case 28: return "Gain immunity to Control, Shock, Burn, Persuaded, and Freeze; once per turn, apply Shock: 20 for 1 turn when attacked."; 
-                case 30: return "Gain immunity to Poison and Control. Brawn can Nullify Heal and Defence effects, and gains copies of effects he Nullified. ";
-                case 31: return "Gain immunity to Poison, Control, Terror, and Persuaded. Take less and deal more damage for every 50 missing HP.";
-                case 32: return "Every other turn, gain 1 E; lose all when attacking to do +20 damage for each. Gain immunity to Control.";
-                case 33: return "On turn, gain 30 HP. Do +15 damage against Summons and reduce all cooldowns by 1 turn on kill.";
-                case 35: String stupid="Gain immunity to Stun and Snare. Gain +10 damage reduction and Control immunity while above 100 HP. "; 
+                case 27: //ultron
+                return "Gain immunity to Bleed, Poison, Copy, Snare, Control, and Steal; take no Wither damage."; 
+                case 28: //doom
+                return "Gain immunity to Control, Shock, Burn, Persuaded, and Freeze; once per turn, apply Shock: 20 for 1 turn when attacked."; 
+                case 30: //brawn
+                return "Gain immunity to Poison and Control. Brawn can Nullify Heal and Defence effects, and gains copies of effects he Nullified. ";
+                case 31: //hulk
+                return "Gain immunity to Poison, Control, Terror, and Persuaded. Take less and deal more damage for every 50 missing HP.";
+                case 32: //black bolt
+                return "Every other turn, gain 1 E; lose all when attacking to do +20 damage for each. Gain immunity to Control.";
+                case 33: //deadpool
+                return "On turn, gain 30 HP. Do +15 damage against Summons and reduce all cooldowns by 1 turn on kill.";
+                case 35: //juggernaut
+                String stupid="Gain immunity to Stun and Snare. Gain +10 damage reduction and Control immunity while above 100 HP. "; 
                 stupid+="Gain 1 M on turn and attack (max 5); while at 5, become debuff immune.";
                 return stupid;
-                case 36: return "50% chance to apply Wound for 1 turn when attacking enemies below 120 HP.";
-                case 39: return "Convert all Shocks on self to Intensify Effects with equal value.";
-                case 40: return "Gain immunity to Bleed, Disarm, and Shock, and ignore Counters; when receiving 2 Burns, convert them into a Stun Effect for 1 turn.";
-                case 41: return "On fight start, gain Resistance. Take -10 Bleed damage. Gain immunity to max HP reduction, Suppression, Vulnerable, and Terror.";
-                case 81: return "Ignore Blind and Invisible. Ignore the Counter activation limit.";
-                case 83: return "Gain immunity to Bleed, Shock, and Burn. Take -25 damage from attacks that do under 50 damage.";
-                case 85: return "Gain immunity to Debuffs, Buffs, Heal, Defence, and Other. Channelled abilities cannot be interrupted.";
-                case 86: return "Attacks against Snared enemies ignore Invisible, Evade, and Blind.";
-                case 89: return "Gain immunity to Bleed, Burn, and Soaked, but take +10 damage from Shock.";
-                case 90: return "When an enemy gains Bleed, gain Intensify: 5 with equal duration. On kill, gain Focus for 1 turn. Ignore Evade but take +10 damage while Burning."; 
-                case 91: return "Pumpkin Bombs can apply Weakness: 20, Poison: 15, or Target: 10, for 2 turns.";
-                case 92: return "Gain immunity to Burn. On attack, gain Intensify: 5. With 3, ignore Evade; with 5, gain +50% status chance. Lose all Intensify on enemy death.";
-                case 93: return "On Franchisee kill, gain 100 HP, gain Focus for 1 turn, and reset all cooldowns.";
-                case 94: return "When falling below 130 HP for the first time, gain Focus for 1 turn and reset the cooldown of a chosen ability.";
-                case 96: return "Gain +15 damage reduction and immunity to Bleed, Poison, Burn, Shock, Stun, Control, and Heal; take no Wither damage. On Transform, gain Taunt for 1 turn.";
-                case 97: return "100% chance to gain Bleed: 0 for 2 turns when taking damage. On turn, gain 15 HP per Bleed on self.";
-                case 98: String str="On attack, flat 50% chance to apply Bleed: 15 for 2 turns and flat 50% chance to apply Poison: 15 for 2 turns.";
+                case 36: //vulture
+                return "50% chance to apply Wound for 1 turn when attacking enemies below 120 HP.";
+                case 39: //electro
+                return "Convert all Shocks on self to Intensify Effects with equal value.";
+                case 40: //sandman
+                return "Gain immunity to Bleed, Disarm, and Shock, and ignore Counters; when receiving 2 Burns, convert them into a Stun Effect for 1 turn.";
+                case 41: //rhino
+                return "On fight start, gain Resistance. Take -10 Bleed damage. Gain immunity to max HP reduction, Suppression, Vulnerable, and Terror.";
+                case 81: //daredevil
+                return "Ignore Blind and Invisible. Ignore the Counter activation limit.";
+                case 83: //luke cage
+                return "Gain immunity to Bleed, Shock, and Burn. Take -25 damage from attacks that do under 50 damage.";
+                case 85: //silver surfer
+                return "Gain immunity to status effects. Channelled abilities cannot be interrupted.";
+                case 86: //kraven
+                return "Attacks against Snared enemies ignore Invisible, Evade, and Blind.";
+                case 89: //hydro man
+                return "Gain immunity to Bleed, Burn, and Soaked, but take +10 damage from Shock.";
+                case 90: //carnage
+                return "When an enemy gains Bleed, gain Intensify: 5 with equal duration. On kill, gain Focus for 1 turn. Ignore Evade but take +10 damage while Burning."; 
+                case 91: //goblin
+                return "Pumpkin Bombs can apply Weakness: 20, Poison: 15, or Target: 10, for 2 turns.";
+                case 92: //red goblin
+                return "Gain immunity to Burn and Snare. On attack, gain Intensify: 5. With 3, ignore Evade; with 5, gain +50% status chance. Lose all Intensify on enemy death.";
+                case 93: //hobby kingsley
+                return "On Franchisee kill, gain 100 HP, gain Focus for 1 turn, and reset all cooldowns.";
+                case 94: //hobby phil
+                return "When falling below 130 HP for the first time, gain Focus for 1 turn and reset the cooldown of a chosen ability.";
+                case 96: //diamond frost
+                return "Gain +15 damage reduction and immunity to Bleed, Poison, Burn, Shock, Stun, Control, and Heal; take no Wither damage. On Transform, gain Taunt for 1 turn.";
+                case 97: //angel
+                return "100% chance to gain Bleed: 0 for 2 turns when taking damage. On turn, gain 15 HP per Bleed on self.";
+                case 98: //archangel
+                String str="On attack, flat 50% chance to apply Bleed: 15 for 2 turns and flat 50% chance to apply Poison: 15 for 2 turns.";
                 String train="\nIf the target has 3 Bleed, apply Weakness: 30 for 1 turn and if they have 3 Poison, apply Wound for 1 turn.";
                 return str+train;
-                case 99: return "Gain immunity to Bleed, Burn, and Freeze; with Taunt, incoming attacks have -50% crit chance.";
+                case 99: //colossus
+                return "Gain immunity to Bleed, Burn, and Freeze; with Taunt, incoming attacks have -50% crit chance.";
                 default: return "This character doesn't have any passive abilities.";
             }    
         }
@@ -957,21 +1020,36 @@ public abstract class Character
         {
             switch (index)
             {
-                case 1: return "Gain immunity to Bleed, Poison, and Copy; take no Wither damage. On Summon, Protect Nick Fury (Classic)."; 
-                case 28: return "Gain immunity to Bleed, Poison, and Copy; take no Wither damage.";
-                case 3: return "Gain immunity to Bleed, Poison, and Copy; take no Wither damage. On turn, apply Target: 5 to the lowest HP enemy.";
-                case 4: return "Gain immunity to Bleed, Poison, and Copy; take no Wither damage. When gaining a buff, grant Ultron a copy."; 
-                case 5: return "Gain immunity to Bleed, Poison, Persuaded, Control, and Copy; take no Wither damage. Die when Dr. Doom dies."; 
-                case 6: return "Gain immunity to Persuaded. 50% chance to Provoke a random enemy when Summoned; take -10 damage from Provoked enemies."; 
-                case 7: return "Gain Taunt on Summon. Holographic Decoy is permanently Stunned and immune to status effects."; 
-                case 8: return "On Summon and every other turn, Protect an ally for 1 turn. Gain immunity to Bleed, Poison, and Shock; take no Wither damage but take +15 damage from Burn."; 
-                case 9: return "Do +5 damage for each other HYDRA Trooper."; 
-                case 11: return "On Summon, gain Focus and Protect the summoner. Gain immunity to non-Other effects."; 
-                case 12: String son="Gain immunity to Persuaded and +20 damage reduction. Lose this damage reduction and gain Stun and Target: 40 for 1 turn after attacking."; 
-                son+=" Giganto is counted as 2 characters for the purpose of the team size limit."; return son;
-                case 14: return "Bruin is counted as 2 characters for the purpose of the team size limit.";
-                case 15: return "Ringer is counted as 2 characters for the purpose of the team size limit.";
-                case 16: return "Squid is counted as 2 characters for the purpose of the team size limit.";
+                case 1: //fury lmd
+                return "Gain immunity to Bleed, Poison, and Copy; take no Wither damage. On Summon, Protect Nick Fury (Classic)."; 
+                case 28: //arachnaught
+                return "Gain immunity to Bleed, Poison, and Copy; take no Wither damage.";
+                case 3: //crushbot
+                return "Gain immunity to Bleed, Poison, and Copy; take no Wither damage. On turn, apply Target: 5 to the lowest HP enemy.";
+                case 4: //ultron drone
+                return "Gain immunity to Bleed, Poison, and Copy; take no Wither damage. When gaining a buff, grant Ultron a copy."; 
+                case 5: //doombot
+                return "Gain immunity to Bleed, Poison, Persuaded, Control, and Copy; take no Wither damage. Die when Dr. Doom dies."; 
+                case 6: //lesser demon
+                return "Gain immunity to Persuaded. 50% chance to Provoke a random enemy when Summoned; take -10 damage from Provoked enemies."; 
+                case 7: //holographic decoy
+                return "Gain Taunt on Summon. Holographic Decoy is permanently Stunned and immune to status effects."; 
+                case 8: //ice golem
+                return "On Summon and every other turn, Protect an ally for 1 turn. Gain immunity to Bleed, Poison, and Shock; take no Wither damage but take +15 damage from Burn."; 
+                case 9: //hydra trooper
+                return "Do +5 damage for each other HYDRA Trooper."; 
+                case 11: //loki's illusions
+                return "On Summon, gain Focus and Protect the summoner. Gain immunity to non-Other effects."; 
+                case 12: //giganto
+                String son="Gain immunity to Persuaded and +20 damage reduction. Lose this damage reduction and gain Stun and Target: 40 for 1 turn after attacking."; 
+                son+=" Giganto is counted as 2 characters for the purpose of the team size limit."; 
+                return son;
+                case 14: //bruin
+                return "Bruin is counted as 2 characters for the purpose of the team size limit.";
+                case 15: //ringer
+                return "Ringer is counted as 2 characters for the purpose of the team size limit.";
+                case 16: //squid
+                return "Squid is counted as 2 characters for the purpose of the team size limit.";
                 default: return "This character doesn't have any passive abilities.";
             }    
         }
