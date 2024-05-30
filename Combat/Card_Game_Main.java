@@ -20,11 +20,11 @@ public class Card_Game_Main
         int name=616;
         String ban="nope";
         boolean unique=false;
-        int[] bans= new int [12]; 
+        int[] bans= new int [13]; 
         int[] charnames= new int[6];
         bans[6]=24; bans[7]=62; bans[8]=122; bans[9]=170; bans[10]=184; //players cannot pick gauntlet thanos, binary, etc        
         //Selecting cards
-        System.out.println ("Welcome. The current version is 4.2.6. The latest playable character is Colossus (Classic). "); 
+        System.out.println ("Welcome. The current version is 4.2.9. The latest playable character is Elixir (Black Skin). "); 
         System.out.println ("Currently, characters are playable from: 2.0, 2.1, 2.8, 2.9, and 2.10.");
         System.out.println ("Remember, characters will take turns in the order they are picked.");
         System.out.println ("\nEnter draft mode (allows character banning and up to one character swap)? Type yes or no.");
@@ -55,8 +55,12 @@ public class Card_Game_Main
                 }
                 if (name==95) //even though they're technically separate characters, they're treated as the same in terms of uniqueness
                 bans[11]=96;
-                else if (name==96) //this is to avoid there being 2 of the same hero on the battlefield
+                else if (name==96) //this is to avoid there being 2 of the same hero on the battlefield if one transforms into the other mid-fight
                 bans[11]=95;
+                else if (name==100)
+                bans[12]=101;
+                else if (name==101)
+                bans[12]=100;
                 switch (Ccounter)
                 {
                     case 0: bans[0]=name; break; 
@@ -101,6 +105,10 @@ public class Card_Game_Main
             bans[11]=96;
             else if (name==96) 
             bans[11]=95;
+            else if (name==100)
+            bans[12]=101;
+            else if (name==101)
+            bans[12]=100;
             switch (Ccounter) //0 is name11, 1 is name21, 2 is name12, 3 is name22, 4 is name 13, 5 is name23
             { 
                 case 0: charnames[0]=name; break; 
@@ -223,7 +231,11 @@ public class Card_Game_Main
                         }
                         else if (gone==95||gone==96) //if emma is no longer on either player's team, she should be pickable again by the other player, in both of her forms
                         {
-                            bans[11]=616;
+                            bans[11]=-616;
+                        }
+                        else if (gone==100||gone==101)
+                        {
+                            bans[12]=-616;
                         }
                     }
                 }

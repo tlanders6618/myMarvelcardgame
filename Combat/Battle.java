@@ -375,7 +375,7 @@ public class Battle
             me.add(hero);
             return me;
         }
-        else if (type.equalsIgnoreCase("Single")||type.equalsIgnoreCase("Multitarget"))
+        else if (type.equalsIgnoreCase("Single")||type.equalsIgnoreCase("Multitarget")||type.equalsIgnoreCase("rez"))
         {
             targets=Battle.TargetFilter(hero, friendly, type); //standard selection
         }
@@ -502,48 +502,71 @@ public class Battle
     {
         Character[] list= new Character[12]; //contains all possible targets
         Character[] targets= new Character[6]; //the one that's returned; contains actual targets
-        if (friendly.equalsIgnoreCase("enemy"))
+        if (type.equalsIgnoreCase("rez")) //gets targets from the dead
         {
-            list=Battle.GetTeam(CoinFlip.TeamFlip(hero.team1));
-        }
-        else if (friendly.equalsIgnoreCase("ally inclusive"))
-        {
-            list=Battle.GetTeam(hero.team1);
-        }
-        else if (friendly.equalsIgnoreCase("ally exclusive"))
-        {
-            list=Battle.GetTeammates(hero);
-        }
-        else if (friendly.equalsIgnoreCase("both inclusive")||friendly.equalsIgnoreCase("either inclusive"))
-        {
-            Character[] pol=Battle.GetTeam(CoinFlip.TeamFlip(hero.team1));
-            Character[] pot=Battle.GetTeam(hero.team1);
-            for (int i=0; i<6; i++)
+            ArrayList<Character> temp= new ArrayList<Character>(); 
+            if (friendly.equalsIgnoreCase("ally exclusive")||friendly.equalsIgnoreCase("ally inclusive")) //as of 4.2, only allies and/or self can be rezzed by an ability
             {
-                list[i]=pol[i];
-            }
-            for (int i=0; i<6; i++)
-            {
-                list[i+6]=pot[i];
+                if (hero.team1==true)
+                temp.addAll(Battle.team1dead);
+                else //if (hero.team1==false)
+                temp.addAll(Battle.team2dead);
+                if (friendly.equalsIgnoreCase("ally inclusive"))
+                temp.add(hero);
+                int in=0; 
+                for (Character c: temp) //convert array to list for target selection
+                {
+                    list[in]=c; in++; 
+                    if (in>11) //list has max size of 12; there shouldn't ever be that many dead, but break just in case to avoid index exception
+                    break;
+                }
             }
         }
-        else if (friendly.equalsIgnoreCase("both exclusive")||friendly.equalsIgnoreCase("either exclusive"))
+        else //normal target selection from living
         {
-            Character[] pol=Battle.GetTeam(CoinFlip.TeamFlip(hero.team1));
-            Character[] pot=Battle.GetTeammates(hero);
-            for (int i=0; i<6; i++)
+            if (friendly.equalsIgnoreCase("enemy"))
             {
-                list[i]=pol[i];
+                list=Battle.GetTeam(CoinFlip.TeamFlip(hero.team1));
             }
-            for (int i=0; i<6; i++)
+            else if (friendly.equalsIgnoreCase("ally inclusive"))
             {
-                list[i+6]=pot[i];
+                list=Battle.GetTeam(hero.team1);
+            }
+            else if (friendly.equalsIgnoreCase("ally exclusive"))
+            {
+                list=Battle.GetTeammates(hero);
+            }
+            else if (friendly.equalsIgnoreCase("both inclusive")||friendly.equalsIgnoreCase("either inclusive"))
+            {
+                Character[] pol=Battle.GetTeam(CoinFlip.TeamFlip(hero.team1));
+                Character[] pot=Battle.GetTeam(hero.team1);
+                for (int i=0; i<6; i++)
+                {
+                    list[i]=pol[i];
+                }
+                for (int i=0; i<6; i++)
+                {
+                    list[i+6]=pot[i];
+                }
+            }
+            else if (friendly.equalsIgnoreCase("both exclusive")||friendly.equalsIgnoreCase("either exclusive"))
+            {
+                Character[] pol=Battle.GetTeam(CoinFlip.TeamFlip(hero.team1));
+                Character[] pot=Battle.GetTeammates(hero);
+                for (int i=0; i<6; i++)
+                {
+                    list[i]=pol[i];
+                }
+                for (int i=0; i<6; i++)
+                {
+                    list[i+6]=pot[i];
+                }
             }
         }
         System.out.println ("\nChoose a target. Type the number that appears before their name."); 
-        if (friendly.equalsIgnoreCase("ally inclusive")||friendly.equalsIgnoreCase("ally exclusive")) //choosing a teammate
+        if (friendly.equalsIgnoreCase("ally inclusive")||friendly.equalsIgnoreCase("ally exclusive")||type.equalsIgnoreCase("rez")) //choosing a teammate, or dead person
         {
-            targets[0]=Card_Selection.ChooseTargetFriend(list); 
+            targets[0]=Card_Selection.ChooseTargetFriend(list); //doesn't account for targeting effects
         }
         else //choose an enemy after checking targeting effects, or choose a teammate if multitarget both/either; foe works either way
         {
@@ -910,7 +933,7 @@ public class Battle
         int size=friend.size; 
         if (friend.team1==true) //should have been manually assigned when making the summon
         {
-            if (p1teamsize<6&&(p1teamsize+size)<=6) //they cannot have more than 6 characters per team, or the equivalent
+            if (p1teamsize+size<=6) //they cannot have more than 6 characters per team, or the equivalent
             {
                 friend.passivefriend[0]=summoner;
                 Battle.AddSummon(friend);
@@ -938,7 +961,7 @@ public class Battle
         }
         else ///they are on team 2
         {
-            if (p2teamsize<6&& (p2teamsize+size)<=6) 
+            if (p2teamsize+size<=6)
             {
                 friend.passivefriend[0]=summoner;
                 Battle.AddSummon(friend);
@@ -1013,13 +1036,11 @@ public class Battle
                 return 2; //player 2 wins
             }
         }
+        if (p1heroes==0) 
+        return 2; //player 2 wins
+        else if (p2heroes==0)
+        return 1;  
         else
-        {
-            if (p1heroes==0) 
-            return 2; //player 2 wins
-            else if (p2heroes==0)
-            return 1;
-        }
         return 0; //no winner yet
     }
 }

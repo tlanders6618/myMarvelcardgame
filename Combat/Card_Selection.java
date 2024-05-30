@@ -34,7 +34,7 @@ public class Card_Selection
             {
                 Cname=Damage_Stuff.GetInput(); 
                 good=false;
-                if (Cname==616||Cname<=0||Cname>99||(Cname>41&&Cname<81)) //updated as more characters are released in each version
+                if (Cname==616||Cname<=0||Cname>101||(Cname>41&&Cname<81)) //updated as more characters are released in each version
                 {
                     System.out.println("Index number not found.");
                 }
@@ -66,7 +66,7 @@ public class Card_Selection
         do
         {
             rename=Damage_Stuff.GetInput();
-            if (rename==616||rename<=0||rename>99||(rename>41&&rename<81))
+            if (rename==616||rename<=0||rename>101||(rename>41&&rename<81))
             {
                 System.out.println("Index number not found.");
             }
@@ -93,22 +93,20 @@ public class Card_Selection
     public static Character ChooseTargetFriend (Character[] list) //for targeting allies
     {
         int targ=616; boolean typo=true;
+        boolean available=false;
         for (int i=0; i<6; i++)
         {
-            if (list[i]!=null&&list[i].binaries.contains("Banished"))
+            if (list[i]!=null)
             {
-                list[i]=null; //banished heroes cannot be targeted
+                if (list[i].binaries.contains("Banished"))
+                {
+                    list[i]=null; //banished heroes cannot be targeted
+                }
+                else 
+                available=true; 
             }
         } 
-        int available=0;
-        for (int i=0; i<6; i++)
-        {
-            if (list[i]!=null&&!(list[i].binaries.contains("Banished")))
-            {
-                ++available; //count number of non banished heroes
-            }
-        }
-        if (available>0) //the hero must have at least one person they can target
+        if (available==true) //the hero must have at least one person they can target
         {
             for (int i=0; i<6; i++)
             {
