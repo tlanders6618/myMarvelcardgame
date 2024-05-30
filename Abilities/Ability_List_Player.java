@@ -15,7 +15,7 @@ public class Ability_List_Player
         //check MakeStatString for stateff array format
         //friendly means ally inc, ally exc, enemy, both, either, or self 
         //type is single, self, multitarg, random, or aoe 
-        switch (index) //since making a giant array of dozens of elements was very slow, this should be faster, albeit longer
+        switch (index) //since making a giant array of dozens of elements was very slow, this should be faster, albeit still long
         {
             case 1: return MakeAbMK(counter); 
             case 2: return MakeAbGam(counter, copy); 
@@ -77,6 +77,8 @@ public class Ability_List_Player
             case 97: return MakeAbAngel(counter);
             case 98: return MakeAbAA(counter);
             case 99: return MakeAbColossus(counter);
+            case 100: return MakeAbElixirG(counter);
+            case 101: return MakeAbElixirB(counter);
             default: System.out.println ("Problem getting hero abilities");
         }
         return null;
@@ -95,6 +97,47 @@ public class Ability_List_Player
         }
     }
     //2.10: Marvellous Mutants
+    public static Ability MakeAbElixirB (int counter)
+    {
+        switch (counter)
+        {
+            case 0: DebuffAb a= new DebuffAb("Atrophy", "single", "enemy", 0);
+            String[] bing={"Weakness", "100", "40", "1", "false"}; String[][] bong=StatFactory.MakeParam(bing, null); a.AddStatString(bong);
+            return a;
+            case 1: DebuffAb w= new DebuffAb("Necrosis", "single", "enemy", 0); 
+            String[] wide={"Wither", "100", "25", "2", "false"}; String[][] wider=StatFactory.MakeParam(wide, null); w.AddStatString(wider);
+            return w;
+            case 2: DebuffAb d= new DebuffAb("Decay", "single", "enemy", 0);
+            String[] deb={"Debilitate", "100", "15", "2", "false"}; String[][] debby=StatFactory.MakeParam(deb, null); d.AddStatString(debby);
+            return d;
+            case 3: OtherAb f= new OtherAb("Fester", "single", "enemy", 0); f.special.add(new Amplify(500, "any", "damaging debuffs", 20, true));
+            return f;
+            case 4: OtherAb t= new OtherAb("Focus", "self", "self", 0); t.channelled=true; t.special.add(new Transformation(100, false, false));
+            return t;
+            default: return null;
+        }
+    }
+    public static Ability MakeAbElixirG (int counter)
+    {
+        switch (counter)
+        {
+            case 0: HealAb touch=new HealAb("Healing Touch", "single", "ally inclusive", 0); touch.special.add(new Mend(500, 40));
+            return touch;
+            case 1: HealAb grow= new HealAb("Healing Aura", "AoE", "ally inclusive", 3);
+            String[] healme= {"Regen", "500", "30", "2", "knull"}; String[][] stealth=StatFactory.MakeParam(healme, null); grow.AddStatString(stealth);
+            return grow;
+            case 2: OtherAb transfer= new OtherAb("Life Transfer", "multitarget", "ally inclusive", 3); transfer.special.add(new MultiMod(100));
+            transfer.desc="The first target sacrifices 40 health and the second target regains 80 health.";
+            return transfer;
+            case 3: HealAb rez= new HealAb("Resurrect", "rez", "ally inclusive", 4); rez.channelled=true; 
+            rez.special.add(new DebuffMod(100)); rez.desc="Resurrects the target with 100 health. If Elixir is targeted, he will instead Resurrect after his next death.";
+            return rez;
+            case 4: OtherAb h= new OtherAb("Death Touch", "single", "enemy", 0); h.special.add(new ActivatePassive(100)); h.special.add(new Transformation(101, false, false));
+            h.desc="The target loses half of their health (max 150).";
+            return h;
+            default: return null;
+        }
+    }
     public static Ability MakeAbColossus (int counter)
     {
         switch (counter)
@@ -291,7 +334,7 @@ public class Ability_List_Player
             String[] fork={"Soaked", "500", "616", "2", "false"}; String[][] mean=StatFactory.MakeParam(fork, null); whirl.AddStatString(mean);
             return whirl;
             case 4: OtherAb drown= new OtherAb("Drown", "single", "enemy", 2); 
-            drown.special.add(new ActivatePassive(89)); drown.desc="If the target has Soaked, causes 60 HP loss.";
+            drown.special.add(new ActivatePassive(89)); drown.desc="If the target has Soaked, causes 60 health loss.";
             return drown;
             default: return null;
         }
@@ -765,11 +808,11 @@ public class Ability_List_Player
     {
         switch (counter)
         {
-            case 0: BasicAb s= new BasicAb("Symbiotic Assault", "single", "enemy", 40); s.special.add(new ActivatePassive(-5)); s.desc="Lose 5 C.";
-            return s;
-            case 1: BasicAb fire= new BasicAb("Covering Fire", "single", "enemy", 40); fire.desc="Gain 5 C.";
+            case 0: BasicAb fire= new BasicAb("Covering Fire", "single", "enemy", 40); fire.desc="Gain 5 C.";
             fire.special.add(new Nullify(50, 1, "random", "any", false, true)); fire.special.add(new ActivatePassive(5)); 
             return fire;
+            case 1: BasicAb s= new BasicAb("Symbiotic Assault", "single", "enemy", 40); s.special.add(new ActivatePassive(-5)); s.desc="Lose 5 C.";
+            return s;
             case 4: AttackAb shock= new AttackAb ("Shock and Awe", "single", "enemy", 80, 2); shock.special.add(new DebuffMod(25));
             shock.desc="100% chance to apply Undermine for 1 turn(s) if C is above 5.";
             return shock;
@@ -1173,7 +1216,7 @@ public class Ability_List_Player
             String[] dead= {"Neutralise", "50", "616", "1", "false"}; String[][] head=StatFactory.MakeParam(dead, null);
             punished.AddStatString (heat); punished.AddStatString(head); 
             return punished;
-            case 2: AttackAb supfire= new AttackAb ("Suppressing Fire", "AoE", "enemy", 65, 3); 
+            case 2: AttackAb supfire= new AttackAb ("Suppressing Fire", "AoE", "enemy", 55, 3); 
             return supfire;
             case 3: BuffAb punwep= new BuffAb ("Weapons Expert", "self", "self", 0); 
             String[] asunder={"Focus Effect", "100", "616", "2", "true"}; String[][] me=StatFactory.MakeParam(asunder, null); 

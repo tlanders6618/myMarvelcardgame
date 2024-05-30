@@ -1078,6 +1078,16 @@ class DebuffMod extends BeforeAbility //for altering the debuffs an ab applies, 
                 return 45;
             }
             case 91: Card_HashCode.RandomStat(user, target, "Goblin"); break; //green goblin
+            case 100: //elixir
+            if (user.index==100&&user==target)
+            {
+                user.passivecount=1; Tracker hacker= new Tracker("Elixir will Resurrect after dying"); user.effects.add(hacker);
+            }
+            else
+            {
+                Rez rex= new Rez(500, 100); rex.Use(user, target, 0);
+            }
+            break;
         }
         return 0;
     }

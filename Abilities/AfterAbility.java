@@ -82,7 +82,8 @@ class ActivatePassive extends AfterAbility //ability activates a hero's passive 
     {
         switch (user.index) //for specific passives
         {
-            case 25: ActivePassive.Flash(user, num); break; //has to be after attacking, or he'll switch states before attacking and bonus dmg/bleed will be improperly applied 
+            //flash's passive has to be after attacking, or he switches states before attacking and losing control bonuses will be applied despite attacking while in check
+            case 25: ActivePassive.Flash(user, num, false, false); break; 
         }
         switch (num) //these are not passives, just too specific for an afterab, so anyone who uses/copies the ability should be able to do this
         {
@@ -163,6 +164,11 @@ class ActivatePassive extends AfterAbility //ability activates a hero's passive 
                 }
             }
             break;
+            case 100: double ll=target.HP/2; int loss=5*(int)(Math.floor(ll/5)); //elixir death touch
+            if (loss>150)
+            loss=150;
+            target.LoseHP(user, loss, "knull");
+            break;
         }
     }
 }
@@ -183,9 +189,9 @@ class Amplify extends AfterAbility
         Chance=this.chance+"% chance to Amplify ";
         String targ;
         if (efftype.equals("nondamaging"))
-        targ=efftype+" Debuffs";
-        else if (efftype.equals("damaging"))
-        targ=efftype+" status effects";
+        targ=efftype+" debuffs";
+        else if (efftype.equals("damaging effects")||efftype.equals("damaging debuffs"))
+        targ=efftype;
         else if (!(effname.equals("any")))
         targ=effname+" "+efftype;
         else
@@ -240,9 +246,14 @@ class Amplify extends AfterAbility
                 }
                 if (todo>0)
                 {
+                    String nefftype=efftype;
+                    if (efftype.equals("damaging debuffs"))
+                    nefftype="Debuffs";
+                    else if (efftype.equals("damaging effects"))
+                    nefftype="any";
                     for (StatEff e: effs)
                     {
-                        if (e.power<500&&(e.getimmunityname().equals(effname)||effname.equals("any"))&&(e.getefftype().equals(efftype)||efftype.equals("any"))) 
+                        if (e.power<500&&(e.getimmunityname().equals(effname)||effname.equals("any"))&&(e.getefftype().equals(nefftype)||efftype.equals("any"))) 
                         //don't amplify effs like neutralise with no strength values
                         {
                             System.out.println(target.Cname+"'s "+e.geteffname()+" had its strength increased by "+pow+"!");
@@ -472,83 +483,86 @@ class Assist extends AfterAbility //either random allies hitting enemy or chosen
                 Character chump=foes.get(i);
                 boolean lose=ab.GetLose(); boolean max=ab.GetMax(); int multihit=ab.GetMultihit(true);
                 ArrayList<StatEff> selfapply=new ArrayList<StatEff>(); ArrayList<StatEff> otherapply=new ArrayList<StatEff>(); ArrayList<StatEff> toadd=new ArrayList<StatEff>();
-                do 
+                if (chump.dead==false)
                 {
-                    int change=0; int damage=ab.GetBaseDmg();
-                    damage+=bonus; dealer.Cchance+=Cchance;
-                    if (skull==true) //his storm assault
+                    do 
                     {
-                        DamageCounter d= new DamageCounter("Debuffs", true, 5, false, true);
-                        int add=d.Use(dealer, chump);
-                        damage+=add;
-                    }
-                    for (SpecialAbility ob: ab.special)
-                    {
-                        change=ob.Use(dealer, chump); //before abs still apply
-                        damage+=change;
-                    } 
-                    if (lose==true) 
-                    chump.LoseHP (dealer, damage, "knull");
-                    else if (max==true)
-                    chump.LoseMaxHP (dealer, damage);
-                    else //assists are elusive
-                    {
-                        damage-=chump.ADR;
-                        if (damage<0)
-                        damage=0;
-                        chump.TakeDamage(chump, dealer, damage, ab.aoe);
-                    }
-                    for (SpecialAbility ob: ab.special)
-                    {
-                        ob.Use(dealer, chump, damage); //afterabs
-                    } 
-                    for (String[][] array: ab.tempstrings)
-                    {  
-                        StatEff New=StatFactory.MakeStat(array, dealer); 
-                        if (array[0][4].equalsIgnoreCase("true"))
-                        selfapply.add(New);
-                        else if (array[0][4].equalsIgnoreCase("false")) 
-                        otherapply.add(New);
-                        else
+                        int change=0; int damage=ab.GetBaseDmg();
+                        damage+=bonus; dealer.Cchance+=Cchance;
+                        if (skull==true) //his storm assault
                         {
-                            if (dealer.hash==chump.hash)
+                            DamageCounter d= new DamageCounter("Debuffs", true, 5, false, true);
+                            int add=d.Use(dealer, chump);
+                            damage+=add;
+                        }
+                        for (SpecialAbility ob: ab.special)
+                        {
+                            change=ob.Use(dealer, chump); //before abs still apply
+                            damage+=change;
+                        } 
+                        if (lose==true) 
+                        chump.LoseHP (dealer, damage, "knull");
+                        else if (max==true)
+                        chump.LoseMaxHP (dealer, damage);
+                        else //assists are elusive
+                        {
+                            damage-=chump.ADR;
+                            if (damage<0)
+                            damage=0;
+                            chump.TakeDamage(chump, dealer, damage, ab.aoe);
+                        }
+                        for (SpecialAbility ob: ab.special)
+                        {
+                            ob.Use(dealer, chump, damage); //afterabs
+                        } 
+                        for (String[][] array: ab.tempstrings)
+                        {  
+                            StatEff New=StatFactory.MakeStat(array, dealer); 
+                            if (array[0][4].equalsIgnoreCase("true"))
                             selfapply.add(New);
-                            else
+                            else if (array[0][4].equalsIgnoreCase("false")) 
                             otherapply.add(New);
+                            else
+                            {
+                                if (dealer.hash==chump.hash)
+                                selfapply.add(New);
+                                else
+                                otherapply.add(New);
+                            }
                         }
-                    }
-                    for (String[][] array: ab.statstrings)
-                    {  
-                        StatEff New=StatFactory.MakeStat(array, dealer); 
-                        if (array[0][4].equalsIgnoreCase("true"))
-                        selfapply.add(New);
-                        else if (array[0][4].equalsIgnoreCase("false")) 
-                        otherapply.add(New);
-                        else
-                        {
-                            if (dealer.hash==chump.hash)
+                        for (String[][] array: ab.statstrings)
+                        {  
+                            StatEff New=StatFactory.MakeStat(array, dealer); 
+                            if (array[0][4].equalsIgnoreCase("true"))
                             selfapply.add(New);
-                            else
+                            else if (array[0][4].equalsIgnoreCase("false")) 
                             otherapply.add(New);
+                            else
+                            {
+                                if (dealer.hash==chump.hash)
+                                selfapply.add(New);
+                                else
+                                otherapply.add(New);
+                            }
                         }
-                    }
-                    toadd=Ability.ApplyStats(dealer, chump, together, selfapply, otherapply);
-                    if (toadd.size()>0) //apply stateffs to self
-                    {
-                        for (StatEff eff: toadd)
+                        toadd=Ability.ApplyStats(dealer, chump, together, selfapply, otherapply);
+                        if (toadd.size()>0) //apply stateffs to self
                         {
-                            eff.CheckApply(dealer, dealer, eff);
+                            for (StatEff eff: toadd)
+                            {
+                                eff.CheckApply(dealer, dealer, eff);
+                            }
+                        }
+                        if (ab.tempstrings.size()!=0) 
+                        ab.tempstrings.removeAll(ab.tempstrings);
+                        multihit--;
+                        for (SpecialAbility ob: ab.special)
+                        {
+                            ob.Use(dealer, 616, chump); //for now this only activates chain
                         }
                     }
-                    if (ab.tempstrings.size()!=0) 
-                    ab.tempstrings.removeAll(ab.tempstrings);
-                    multihit--;
-                    for (SpecialAbility ob: ab.special)
-                    {
-                        ob.Use(dealer, 616, chump); //for now this only activates chain
-                    }
+                    while (multihit>-1); //then repeat the attack for each multihit
                 }
-                while (multihit>-1); //then repeat the attack for each multihit
                 if (apply!=null)
                 {
                     StatEff bunny=StatFactory.MakeStat(apply, user); //for loki
@@ -1210,6 +1224,42 @@ class MendPassive extends AfterAbility //restoring missing health; for deadpool 
         target.Healed(amount, true, false);
     }
 }
+class MultiMod extends AfterAbility //like debuffmod but for multitarget abs that have different effects on each of its targets
+{
+    int used=0; int index;
+    public MultiMod (int i)
+    {
+        index=i;
+    }
+    @Override 
+    public void Use(Character caller, Character target, int dmgdealt) 
+    {
+        used++; //keeps track of whether this is the first or second target of the attack
+        switch (index)
+        {
+            case 100: UseElixir(caller, target, used); break;
+        }
+        if (used==2)
+        used=0;
+    }
+    public void UseElixir (Character josh, Character targ, int use)
+    {
+        if (use==1) //first target loses hp
+        {
+            int t=targ.HP; targ.HP-=40; System.out.println(targ.Cname+" sacrificed 40 health!");
+            if (targ.HP<=0)
+            {
+                targ.HP=0; targ.onLethalDamage(null, "other");
+            }
+            else
+            targ.HPChange(t, targ.HP);
+        }
+        else if (use==2) //second one gains hp
+        {
+            targ.Healed(80, true, false);
+        }
+    }
+}
 class Nullify extends AfterAbility
 {
     String effname;
@@ -1704,6 +1754,106 @@ class ReduceCD extends AfterAbility
         }
         else
         System.out.println("All of "+target.Cname+"'s abilities are already off cooldown!");
+    }
+}
+class Rez extends AfterAbility
+{
+    int chance; int hp;
+    public Rez (int cchance, int hhp)
+    {
+        chance=cchance; hp=hhp; String start;
+        if (chance>=500)
+        start="Resurrects the target ";
+        else
+        start=this.chance+"% chance to Resurrect the target ";
+        if (hp==11) 
+        this.desc=start+"with full health. ";
+        else if (hp==12) //one half
+        this.desc=start+"with half health. ";
+        else
+        this.desc=start+"with "+hp+" health. ";
+    }
+    @Override
+    public void Use (Character user, Character target, int ignore) 
+    {
+        boolean succeed=false;
+        if (user.CheckFor("Afflicted", false)==true)
+        System.out.println (user.Cname+"'s Resurrect failed to apply due to a conflicting status effect.");
+        else if (target.immunities.contains("Heal")||target.immunities.contains("Resurrect"))
+        System.out.println (user.Cname+"'s Resurrect failed to apply due to an immunity.");
+        else if (target.binaries.contains("No Rez")&&!(target.ignores.contains("Rez"))) //rez prevented by hela or zzax or etc, unless hero's rez cannot be prevented
+        System.out.println (target.Cname+"'s Resurrect was prevented by a passive or ability.");
+        else if (target.maxHP<=0)
+        System.out.println (target.Cname+" was unable to be Resurrected due to not having enough max HP.");
+        else if (target.dead==true) 
+        {
+            boolean okie=CoinFlip.Flip(chance+user.Cchance);
+            if (okie==false)
+            System.out.println(user.Cname+"'s Resurrect failed to apply due to chance.");
+            else if (target.team1==true) 
+            {
+                if (Battle.p1teamsize+target.size<=6) //only rez if there is space
+                {
+                    if (target.team1==true) //add to end of turn order and remove from battle dead
+                    Battle.team1dead.remove(target);
+                    for (int i=0; i<6; i++)
+                    {
+                        if (Battle.team1[i]==null) //add them to the first empty spot at the end of the turn order
+                        {
+                            Battle.team1[i]=target; break;
+                        }
+                    }
+                    Battle.p1teamsize+=target.size;
+                    Battle.p1heroes++; 
+                    succeed=true;
+                }
+                else //if out of space, print error message
+                {
+                    System.out.println (user.Cname+"'s Resurrect failed due to Player 1 already being at the max team size."); 
+                }
+            }
+            else
+            {
+                if (Battle.p2teamsize+target.size<=6) 
+                {
+                    if (target.team1==false)
+                    Battle.team2dead.remove(target);
+                    for (int i=0; i<6; i++)
+                    {
+                        if (Battle.team2[i]==null)
+                        {
+                            Battle.team2[i]=target; break;
+                        }
+                    }
+                    Battle.p2teamsize+=target.size;
+                    Battle.p2heroes++;
+                    succeed=true;
+                }
+                else 
+                {
+                    System.out.println (user.Cname+"'s Resurrect failed due to Player 2 already being at the max team size."); 
+                }
+            }
+            if (succeed==true) //since this portion is the same regardless of team, there's no need to write it twice
+            {
+                System.out.println(user.Cname+" Resurrected "+target.Cname+"!");
+                target.dead=false;
+                if (hp==11)
+                target.HP=target.maxHP;
+                else if (hp==12) 
+                {
+                    double happen=target.maxHP/2;
+                    int wisdom=5*(int)(Math.floor(happen/5)); //rounded down
+                    target.HP=wisdom;
+                }
+                else
+                target.HP=hp; 
+                if (target.HP>target.maxHP)
+                target.HP=target.maxHP;
+                target.HPChange(0, target.HP);
+                target.onRez(user); //this also calls onallyrez
+            }
+        }
     }
 }
 class Ricochet extends AfterAbility //do ricochet damage

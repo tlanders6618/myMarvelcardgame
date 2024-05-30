@@ -57,7 +57,7 @@ public abstract class Ability
         else 
         System.out.print("Affects allies and/or enemies. ");
         //target is single, self, multitarg, random, or aoe 
-        if (this.target.equals("self"))
+        if (this.target.equals("self")||this.target.equals("rez"))
         {
             //stop here and do nothing; also to avoid index exception below
         }
