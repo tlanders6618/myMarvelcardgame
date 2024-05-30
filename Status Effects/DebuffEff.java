@@ -743,7 +743,7 @@ class Provoke extends DebuffEff
     @Override
     public Character UseTerrorProvoke ()
     {
-        if (!(progenitor.binaries.contains("Invisible"))&&progenitor.targetable==true&&!(progenitor.binaries.contains("Banished"))) 
+        if (progenitor.dead==false&&!(progenitor.binaries.contains("Invisible"))&&progenitor.targetable==true&&!(progenitor.binaries.contains("Banished"))) 
         return progenitor; //if they're taunting, protecting, or protected, provoke still applies; they just need to be targetable 
         else 
         return null;
@@ -1177,6 +1177,62 @@ class Weakness extends DebuffEff
     public void Nullified (Character target)
     {
         target.BD+=power;
+    }
+}
+class Wither extends DebuffEff 
+{
+    @Override
+    public String getimmunityname()
+    {
+        return "Wither";
+    }
+    @Override
+    public String getalttype() 
+    {
+        return "damaging";
+    }
+    @Override
+    public String geteffname()
+    {
+        if (duration<100)
+        {
+            return "Wither: "+this.power+", "+this.duration+" turn(s)";
+        }
+        else
+        {
+            return "Wither: "+this.power;
+        }
+    }
+    public Wither (int nchance, int nstrength, int nduration)
+    {
+        this.power=nstrength;
+        this.duration=nduration;
+        this.oduration=nduration;
+        this.chance=nchance;
+        this.hashcode=Card_HashCode.RandomCode();
+        this.stackable=true;
+    }
+    @Override
+    public void onTurnStart (Character hero)
+    {
+        if (hero!=null) //after hero dies, their spot in the team array becomes null; if they die from one dot and another tries to tick down, it causes a null exception
+        {
+            hero.DOTdmg(this.power, "wither");
+            --this.duration;
+            if (this.duration<=0)
+            {
+                hero.remove(this.hashcode, "normal");
+            }
+        }
+    }
+    @Override
+    public void onTurnEnd (Character hero)
+    {
+        //do nothing
+    }
+    @Override
+    public void onApply (Character target)
+    {
     }
 }
 class Wound extends DebuffEff 

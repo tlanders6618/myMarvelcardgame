@@ -116,7 +116,7 @@ class CounterE extends OtherEff
     @Override
     public void Attacked (Character hero, Character attacker, int ignore) //dmg is elusive
     {
-        if (!(attacker.ignores.contains("Counter"))&&!(hero.binaries.contains("Stunned")))
+        if (!(attacker.ignores.contains("Counter"))&&!(hero.binaries.contains("Stunned"))&&attacker.dead==false)
         {   
             int dmg=this.power;  
             dmg-=attacker.ADR;

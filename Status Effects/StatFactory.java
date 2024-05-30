@@ -89,6 +89,7 @@ public class StatFactory
             case "Tracer": eff= new Tracer (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3])); break;
             case "Undermine": eff= new Undermine (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3])); break;
             case "Weakness": eff=new Weakness (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][2]), Integer.valueOf(param[0][3])); break;
+            case "Wither": eff=new Wither (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][2]), Integer.valueOf(param[0][3])); break;
             case "Wound": eff=new Wound (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3])); break;
             default: System.out.println("Spelling error in statfactory; no matching stateff found.");
         }
@@ -132,7 +133,7 @@ class Tracker extends StatEff //displays a character's relevant personal statist
     @Override
     public String getimmunityname()
     {
-        return "None";
+        return oname;
     }
     @Override
     public String getefftype()
