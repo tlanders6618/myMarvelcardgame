@@ -150,20 +150,14 @@ public class Damage_Stuff
             {
                 for (StatEff effect: target.effects)
                 {
-                    if (effect.getimmunityname().equalsIgnoreCase("Evade"))
+                    if (effect.getimmunityname().equalsIgnoreCase("Evade")) //evade Effects can't be stop, but regular evade can be ignored if attacker ignores defence
                     {
-                        if (effect.getefftype().equalsIgnoreCase("Defence")&&!(dealer.ignores.contains("Defence"))) //evade is a defence effect
+                        if (effect.getefftype().equalsIgnoreCase("Other")||(effect.getefftype().equalsIgnoreCase("Defence")&&!(dealer.ignores.contains("Defence"))))
                         {
                             System.out.println ("\n"+target.Cname+" Evaded "+dealer.Cname+"'s attack!");
                             target.remove(effect.hashcode, "normal");
                             dealer.binaries.add("Missed");
-                            break;
-                        }
-                        else if (effect.getefftype().equalsIgnoreCase("Other")) //evade Effects cannot be stopped
-                        {
-                            System.out.println ("\n"+target.Cname+" Evaded "+dealer.Cname+"'s attack!");
-                            target.remove(effect.hashcode, "normal");
-                            dealer.binaries.add("Missed");
+                            target.onEvade(dealer);
                             break;
                         }
                     }
@@ -174,6 +168,7 @@ public class Damage_Stuff
                         {
                             System.out.println ("\n"+target.Cname+" successfully Evaded "+dealer.Cname+"'s attack!");
                             dealer.binaries.add("Missed");
+                            target.onEvade(dealer);
                             break;
                         } 
                         else
@@ -191,7 +186,7 @@ public class Damage_Stuff
             {
                 if (eff.getimmunityname().equals("Guard"))
                 {
-                    if (eff.getefftype().equals("Defence")&&!(dealer.ignores.contains("Defence")))
+                    if (eff.getefftype().equalsIgnoreCase("Other")||(eff.getefftype().equals("Defence")&&!(dealer.ignores.contains("Defence"))))
                     {
                         int odmg=dmg;
                         dmg=eff.UseGuard(dmg);
@@ -200,17 +195,6 @@ public class Damage_Stuff
                         {
                             dmg=0;
                             break; //no point in wasting guards on nothing
-                        }
-                    }
-                    else if (eff.getefftype().equalsIgnoreCase("Other"))
-                    {   
-                        int odmg=dmg;
-                        dmg=eff.UseGuard(dmg);
-                        System.out.println ("\n"+target.Cname+"'s Guard reduced" +dealer.Cname+"'s attack damage by "+(odmg-dmg));
-                        if (dmg<=0)
-                        {
-                            dmg=0;
-                            break; 
                         }
                     }
                 }
