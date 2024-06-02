@@ -43,6 +43,7 @@ public class Hero extends Character
             case 35: ActivePassive.Cain(this, "turn", 616); break;
             case 40: ActivePassive.Sandy(this, "turn"); break;
             case 97: ActivePassive.Angel(this, true, 0); break;
+            case 104: ActivePassive.Bishop(this, 0, "turn"); break;
         }
         super.onTurn(notbonus); //call on allyturn and onenemyturn
     }
@@ -66,6 +67,7 @@ public class Hero extends Character
                 case 11: ActivePassive.FuryJr(this, "allyturn", summoned); break;
                 case 24: ActivePassive.Binary(this); break;
                 case 40: ActivePassive.Sandy(this, "turn"); break;
+                case 105: ActivePassive.Immortal(this, "ally"); break;
             }
         }
     }
@@ -88,7 +90,6 @@ public class Hero extends Character
             case 6: ActivePassive.CaptainA(this); break;
             case 7: StaticPassive.Falcon(this); break;
             case 12: StaticPassive.DraxOG(this); break;
-            case 15: StaticPassive.WolvieTracker(this); break;
             case 16: StaticPassive.OGVenom (this); break;
             case 25: ActivePassive.Flash(this, 10, false, true); break;
             case 26: int ignore=StaticPassive.MODOC(this, null, "start", 0); break;
@@ -279,7 +280,7 @@ public class Hero extends Character
             {
                 if (friend!=null&&!(friend.binaries.contains("Banished")))
                 {
-                    ntarg=friend.onAllyTargeted(friend, attacker, target, dmg, aoe);
+                    ntarg=friend.onAllyTargeted(attacker, target, dmg, aoe);
                     if (ntarg!=target)
                     return ntarg;
                 }
@@ -340,6 +341,7 @@ public class Hero extends Character
             {
                 case 15: ActivePassive.Wolvie(this, true); break;
                 case 81: StaticPassive.DD(this, attacker); break;
+                case 104: ActivePassive.Bishop(this, dmg, "attacked"); break;
             }
         } 
     }
@@ -356,18 +358,18 @@ public class Hero extends Character
         }
     }
     @Override
-    public Character onAllyTargeted (Character hero, Character dealer, Character ally, int dmg, boolean aoe)
+    public Character onAllyTargeted (Character dealer, Character ally, int dmg, boolean aoe)
     {
-        if (!(hero.binaries.contains("Banished"))&&aoe==false) //aoe abilities target everyone, so they're considered as targeting no one
+        if (!(this.binaries.contains("Banished"))&&aoe==false) //aoe abilities target everyone, so they're considered as targeting no one
         {
-            switch (hero.index)
+            switch (this.index)
             {
                 case 18: 
-                if (!(hero.binaries.contains("Stunned"))&&ally.HP<hero.HP&&hero.CheckFor("Evade", false)==true)
+                if (!(this.binaries.contains("Stunned"))&&ally.HP<this.HP&&this.CheckFor("Evade", false)==true)
                 {
                     System.out.println("With great power, there must also come great responsibility."); 
-                    System.out.println(hero.Cname+" took the attack for "+ally.Cname+"!");
-                    return hero;
+                    System.out.println(this.Cname+" took the attack for "+ally.Cname+"!");
+                    return this;
                 }
                 break;
             }
@@ -375,12 +377,12 @@ public class Hero extends Character
         return ally;
     }
     @Override
-    public int TakeDamage (Character target, Character dealer, int dmg, boolean aoe) //this checks if shield is strong enough to prevent health damage from an enemy attack
+    public int TakeDamage (Character dealer, int dmg, boolean aoe) //this checks if shield is strong enough to prevent health damage from an enemy attack
     {
-        switch (target.index)
+        switch (this.index)
         {
-            case 26: dmg=StaticPassive.MODOC(target, dealer, "attacked", dmg); break;
-            case 83: dmg=StaticPassive.LukeCage(target, dmg); break;
+            case 26: dmg=StaticPassive.MODOC(this, dealer, "attacked", dmg); break;
+            case 83: dmg=StaticPassive.LukeCage(this, dmg); break;
         }
         int odmg=dmg;
         if (dealer.ignores.contains("Shield")||dealer.ignores.contains("Defence"))
@@ -389,83 +391,85 @@ public class Hero extends Character
         } 
         else if (SHLD>=dmg) 
         {
-            target.SHLD-=dmg; 
+            this.SHLD-=dmg; 
             dmg=0;
         }
         else if (SHLD<dmg) //shield broken; can't absorb all the damage
         {
-            int s=target.SHLD;
+            int s=this.SHLD;
             dmg-=s;
-            target.SHLD=0;
+            this.SHLD=0;
         }
-        Damage_Stuff.CheckBarrier(target, dealer, dmg);
-        target.TookDamage(target, dealer, odmg);
+        Damage_Stuff.CheckBarrier(this, dealer, dmg);
+        this.TookDamage(dealer, odmg);
         return odmg;
     }
     @Override
-    public int TakeDamage (Character target, int dmg, boolean dot) //same as above but for taking sourceless damage
+    public int TakeDamage (int dmg, boolean dot) //same as above but for taking sourceless damage
     {
         int odmg=dmg;
         if (SHLD>=dmg) 
         {
-            target.SHLD-=dmg; 
+            this.SHLD-=dmg; 
             dmg=0;
         }
         else if (SHLD<dmg) 
         {
-            int s=target.SHLD;
+            int s=this.SHLD;
             dmg-=s;
-            target.SHLD=0;
+            this.SHLD=0;
         }
-        Damage_Stuff.CheckBarrier(target, null, dmg);
-        target.TookDamage(target, dot, dmg);
+        Damage_Stuff.CheckBarrier(this, null, dmg);
+        this.TookDamage(dot, dmg);
         return odmg;
     }
     @Override
-    public void TookDamage (Character hero, boolean dot, int dmg) //check if hero should be dead and either do hpchange or kill them; for sourceless dmg
+    public void TookDamage (boolean dot, int dmg) //check if hero should be dead and either do hpchange or kill them; for sourceless dmg
     { 
-        hero.dmgtaken+=dmg;
-        int h=hero.HP; h+=dmg; //for tracking hp changes for passives
-        if (hero.HP<=0)
-        hero.HP=0;
-        if (hero.HP<=0&&dot==true&&!(hero.binaries.contains("Immortal")))
+        this.dmgtaken+=dmg;
+        int h=this.HP; h+=dmg; //for tracking hp changes for passives
+        if (this.HP<=0)
+        this.HP=0;
+        if (this.HP<=0&&dot==true&&!(this.binaries.contains("Immortal")))
         {
-            hero.onLethalDamage(null, "DOT");
+            this.onLethalDamage(null, "DOT");
         }
-        else if (hero.HP<=0&&dot==false&&!(hero.binaries.contains("Immortal")))
+        else if (this.HP<=0&&dot==false&&!(this.binaries.contains("Immortal")))
         {
-            hero.onLethalDamage(null, "other");
+            this.onLethalDamage(null, "other");
         }
-        if (hero.dead==false)
+        if (this.dead==false)
         {
-            hero.HPChange(h, hero.HP);
-            switch (hero.index)
+            this.HPChange(h, this.HP);
+            switch (this.index)
             {
-                case 15: ActivePassive.Wolvie(hero, false); break;
-                case 97: ActivePassive.Angel(hero, false, dmg); break;
+                case 15: ActivePassive.Wolvie(this, false); break;
+                case 97: ActivePassive.Angel(this, false, dmg); break;
+                case 104: ActivePassive.Bishop(this, dmg, "damaged"); break;
             }
         }
     }
     @Override
-    public void TookDamage (Character hero, Character dealer, int dmg) //for taking damage from a hero
+    public void TookDamage (Character dealer, int dmg) //for taking damage from a hero
     {
-        System.out.println ("\n"+dealer.Cname+" did "+dmg+" damage to "+hero.Cname);
-        hero.dmgtaken+=dmg; 
-        int h=hero.HP; h+=dmg;
-        if (hero.HP<=0)
-        hero.HP=0;
-        if (hero.HP<=0&&!(hero.binaries.contains("Immortal")))
+        System.out.println ("\n"+dealer.Cname+" did "+dmg+" damage to "+this.Cname);
+        this.dmgtaken+=dmg; 
+        int h=this.HP; h+=dmg;
+        if (this.HP<=0)
+        this.HP=0;
+        if (this.HP<=0&&!(this.binaries.contains("Immortal")))
         {
-            hero.onLethalDamage(dealer, "attack");
+            this.onLethalDamage(dealer, "attack");
         }
         else
         {
-            hero.HPChange(h, hero.HP);
-            switch (hero.index)
+            this.HPChange(h, this.HP);
+            switch (this.index)
             {
-                case 15: ActivePassive.Wolvie(hero, false); break;
-                case 23: ActivePassive.CM(hero, false, dmg); break;
-                case 97: ActivePassive.Angel(hero, false, dmg); break;
+                case 15: ActivePassive.Wolvie(this, false); break;
+                case 23: ActivePassive.CM(this, false, dmg); break;
+                case 97: ActivePassive.Angel(this, false, dmg); break;
+                case 104: ActivePassive.Bishop(this, dmg, "damaged"); break;
             }
         }
     }
@@ -561,6 +565,7 @@ public class Hero extends Character
             }
             break;
             case 100: StaticPassive.Elixir(this); break;
+            case 105: ActivePassive.Immortal(this, "death"); break;
         }
     }
     @Override
@@ -621,6 +626,38 @@ public class Hero extends Character
         switch (this.index)
         {
         }
+    }
+    @Override
+    public void onEvade (Character attacker) //for nightcrawler, sabretooth, stature, etc
+    {
+        switch (this.index)
+        {
+            case 103: ActivePassive.Crawler(this, attacker); break;
+        }
+        Character[] friends=Battle.GetTeammates(this);
+        for (Character c: friends)
+        {
+            if (c!=null&&!(c.binaries.contains("Banished")))
+            {
+                c.onAllyEvade(this, attacker);
+            }
+        }
+        Character[] foes=Battle.GetTeam(CoinFlip.TeamFlip(this.team1));
+        for (Character c: foes)
+        {
+            if (c!=null&&!(c.binaries.contains("Banished")))
+            {
+                c.onEnemyEvade(this, attacker);
+            }
+        }
+    }
+    @Override
+    public void onAllyEvade (Character ally, Character attacker)
+    {
+    }
+    @Override
+    public void onEnemyEvade (Character enemy, Character attacker)
+    {
     }
     @Override
     public void Transform (int newindex, boolean greater) //new index is the index number of the character being transformed into
@@ -728,7 +765,7 @@ public class Hero extends Character
     @Override
     public void AddImmune (boolean add) //called on character creation/transformation; avoids problem of apocalypse's passive conflicting with dormammu's and etc
     {
-        if (add==true) //immunities are now gained before fight start
+        if (add==true) //immunities are now gained before fight start; also applies tracker since they're as equally intrinsic to heroes as immunities are
         {
             switch (this.index) 
             {
@@ -736,6 +773,8 @@ public class Hero extends Character
                 this.ignores.add("Defence"); break; 
                 case 12: //drax classic
                 this.immunities.add("Buffs"); this.immunities.add("Persuaded"); CoinFlip.IgnoreTargeting(this, true); break; 
+                case 15: //wolverine
+                Tracker frenzy= new Tracker("Damage Taken: "); this.effects.add(frenzy); frenzy.onApply(this); break;
                 case 16: case 17: case 90: //venom brock, venom mac, and carnage
                 this.ignores.add("Evade"); break; 
                 case 23: //captain marvel
@@ -770,9 +809,9 @@ public class Hero extends Character
                 }
                 break;
                 case 40: //sandman
-                this.immunities.add("Bleed"); this.immunities.add("Shock"); this.immunities.add("Disarm"); this.ignores.add("Counter"); break;
+                this.immunities.add("Bleed"); this.immunities.add("Shock"); this.immunities.add("Snare"); this.immunities.add("Disarm"); this.ignores.add("Counter"); break;
                 case 41: //rhino
-                this.immunities.add("Vulnerable"); this.immunities.add("Suppression"); this.immunities.add("Reduce"); this.immunities.add("Terror"); this.BlDR+=10; break; 
+                this.immunities.add("Vulnerable"); this.immunities.add("Suppression"); this.immunities.add("Reduce"); this.immunities.add("Terror"); this.BlDR+=15; break; 
                 case 81: //daredevil
                 this.ignores.add("Blind"); this.ignores.add("Invisible"); break;
                 case 83: //luke cage
@@ -788,6 +827,8 @@ public class Hero extends Character
                 this.immunities.add("Burn"); this.immunities.add("Poison"); this.immunities.add("Shock"); break;
                 case 99: //colossus
                 this.immunities.add("Bleed"); this.immunities.add("Burn"); this.immunities.add("Freeze"); break;
+                case 104: //bishop
+                Tracker pip= new Tracker("Energy Reserve: "); this.effects.add(pip); pip.onApply(this); break;
             }    
         }
         else //remove immunities when transforming 
@@ -798,6 +839,17 @@ public class Hero extends Character
                 this.ignores.remove("Defence"); break; 
                 case 12: //drax classic
                 this.immunities.remove("Buffs"); this.immunities.remove("Persuaded"); CoinFlip.IgnoreTargeting(this, false); break; 
+                case 15: //wolverine
+                StatEff thor=null;
+                for (StatEff e: this.effects)
+                {
+                    if (e instanceof Tracker&&e.getimmunityname().equals("Damage Taken: "))
+                    {
+                        thor=e; break;
+                    }
+                }
+                this.remove(thor.hashcode, "silent");
+                break;
                 case 16: case 17: case 90: //venom brock, venom mac, and carnage
                 this.ignores.remove("Evade"); break; 
                 case 23: //captain marvel
@@ -911,9 +963,10 @@ public class Hero extends Character
                 }
                 break;
                 case 40: //sandman
-                this.immunities.remove("Bleed"); this.immunities.remove("Shock"); this.immunities.remove("Disarm"); this.ignores.remove("Counter"); break;
+                this.immunities.remove("Bleed"); this.immunities.remove("Shock"); this.immunities.remove("Snare"); 
+                this.immunities.remove("Disarm"); this.ignores.remove("Counter"); break;
                 case 41: //rhino
-                this.immunities.remove("Vulnerable"); this.immunities.remove("Suppression"); this.immunities.remove("Reduce"); this.immunities.remove("Terror"); this.BlDR-=10; break; 
+                this.immunities.remove("Vulnerable"); this.immunities.remove("Suppression"); this.immunities.remove("Reduce"); this.immunities.remove("Terror"); this.BlDR-=15; break; 
                 case 81: //daredevil
                 this.ignores.remove("Blind"); this.ignores.remove("Invisible"); break;
                 case 83: //luke cage
@@ -929,6 +982,17 @@ public class Hero extends Character
                 this.immunities.remove("Burn"); this.immunities.remove("Poison"); this.immunities.remove("Shock"); break;
                 case 99: //colossus
                 this.immunities.remove("Bleed"); this.immunities.remove("Burn"); this.immunities.remove("Freeze"); break;
+                case 104: //bishop
+                StatEff cant=null;
+                for (StatEff e: this.effects)
+                {
+                    if (e instanceof Tracker&&e.getimmunityname().equals("Energy Reserve: "))
+                    {
+                        cant=e; break;
+                    }
+                }
+                this.remove(cant.hashcode, "silent"); 
+                break; 
             }       
         }
     }

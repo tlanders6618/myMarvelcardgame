@@ -218,7 +218,7 @@ public abstract class Character
                 System.out.println ("\n"+this.Cname+" took "+dmg+" Bleed damage"); */
                 if (dmg>0)
                 {
-                    knull=this.TakeDamage(this, dmg, true);
+                    knull=this.TakeDamage(dmg, true);
                 }
             }
             else if (type.equalsIgnoreCase("burn"))
@@ -229,7 +229,7 @@ public abstract class Character
                 System.out.println ("\n"+this.Cname+" took "+dmg+" Burn damage"); */
                 if (dmg>0)
                 {
-                    knull=this.TakeDamage(this, dmg, true);
+                    knull=this.TakeDamage(dmg, true);
                 }
             }
             else if (type.equalsIgnoreCase("poison"))
@@ -247,7 +247,7 @@ public abstract class Character
                 System.out.println ("\n"+this.Cname+" took "+dmg+" Shock damage"); */
                 if (dmg>0)
                 {
-                    knull=this.TakeDamage(this, dmg, true);
+                    knull=this.TakeDamage(dmg, true);
                     Ability.DoRicochetDmg(dmg, this, this, true, null);
                 }
             }
@@ -283,14 +283,16 @@ public abstract class Character
         }
         if (this.team1==true) //notify dead friends like Phoenix that it's potentially time to revive
         {
-            for (Character deadlad: Battle.team1dead)
+            ArrayList<Character> concurrentmodificationexception4electricboogalooboogaloo2= new ArrayList<Character>(Battle.team1dead); 
+            for (Character deadlad: concurrentmodificationexception4electricboogalooboogaloo2)
             {
                 deadlad.onAllyTurn (this, this.summoned);
             }
         } 
         else
         {
-            for (Character deadlad: Battle.team2dead)
+            ArrayList<Character> concurrentmodificationexception4electricboogalooboogaloo2= new ArrayList<Character>(Battle.team2dead); 
+            for (Character deadlad: concurrentmodificationexception4electricboogalooboogaloo2)
             {
                 deadlad.onAllyTurn (this, this.summoned);
             }
@@ -511,7 +513,7 @@ public abstract class Character
             {
                 if (friend!=null&&!(friend.binaries.contains("Banished")))
                 {
-                    ntarg=friend.onAllyTargeted(friend, attacker, target, dmg, aoe);
+                    ntarg=friend.onAllyTargeted(attacker, target, dmg, aoe);
                     if (ntarg!=target)
                     return ntarg;
                 }
@@ -523,7 +525,7 @@ public abstract class Character
     public abstract void onEnemyTurn (Character enemy, boolean summoned);
     public abstract void onFightStart();
     public abstract void onAllyAttacked(Character ally, Character hurtfriend, Character attacker, int dmg);
-    public abstract Character onAllyTargeted (Character hero, Character dealer, Character target, int dmg, boolean aoe); //for passives to change target hero
+    public abstract Character onAllyTargeted (Character dealer, Character target, int dmg, boolean aoe); //for passives that change the target hero, like thing's
     public abstract void BeforeAttack (Character dealer, Character target, boolean t); //whether to call before or after checking for protect
     public Character Attack (Character dealer, Character target, int dmg, boolean aoe) //for attack skills
     {
@@ -551,7 +553,7 @@ public abstract class Character
             {
                 dmg=h.Use (target, dmg, dealer); 
             }
-            dmg=target.TakeDamage(target, dealer, dmg, aoe);
+            dmg=target.TakeDamage(dealer, dmg, aoe);
         }
         else
         dmg=0;
@@ -647,10 +649,13 @@ public abstract class Character
     public abstract void onCrit (Character target); //called after successful crit; for passives
     public abstract void onAttack (Character personIjustattacked);
     public abstract void onAttacked(Character attacker, int dmg);
-    public abstract int TakeDamage (Character target, Character dealer, int dmg, boolean aoe); //takedamage checks hero shield and calls tookdamage
-    public abstract int TakeDamage (Character target, int dmg, boolean dot); 
-    public abstract void TookDamage (Character hero, Character dealer, int dmg); //triggers relevant passives and checks if hero should be dead
-    public abstract void TookDamage (Character hero, boolean dot, int dmg); 
+    public abstract void onEvade (Character attacker);
+    public abstract void onAllyEvade (Character ally, Character attacker);
+    public abstract void onEnemyEvade (Character enemy, Character attacker);
+    public abstract int TakeDamage (Character dealer, int dmg, boolean aoe); //takedamage checks hero shield and calls tookdamage
+    public abstract int TakeDamage (int dmg, boolean dot); 
+    public abstract void TookDamage (Character dealer, int dmg); //triggers relevant passives and checks if hero should be dead
+    public abstract void TookDamage (boolean dot, int dmg); 
     public abstract void onLethalDamage (Character killer, String dmgtype);
     public abstract void onDeath (Character killer, String dmgtype);
     public abstract void onAllyDeath (Character deadfriend, Character killer);
@@ -664,6 +669,8 @@ public abstract class Character
         {
             System.out.println(this.Cname+"'s max health was reduced by "+lossy+"!");
             this.maxHP-=lossy;
+            if (this.index==105) //mr.immortal is currently (4.2) the only hero with a passive relating to losing max hp, so this is an if instead of a switch
+            ActivePassive.Immortal(this, "hp");
             if (this.maxHP<=0) //ignores immortality and the like; instant and permanent death
             {
                 this.maxHP=0;
@@ -743,7 +750,7 @@ public abstract class Character
         {
             switch (index)
             {
-                case 6: case 9: case 10: case 14: case 19: case 21: case 29: case 33: case 36: case 37: case 91: case 93: case 95: case 96:
+                case 6: case 9: case 10: case 14: case 19: case 21: case 29: case 33: case 36: case 37: case 91: case 93: case 95: case 96: case 102: case 103:
                 return 220;
             
                 case 1: case 2: case 3: case 4: case 5: case 7: case 8: case 11: case 18: case 20: case 23: case 24: case 25: case 34: case 39: case 40: 
@@ -751,12 +758,13 @@ public abstract class Character
                 return 230;
             
                 case 12: case 13: case 15: case 16: case 17: case 22: case 27: case 28: case 30: case 32: case 35: case 38: case 41:
-                case 83: case 85: case 87: case 99:
+                case 83: case 85: case 87: case 99: case 104:
                 return 240;
                 
                 //Special carrots
                 case 26: return 130;
                 case 31: return 250;
+                case 105: return 100;
             }    
             return 616;
         }
@@ -851,6 +859,10 @@ public abstract class Character
                 case 99: return "Colossus (Classic)";
                 case 100: return "Elixir (Golden Skin)";
                 case 101: return "Elixir (Black Skin)";
+                case 102: return "Gambit (Classic)";
+                case 103: return "Nightcrawler (Modern)";
+                case 104: return "Bishop (Classic)";
+                case 105: return "Mr. Immortal (Classic)";
             }    
             return "ERROR. INDEX NUMBER NOT FOUND";
         }
@@ -980,7 +992,7 @@ public abstract class Character
                 case 39: //electro
                 return "Convert all Shocks on self to Intensify Effects with equal value.";
                 case 40: //sandman
-                return "Gain immunity to Bleed, Disarm, and Shock, and ignore Counters; when receiving 2 Burns, convert them into a Stun Effect for 1 turn.";
+                return "Gain immunity to Bleed, Disarm, Snare, and Shock, and ignore Counters; when receiving 2 Burns, convert them into a Stun Effect for 1 turn.";
                 case 41: //rhino
                 return "On fight start, gain Resistance. Take -10 Bleed damage. Gain immunity to max HP reduction, Suppression, Vulnerable, and Terror.";
                 case 81: //daredevil
@@ -1013,6 +1025,14 @@ public abstract class Character
                 return str+train;
                 case 99: //colossus
                 return "Gain immunity to Bleed, Burn, and Freeze; with Taunt, incoming attacks have -50% crit chance.";
+                case 102: //gambit
+                return "Countdowns apply a random disable debuff for 1 turn on expiry.";
+                case 103: //nightcrawler
+                return "On Evade, counter for 25 damage and apply Bleed: 15 for 1 turn.";
+                case 104: //bishop
+                return "Store all damage taken as R. On turn, gain Taunt. When attacked while Taunting, remove the Taunt and gain Regen: 35 for 1 turn.";
+                case 105: //mr immortal
+                return "On death, apply Confidence: 30 and Focus for 1 turn to all allies. 2 ally turns after dying, Resurrect with full HP. Max HP cannot fall below 5.";
                 default: return "This character doesn't have any passive abilities.";
             }    
         }

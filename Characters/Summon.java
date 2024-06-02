@@ -313,17 +313,17 @@ public class Summon extends Character
     {
     }
     @Override
-    public Character onAllyTargeted (Character hero, Character dealer, Character target, int dmg, boolean aoe)
+    public Character onAllyTargeted (Character dealer, Character target, int dmg, boolean aoe)
     {
         Character ntarget=target;      
         return ntarget;
     }
     @Override
-    public int TakeDamage (Character target, Character dealer, int dmg, boolean aoe) //this is the default method for taking damage
+    public int TakeDamage (Character dealer, int dmg, boolean aoe) //this is the default method for taking damage
     {
-        switch (target.index)
+        switch (this.index)
         {
-            case 6: dmg=SummonPassive.Daemon(target, false, dealer, dmg); break;
+            case 6: dmg=SummonPassive.Daemon(this, false, dealer, dmg); break;
         }
         int odmg=dmg;
         if (dealer.ignores.contains("Shield")||dealer.ignores.contains("Defence"))
@@ -331,67 +331,67 @@ public class Summon extends Character
         } 
         else if (SHLD>=dmg) 
         {
-            target.SHLD-=dmg; 
+            this.SHLD-=dmg; 
             dmg=0;
         }
         else if (SHLD<dmg) //shield broken; can't absorb all the damage
         {
-            int s=target.SHLD;
+            int s=this.SHLD;
             dmg-=s;
-            target.SHLD=0;
+            this.SHLD=0;
         }
-        Damage_Stuff.CheckBarrier(target, dealer, dmg);
-        target.TookDamage(target, dealer, odmg);
+        Damage_Stuff.CheckBarrier(this, dealer, dmg);
+        this.TookDamage(dealer, odmg);
         return odmg;
     }
     @Override
-    public int TakeDamage (Character target, int dmg, boolean dot) //this checks if shield is strong enough to prevent health damage from an enemy attack
+    public int TakeDamage (int dmg, boolean dot) //this checks if shield is strong enough to prevent health damage from an enemy attack
     {
         int odmg=dmg;
         if (SHLD>=dmg) 
         {
-            target.SHLD-=dmg; 
+            this.SHLD-=dmg; 
             dmg=0;
         }
         else if (SHLD<dmg) 
         {
-            int s=target.SHLD;
+            int s=this.SHLD;
             dmg-=s;
-            target.SHLD=0;
+            this.SHLD=0;
         }
-        Damage_Stuff.CheckBarrier(target, null, dmg);
-        target.TookDamage(target, dot, dmg);
+        Damage_Stuff.CheckBarrier(this, null, dmg);
+        this.TookDamage(dot, dmg);
         return odmg;
     }
     @Override
-    public void TookDamage (Character hero, boolean dot, int dmg) //true for dot and false for all other types
+    public void TookDamage (boolean dot, int dmg) //true for dot and false for all other types
     { 
-        hero.dmgtaken+=dmg;
-        int h=hero.HP; h+=dmg; //for tracking hp changes for passives
-        if (hero.HP<=0)
-        hero.HP=0;
-        if (hero.HP<=0&&dot==true&&!(hero.binaries.contains("Immortal")))
+        this.dmgtaken+=dmg;
+        int h=this.HP; h+=dmg; //for tracking hp changes for passives
+        if (this.HP<=0)
+        this.HP=0;
+        if (this.HP<=0&&dot==true&&!(this.binaries.contains("Immortal")))
         {
-            hero.onLethalDamage(null, "DOT");
+            this.onLethalDamage(null, "DOT");
         }
-        else if (hero.HP<=0&&dot==false&&!(hero.binaries.contains("Immortal")))
+        else if (this.HP<=0&&dot==false&&!(this.binaries.contains("Immortal")))
         {
-            hero.onLethalDamage(null, "other");
+            this.onLethalDamage(null, "other");
         }
-        if (hero.dead==false)
+        if (this.dead==false)
         {
-            //hero.HPChange(hero, h, hero.HP); //commented out for now since no summons use this method; saves time of checking it
+            //this.HPChange(h, hero.HP); //commented out for now since no summons use this method; saves time of checking it
         }
     }
     @Override
-    public void TookDamage (Character hero, Character dealer, int dmg) //for taking damage from a hero
+    public void TookDamage (Character dealer, int dmg) //for taking damage from a hero
     {
-        System.out.println ("\n"+dealer.Cname+" did "+dmg+" damage to "+hero.Cname);
-        hero.dmgtaken+=dmg;
-        if (hero.HP<=0)
+        System.out.println ("\n"+dealer.Cname+" did "+dmg+" damage to "+this.Cname);
+        this.dmgtaken+=dmg;
+        if (this.HP<=0)
         {
-            hero.HP=0;
-            hero.onLethalDamage(dealer, "attack");
+            this.HP=0;
+            this.onLethalDamage(dealer, "attack");
         }
         else
         {
@@ -477,6 +477,34 @@ public class Summon extends Character
     }
     @Override
     public void onAllyRez (Character ally, Character healer)
+    {
+    }
+    @Override
+    public void onEvade (Character attacker) 
+    {
+        Character[] friends=Battle.GetTeammates(this);
+        for (Character c: friends)
+        {
+            if (c!=null&&!(c.binaries.contains("Banished")))
+            {
+                c.onAllyEvade(this, attacker);
+            }
+        }
+        Character[] foes=Battle.GetTeam(CoinFlip.TeamFlip(this.team1));
+        for (Character c: foes)
+        {
+            if (c!=null&&!(c.binaries.contains("Banished")))
+            {
+                c.onEnemyEvade(this, attacker);
+            }
+        }
+    }
+    @Override
+    public void onAllyEvade (Character ally, Character attacker)
+    {
+    }
+    @Override
+    public void onEnemyEvade (Character enemy, Character attacker)
     {
     }
     @Override

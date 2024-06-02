@@ -26,7 +26,8 @@ public class StaticPassive
     {
         if (josh.passivecount==1)
         {
-            josh.passivecount=0; Rez rez= new Rez(500, 100); rez.Use(josh, josh, 0); ArrayList<StatEff> effects=josh.effects;
+            josh.passivecount=0; Rez rez= new Rez(500, 100, true); rez.Use(josh, josh, 0); 
+            ArrayList<StatEff> effects=josh.effects;
             for (StatEff e: effects)
             {
                 if (e instanceof Tracker&& e.getimmunityname().equals("Elixir will Resurrect after dying"))
@@ -146,7 +147,7 @@ public class StaticPassive
     //2.1: Sinister 6
     public static void Rhino (Character alexei) //fightstart
     {
-       ResistanceE me= new ResistanceE(500, 10, 616); 
+       ResistanceE me= new ResistanceE(500, 15, 616); 
        boolean goal=CoinFlip.Flip(500+alexei.Cchance);
        if (goal==true) 
        StatEff.CheckApply(alexei, alexei, me);
@@ -379,12 +380,6 @@ public class StaticPassive
         eddie.passivecount=res.hashcode;
         eddie.passivefriend[0]=allt;
         allt.add(new Tracker ("Watched by Venom (Eddie Brock)"));
-    }
-    public static void WolvieTracker (Character wolvie) //initialise tracker on fightstart
-    {
-        Tracker frenzy= new Tracker("Damage Taken: ");
-        wolvie.effects.add(frenzy);
-        frenzy.onApply(wolvie);
     }
     public static void Drax (Character arthur, Character target, String time) //in here bc I assume this'll be used once per fight due to its strict requirements
     {

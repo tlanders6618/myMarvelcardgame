@@ -10,6 +10,102 @@ import java.util.ArrayList;
 public class ActivePassive 
 {
     //2.10: Marvellous Mutants
+    public static void Immortal (Character Mr, String time)
+    {
+        if (time.equals("death")) //ondeath
+        {
+            Character[] avengers=Battle.GetTeammates(Mr);
+            Confidence bash=new Confidence(500, 30); 
+            boolean print=true;
+            for (Character c: avengers)
+            {
+                if (c!=null)
+                {
+                    if (print==true) //only print message if mr immortal has living teammates
+                    {
+                        System.out.println("Great Lakes Avengers, assemble!"); print=false;
+                    }
+                    bash.Use(Mr, c, 0);
+                    StatEff.CheckApply (Mr, c, new Focus(500, 1));
+                }
+            }
+        }
+        else if (time.equals("ally")&&Mr.dead==true) //onallyturn
+        {
+            ++Mr.passivecount;
+            if (Mr.passivecount==2)
+            {
+                Mr.passivecount=0;
+                System.out.println("\nI'm back, baby!");
+                Rez rez= new Rez(500, 11, false); rez.Use(Mr, Mr, 0);
+            }
+        }
+        else if (time.equals("hp")) //losemaxhp
+        {
+            if (Mr.maxHP<5)
+            Mr.maxHP=5;
+        }
+    }
+    public static void Bishop (Character lucas, int dmg, String up)
+    {
+        if (up.equals("damaged")&&!(lucas.binaries.contains("Stunned"))) //tookdamage
+        {
+            lucas.passivecount+=dmg;
+            for (StatEff e: lucas.effects) //to update after an elusive attack since they don't trigger the tracker's .attacked 
+            {
+                if (e instanceof Tracker&&e.getimmunityname().equals("Energy Reserve: "))
+                {
+                    e.Attacked(lucas, null, 0);
+                }
+            }
+        }
+        else if (up.equals("attacked")&&!(lucas.binaries.contains("Stunned"))) //onattacked
+        {
+            if (lucas.CheckFor("Taunt", false)==true)
+            {
+                StatEff holder=null;
+                for (StatEff e: lucas.effects)
+                {
+                    if (e.getimmunityname().equals("Taunt")) //no distinction between taunte and taunt because taunte doesnt exist as of 4.2
+                    {
+                        holder=e; break; //this should be the taunt from bishop's passive; break because taunt doesn't stack and taunte isn't a concern
+                    }
+                }
+                lucas.remove(holder.hashcode, "normal");
+                Regen r= new Regen(500, 35, 1);
+                boolean go=CoinFlip.Flip(500+lucas.Cchance);
+                if (go==true)
+                StatEff.CheckApply(lucas, lucas, r);
+                else
+                StatEff.applyfail(lucas, r, "chance");
+            }
+        }
+        else if (up.equals("turn")&&!(lucas.binaries.contains("Stunned"))) //onturn
+        {
+            boolean go=CoinFlip.Flip(500+lucas.Cchance);
+            Taunt taunt= new Taunt(500, 500);
+            if (go==true)
+            StatEff.CheckApply(lucas, lucas, taunt);
+            else
+            StatEff.applyfail(lucas, taunt, "chance");
+        }
+    }
+    public static void Crawler (Character kurt, Character dummy) //onevade
+    {
+        if (!(dummy.ignores.contains("Counter")))
+        {
+            System.out.println ("\nBAMF!");
+            int dmg=25-dummy.ADR;
+            System.out.println ("\n"+kurt.Cname+" did "+dmg+" damage to "+dummy.Cname);
+            dummy.TakeDamage(dmg, false);  
+            Bleed bled= new Bleed(500, 15, 1); 
+            boolean goon=CoinFlip.Flip(500+kurt.Cchance);
+            if (goon==true)
+            StatEff.CheckApply(kurt, dummy, bled);
+            else
+            StatEff.applyfail(kurt, bled, "chance");
+        }
+    }
     public static void Colossus (Character piotr, boolean add) //add and remove
     {
         if (add==true)
@@ -187,7 +283,7 @@ public class ActivePassive
                         if (damage<0)
                         damage=0;
                         System.out.println ("\n"+baker.Cname+" did "+damage+" damage to "+chump.Cname);
-                        chump.TakeDamage(chump, damage, false);
+                        chump.TakeDamage(damage, false);
                     }
                 }
                 for (Character chump: friends)
@@ -199,7 +295,7 @@ public class ActivePassive
                         if (damage<0)
                         damage=0;
                         System.out.println ("\n"+baker.Cname+" did "+damage+" damage to "+chump.Cname);
-                        chump.TakeDamage(chump, damage, false);
+                        chump.TakeDamage(damage, false);
                     }
                 }
                 StatEff hope=null;
@@ -363,7 +459,7 @@ public class ActivePassive
             {
                 int amount=15-eugene.ADR; 
                 System.out.println (eugene.Cname+" took "+amount+" damage");
-                eugene.TakeDamage(eugene, amount, false);
+                eugene.TakeDamage(amount, false);
                 String[]akaban={"Bleed", "100", "10", "1", "false"}; String[][] niharu=StatFactory.MakeParam(akaban, null); eugene.activeability.AddTempString(niharu);
             }
         }
@@ -384,7 +480,7 @@ public class ActivePassive
                     if (damage<0)
                     damage=0;
                     System.out.println ("\n"+binary.Cname+" did "+damage+" damage to "+n.Cname);
-                    n.TakeDamage(n, damage, false); //elusive
+                    n.TakeDamage(damage, false); //elusive
                 }
             }
             for (StatEff e: binary.effects) //update displayed energy count
@@ -499,7 +595,7 @@ public class ActivePassive
                 System.out.println ("\nThis one is under our protection!");
                 dmg-=attacker.ADR;
                 System.out.println ("\n"+eddie.Cname+" did "+dmg+" damage to "+attacker.Cname);
-                attacker.TakeDamage(attacker, dmg, false);  
+                attacker.TakeDamage(dmg, false);  
             }
         }
         if (eddie.binaries.contains("Missed")) //if his counterattack was evaded before; needed since miss is normally only cleared after using an ab
@@ -520,7 +616,7 @@ public class ActivePassive
         {
             for (StatEff e: wolvie.effects) //to update after an elusive attack since they don't trigger the tracker's .attacked 
             {
-                if (e instanceof Tracker)
+                if (e instanceof Tracker&&e.getimmunityname().equals("Damage Taken: "))
                 {
                     e.Attacked(wolvie, null, 0);
                 }
@@ -751,7 +847,7 @@ public class ActivePassive
                     System.out.println ("\nThe Lunar Protector strikes back!");
                     dmg-=attacker.ADR;
                     System.out.println ("\n"+knight.Cname+" did "+dmg+" damage to "+attacker.Cname);
-                    attacker.TakeDamage(attacker, dmg, false);  
+                    attacker.TakeDamage(dmg, false);  
                     break;
                 }
             }
