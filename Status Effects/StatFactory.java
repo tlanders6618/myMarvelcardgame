@@ -124,7 +124,7 @@ class Tracker extends StatEff //displays a character's relevant personal statist
         switch (oname)
         {
             case "Damage Taken: ": info=target.dmgtaken; name=oname+info+"/180"; break;
-            case "Energy: ": case "Control Points: ": case "Rage: ": case "Electrons: ": case "Momentum: ":
+            case "Energy: ": case "Control Points: ": case "Rage: ": case "Electrons: ": case "Momentum: ": case "Energy Reserve: ":
             info=target.passivecount; name=oname+info; 
             break;
             case "Sand Storm active: ": info=target.passivecount; name=oname+(target.passivecount+" turns"); break;
@@ -183,7 +183,7 @@ class Tracker extends StatEff //displays a character's relevant personal statist
                 name=oname+info+"/180";
             }
             break;
-            case "Energy: ": case "Control Points: ": case "Rage: ":
+            case "Energy: ": case "Control Points: ": case "Rage: ": case "Energy Reserve: ":
             info=hero.passivecount; name=(oname+info); 
             break;
         }

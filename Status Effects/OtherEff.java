@@ -121,7 +121,7 @@ class CounterE extends OtherEff
             int dmg=this.power;  
             dmg-=attacker.ADR;
             System.out.println (hero.Cname+" counterattacks for "+dmg+" damage!");
-            attacker.TakeDamage(attacker, dmg, false);  
+            attacker.TakeDamage(dmg, false);  
             if (statstrings.size()>0)
             {
                 for (String[] array: statstrings)
@@ -190,7 +190,7 @@ class Empower extends OtherEff
         if (power>0)
         return "Empower "+power+": "+name+", "+uses+" use(s)";
         else
-        return "Empower: "+name+", "+uses+" use(s)";
+        return "Empower: "+name+", "+this.uses+" use(s)";
     }
     public Empower (int chance, int power, int use, String nname, int index)
     {
@@ -209,7 +209,7 @@ class Empower extends OtherEff
     public int UseEmpower(Character hero, Ability ab, boolean use) //use is true for applying effects and false when undoing an empowerment 
     {
         int value=0; 
-        if (use==true&&uses>0) //try to activate empowerment; called at start of using ab
+        if (use==true&&this.uses>0) //try to activate empowerment; called at start of using ab
         {
             switch (index) //has to be this way since every empowerment is unique
             {
@@ -231,6 +231,12 @@ class Empower extends OtherEff
                     hero.Cchance-=100; used=true;
                 }
                 break;
+                case 102: 
+                if (ab instanceof AttackAb&& !(ab instanceof BasicAb)) 
+                {
+                    used=true; String[] poio={"Burn", "500", "10", "1", "false"}; String[][] dp=StatFactory.MakeParam(poio, null); ab.AddTempString(dp); 
+                }
+                break;
             }
         }
         else
@@ -238,10 +244,14 @@ class Empower extends OtherEff
             if (used==true) //let empowerment know it's been used and undo its effects if necssary; called at end of using ab
             {
                 used=false;
-                --uses;
+                --this.uses;
                 switch (index) 
                 {
                     case 95: hero.Cchance+=100; break;
+                    case 102: 
+                    if (ab.GetMultihit(false)>0) //to ensure each hit of a multihit attack gets to apply the burn; only count as a use once all hits have finished
+                    this.uses++;
+                    break;
                 }
             }
         }

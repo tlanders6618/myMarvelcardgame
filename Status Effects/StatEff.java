@@ -97,11 +97,11 @@ public abstract class StatEff
         {
             StatEff.applyfail(hero, effect, "immune");
         }
-        else if (effect.getefftype().equalsIgnoreCase("Debuffs")&&hero.CheckFor("Neutralise", false)==true&&!(hero.ignores.contains("Neutralise")))
+        else if (effect.getefftype().equalsIgnoreCase("Debuffs")&&hero!=null&&hero.CheckFor("Neutralise", false)==true&&!(hero.ignores.contains("Neutralise")))
         {
             StatEff.applyfail(hero, effect, "conflict");
         }
-        else if (effect.getefftype().equalsIgnoreCase("Buffs")&&hero.CheckFor("Undermine", false)==true&&!(hero.ignores.contains("Undermine")))
+        else if (effect.getefftype().equalsIgnoreCase("Buffs")&&hero!=null&&hero.CheckFor("Undermine", false)==true&&!(hero.ignores.contains("Undermine")))
         { 
             StatEff.applyfail(hero, effect, "conflict");
         }
@@ -109,7 +109,7 @@ public abstract class StatEff
         {
             StatEff.applyfail(hero, effect, "conflict");
         }
-        else if (effect.getefftype().equalsIgnoreCase("Heal")&&hero.CheckFor("Afflicted", false)==true&&!(hero.ignores.contains("Afflicted")))
+        else if (effect.getefftype().equalsIgnoreCase("Heal")&&hero!=null&&hero.CheckFor("Afflicted", false)==true&&!(hero.ignores.contains("Afflicted")))
         {
             StatEff.applyfail(hero, effect, "conflict");
         }

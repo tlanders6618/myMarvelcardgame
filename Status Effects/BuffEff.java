@@ -106,7 +106,7 @@ class Counter extends BuffEff
             int dmg=this.power; 
             dmg-=attacker.ADR;
             System.out.println (hero.Cname+" counterattacks for "+dmg+" damage!");
-            attacker.TakeDamage(attacker, dmg, false);  
+            attacker.TakeDamage(dmg, false);  
             if (statstrings.size()>0)
             {
                 for (String[] array: statstrings)
