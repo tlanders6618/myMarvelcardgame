@@ -648,7 +648,7 @@ public abstract class Ability
             if (dmg>0)
             {
                 System.out.println ("\n"+villain.Cname+" took "+dmg+" Ricochet damage"); 
-                villain.TakeDamage(villain, dmg, false); //random enemy takes the damage
+                villain.TakeDamage(dmg, false); //random enemy takes the damage
             }
             if (e!=null)
             {

@@ -1085,9 +1085,57 @@ class DebuffMod extends BeforeAbility //for altering the debuffs an ab applies, 
             }
             else
             {
-                Rez rex= new Rez(500, 100); rex.Use(user, target, 0);
+                Rez rex= new Rez(500, 100, true); rex.Use(user, target, 0);
             }
             break;
+            case 102: //gambit
+            if (user.index==102)
+            {
+                String[] joke={"Countdown", "100", "25", "1", "false"}; 
+                int decisive=1+(int)(Math.random() * ((4 - 1) + 1));
+                if (decisive==1) 
+                {
+                    String[] ps={"Afflicted", "100", "616", "1", "false"}; String[][] add=StatFactory.MakeParam(joke, ps); user.activeability.AddTempString(add);
+                }
+                else if (decisive==2) 
+                {
+                    String[] ps={"Neutralise", "100", "616", "1", "false"}; String[][] add=StatFactory.MakeParam(joke, ps); user.activeability.AddTempString(add);
+                }
+                else if (decisive==3) 
+                {
+                    String[] ps={"Undermine", "100", "616", "1", "false"}; String[][] add=StatFactory.MakeParam(joke, ps); user.activeability.AddTempString(add);
+                }
+                else if (decisive==4) 
+                {
+                    String[] ps={"Disarm", "100", "616", "1", "false"}; String[][] add=StatFactory.MakeParam(joke, ps); user.activeability.AddTempString(add);
+                }
+            }
+            break;
+            case 104: //bishop
+            if (user.index==104&&ab==1&&user.passivecount>=40)
+            {
+                user.passivecount-=40; System.out.println(user.Cname+" consumed 40 R.");
+                for (StatEff e: user.effects) //update energy tracker
+                {
+                    if (e instanceof Tracker&&e.getimmunityname().equals("Energy Reserve: "))
+                    {
+                        e.Attacked(user, null, 0);
+                    }
+                }
+                return 40;
+            }
+            else if (user.index==104&&ab==2)
+            {
+                int tumeric=user.passivecount; user.passivecount=0; System.out.println(user.Cname+" consumed "+tumeric+" R.");
+                for (StatEff e: user.effects) 
+                {
+                    if (e instanceof Tracker&&e.getimmunityname().equals("Energy Reserve: "))
+                    {
+                        e.Attacked(user, null, 0);
+                    }
+                }
+                return tumeric;
+            }
         }
         return 0;
     }

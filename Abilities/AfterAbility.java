@@ -55,13 +55,13 @@ class Activate extends AfterAbility //forcibly ticks all stateffs of a given typ
                 {
                     todeal-=target.ADR; todeal-=target.DR; todeal-=target.PRDR;
                     todeal=Damage_Stuff.CheckGuard(user, target, todeal);
-                    target.TakeDamage(target, user, todeal, false);  
+                    target.TakeDamage(user, todeal, false);  
                 }
                 else
                 {
                     todeal-=target.ADR; todeal-=target.DR; todeal-=target.RDR; todeal-=target.PRDR;
                     todeal=Damage_Stuff.CheckGuard(user, target, todeal);
-                    target.TakeDamage(target, user, todeal, false);    
+                    target.TakeDamage(user, todeal, false);    
                 }    
             }
         }
@@ -509,7 +509,7 @@ class Assist extends AfterAbility //either random allies hitting enemy or chosen
                             damage-=chump.ADR;
                             if (damage<0)
                             damage=0;
-                            chump.TakeDamage(chump, dealer, damage, ab.aoe);
+                            chump.TakeDamage(dealer, damage, ab.aoe);
                         }
                         for (SpecialAbility ob: ab.special)
                         {
@@ -1758,10 +1758,10 @@ class ReduceCD extends AfterAbility
 }
 class Rez extends AfterAbility
 {
-    int chance; int hp;
-    public Rez (int cchance, int hhp)
+    int chance; int hp; boolean prevent;
+    public Rez (int cchance, int hhp, boolean p)
     {
-        chance=cchance; hp=hhp; String start;
+        chance=cchance; hp=hhp; String start; prevent=p;
         if (chance>=500)
         start="Resurrects the target ";
         else
@@ -1772,6 +1772,10 @@ class Rez extends AfterAbility
         this.desc=start+"with half health. ";
         else
         this.desc=start+"with "+hp+" health. ";
+        if (p==true)
+        this.desc+="Preventable. ";
+        else
+        this.desc+="Not preventable. ";
     }
     @Override
     public void Use (Character user, Character target, int ignore) 
@@ -1781,7 +1785,7 @@ class Rez extends AfterAbility
         System.out.println (user.Cname+"'s Resurrect failed to apply due to a conflicting status effect.");
         else if (target.immunities.contains("Heal")||target.immunities.contains("Resurrect"))
         System.out.println (user.Cname+"'s Resurrect failed to apply due to an immunity.");
-        else if (target.binaries.contains("No Rez")&&!(target.ignores.contains("Rez"))) //rez prevented by hela or zzax or etc, unless hero's rez cannot be prevented
+        else if (target.binaries.contains("No Rez")&&prevent==true) //rez prevented by hela or zzax or etc, unless hero's rez cannot be prevented
         System.out.println (target.Cname+"'s Resurrect was prevented by a passive or ability.");
         else if (target.maxHP<=0)
         System.out.println (target.Cname+" was unable to be Resurrected due to not having enough max HP.");
@@ -1836,6 +1840,9 @@ class Rez extends AfterAbility
             }
             if (succeed==true) //since this portion is the same regardless of team, there's no need to write it twice
             {
+                if (user==target)
+                System.out.println(user.Cname+" Resurrected themself!");
+                else
                 System.out.println(user.Cname+" Resurrected "+target.Cname+"!");
                 target.dead=false;
                 if (hp==11)
