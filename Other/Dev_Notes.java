@@ -57,14 +57,15 @@ public class Dev_Notes
      * iceman's passive can just use debuffmod for deciding whether to apply freeze or not
      * 
      * To Do
-     * test drain, both on attacks and the stateff 
      * when adding vulnerable remember to make its effect unaffected by strength bc amplify
+     * If a character is the only one on their team, they cannot be Banished. All characters on a team cannot be Banished; banish interact already accounted for by targeting stuff
      * 
      * Keep in mind:
      * For unique Other effects, check for their interaction methods, e.g. characters cannot evade while submerged so change evade criteria
      * Sourceless damage (e.g. reflection) must print the took damage statement on their own; tookdamage will not
-     * New characters need inhp and setname, then passive descs and abs, then passives + adding them to hero methods, then testing and check balancing before release
+     * New characters need inhp and setname, then passive descs and abs, then passives + adding them to hero methods, then bug testing and finally check balancing before release
      * All AoE attack abs call the attack method, which contains onattack, so all AoE attacks trigger onattack once for each target hit, instead of once after the attack ends
+     * Passives should not apply if Stunned
      * 
      * */
      
