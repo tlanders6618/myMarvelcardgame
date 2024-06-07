@@ -10,7 +10,7 @@
 * Drag the jar from your downloads folder to your desktop
 * Right click your desktop, and make a new text document by moving your cursor down to "New", and "Text Document"
 * Open the text document and type java -jar [name of the jar file, including the .jar part]; see below image
- ![image](https://github.com/tlanders6618/myMarvelcardgame/assets/113645988/8b6e3c81-60b3-4320-aede-f75607c2d9e2)
+![image](https://github.com/tlanders6618/myMarvelcardgame/assets/113645988/6b32eb11-03f2-4cfb-8a8a-8894807785f4)
 * Go to file, and select save as
 * Go to "save as type" and change the file's type from .txt to all files
 * Title the file run.bat, and save it to your desktop
