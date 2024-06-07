@@ -60,23 +60,27 @@ class ActivateP extends BeforeAbility //ability activates a hero's passive
 class ApplyShatter extends BeforeAbility //shatter applies before attacking, and thus cannot simply be added to statstrings; this is used for mighty blows too for the same reason
 {
     int chance; int duration; boolean debuff; boolean effect; 
+    boolean mighty; //if granted by mighty blows, should not affect the hero's ability desc
     boolean applied=false; //whether shatter was successfully applied or not; for mr fantastic and peter parker so they can't evade aoe abs that apply shatter
-    public ApplyShatter (int chancer, int dur, boolean deb, boolean E)
+    public ApplyShatter (int chancer, int dur, boolean deb, boolean E, boolean m)
     {
-       chance=chancer; duration=dur; debuff=deb; String start; effect=E;
+       chance=chancer; duration=dur; debuff=deb; String start; effect=E; mighty=m;
        if (this.chance>=500)
        start="Applies";
        else
        start=this.chance+"% chance to apply";
-       if (deb==true)
+       if (mighty==false) //else leave desc blank
        {
-           if (E==true)
-           this.desc=start+" Shatter Effect for "+duration+" turn(s). ";
+           if (deb==true)
+           {
+               if (E==true)
+               this.desc=start+" Shatter Effect for "+duration+" turn(s). ";
+               else
+               this.desc=start+" Shatter for "+duration+" turn(s). ";
+           }
            else
-           this.desc=start+" Shatter for "+duration+" turn(s). ";
-       }
-       else
-       this.desc=start+" Shatter. ";
+           this.desc=start+" Shatter. ";
+        }
     }
     @Override
     public int Use (Character user, Character target)
@@ -1018,9 +1022,9 @@ class DebuffMod extends BeforeAbility //for altering the debuffs an ab applies, 
                 ApplyShatter n=null;
                 int boost=user.passivecount*20; 
                 if (user.passivecount>0)
-                n= new ApplyShatter(100+(50*user.passivecount), user.passivecount, true, false);
+                n= new ApplyShatter(100+(50*user.passivecount), user.passivecount, true, false, false);
                 else
-                n= new ApplyShatter(100, 0, false, false);
+                n= new ApplyShatter(100, 0, false, false, false);
                 if (user.activeability!=null&&user.activeability.blind==false)
                 {
                     Damage_Stuff.CheckBlind(user); user.activeability.blind=true;

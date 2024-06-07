@@ -85,7 +85,7 @@ class ActivatePassive extends AfterAbility //ability activates a hero's passive 
             //flash's passive has to be after attacking, or he switches states before attacking and losing control bonuses will be applied despite attacking while in check
             case 25: ActivePassive.Flash(user, num, false, false); break; 
         }
-        switch (num) //these are not passives, just too specific for an afterab, so anyone who uses/copies the ability should be able to do this
+        switch (num) //these are not passives, just too specific for an afterab; anyone who uses/copies the ability should be able to do this
         {
             case 17: //macdonald eating 
             if (target.dead==true)
@@ -97,6 +97,12 @@ class ActivatePassive extends AfterAbility //ability activates a hero's passive 
                 StatEff.CheckApply(user, user, drugs);
                 else
                 StatEff.applyfail(user, drugs, "chance");
+            }
+            break;
+            case 72: //zemo's dominating blow
+            if (target.dead==true)
+            {
+                BonusTurnHelper lastson=new BonusTurnHelper(); user.helpers.add(lastson); 
             }
             break;
             case 84: //namor's tidal wave
@@ -1519,7 +1525,11 @@ class Purify extends AfterAbility
         target=user;
         if (user.team1!=target.team1&&(user.binaries.contains("Missed"))) //need to check for miss before purifying an enemy
         valid=false;
-        if (valid==true&&!(target.immunities.contains("Purify"))&&!(target.immunities.contains("Other"))) 
+        if (user.CheckFor("Nauseated", false)==true)
+        {
+            valid=false; System.out.println(user.Cname+"'s Purify failed to apply due to a conflicting status effect.");
+        }
+        else if (valid==true&&!(target.immunities.contains("Purify"))&&!(target.immunities.contains("Other"))) 
         {
             ArrayList <StatEff> effs=CoinFlip.GetEffs(target, effname, efftype); //only gather the target's debuffs
             if (effs.size()>0)
@@ -1538,7 +1548,7 @@ class Purify extends AfterAbility
                 }
                 else
                 {
-                    System.out.println("Purify failed due to a spelling error.");
+                    System.out.println("Purify failed due to an internal spelling error.");
                 }
             }
         }

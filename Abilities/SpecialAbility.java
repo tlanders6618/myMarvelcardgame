@@ -12,7 +12,7 @@ public abstract class SpecialAbility
    String desc; //for printdesc for abs
    public SpecialAbility()
    {
-       hashcode=Card_HashCode.RandomCode();
+       this.hashcode=Card_HashCode.RandomCode();
    }
    public int Use(Character hero, Character target) //for before abs; called before ab is used, after choosing targets
    {
@@ -45,17 +45,16 @@ class BonusTurnHelper extends SpecialAbility
     {
         if (used==false&&hero.dead==false&&hero.activeability.channelled==false) //since helpers are triggered after using a channelled ability, right before hero starts their turn
         {
-            Battle.Turn(hero, true); //hero can only take a bonus turn after finishing their turn, so it cannot be triggered after using a channelled skill
             used=true;
+            Battle.Turn(hero, true); //hero can only take a bonus turn after finishing their turn, so it cannot be triggered after using a channelled skill            
         }
-        else
+        else //bonus turn helpers are single use only; removed immediately after use
         {
             for (SpecialAbility h: hero.helpers)
             {
-                System.out.println(h.toString());
                 if (h.hashcode==this.hashcode)
                 {
-                    hero.helpers.remove(h); System.out.println ("test: turn helper successfully removed"); break; 
+                    hero.helpers.remove(h); break; //System.out.println ("bonus turn helper successfully removed"); break; 
                 }
             }
         }
