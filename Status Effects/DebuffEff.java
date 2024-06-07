@@ -304,7 +304,7 @@ class Countdown extends DebuffEff
             if (dmg<0)
             dmg=0;
             System.out.println("\n"+hero.Cname+" took "+dmg+" damage from their Countdown");
-            dmg=hero.TakeDamage(hero, dmg, true);       
+            dmg=hero.TakeDamage(dmg, true);       
             if (specials.size()>0) 
             {
                 for (String[] eff: specials)
@@ -320,7 +320,7 @@ class Countdown extends DebuffEff
                 for (String[] array: statstrings)
                 {  
                     String[][] neweff=StatFactory.MakeParam(array, null);
-                    StatEff New=StatFactory.MakeStat(neweff, hero); 
+                    StatEff New=StatFactory.MakeStat(neweff, null); 
                     StatEff.CheckApply(null, hero, New);
                 }
             }
@@ -468,6 +468,7 @@ class Disarm extends DebuffEff
 }
 class Disorient extends DebuffEff 
 {
+    boolean mimi;
     @Override
     public String getimmunityname()
     {
@@ -490,22 +491,32 @@ class Disorient extends DebuffEff
             return "Disorient";
         }
     }
-    public Disorient (int nchance, int ndur)
+    public Disorient (int nchance, int ndur, Character Q)
     {
         this.duration=ndur;
         this.oduration=ndur;
         this.chance=nchance;
         this.hashcode=Card_HashCode.RandomCode();
+        if (Q.index==73)
+        mimi=true;
+        else
+        mimi=false;
     }
     @Override
     public void onApply (Character target)
     {
-        target.CC-=50;
+        if (mimi==false)
+        target.nCC+=50;
+        else
+        target.nCC+=100;
     }
     @Override
     public void Nullified (Character target)
     {
-        target.CC+=50;
+        if (mimi==false)
+        target.nCC-=50;
+        else
+        target.nCC-=100;
     }
 }
 class Disrupt extends DebuffEff 

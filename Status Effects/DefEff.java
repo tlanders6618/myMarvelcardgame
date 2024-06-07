@@ -94,6 +94,55 @@ class Evade extends DefEff
     {
     }
 }
+class Guard extends DefEff
+{
+    @Override
+    public String getimmunityname()
+    {
+        return "Guard";
+    }
+    @Override
+    public String geteffname()
+    {
+        if (duration>500)
+        {
+            return "Guard: "+this.power;
+        }
+        else
+        {
+            return "Guard: "+this.power+", "+this.duration+" attack(s)";
+        }
+    }
+    public Guard (int nchance, int npower, int ndur) //does nothing on its own; all handled by checkguard, called by character.attack as part of dmg calc, before the takedamage stuff
+    {
+        this.chance=nchance;
+        this.power=npower;
+        this.duration=ndur;
+        this.oduration=ndur;
+        this.hashcode=Card_HashCode.RandomCode();
+    }
+    @Override
+    public void onApply (Character hero) 
+    {
+    }
+    @Override
+    public int UseGuard (Character dealer, Character targ, int dmg) 
+    {
+        int odmg=dmg;
+        dmg-=this.power;
+        this.duration--;
+        if (this.power>=0)
+        System.out.println ("\n"+targ.Cname+"'s Guard reduced " +dealer.Cname+"'s attack damage by "+Math.abs(odmg-dmg));
+        else //for quake
+        System.out.println ("\n"+targ.Cname+"'s Guard increased " +dealer.Cname+"'s attack damage by "+Math.abs(this.power));
+        if (this.duration<=0)
+        targ.remove(this.hashcode, "normal");
+        if (dmg<0)
+        return 0;
+        else
+        return dmg;
+    }
+}
 class Protect extends DefEff
 {
     Character protector;

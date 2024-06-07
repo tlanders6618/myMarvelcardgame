@@ -154,6 +154,43 @@ class Evasion extends BuffEff
     {     
     }
 }
+class Ferocity extends BuffEff 
+{
+    @Override
+    public String getimmunityname()
+    {
+        return "Ferocity";
+    }
+    @Override
+    public String geteffname()
+    {
+        if (this.duration<100)
+        {
+            return "Ferocity, "+this.duration+" turn(s)";
+        }
+        else
+        {
+            return "Ferocity";
+        }
+    }
+    public Ferocity (int nchance, int nduration)
+    {
+        this.duration=nduration;
+        this.oduration=nduration;
+        this.chance=nchance;
+        this.hashcode=Card_HashCode.RandomCode();
+    }
+    @Override 
+    public void onApply (Character target)
+    {
+        target.critdmg+=0.5;
+    }
+    @Override
+    public void Nullified (Character target)
+    {
+        target.critdmg-=0.5;
+    }
+}
 class Focus extends BuffEff 
 {
     @Override
@@ -290,7 +327,7 @@ class Invisible extends BuffEff
 }
 class MightyBlows extends BuffEff 
 {
-    ApplyShatter n= new ApplyShatter(50, 0, false, false);
+    ApplyShatter n= new ApplyShatter(50, 0, false, false, true);
     @Override
     public String getimmunityname()
     {

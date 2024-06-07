@@ -375,6 +375,30 @@ class IntensifyE extends OtherEff
         target.BD-=this.power;
     }
 }
+class Nauseated extends OtherEff
+{
+    @Override
+    public String getimmunityname()
+    {
+        return "Nauseated";
+    }
+    @Override
+    public String geteffname()
+    {
+        return "Nauseated Effect, "+this.duration+" turn(s)";
+    }
+    public Nauseated (int nchance, int nduration)
+    {
+        this.duration=nduration;
+        this.oduration=nduration;
+        this.chance=nchance;
+        this.hashcode=Card_HashCode.RandomCode();
+    }
+    @Override
+    public void onApply (Character target) 
+    {
+    }
+}
 class Obsession extends OtherEff
 {
     @Override

@@ -52,7 +52,7 @@ public abstract class StatEff
     public void PrepareProtect (Character tank, Character weak)
     {
     }
-    public int UseGuard (int dmg) //dmg -= guard strength and guard loses a charge
+    public int UseGuard (Character dealer, Character targ, int dmg) //dmg -= guard strength and guard loses a charge
     {
         return dmg;
     }
