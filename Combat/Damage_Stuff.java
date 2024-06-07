@@ -11,6 +11,8 @@ public class Damage_Stuff
     static boolean print=false; //whether to print that the hero's attack failed to crit; only if crit chance was over 0, as decided below in getcc and getcritdmg
     public static int DamageFormula (Character dealer, Character chump, int dmg)
     {
+        if (dealer.CC>0) //player is expecting (potential) crit if cc is over 0, so print something to acknowledge the crit calculation
+        print=true;
         int CC=GetCC(dealer, chump);
         boolean crit=CoinFlip.Flip(CC);
         dmg=GetCritdmg(dealer, dmg, crit, chump);
@@ -73,10 +75,10 @@ public class Damage_Stuff
     }
     public static int GetCC (Character dealer, Character chump) //crit chance
     {
-        int CC=dealer.CC;
-        if (CC>0) //player is expecting (potential) crit if hero's cc is over 0, before accounting for other stateffs, so print something to acknowledge the crit calculation
+        int CC=dealer.CC-dealer.nCC;
+        if (dealer.CC>0) 
         {
-            CC+=chump.CritVul; print=true;
+            CC+=chump.CritVul; 
         }
         CC-=chump.CritDR;
         return CC;
@@ -85,7 +87,7 @@ public class Damage_Stuff
     {
         if (crit==true) //the attack is a critical hit; damage is increased accordingly
         {
-            if (print==true)
+            //if (print==true)
             System.out.println(dealer.Cname+"'s attack was critical!");
             double ndmg= dmg*dealer.critdmg;
             dmg=5*(int)(Math.floor(ndmg/5)); //crit damage rounded down to nearest 5
@@ -178,24 +180,20 @@ public class Damage_Stuff
             }
         }
     }
-    public static int CheckGuard (Character dealer, Character target, int dmg)
+    public static int CheckGuard (Character dealer, Character target, int dmg) //called by character.attack
     {
         if (dmg>0&&!(dealer.ignores.contains("Guard"))&&!(target.binaries.contains("Stunned"))) //conditions that would prevent guard from triggering
         { 
-            for (StatEff eff: target.effects)
+            ArrayList<StatEff> neffs= new ArrayList<StatEff>(target.effects);
+            for (StatEff eff: neffs)
             {
                 if (eff.getimmunityname().equals("Guard"))
                 {
                     if (eff.getefftype().equalsIgnoreCase("Other")||(eff.getefftype().equals("Defence")&&!(dealer.ignores.contains("Defence"))))
                     {
-                        int odmg=dmg;
-                        dmg=eff.UseGuard(dmg);
-                        System.out.println ("\n"+target.Cname+"'s Guard reduced" +dealer.Cname+"'s attack damage by "+(odmg-dmg));
-                        if (dmg<=0)
-                        {
-                            dmg=0;
-                            break; //no point in wasting guards on nothing
-                        }
+                        dmg=eff.UseGuard(dealer, target, dmg); 
+                        if (dmg==0) 
+                        break; //no point in wasting guards on nothing
                     }
                 }
             }
