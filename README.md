@@ -15,5 +15,5 @@
 * Go to "save as type" and change the file's type from .txt to all files
 * Title the file run.bat, and save it to your desktop
 * Double click on run.bat to run the game
-* 
+  
 * If you encounter any problems or have any feedback, please let me know via a comment!
