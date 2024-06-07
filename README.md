@@ -6,13 +6,11 @@
 * Download and install Java 11 at https://www.techspot.com/downloads/5553-java-jdk.html 
 * Download the latest version of the myMarvelcardgame.jar file from above (the one with the higher number), by clicking on it and then selecting "download" on the right hand side (the other is a backup, in case there's an issue with the current version)
 * ![image](https://github.com/tlanders6618/myMarvelcardgame/assets/113645988/9cd34b41-cd6f-4e64-a6a8-d847e2724358)
-
 * If that doesn't work, instead select "view raw", and the file should automatically download.
 * Drag the jar from your downloads folder to your desktop
 * Right click your desktop, and make a new text document by moving your cursor down to "New", and "Text Document"
 * Open the text document and type java -jar [name of the jar file, including the .jar part]; see below image
  ![image](https://github.com/tlanders6618/myMarvelcardgame/assets/113645988/8b6e3c81-60b3-4320-aede-f75607c2d9e2)
-
 * Go to file, and select save as
 * Go to "save as type" and change the file's type from .txt to all files
 * Title the file run.bat, and save it to your desktop
