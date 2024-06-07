@@ -144,6 +144,38 @@ public class StaticPassive
             eff.Attacked(matt, attacker, 0); //dmg dealt by the attacker doesn't matter for counter so it'll just send over 0
         }
     }
+    //2.7: Thunderbolts
+    public static void Zemo (Character helmut, boolean turn)
+    {
+        if (turn==true) //onturn
+        {
+            if (helmut.CheckFor("Guard", false)==true)
+            {
+                ArrayList<StatEff> bigboy= new ArrayList<StatEff>(helmut.effects);
+                for (StatEff e: bigboy)
+                {
+                    if (e.getimmunityname().equals("Guard"))
+                    {
+                        helmut.remove(e.hashcode, "normal");
+                    }
+                }
+            }
+        }
+        else //onattack
+        {
+            if (helmut.passivecount==0&&helmut.activeability.oname.equals("Deadly Lunge"))
+            {
+                System.out.println("En garde!");
+                helmut.passivecount=1;
+                Precision p= new Precision(500, 616);
+                boolean add=CoinFlip.Flip(500+helmut.Cchance);
+                if (add==true)
+                StatEff.CheckApply(helmut, helmut, p);
+                else
+                StatEff.applyfail(helmut, p, "chance");
+            }
+        }
+    }
     //2.1: Sinister 6
     public static void Rhino (Character alexei) //fightstart
     {
@@ -417,11 +449,11 @@ public class StaticPassive
                 arthur.passivecount=0; arthur.BD-=15;
             }
         }
-        else if (time.equals("turnend")&&arthur.activeability!=null&&arthur.activeability!=arthur.abilities[1]) //reset twin blades, but only if he used it already; see below 
+        else if (time.equals("turnend")&&arthur.activeability!=null&&!(arthur.activeability.oname.equals("Twin Blades"))) //reset twin blades, but only if he used it already
         {
-            if (arthur.passivecount==10) //attacks with twin blades active that didn't trigger it (e.g. against an enemy with 5 HP) shouldn't cause it to be removed
+            if (arthur.passivecount==10) //can tell he consumed it if his passivecount has been changed and his last used ability was something other than twin blades
             {
-                arthur.passivecount=0;
+                arthur.passivecount=0; //attacks with twin blades active that didn't trigger it (e.g. against an enemy with 5 HP) shouldn't cause it to be removed
                 if (arthur.dead==false) //if he died, effects would already be empty; otherwise, remove twin blades tracker to show it's been used
                 {
                     StatEff bl=null;

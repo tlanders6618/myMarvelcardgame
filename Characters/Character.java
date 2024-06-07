@@ -28,6 +28,7 @@ public abstract class Character
     int BD=0; //bonus damage on attacks from status effects
     int PBD=0; //bonus damage on attacks from passives
     int CC=0; //crit chance
+    int nCC=0; //negative crit chance
     double critdmg=1.5; //default is crits do +50% dmg
     int SHLD=0; //shield
     int Cchance=0; //extra status chance
@@ -545,9 +546,10 @@ public abstract class Character
                 dealer.activeability.evade=true;
             }
         }
-        if ((!(dealer.binaries.contains("Missed")))&&target.dead==false) //check that they're still alive for mulitihit attacks
+        if ((!(dealer.binaries.contains("Missed")))&&target.dead==false) //check that they're still alive, so mulitihit attacks don't trigger takedamage on a dead target
         {
             dmg=Damage_Stuff.DamageFormula(dealer, target, dmg);
+            if (target.CheckFor("Guard", false)==true) //no need to waste time calling it otherwise
             dmg=Damage_Stuff.CheckGuard(dealer, target, dmg);      
             for (SpecialAbility h: target.helpers) //for redwing 
             {
@@ -750,10 +752,10 @@ public abstract class Character
         {
             switch (index)
             {
-                case 6: case 9: case 10: case 14: case 19: case 21: case 29: case 33: case 36: case 37: case 91: case 93: case 95: case 96: case 102: case 103:
+                case 6: case 9: case 10: case 14: case 19: case 21: case 29: case 33: case 36: case 37: case 73: case 91: case 93: case 95: case 96: case 102: case 103:
                 return 220;
             
-                case 1: case 2: case 3: case 4: case 5: case 7: case 8: case 11: case 18: case 20: case 23: case 24: case 25: case 34: case 39: case 40: 
+                case 1: case 2: case 3: case 4: case 5: case 7: case 8: case 11: case 18: case 20: case 23: case 24: case 25: case 34: case 39: case 40: case 72:
                 case 81: case 82: case 84: case 86: case 88: case 89: case 90: case 92: case 94: case 97: case 98: case 100: case 101:
                 return 230;
             
@@ -782,7 +784,9 @@ public abstract class Character
                 
                 case 8: return 70;
                 
-                case 4: case 28: return 80;
+                case 28: return 80;
+                
+                case 4: return 100;
                 
                 case 14: case 15: case 16: return 120;
             
@@ -838,6 +842,8 @@ public abstract class Character
                 case 39: return "Electro (Classic)";
                 case 40: return "Sandman (Classic)";
                 case 41: return "Rhino (Classic)";
+                case 72: return "Baron Zemo (Helmut Zemo)";
+                case 73: return "Melissa Gold (Screaming Mimi)";
                 case 81: return "Daredevil (Matt Murdock)";
                 case 82: return "Iron Fist (Danny Rand)";
                 case 83: return "Luke Cage (Modern)";
@@ -995,6 +1001,10 @@ public abstract class Character
                 return "Gain immunity to Bleed, Disarm, Snare, and Shock, and ignore Counters; when receiving 2 Burns, convert them into a Stun Effect for 1 turn.";
                 case 41: //rhino
                 return "On fight start, gain Resistance. Take -10 Bleed damage. Gain immunity to max HP reduction, Suppression, Vulnerable, and Terror.";
+                case 72: //zemo
+                return "Gain immunity to Steal and Disarm, and ignore Guard. On turn, remove Guard from self. When using Deadly Lunge for the first time, gain Precision.";
+                case 73: //screaming mimi
+                return "Debuffs applied are twice as effective (values are 100% instead of 50%)";
                 case 81: //daredevil
                 return "Ignore Blind and Invisible. Ignore the Counter activation limit.";
                 case 83: //luke cage
@@ -1030,7 +1040,7 @@ public abstract class Character
                 case 103: //nightcrawler
                 return "On Evade, counter for 25 damage and apply Bleed: 15 for 1 turn.";
                 case 104: //bishop
-                return "Store all damage taken as R. On turn, gain Taunt. When attacked while Taunting, remove the Taunt and gain Regen: 35 for 1 turn.";
+                return "Store all damage taken as R. On turn, gain Taunt. When taking damage while Taunting, remove the Taunt and gain Regen: 35 for 1 turn.";
                 case 105: //mr immortal
                 return "On death, apply Confidence: 30 and Focus for 1 turn to all allies. 2 ally turns after dying, Resurrect with full HP. Max HP cannot fall below 5.";
                 default: return "This character doesn't have any passive abilities.";

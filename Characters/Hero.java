@@ -42,6 +42,7 @@ public class Hero extends Character
             case 33: StaticPassive.Deadpool(this, "heal", null); break;
             case 35: ActivePassive.Cain(this, "turn", 616); break;
             case 40: ActivePassive.Sandy(this, "turn"); break;
+            case 72: StaticPassive.Zemo(this, true); break;
             case 97: ActivePassive.Angel(this, true, 0); break;
             case 104: ActivePassive.Bishop(this, 0, "turn"); break;
         }
@@ -300,6 +301,7 @@ public class Hero extends Character
             case 23: ActivePassive.CM(this, false, -616); break;
             case 33: StaticPassive.Deadpool(this, "attack", victim); break;
             case 35: ActivePassive.Cain(this, "attack", 616); break;
+            case 72: StaticPassive.Zemo(this, false); break;
             case 86: StaticPassive.Kraven(this, victim, false); break;
             case 92: ActivePassive.Roblin(this, victim, "attack"); break;
             case 98: ActivePassive.AA(this, victim); break;
@@ -763,7 +765,7 @@ public class Hero extends Character
     {
     }
     @Override
-    public void AddImmune (boolean add) //called on character creation/transformation; avoids problem of apocalypse's passive conflicting with dormammu's and etc
+    public void AddImmune (boolean add) //called on character creation/transformation; avoids problem of phoenix's passive conflicting with dormammu's, etc
     {
         if (add==true) //immunities are now gained before fight start; also applies tracker since they're as equally intrinsic to heroes as immunities are
         {
@@ -812,6 +814,8 @@ public class Hero extends Character
                 this.immunities.add("Bleed"); this.immunities.add("Shock"); this.immunities.add("Snare"); this.immunities.add("Disarm"); this.ignores.add("Counter"); break;
                 case 41: //rhino
                 this.immunities.add("Vulnerable"); this.immunities.add("Suppression"); this.immunities.add("Reduce"); this.immunities.add("Terror"); this.BlDR+=15; break; 
+                case 72: //zemo
+                this.immunities.add("Disarm"); this.immunities.add("Steal"); this.ignores.add("Guard"); break;
                 case 81: //daredevil
                 this.ignores.add("Blind"); this.ignores.add("Invisible"); break;
                 case 83: //luke cage
@@ -967,6 +971,8 @@ public class Hero extends Character
                 this.immunities.remove("Disarm"); this.ignores.remove("Counter"); break;
                 case 41: //rhino
                 this.immunities.remove("Vulnerable"); this.immunities.remove("Suppression"); this.immunities.remove("Reduce"); this.immunities.remove("Terror"); this.BlDR-=15; break; 
+                case 72: //zemo
+                this.immunities.remove("Disarm"); this.immunities.remove("Steal"); this.ignores.remove("Guard"); break;
                 case 81: //daredevil
                 this.ignores.remove("Blind"); this.ignores.remove("Invisible"); break;
                 case 83: //luke cage
