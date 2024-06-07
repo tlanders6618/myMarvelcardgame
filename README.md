@@ -5,6 +5,7 @@
 * Disclaimer: the following instructions have only been tested and confirmed to work on Windows. I cannot guarantee they'll work on other operating systems
 * Download and install Java 11 at https://www.techspot.com/downloads/5553-java-jdk.html 
 * Download the latest version of the myMarvelcardgame.jar file from above (the one with the higher number), by clicking on it and selecting "download" on the right hand side (the other is a backup, in case there's an issue with the current version)
+* If that doesn't work, instead select "view raw", and the file should automatically download.
 * Drag the jar from your downloads folder to your desktop
 * Right click your desktop, and make a new text document by moving your cursor down to "New", and "Text Document"
 * Open the text document and type java -jar [name of the jar file, including the .jar part]; see below image
