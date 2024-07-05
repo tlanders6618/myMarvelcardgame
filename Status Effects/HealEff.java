@@ -29,18 +29,16 @@ class Drain extends HealEff
     @Override
     public String geteffname()
     {
-        String name="Error fetching Drain name"; //just in case something is wrong with power
         if (this.half==true)
         {
-            name="Drain: Half, "+this.duration+" turn(s)";
+            return "Drain: Half, "+this.duration+" turn(s)";
         }
         else 
         {
-            name="Drain: Full, "+this.duration+" turn(s)";
+            return "Drain: Full, "+this.duration+" turn(s)";
         }
-        return name;
     }
-    public Drain (int nchance, boolean half, int ndur) //50 for drain half and 100 for drain full
+    public Drain (int nchance, boolean half, int ndur, Character p) //50 for drain half and 100 for drain full
     {
         this.duration=ndur;
         this.oduration=ndur;
@@ -50,6 +48,7 @@ class Drain extends HealEff
         else 
         this.half=true;
         this.hashcode=Card_HashCode.RandomCode();
+        this.prog=p;
     }
     @Override
     public void onApply (Character target)
@@ -90,13 +89,14 @@ class Recovery extends HealEff
             return name;
         }
     }
-    public Recovery (int nchance, int nstrength, int nduration)
+    public Recovery (int nchance, int nstrength, int nduration, Character p)
     {
         this.power=nstrength;
         this.duration=nduration;
         this.oduration=nduration;
         this.chance=nchance;
         this.hashcode=Card_HashCode.RandomCode();
+        this.prog=p;
     }
     @Override
     public void onApply (Character target)
@@ -125,7 +125,7 @@ class Regen extends HealEff
             return name;
         }
     }
-    public Regen (int nchance, int nstrength, int nduration)
+    public Regen (int nchance, int nstrength, int nduration, Character p)
     {
         this.power=nstrength;
         this.duration=nduration;
@@ -133,6 +133,7 @@ class Regen extends HealEff
         this.chance=nchance;
         this.hashcode=Card_HashCode.RandomCode();
         this.stackable=true;
+        this.prog=p;
     }
     @Override
     public void onTurnStart (Character hero)

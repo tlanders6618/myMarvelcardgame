@@ -39,12 +39,13 @@ class Bulwark extends BuffEff
             return "Bulwark";
         }
     }
-    public Bulwark (int nchance, int nduration)
+    public Bulwark (int nchance, int nduration, Character p)
     {
         this.duration=nduration;
         this.oduration=nduration;
         this.chance=nchance;
         this.hashcode=Card_HashCode.RandomCode();
+        this.prog=p;
     }
     @Override 
     public void onApply (Character target)
@@ -68,19 +69,16 @@ class Counter extends BuffEff
     @Override
     public String geteffname()
     {
-        String name;
         if (duration<100)
         {
-            name="Counter: "+this.power+", "+this.duration+" turn(s)";
-            return name;
+            return"Counter: "+this.power+", "+this.duration+" turn(s)";
         }
         else
         {
-            name="Counter: "+this.power;
-            return name;
+            return "Counter: "+this.power;
         }
     }
-    public Counter (int nchance, int nstrength, int nduration, String[] stat)
+    public Counter (int nchance, int nstrength, int nduration, Character p, String[] stat)
     {
         this.power=nstrength;
         this.duration=nduration;
@@ -89,14 +87,11 @@ class Counter extends BuffEff
         this.hashcode=Card_HashCode.RandomCode();
         this.stackable=true;
         this.myriad=false;
+        this.prog=p;
         if (stat!=null)
         {
             statstrings.add(stat);
         }
-    }
-    @Override
-    public void onApply (Character target)
-    {          
     }
     @Override
     public void Attacked (Character hero, Character attacker, int ignore) //dmg is elusive
@@ -130,28 +125,22 @@ class Evasion extends BuffEff
     @Override
     public String geteffname()
     {
-        String name;
         if (this.duration<100)
         {
-            name="Evasion, "+this.duration+" turn(s)";
-            return name;
+            return "Evasion, "+this.duration+" turn(s)";
         }
         else
         {
-            name="Evasion";
-            return name;
+            return "Evasion";
         }
     }
-    public Evasion (int nchance, int nduration)
+    public Evasion (int nchance, int nduration, Character p)
     {
         this.duration=nduration;
         this.oduration=nduration;
         this.chance=nchance;
         this.hashcode=Card_HashCode.RandomCode();
-    }
-    @Override 
-    public void onApply (Character target)
-    {     
+        this.prog=p;
     }
 }
 class Ferocity extends BuffEff 
@@ -173,12 +162,13 @@ class Ferocity extends BuffEff
             return "Ferocity";
         }
     }
-    public Ferocity (int nchance, int nduration)
+    public Ferocity (int nchance, int nduration, Character p)
     {
         this.duration=nduration;
         this.oduration=nduration;
         this.chance=nchance;
         this.hashcode=Card_HashCode.RandomCode();
+        this.prog=p;
     }
     @Override 
     public void onApply (Character target)
@@ -201,24 +191,22 @@ class Focus extends BuffEff
     @Override
     public String geteffname()
     {
-        String name;
         if (this.duration<100)
         {
-            name="Focus, "+this.duration+" turn(s)";
-            return name;
+            return "Focus, "+this.duration+" turn(s)";
         }
         else
         {
-            name="Focus";
-            return name;
+            return "Focus";
         }
     }
-    public Focus (int nchance, int nduration)
+    public Focus (int nchance, int nduration, Character p)
     {
         this.duration=nduration;
         this.oduration=nduration;
         this.chance=nchance;
         this.hashcode=Card_HashCode.RandomCode();
+        this.prog=p;
     }
     @Override 
     public void onApply (Character target)
@@ -241,19 +229,16 @@ class Intensify extends BuffEff
     @Override
     public String geteffname()
     {
-        String name;
         if (duration<100)
         {
-            name="Intensify: "+this.power+", "+this.duration+" turn(s)";
-            return name;
+            return "Intensify: "+this.power+", "+this.duration+" turn(s)";
         }
         else
         {
-            name="Intensify: "+this.power;
-            return name;
+            return "Intensify: "+this.power;
         }
     }
-    public Intensify (int nchance, int nstrength, int nduration)
+    public Intensify (int nchance, int nstrength, int nduration, Character p)
     {
         this.power=nstrength;
         this.duration=nduration;
@@ -261,6 +246,7 @@ class Intensify extends BuffEff
         this.chance=nchance;
         this.hashcode=Card_HashCode.RandomCode();
         this.myriad=false;
+        this.prog=p;
     }
     @Override
     public void onApply (Character target)
@@ -283,24 +269,22 @@ class Invisible extends BuffEff
     @Override
     public String geteffname()
     {
-        String name;
         if (duration<100)
         {
-            name="Invisible, "+this.duration+" turn(s)";
-            return name;
+            return "Invisible, "+this.duration+" turn(s)";
         }
         else
         {
-            name="Invisible";
-            return name;
+            return "Invisible";
         }
     }
-    public Invisible (int nchance, int nduration)
+    public Invisible (int nchance, int nduration, Character p)
     {
         this.duration=nduration;
         this.oduration=nduration;
         this.chance=nchance;
         this.hashcode=Card_HashCode.RandomCode();
+        this.prog=p;
     }
     @Override 
     public void onApply (Character target)
@@ -336,24 +320,22 @@ class MightyBlows extends BuffEff
     @Override
     public String geteffname()
     {
-        String name;
         if (this.duration<100)
         {
-            name="Mighty Blows, "+this.duration+" turn(s)";
-            return name;
+            return "Mighty Blows, "+this.duration+" turn(s)";
         }
         else
         {
-            name="Mighty Blows";
-            return name;
+            return "Mighty Blows";
         }
     }
-    public MightyBlows (int nchance, int nduration)
+    public MightyBlows (int nchance, int nduration, Character p)
     {
         this.duration=nduration;
         this.oduration=nduration;
         this.chance=nchance;
         this.hashcode=Card_HashCode.RandomCode();
+        this.prog=p;
     }
     @Override
     public void onApply (Character target)
@@ -408,28 +390,22 @@ class PlaceboB extends BuffEff
     @Override
     public String geteffname()
     {
-        String name;
         if (duration<100)
         {
-            name="Placebo (Buff), "+this.duration+" turn(s)";
-            return name;
+            return "Placebo (Buff), "+this.duration+" turn(s)";
         }
         else
         {
-            name="Placebo (Buff)";
-            return name;
+            return "Placebo (Buff)";
         }
     }
-    public PlaceboB (int nchance, int nduration)
+    public PlaceboB (int nchance, int nduration, Character p)
     {
         this.duration=nduration;
         this.oduration=nduration;
         this.chance=nchance;
         this.hashcode=Card_HashCode.RandomCode();
-    }
-    @Override
-    public void onApply (Character target)
-    {
+        this.prog=p;
     }
 }
 class Precision extends BuffEff 
@@ -442,25 +418,23 @@ class Precision extends BuffEff
     @Override
     public String geteffname()
     {
-        String name;
         if (this.duration<100)
         {
-            name="Precision, "+this.duration+" turn(s)";
-            return name;
+            return "Precision, "+this.duration+" turn(s)";
         }
         else
         {
-            name="Precision";
-            return name;
+            return "Precision";
         }
     }
-    public Precision (int nchance, int nduration)
+    public Precision (int nchance, int nduration, Character p)
     {
         this.duration=nduration;
         this.oduration=nduration;
         this.chance=nchance;
         this.hashcode=Card_HashCode.RandomCode();
         this.stackable=true;
+        this.prog=p;
     }
     @Override
     public void onApply (Character target)
@@ -483,34 +457,22 @@ class Safeguard extends BuffEff
     @Override
     public String geteffname()
     {
-        String name;
         if (this.duration<100)
         {
-            name="Safeguard, "+this.duration+" turn(s)";
-            return name;
+            return "Safeguard, "+this.duration+" turn(s)";
         }
         else
         {
-            name="Safeguard";
-            return name;
+            return "Safeguard";
         }
     }
-    public Safeguard (int nchance, int nduration)
+    public Safeguard (int nchance, int nduration, Character p)
     {
         this.duration=nduration;
         this.oduration=nduration;
         this.chance=nchance;
         this.hashcode=Card_HashCode.RandomCode();
-    }
-    @Override
-    public void onApply (Character target)
-    {
-        target.immunities.add("Debuffs");
-    }
-    @Override
-    public void Nullified (Character target)
-    {
-        target.immunities.remove("Debuffs");
+        this.prog=p;
     }
 }
 class Speed extends BuffEff 
@@ -523,24 +485,22 @@ class Speed extends BuffEff
     @Override
     public String geteffname()
     {
-        String name;
         if (this.duration<100)
         {
-            name="Speed, "+this.duration+" turn(s)";
-            return name;
+            return "Speed, "+this.duration+" turn(s)";
         }
         else
         {
-            name="Speed";
-            return name;
+            return "Speed";
         }
     }
-    public Speed (int nchance, int nduration)
+    public Speed (int nchance, int nduration, Character p)
     {
         this.duration=nduration;
         this.oduration=nduration;
         this.chance=nchance;
         this.hashcode=Card_HashCode.RandomCode();
+        this.prog=p;
     }
     @Override
     public void onApply (Character target)

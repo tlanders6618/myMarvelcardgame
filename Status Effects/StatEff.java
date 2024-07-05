@@ -12,6 +12,7 @@ public abstract class StatEff
     int duration=616; int chance=500; int power=616;
     int oduration=616; //for copy/steal 
     int hashcode; boolean stackable=false; 
+    Character prog; //progenitor who made the stateff
     public void StatEff ()
     {   
     }
@@ -31,12 +32,14 @@ public abstract class StatEff
         }
     }
     public abstract String geteffname(); //name to be displayed on scoreboard, including strength and duration
-    public abstract void onApply(Character target);
     public abstract String getimmunityname(); //just the generic name of the eff, e.g. Target
     public abstract String getefftype();
     public String getalttype() //this is primarily for debuffeffs to override; damaging vs non damaging; also used for things like iceman's freeze 
     {
         return "knull";
+    }
+    public void onApply(Character target)
+    {
     }
     public void Nullified(Character target) //triggered when a stateff is removed to undo its effects; not necessarily meant for only when Nullified
     {
@@ -75,43 +78,69 @@ public abstract class StatEff
     public void Attacked(StatEff e) //called when hero gains a stateff; for debilitate, fortify, etc
     {
     }
-    public static void applyfail (Character hero, StatEff eff, String cause) //error message for stateff application failure
+    public static void applyfail (Character target, StatEff eff, String cause) //error message for stateff application failure
     {
         String start;
-        if (hero!=null)
-        start=hero.Cname+"'s "+eff.geteffname();
+        if (eff.prog!=null)
+        start=eff.prog+"'s "+eff.getimmunityname();
         else
-        start=eff.geteffname();
+        start=eff.getimmunityname();
         switch (cause)
         {
-            case "immune": System.out.println(start+" failed to apply due to an immunity."); break;
-            case "chance": System.out.println(start+" failed to apply due to chance."); break;
-            case "conflict": System.out.println(start+" could not be applied due to a conflicting status effect."); break; //shatter and disable debuffs
-            case "dupe": System.out.println(start+" could not be applied due to a duplicate status effect."); break;
+            case "immune": System.out.println(start+" failed to apply to "+target+" due to an immunity."); break;
+            case "chance": System.out.println(start+" failed to apply to "+target+" due to chance."); break;
+            case "conflict": System.out.println(start+" could not be applied to "+target+" due to a conflicting status effect."); break; //shatter, safeguard, disrupt, disable debuffs
+            case "dupe": System.out.println(start+" could not be applied due to "+target+" due to a duplicate status effect."); break;
             default: System.out.println("Forgot to program an error message for this kind of stateff failure."); 
         }
+        for (Character c: Battle.team1)
+        {
+            if (c!=null)
+            c.StatFailed(target, eff, cause);
+        }
+        for (Character c: Battle.team2)
+        {
+            if (c!=null)
+            c.StatFailed(target, eff, cause);
+        }
     }
-    public static void CheckApply (Character hero, Character target, StatEff effect) //see if stateffs can be applied to their target; called after Ability.ApplyStats
-    {
-        if (target.immunities.contains(effect.getefftype())||target.immunities.contains(effect.getimmunityname()))
+    public static void CheckApply (Character hero, Character target, StatEff effect) //try to apply eff to target after checking for conflict; called after Ability.ApplyStats
+    {   
+        if (StatEff.CheckFail(hero, target, effect)==false)
         {
-            StatEff.applyfail(hero, effect, "immune");
-        }
-        else if (effect.getefftype().equalsIgnoreCase("Debuffs")&&hero!=null&&hero.CheckFor("Neutralise", false)==true&&!(hero.ignores.contains("Neutralise")))
+            target.add(effect);
+        } //else check fail already prints the failure message so do nothing
+    }
+    public static boolean CheckFail (Character hero, Character target, StatEff effect) //same as above, but returns whether eff can be applied without applying it
+    {   //checks everything but chance
+        if (target.dead==true)
         {
-            StatEff.applyfail(hero, effect, "conflict");
+            return true;
         }
-        else if (effect.getefftype().equalsIgnoreCase("Buffs")&&hero!=null&&hero.CheckFor("Undermine", false)==true&&!(hero.ignores.contains("Undermine")))
-        { 
-            StatEff.applyfail(hero, effect, "conflict");
+        else if (target.immunities.contains(effect.getefftype())||target.immunities.contains(effect.getimmunityname()))
+        {
+            StatEff.applyfail(target, effect, "immune");
+            return true;
+        }
+        else if (effect.getefftype().equalsIgnoreCase("Debuffs")&&((target.CheckFor("Safeguard", false)==true)||(hero!=null&&hero.CheckFor("Neutralise", false)==true&&!(hero.ignores.contains("Neutralise")))))
+        {
+            StatEff.applyfail(target, effect, "conflict");
+            return true;
+        }
+        else if (effect.getefftype().equalsIgnoreCase("Buffs")&&((target.CheckFor("Disrupt", false)==true)||(hero!=null&&hero.CheckFor("Undermine", false)==true&&!(hero.ignores.contains("Undermine")))))
+        {
+            StatEff.applyfail(target, effect, "conflict");
+            return true;
         }
         else if (effect.getefftype().equalsIgnoreCase("Defence")&&(target.binaries.contains("Shattered")))
         {
-            StatEff.applyfail(hero, effect, "conflict");
+            StatEff.applyfail(target, effect, "conflict");
+            return true;
         }
         else if (effect.getefftype().equalsIgnoreCase("Heal")&&hero!=null&&hero.CheckFor("Afflicted", false)==true&&!(hero.ignores.contains("Afflicted")))
         {
-            StatEff.applyfail(hero, effect, "conflict");
+            StatEff.applyfail(target, effect, "conflict");
+            return true;
         }
         else if (effect.getimmunityname().equals("Speed")||effect.getimmunityname().equals("Snare"))
         {
@@ -120,7 +149,7 @@ public abstract class StatEff
             speed=true;
             else if (effect.getimmunityname().equals("Snare"))
             snare=true;
-            Character[] friends=Battle.GetTeammates(target);
+            Character[] friends=Battle.GetTeammates(hero);
             boolean good=true;
             for (int i=0; i<friends.length; i++) //can only apply if no teammates have it; max one per team
             {
@@ -139,43 +168,37 @@ public abstract class StatEff
                     }
                 }
             }
-            if (good==true) //no duplicates on teammates but still need to check for duplicates on self; no double snare/speed allowed
+            if (good==false) //no duplicates on teammates but still need to check for duplicates on self; no double snare/speed allowed
             {
-                boolean apple=effect.CheckStacking(target, effect, effect.stackable); 
-                if (apple==true)
-                {
-                    target.add(effect);
-                }
-                else
-                StatEff.applyfail(hero, effect, "dupe");
-            }
-            else
-            StatEff.applyfail(hero, effect, "dupe");
+                StatEff.applyfail(target, effect, "dupe");
+                return true;
+            } //else run below code
         }
-        else if (target.dead==false)
+        //occurs if none of the above cases returned false
+        boolean apple=effect.CheckStacking(target); 
+        if (apple==true)
+        return false;
+        else
         {
-            boolean apple=effect.CheckStacking(target, effect, effect.stackable); 
-            if (apple==true)
-            target.add(effect);
-            else
-            StatEff.applyfail(hero, effect, "dupe");
+            StatEff.applyfail(target, effect, "dupe");
+            return true;
         }
     }
-    public boolean CheckStacking (Character target, StatEff effect, boolean stackable) //checks if a duplicate stateff may be applied
+    public boolean CheckStacking (Character target) //checks if a stateff about to be applied to the target is a duplicate and if so, if it should be applied
     {
-        if (stackable==true)
-        {
+        if (this.stackable==true)
+        { 
             return true;
         }
         else //if (stackable==false) //non stackable debuffs won't be applied unless their strength is higher than the one already present on the hero
-        {
-            for (StatEff targeteff: target.effects)
-            {
-                if (targeteff.getimmunityname().equals(effect.getimmunityname())&&targeteff.getefftype().equals(effect.getefftype())) 
-                {   //there's already an effect of the exact same type trying to be applied
-                    if (effect.power>targeteff.power) //but if the new effect is stronger, it replaces the old one
+        { 
+            for (StatEff eff: target.effects)
+            { 
+                if (eff.getimmunityname().equals(this.getimmunityname())&&eff.getefftype().equals(this.getefftype())) 
+                {   //there's already an effect of the exact same type trying to be applied 
+                    if (this.power>eff.power) //but if the new effect is stronger, it replaces the old one
                     {
-                        target.remove(targeteff.hashcode, "normal"); 
+                        target.remove(eff.hashcode, "normal"); 
                         return true;
                     }
                     else

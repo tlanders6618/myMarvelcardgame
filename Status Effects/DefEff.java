@@ -31,13 +31,14 @@ class Barrier extends DefEff
     {
         return "Barrier: "+this.power+", "+this.duration+" turn(s)";
     }
-    public Barrier (int nchance, int npower, int ndur) 
+    public Barrier (int nchance, int npower, int ndur, Character p) 
     {
         this.chance=nchance;
         this.power=npower;
         this.duration=ndur;
         this.oduration=ndur;
         this.hashcode=Card_HashCode.RandomCode();
+        this.prog=p;
     }
     @Override
     public void onTurnEnd (Character hero)
@@ -83,15 +84,12 @@ class Evade extends DefEff
     {
         return "Evade";
     }
-    public Evade (int achance) 
+    public Evade (int achance, Character p) 
     {
         this.chance=achance;
         this.hashcode=Card_HashCode.RandomCode();
         this.stackable=true;
-    }
-    @Override
-    public void onApply (Character target)  
-    {
+        this.prog=p;
     }
 }
 class Guard extends DefEff
@@ -113,16 +111,18 @@ class Guard extends DefEff
             return "Guard: "+this.power+", "+this.duration+" attack(s)";
         }
     }
-    public Guard (int nchance, int npower, int ndur) //does nothing on its own; all handled by checkguard, called by character.attack as part of dmg calc, before the takedamage stuff
+    public Guard (int nchance, int npower, int ndur, Character p) 
+    //does nothing on its own; all handled by checkguard, called by character.attack as part of dmg calc, before the takedamage stuff
     {
         this.chance=nchance;
         this.power=npower;
         this.duration=ndur;
         this.oduration=ndur;
         this.hashcode=Card_HashCode.RandomCode();
+        this.prog=p;
     }
     @Override
-    public void onApply (Character hero) 
+    public void onTurnEnd (Character hero) //overriden to avoid decreasing duration on turn
     {
     }
     @Override
@@ -132,9 +132,9 @@ class Guard extends DefEff
         dmg-=this.power;
         this.duration--;
         if (this.power>=0)
-        System.out.println ("\n"+targ.Cname+"'s Guard reduced " +dealer.Cname+"'s attack damage by "+Math.abs(odmg-dmg));
+        System.out.println ("\n"+targ+"'s Guard reduced " +dealer+"'s attack damage by "+Math.abs(odmg-dmg));
         else //for quake
-        System.out.println ("\n"+targ.Cname+"'s Guard increased " +dealer.Cname+"'s attack damage by "+Math.abs(this.power));
+        System.out.println ("\n"+targ+"'s Guard increased " +dealer+"'s attack damage by "+Math.abs(this.power));
         if (this.duration<=0)
         targ.remove(this.hashcode, "normal");
         if (dmg<0)
@@ -189,11 +189,12 @@ class Protect extends DefEff
         else
         myfriend.lessprotected();
     }
-    public Protect (int chancce, int ndur) 
+    public Protect (int chancce, int ndur, Character p) 
     {
         this.chance=chancce;
         this.duration=ndur;
         this.hashcode=Card_HashCode.RandomCode();   
+        this.prog=p;
     }
     @Override
     public void PrepareProtect (Character prot, Character weak)
@@ -245,7 +246,7 @@ class Protect extends DefEff
         }
         else 
         {
-            Protected pr= new Protected(this.duration);
+            Protected pr= new Protected(this.duration, this.prog);
             myfriend=pr;
             pr.myfriend=this;
             pr.PrepareProtect(protector, weakling);
@@ -305,9 +306,9 @@ class Protected extends DefEff
     {
         return "Protect";
     }
-    public Protected (int ndur)
+    public Protected (int ndur, Character p)
     {
-        this.duration=ndur; this.hashcode=Card_HashCode.RandomCode();
+        this.duration=ndur; this.hashcode=Card_HashCode.RandomCode(); this.prog=p;
     }
     @Override
     public Character getProtector ()
@@ -375,13 +376,14 @@ class Resistance extends DefEff
             return "Resistance: "+this.power+", "+this.duration+" turn(s)";
         }
     }
-    public Resistance (int nchance, int npower, int ndur) 
+    public Resistance (int nchance, int npower, int ndur, Character p) 
     {
         this.chance=nchance;
         this.power=npower;
         this.duration=ndur;
         this.oduration=ndur;
         this.hashcode=Card_HashCode.RandomCode();
+        this.prog=p;
     }
     @Override
     public void onApply (Character hero) 
@@ -415,12 +417,13 @@ class Taunt extends DefEff
         }
         return name;
     }
-    public Taunt (int chan, int ndur) 
+    public Taunt (int chan, int ndur, Character p) 
     {
         this.chance=chan;
         this.duration=ndur;
         this.oduration=ndur;
         this.hashcode=Card_HashCode.RandomCode();
+        this.prog=p;
     }
     @Override
     public void onApply (Character hero) 
