@@ -312,14 +312,24 @@ public class Battle
                 else  
                 {
                     targets=Battle.ChooseTarget(hero, activeAb.friendly, activeAb.target); //choose targets and use the ab
-                    selfadd2=activeAb.UseAb(hero, activeAb, targets);
+                    selfadd2=activeAb.UseAb(hero, activeAb, targets); //stateffs to apply to self
                     if (selfadd2!=null) //abs only return null if they can't be used due to a lack of targets; if null, restart the loop and choose something usable this time
                     {
-                        selfadd.addAll(selfadd2);
                         if (activeAb.unbound==true) //update scoreboard to immediately see effect of used unbound ab, and keep looping and use another ab
-                        Scoreboard.UpdateScore(team1, team2); 
+                        {
+                            if (selfadd2.size()>0&&hero.dead==false) //also, unbound buffs apply to self immediately, instead of after turn end
+                            { 
+                                for (StatEff eff: selfadd2)
+                                {
+                                    eff.CheckApply(hero, hero, eff);
+                                }
+                            }
+                            Scoreboard.UpdateScore(team1, team2); 
+                        }
                         else //end the loop and end turn; chooseab already prevents infinite spamming of unbound abs so there are no infinite turns 
-                        flag=true;
+                        {
+                            flag=true; selfadd.addAll(selfadd2); //if not unbound, apply stateffs to self after turn end
+                        }
                     }
                 }
             }
@@ -406,7 +416,7 @@ public class Battle
                 }
             }
         }
-        else if (type.equals("lowest"))
+        else if (type.equals("lowest")||type.equals("missing"))
         {
             Character[] foes=null;
             if (friendly.equalsIgnoreCase("enemy"))
@@ -421,15 +431,26 @@ public class Battle
             {
                 foes=Battle.GetTeam(hero.team1);
             }            
-            int hp=6666; Character low=null;
-            for (Character i: foes)
+            int hp=6666; Character low=foes[0];
+            for (Character c: foes)
             {
-                if (i!=null)
+                if (c!=null)
                 {
-                    int n=i.HP; 
-                    if (n<hp)
+                    if (type.equals("lowest"))
                     {
-                        hp=n; low=i;
+                        int n=c.HP; 
+                        if (n<hp)
+                        {
+                            hp=n; low=c;
+                        }
+                    }
+                    else if (type.equals("missing"))
+                    {
+                        int n=c.maxHP-c.HP; 
+                        if (n>0&&n<hp) //possible for maxhp to be below hp so ignore those cases
+                        {
+                            hp=n; low=c;
+                        }
                     }
                 }
             }

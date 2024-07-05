@@ -129,6 +129,14 @@ public class Damage_Stuff
         }
         return dmg;
     }
+    public static void ElusiveDmg (Character hero, Character target, int dmg)
+    {
+        dmg-=target.ADR;
+        if (dmg<0)
+        dmg=0;
+        System.out.println ("\n"+hero.Cname+" did "+dmg+" damage to "+target.Cname);
+        target.TakeDamage(dmg, false); 
+    }
     public static void CheckBlind (Character hero)
     {
         boolean nomiss=true; 

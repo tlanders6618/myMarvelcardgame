@@ -63,7 +63,7 @@ public class Card_HashCode
         while (!(choice<5&&choice>=0&&hero.abilities[choice]!=null));
         hero.abilities[choice].PrintDesc(false);
         System.out.print("\n");
-        //print this stuff again since chooseab's loop takes still input but doesn't show options again
+        //print this stuff again since chooseab's loop still takes input but doesn't show options again
         if (hero.team1==true)
         System.out.println ("\nPlayer 1, choose an ability for "+hero.Cname+" to use. Type its number, not its name.");
         else
@@ -89,7 +89,7 @@ public class Card_HashCode
         System.out.print("\n");
         System.out.print(hero.pdesc);
         System.out.print("\n");
-        //print this stuff again since chooseab's loop takes still input but doesn't show options again
+        //print this stuff again since chooseab's loop still takes input but doesn't reprint options
         if (hero.team1==true)
         System.out.println ("\nPlayer 1, choose an ability for "+hero.Cname+" to use. Type its number, not its name.");
         else
@@ -196,7 +196,7 @@ public class Card_HashCode
                 if (go==true)
                 StatEff.CheckApply(hero, target, e); 
                 else
-                StatEff.applyfail(hero, e, "chance");
+                StatEff.applyfail(target, e, "chance");
             }
         }
     }
