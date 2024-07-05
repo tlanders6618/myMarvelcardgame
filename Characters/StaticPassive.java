@@ -46,7 +46,7 @@ public class StaticPassive
             if (e.getefftype().equals("Heal")||n.equals("Stun")||(e.getalttype().equals("damaging")&&!(n.equals("Countdown")&&!(n.equals("Wither")))))
             emma.remove(e.hashcode, "normal");
         }
-        Taunt elephant=new Taunt (500, 1); //gains taunt due to passive, so anyone transforming into her would gain her passive and thus taunt
+        Taunt elephant=new Taunt (500, 1, emma); //gains taunt due to passive, so anyone transforming into her would gain her passive and thus taunt
         boolean dew=CoinFlip.Flip(500+emma.Cchance);
         if (dew==true)
         StatEff.CheckApply(emma, emma, elephant);
@@ -63,14 +63,14 @@ public class StaticPassive
             System.out.println("\nOutburst!");
             nye.passivecount=1;
             //gain drain
-            Drain putty= new Drain(500, false, 1); 
+            Drain putty= new Drain(500, false, 1, nye); 
             boolean goal=CoinFlip.Flip(500+nye.Cchance);
             if (goal==true) 
             StatEff.CheckApply(nye, nye, putty);
             else
             StatEff.applyfail(nye, putty, "chance");
             //gain focus
-            FocusE pumpkin= new FocusE(500, 1); 
+            FocusE pumpkin= new FocusE(500, 1, nye); 
             goal=CoinFlip.Flip(500+nye.Cchance);
             if (goal==true) 
             StatEff.CheckApply(nye, nye, pumpkin);
@@ -150,7 +150,7 @@ public class StaticPassive
         if (turn==true) //onturn
         {
             if (helmut.CheckFor("Guard", false)==true)
-            {
+            { 
                 ArrayList<StatEff> bigboy= new ArrayList<StatEff>(helmut.effects);
                 for (StatEff e: bigboy)
                 {
@@ -167,7 +167,7 @@ public class StaticPassive
             {
                 System.out.println("En garde!");
                 helmut.passivecount=1;
-                Precision p= new Precision(500, 616);
+                Precision p= new Precision(500, 616, helmut);
                 boolean add=CoinFlip.Flip(500+helmut.Cchance);
                 if (add==true)
                 StatEff.CheckApply(helmut, helmut, p);
@@ -179,7 +179,7 @@ public class StaticPassive
     //2.1: Sinister 6
     public static void Rhino (Character alexei) //fightstart
     {
-       ResistanceE me= new ResistanceE(500, 15, 616); 
+       ResistanceE me= new ResistanceE(500, 15, 616, alexei); 
        boolean goal=CoinFlip.Flip(500+alexei.Cchance);
        if (goal==true) 
        StatEff.CheckApply(alexei, alexei, me);
@@ -273,12 +273,12 @@ public class StaticPassive
                     }
                 }
                 doctor.effects.remove(too);
-                Shock e= new Shock(500, 20, 1);
+                Shock e= new Shock(500, 20, 1, doctor);
                 boolean yes=CoinFlip.Flip(500+doctor.Cchance);
                 if (yes==true)
                 StatEff.CheckApply(doctor, fool, e);
                 else
-                StatEff.applyfail(doctor, e, "chance");
+                StatEff.applyfail(fool, e, "chance");
             }
         }
     }
@@ -406,7 +406,7 @@ public class StaticPassive
         }
         Character[] friends=null;
         friends=Battle.GetTeammates(eddie);
-        ResistanceE res= new ResistanceE (500, 10, 616);
+        ResistanceE res= new ResistanceE (500, 10, 616, eddie);
         Character allt=Card_Selection.ChooseTargetFriend (friends);
         StatEff.CheckApply(eddie, allt, res);
         eddie.passivecount=res.hashcode;
@@ -481,7 +481,7 @@ public class StaticPassive
             System.out.println ("\nPlayer 2, choose Drax's Obsession.");
         }
         Character[] foes=Battle.TargetFilter(drax, "enemy", "single");
-        Obsession obsess= new Obsession();  
+        Obsession obsess= new Obsession(drax);  
         StatEff.CheckApply(drax, foes[0], obsess);
         drax.passivefriend[0]=foes[0];
         drax.ignores.remove("Invisible");
@@ -508,7 +508,7 @@ public class StaticPassive
         {
             System.out.println ("\nPlayer 2, choose a character for Redwing to protect. Type the number in front of their name.");
         }
-        Redwing red= new Redwing(); 
+        Redwing red= new Redwing(falcon); 
         Character[] friends=null;
         if (falcon.team1==true)
         {
@@ -536,7 +536,7 @@ public class StaticPassive
                 System.out.println ("Player 2, choose an enemy to target.");
             }
             Character[] foes=Battle.TargetFilter(machine, "enemy", "single");
-            TargetE bay= new TargetE(500, 5, 616);
+            TargetE bay= new TargetE(500, 5, 616, machine);
             StatEff.CheckApply(machine, foes[0], bay);
             if (foes[0].effects.contains(bay))
             {

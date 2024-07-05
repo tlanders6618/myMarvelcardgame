@@ -55,9 +55,15 @@ public abstract class Character
     public Character ()
     {
     }
+    @Override
+    public String toString()
+    {
+        return this.Cname;
+    }
     public abstract void AddImmune (boolean b);
     public abstract void add (StatEff eff); //adding a stateff    
     public abstract void remove (int removalcode, String nullify); //removes status effects
+    public abstract void StatFailed (Character h, StatEff e, String c); //notification when any hero fails to apply a stateff; for leader, gorr, magneto, etc
     public abstract void onEnemyGain (Character enemy, StatEff e); //for when an enemy gains a stateff
     public boolean CheckFor (String eff, boolean type)
     {
@@ -263,7 +269,7 @@ public abstract class Character
     }
     public void onTurn (boolean ignoreme) //onturn passives present in both overridden subclasses; this just notifies allies and enemies the hero took their turn
     {
-        ++this.turn;
+        ++this.turn; //all of below happens regardless of whether hero is stunned or not
         boolean team=this.team1;
         Character[] friends=Battle.GetTeammates(this); 
         for (Character friend: friends)
@@ -394,17 +400,22 @@ public abstract class Character
             System.out.println(this.Cname+" could not be healed due to being Wounded!");
             nowound=false;
         }
-        if (nowound==true&&this.HP<this.maxHP&&this.dead==false)
+        if (nowound==true&&this.dead==false) //able to be healed
         {
-            regener=this.GetHealAmount(regener, passive);
-            if (regener+this.HP>this.maxHP) //can't have more health than the maximum amount
-            regener=this.maxHP-this.HP;
-            this.HP+=regener;
-            if (passive==false&&regen==false)
-            System.out.println("\n"+this.Cname+" was healed for "+regener+" health!");
-            else if (passive==true&&regen==false)
-            System.out.println ("\n"+this.Cname+" regained "+regener+" health!");
-            this.HPChange(h, this.HP);
+            if (this.HP<this.maxHP) //is healed
+            {
+                regener=this.GetHealAmount(regener, passive);
+                if (regener+this.HP>this.maxHP) //can't have more health than the maximum amount
+                regener=this.maxHP-this.HP;
+                this.HP+=regener;
+                if (passive==false&&regen==false)
+                System.out.println("\n"+this.Cname+" was healed for "+regener+" health!");
+                else if (passive==true&&regen==false)
+                System.out.println ("\n"+this.Cname+" regained "+regener+" health!");
+                this.HPChange(h, this.HP);
+            }
+            else if (passive==false&&regen==false) //cannot heal due to being at full hp
+            System.out.println("\n"+this.Cname+" was healed for 0 health!");
         }
     }
     public int GetHealAmount (int amount, boolean passive)
@@ -752,18 +763,18 @@ public abstract class Character
         {
             switch (index)
             {
+                //220
                 case 6: case 9: case 10: case 14: case 19: case 21: case 29: case 33: case 36: case 37: case 73: case 91: case 93: case 95: case 96: case 102: case 103:
                 return 220;
-            
-                case 1: case 2: case 3: case 4: case 5: case 7: case 8: case 11: case 18: case 20: case 23: case 24: case 25: case 34: case 39: case 40: case 72:
-                case 81: case 82: case 84: case 86: case 88: case 89: case 90: case 92: case 94: case 97: case 98: case 100: case 101:
+                //230
+                case 1: case 2: case 3: case 4: case 5: case 7: case 8: case 11: case 18: case 20: case 23: case 24: case 25: case 34: case 39: case 40: case 72: case 74: 
+                case 75: case 81: case 82: case 84: case 86: case 88: case 89: case 90: case 92: case 94: case 97: case 98: case 100: case 101:
                 return 230;
-            
+                //240
                 case 12: case 13: case 15: case 16: case 17: case 22: case 27: case 28: case 30: case 32: case 35: case 38: case 41:
                 case 83: case 85: case 87: case 99: case 104:
                 return 240;
-                
-                //Special carrots
+                //special carrots
                 case 26: return 130;
                 case 31: return 250;
                 case 105: return 100;
@@ -801,6 +812,7 @@ public abstract class Character
         {
             switch (index)
             {
+                //2.0: Original
                 case 1: return "Moon Knight (Modern)"; 
                 case 2: return "Gamora (Modern)"; 
                 case 3: return "Punisher (Classic)"; 
@@ -836,19 +848,25 @@ public abstract class Character
                 case 33: return "Deadpool (Classic)";
                 case 34: return "Red Skull (Classic)";
                 case 35: return "Juggernaut (Classic)";
+                //2.1: Sinister Six
                 case 36: return "Vulture (Classic)";
                 case 37: return "Mysterio (Classic)";
                 case 38: return "Doctor Octopus (Classic)";
                 case 39: return "Electro (Classic)";
                 case 40: return "Sandman (Classic)";
                 case 41: return "Rhino (Classic)";
+                //2.7: Thunderbolts
                 case 72: return "Baron Zemo (Helmut Zemo)";
                 case 73: return "Melissa Gold (Screaming Mimi)";
+                case 74: return "Melissa Gold (Songbird)";
+                case 75: return "Moonstone (Karla Sofen)";
+                //2.8: Defenders
                 case 81: return "Daredevil (Matt Murdock)";
                 case 82: return "Iron Fist (Danny Rand)";
                 case 83: return "Luke Cage (Modern)";
                 case 84: return "Namor (Modern)";
                 case 85: return "Silver Surfer (Classic)";
+                //2.9: Fearsome Foes of Spider-Man
                 case 86: return "Kraven the Hunter (Classic)";
                 case 87: return "Lizard (Classic)";
                 case 88: return "Scorpion (Modern)";
@@ -858,6 +876,7 @@ public abstract class Character
                 case 92: return "Green Goblin (Red Goblin)";
                 case 93: return "Hobgoblin (Roderick Kingsley)";
                 case 94: return "Hobgoblin (Phil Urich)";
+                //2.10: Marvellous Mutants
                 case 95: return "Emma Frost (Classic)";
                 case 96: return "Emma Frost (Diamond Form)";
                 case 97: return "Angel (Modern)";
@@ -923,6 +942,7 @@ public abstract class Character
         {
             switch (index)
             {
+                //2.0: Original
                 case 1: //moon knight 
                 return "When an ally Protected by Moon Knight is attacked, counter for 55 damage.";
                 case 2: //gamora
@@ -993,6 +1013,7 @@ public abstract class Character
                 String stupid="Gain immunity to Stun and Snare. Gain +10 damage reduction and Control immunity while above 100 HP. "; 
                 stupid+="Gain 1 M on turn and attack (max 5); while at 5, become debuff immune.";
                 return stupid;
+                //2.1: Sinister Six
                 case 36: //vulture
                 return "50% chance to apply Wound for 1 turn when attacking enemies below 120 HP.";
                 case 39: //electro
@@ -1001,16 +1022,23 @@ public abstract class Character
                 return "Gain immunity to Bleed, Disarm, Snare, and Shock, and ignore Counters; when receiving 2 Burns, convert them into a Stun Effect for 1 turn.";
                 case 41: //rhino
                 return "On fight start, gain Resistance. Take -10 Bleed damage. Gain immunity to max HP reduction, Suppression, Vulnerable, and Terror.";
+                //2.7: Thunderbolts
                 case 72: //zemo
                 return "Gain immunity to Steal and Disarm, and ignore Guard. On turn, remove Guard from self. When using Deadly Lunge for the first time, gain Precision.";
                 case 73: //screaming mimi
                 return "Debuffs applied are twice as effective (values are 100% instead of 50%)";
+                case 74: //songbird
+                return "Mend can critically hit, increasing the healing done based on critical damage.";
+                case 75: //moonstone
+                return "Gain immunity to Steal and ignore Provoke and Terror. When failing to gain a duplicate buff, Extend the original by 1 turn and Amplify it by the duplicate's strength.";
+                //2.8: Defenders
                 case 81: //daredevil
                 return "Ignore Blind and Invisible. Ignore the Counter activation limit.";
                 case 83: //luke cage
                 return "Gain immunity to Bleed, Shock, and Burn. Take -25 damage from attacks that do under 50 damage.";
                 case 85: //silver surfer
                 return "Gain immunity to status effects. Channelled abilities cannot be interrupted.";
+                //2.9: Fearsome Foes of Spider-Man
                 case 86: //kraven
                 return "Attacks against Snared enemies ignore Invisible, Evade, and Blind.";
                 case 89: //hydro man
@@ -1025,6 +1053,7 @@ public abstract class Character
                 return "On Franchisee kill, gain 100 HP, gain Focus for 1 turn, and reset all cooldowns.";
                 case 94: //hobby phil
                 return "When falling below 130 HP for the first time, gain Focus for 1 turn and reset the cooldown of a chosen ability.";
+                //2.10: Marvellous Mutants
                 case 96: //diamond frost
                 return "Gain +15 damage reduction and immunity to Bleed, Poison, Burn, Shock, Stun, Control, and Heal; take no Wither damage. On Transform, gain Taunt for 1 turn.";
                 case 97: //angel
@@ -1043,6 +1072,7 @@ public abstract class Character
                 return "Store all damage taken as R. On turn, gain Taunt. When taking damage while Taunting, remove the Taunt and gain Regen: 35 for 1 turn.";
                 case 105: //mr immortal
                 return "On death, apply Confidence: 30 and Focus for 1 turn to all allies. 2 ally turns after dying, Resurrect with full HP. Max HP cannot fall below 5.";
+                //default
                 default: return "This character doesn't have any passive abilities.";
             }    
         }
@@ -1080,6 +1110,7 @@ public abstract class Character
                 return "Ringer is counted as 2 characters for the purpose of the team size limit.";
                 case 16: //squid
                 return "Squid is counted as 2 characters for the purpose of the team size limit.";
+                //default
                 default: return "This character doesn't have any passive abilities.";
             }    
         }

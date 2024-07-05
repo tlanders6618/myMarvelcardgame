@@ -43,6 +43,7 @@ public class Hero extends Character
             case 35: ActivePassive.Cain(this, "turn", 616); break;
             case 40: ActivePassive.Sandy(this, "turn"); break;
             case 72: StaticPassive.Zemo(this, true); break;
+            case 74: ActivePassive.Songbird(this); break;
             case 97: ActivePassive.Angel(this, true, 0); break;
             case 104: ActivePassive.Bishop(this, 0, "turn"); break;
         }
@@ -198,6 +199,17 @@ public class Hero extends Character
                 }    
                 break; //end the for each loop
             }
+        }
+    }
+    @Override
+    public void StatFailed (Character target, StatEff e, String cause) //target is hero the stateff was supposed to be applied to; for leader, magneto, gorr, etc
+    {
+        switch (this.index)
+        {
+            case 75: 
+            if (target==this)
+            ActivePassive.Moonstone(this, e); 
+            break;
         }
     }
     @Override
@@ -771,6 +783,7 @@ public class Hero extends Character
         {
             switch (this.index) 
             {
+                //2.0: Original
                 case 8: //bucky
                 this.ignores.add("Defence"); break; 
                 case 12: //drax classic
@@ -810,22 +823,29 @@ public class Hero extends Character
                     Tracker chip= new Tracker("Cyttorak's Blessing lost"); this.effects.add(chip);
                 }
                 break;
+                //2.1: Sinister Six
                 case 40: //sandman
                 this.immunities.add("Bleed"); this.immunities.add("Shock"); this.immunities.add("Snare"); this.immunities.add("Disarm"); this.ignores.add("Counter"); break;
                 case 41: //rhino
                 this.immunities.add("Vulnerable"); this.immunities.add("Suppression"); this.immunities.add("Reduce"); this.immunities.add("Terror"); this.BlDR+=15; break; 
+                //2.7: Thunderbolts
                 case 72: //zemo
                 this.immunities.add("Disarm"); this.immunities.add("Steal"); this.ignores.add("Guard"); break;
+                case 75: //moonstone
+                this.immunities.add("Steal"); this.ignores.add("Provoke"); this.ignores.add("Terror"); break;
+                //2.8: Defenders
                 case 81: //daredevil
                 this.ignores.add("Blind"); this.ignores.add("Invisible"); break;
                 case 83: //luke cage
                 this.immunities.add("Burn"); this.immunities.add("Bleed"); this.immunities.add("Shock"); break;
                 case 85: //silver surfer
                 CoinFlip.StatImmune(this, true); this.immunities.add("Interrupt"); break;
+                //2.9: Fearsome Foes of Spider-Man
                 case 89: //hydroman
                 this.immunities.add("Bleed"); this.immunities.add("Burn"); this.immunities.add("Soaked"); this.ShDR-=10; break;
                 case 92: //roblin
                 this.immunities.add("Burn"); this.immunities.add("Snare"); break;
+                //2.10: Marvellous Mutants
                 case 96: //diamond frost
                 this.ADR+=15; this.WiDR+=999; this.immunities.add("Heal"); this.immunities.add("Stun"); this.immunities.add("Control"); this.immunities.add("Bleed"); 
                 this.immunities.add("Burn"); this.immunities.add("Poison"); this.immunities.add("Shock"); break;
@@ -839,6 +859,7 @@ public class Hero extends Character
         {
             switch (this.index) 
             {
+                //2.0: Original
                 case 8: //bucky
                 this.ignores.remove("Defence"); break; 
                 case 12: //drax classic
@@ -966,23 +987,30 @@ public class Hero extends Character
                     this.remove(derf.hashcode, "silent");
                 }
                 break;
+                //2.1: Sinister Six
                 case 40: //sandman
                 this.immunities.remove("Bleed"); this.immunities.remove("Shock"); this.immunities.remove("Snare"); 
                 this.immunities.remove("Disarm"); this.ignores.remove("Counter"); break;
                 case 41: //rhino
                 this.immunities.remove("Vulnerable"); this.immunities.remove("Suppression"); this.immunities.remove("Reduce"); this.immunities.remove("Terror"); this.BlDR-=15; break; 
+                //2.7: Thunderbolts
                 case 72: //zemo
                 this.immunities.remove("Disarm"); this.immunities.remove("Steal"); this.ignores.remove("Guard"); break;
+                case 75: //moonstone
+                this.immunities.remove("Steal"); this.ignores.remove("Provoke"); this.ignores.remove("Terror"); break;
+                //2.8: Defenders
                 case 81: //daredevil
                 this.ignores.remove("Blind"); this.ignores.remove("Invisible"); break;
                 case 83: //luke cage
                 this.immunities.remove("Burn"); this.immunities.remove("Bleed"); this.immunities.remove("Shock"); break;
                 case 85: //silver surfer
                 CoinFlip.StatImmune(this, false); this.immunities.remove("Interrupt"); break;
+                //2.9: Fearsome Foes of Spider-Man
                 case 89: //hydroman
                 this.immunities.remove("Bleed"); this.immunities.remove("Burn"); this.immunities.remove("Soaked"); this.ShDR+=10; break;
                 case 92: //roblin
                 this.immunities.remove("Burn"); this.immunities.remove("Snare"); break;
+                //2.10: Marvellous Mutants
                 case 96: //diamond frost
                 this.ADR-=15; this.WiDR-=999; this.immunities.remove("Heal"); this.immunities.remove("Stun"); this.immunities.remove("Control"); this.immunities.remove("Bleed"); 
                 this.immunities.remove("Burn"); this.immunities.remove("Poison"); this.immunities.remove("Shock"); break;

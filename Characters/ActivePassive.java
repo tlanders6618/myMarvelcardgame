@@ -26,7 +26,7 @@ public class ActivePassive
                         System.out.println("Great Lakes Avengers, assemble!"); print=false;
                     }
                     bash.Use(Mr, c, 0);
-                    StatEff.CheckApply (Mr, c, new Focus(500, 1));
+                    StatEff.CheckApply (Mr, c, new Focus(500, 1, Mr));
                 }
             }
         }
@@ -72,7 +72,7 @@ public class ActivePassive
                     }
                 }
                 lucas.remove(holder.hashcode, "normal");
-                Regen r= new Regen(500, 35, 1);
+                Regen r= new Regen(500, 35, 1, lucas);
                 boolean go=CoinFlip.Flip(500+lucas.Cchance);
                 if (go==true)
                 StatEff.CheckApply(lucas, lucas, r);
@@ -83,7 +83,7 @@ public class ActivePassive
         else if (up.equals("turn")&&!(lucas.binaries.contains("Stunned"))) //onturn
         {
             boolean go=CoinFlip.Flip(500+lucas.Cchance);
-            Taunt taunt= new Taunt(500, 500);
+            Taunt taunt= new Taunt(500, 500, lucas);
             if (go==true)
             StatEff.CheckApply(lucas, lucas, taunt);
             else
@@ -95,15 +95,13 @@ public class ActivePassive
         if (!(dummy.ignores.contains("Counter")))
         {
             System.out.println ("\nBAMF!");
-            int dmg=25-dummy.ADR;
-            System.out.println ("\n"+kurt.Cname+" did "+dmg+" damage to "+dummy.Cname);
-            dummy.TakeDamage(dmg, false);  
-            Bleed bled= new Bleed(500, 15, 1); 
+            Damage_Stuff.ElusiveDmg(kurt, dummy, 25);
+            Bleed bled= new Bleed(500, 15, 1, kurt); 
             boolean goon=CoinFlip.Flip(500+kurt.Cchance);
             if (goon==true)
             StatEff.CheckApply(kurt, dummy, bled);
             else
-            StatEff.applyfail(kurt, bled, "chance");
+            StatEff.applyfail(dummy, bled, "chance");
         }
     }
     public static void Colossus (Character piotr, boolean add) //add and remove
@@ -122,7 +120,7 @@ public class ActivePassive
             //System.out.println("Bleed: "+CoinFlip.GetStatCount(vic, "Bleed", "any"));
         }
         else
-        StatEff.applyfail(aa, new Bleed(500, 15, 2), "chance");
+        StatEff.applyfail(vic, new Bleed(500, 15, 2, aa), "chance");
         if (CoinFlip.GetStatCount(vic, "Bleed", "any")>=3) //must be separate from above or else feather fling doesn't consistently apply the bonus debuff
         {
             String[] sick={"Weakness", "500", "30", "1", "false"}; String[][] sickness=StatFactory.MakeParam(sick, null); aa.activeability.AddTempString(sickness);
@@ -134,7 +132,7 @@ public class ActivePassive
             //System.out.println("Poison: "+CoinFlip.GetStatCount(vic, "Poison", "any"));
         }
         else
-        StatEff.applyfail(aa, new Poison(500, 15, 2), "chance");
+        StatEff.applyfail(vic, new Poison(500, 15, 2, aa), "chance");
         if (CoinFlip.GetStatCount(vic, "Poison", "any")>=3) 
         {
             String[] dead={"Wound", "500", "616", "1", "false"}; String[][] death=StatFactory.MakeParam(dead, null); aa.activeability.AddTempString(death);
@@ -148,7 +146,7 @@ public class ActivePassive
         }
         else if (dmg>0) //both verions of took damage; occurs even if stunned
         {
-            BleedE bleed= new BleedE(500, 0, 2);
+            BleedE bleed= new BleedE(500, 0, 2, warren);
             boolean it=CoinFlip.Flip(500+warren.Cchance);
             if (it==true)
             StatEff.CheckApply(warren, warren, bleed);
@@ -164,7 +162,7 @@ public class ActivePassive
             if (killer.passivefriend[0]!=null&&killer.passivefriend[0]==kingsley) //all summons save their summoners as passivefriend[0]
             {
                 kingsley.Healed(100, true, false);
-                FocusE pumpkin= new FocusE(500, 1); 
+                FocusE pumpkin= new FocusE(500, 1, kingsley); 
                 boolean goal=CoinFlip.Flip(500+kingsley.Cchance);
                 if (goal==true) 
                 StatEff.CheckApply(kingsley, kingsley, pumpkin);
@@ -185,7 +183,7 @@ public class ActivePassive
     {
         if (oc.equals("attack")&&spider.dead==false) //onattack; don't gain intensify if attack killed its target
         {
-            IntensifyE pumpkin= new IntensifyE(500, 5, 616); 
+            IntensifyE pumpkin= new IntensifyE(500, 5, 616, kasborn); 
             boolean goal=CoinFlip.Flip(500+kasborn.Cchance);
             if (goal==true) 
             StatEff.CheckApply(kasborn, kasborn, pumpkin);
@@ -226,7 +224,7 @@ public class ActivePassive
     {
         if (!(cletus.binaries.contains("Stunned")))
         {
-            IntensifyE john= new IntensifyE(500, 5, dur);
+            IntensifyE john= new IntensifyE(500, 5, dur, cletus);
             boolean goal=CoinFlip.Flip(500+cletus.Cchance);
             if (goal==true) //if bleed was applied by a teammate or enemy (i.e. on someone else's turn), carriage gains the intensify immediately
             StatEff.CheckApply(cletus, cletus, john);
@@ -234,6 +232,56 @@ public class ActivePassive
             StatEff.applyfail(cletus, john, "chance");
             if (Battle.team1[Battle.P1active]==cletus||Battle.team2[Battle.P2active]==cletus) //but if gained on cottage's turn, it needs +1 dur so it doesn't prematurely tick
             john.duration++;
+        }
+    }
+    //2.7: Thunderbolts
+    public static void Moonstone (Character karla, StatEff mine) //statfailed, if target of stat was karla
+    {
+        if (!(karla.binaries.contains("Stunned"))&&mine.getefftype().equals("Buffs")&&karla.CheckFor(mine.getimmunityname(), false)==true)
+        {
+            boolean good=CoinFlip.Flip(500+karla.Cchance);
+            if (good==false)
+            {
+                System.out.println(karla.Cname+"'s Amplify failed to apply due to chance.");
+                System.out.println(karla.Cname+"'s Extend failed to apply due to chance.");     
+            }
+            else if (karla.immunities.contains("Other"))
+            {
+                System.out.println(karla.Cname+"'s Amplify failed to apply due to an immunity.");
+                System.out.println(karla.Cname+"'s Extend failed to apply due to an immunity.");                
+            }
+            else
+            {
+                for (StatEff e: karla.effects)
+                {
+                    if (e.getimmunityname().equals(mine.getimmunityname())&&e.getefftype().equals("Buffs"))
+                    {
+                        String name=e.geteffname();
+                        if (e.power<500) //do not amplify if strength is nonexistent, i.e. 616
+                        {
+                            System.out.println(karla.Cname+"'s "+name+" had its strength increased by "+mine.power+"!");
+                            e.Nullified(karla);
+                            e.power+=mine.power;
+                            e.onApply(karla);
+                        }
+                        System.out.println(karla.Cname+"'s "+name+" was Extended by 1 turn(s)!");
+                        e.Extended(1, karla);  
+                        break;
+                    }
+                }
+            }
+        }
+    }
+    public static void Songbird (Character gold) //onturn
+    {
+        if (!(gold.binaries.contains("Stunned")))
+        {
+            PrecisionE p= new PrecisionE(500, 2, gold);
+            boolean score=CoinFlip.Flip(500+gold.Cchance);
+            if (score==true) 
+            StatEff.CheckApply(gold, gold, p);
+            else
+            StatEff.applyfail(gold, p, "chance");
         }
     }
     //2.1: Sinister 6
@@ -278,24 +326,14 @@ public class ActivePassive
                 {
                     if (chump!=null)
                     {
-                        int damage=20;
-                        damage-=chump.ADR;
-                        if (damage<0)
-                        damage=0;
-                        System.out.println ("\n"+baker.Cname+" did "+damage+" damage to "+chump.Cname);
-                        chump.TakeDamage(damage, false);
+                        Damage_Stuff.ElusiveDmg(baker, chump, 20);
                     }
                 }
                 for (Character chump: friends)
                 {
                     if (chump!=null)
                     {
-                        int damage=20;
-                        damage-=chump.ADR;
-                        if (damage<0)
-                        damage=0;
-                        System.out.println ("\n"+baker.Cname+" did "+damage+" damage to "+chump.Cname);
-                        chump.TakeDamage(damage, false);
+                        Damage_Stuff.ElusiveDmg(baker, chump, 20);
                     }
                 }
                 StatEff hope=null;
@@ -328,7 +366,7 @@ public class ActivePassive
             {
                 System.out.print("\n");
                 baker.remove(burns.get(0).hashcode, "normal"); baker.remove(burns.get(1).hashcode, "normal");
-                StunE hope= new StunE(500, 1); StatEff.CheckApply(baker, baker, hope);
+                StunE hope= new StunE(500, 1, baker); StatEff.CheckApply(baker, baker, hope);
             }
         }
     }
@@ -457,9 +495,8 @@ public class ActivePassive
         {
             if (eugene.passivecount<=5) 
             {
-                int amount=15-eugene.ADR; 
-                System.out.println (eugene.Cname+" took "+amount+" damage");
-                eugene.TakeDamage(amount, false);
+                SelfDMG s= new SelfDMG(15, false);
+                s.Use(eugene, null);
                 String[]akaban={"Bleed", "100", "10", "1", "false"}; String[][] niharu=StatFactory.MakeParam(akaban, null); eugene.activeability.AddTempString(niharu);
             }
         }
@@ -475,12 +512,7 @@ public class ActivePassive
             {
                 if (n!=null)
                 {
-                    int damage=10;
-                    damage-=n.ADR;
-                    if (damage<0)
-                    damage=0;
-                    System.out.println ("\n"+binary.Cname+" did "+damage+" damage to "+n.Cname);
-                    n.TakeDamage(damage, false); //elusive
+                    Damage_Stuff.ElusiveDmg(binary, n, 10);
                 }
             }
             for (StatEff e: binary.effects) //update displayed energy count
@@ -548,7 +580,7 @@ public class ActivePassive
     {
         if (harm==false&&!(peter.binaries.contains("Stunned"))) //called onturn
         {
-            Evade numb= new Evade(500);
+            Evade numb= new Evade(500, peter);
             boolean yes=CoinFlip.Flip(500+peter.Cchance);
             if (yes==true)
             StatEff.CheckApply(peter, peter, numb);
@@ -591,11 +623,8 @@ public class ActivePassive
         {
             if (attacked==eddie.passivefriend[0])
             {
-                int dmg=40;
                 System.out.println ("\nThis one is under our protection!");
-                dmg-=attacker.ADR;
-                System.out.println ("\n"+eddie.Cname+" did "+dmg+" damage to "+attacker.Cname);
-                attacker.TakeDamage(dmg, false);  
+                Damage_Stuff.ElusiveDmg(eddie, attacker, 40);
             }
         }
         if (eddie.binaries.contains("Missed")) //if his counterattack was evaded before; needed since miss is normally only cleared after using an ab
@@ -606,7 +635,7 @@ public class ActivePassive
         if (regen==true&&!(wolvie.binaries.contains("Stunned"))) //called by hero.onattacked
         {
             boolean yes=CoinFlip.Flip(500+wolvie.Cchance);
-            Regen volkya= new Regen (500, 15, 1);
+            Regen volkya= new Regen (500, 15, 1, wolvie);
             if (yes==true)
             StatEff.CheckApply(wolvie, wolvie, volkya);
             else
@@ -640,13 +669,13 @@ public class ActivePassive
                 wolvie.immunities.add("Persuaded"); wolvie.immunities.add("Control"); CoinFlip.IgnoreTargeting(wolvie, true);
                 //gain buffs
                 boolean yes=CoinFlip.Flip(500+wolvie.Cchance);
-                StatEff d= new IntensifyE(500, 15, 616);
+                StatEff d= new IntensifyE(500, 15, 616, wolvie);
                 if (yes==true)
                 StatEff.CheckApply(wolvie, wolvie, d);
                 else
                 StatEff.applyfail(wolvie, d, "chance");
                 yes=CoinFlip.Flip(500+wolvie.Cchance);
-                StatEff f= new FocusE(500, 616);
+                StatEff f= new FocusE(500, 616, wolvie);
                 if (yes==true)
                 StatEff.CheckApply(wolvie, wolvie, f);
                 else
@@ -676,7 +705,7 @@ public class ActivePassive
         else //check regen on hero.oncrit
         {
             boolean yes=CoinFlip.Flip(50+laura.Cchance);
-            Regen RV= new Regen (500, 15, 1);
+            Regen RV= new Regen (500, 15, 1, laura);
             if (yes==true)
             StatEff.CheckApply(laura, laura, RV);
             else
@@ -722,7 +751,7 @@ public class ActivePassive
                 if (victim.CheckFor("Obsession", false)==true)
                 {
                     boolean yes=CoinFlip.Flip(500+drax.Cchance);
-                    Obsession obs= new Obsession ();
+                    Obsession obs= new Obsession (drax);
                     if (yes==true)
                     {
                         StatEff.CheckApply(drax, drax.passivefriend[0], obs);
@@ -730,7 +759,7 @@ public class ActivePassive
                         drax.passivecount++;
                     }
                     else
-                    StatEff.applyfail(drax, obs, "chance");
+                    StatEff.applyfail(drax.passivefriend[0], obs, "chance");
                 }
             }
         }
@@ -821,7 +850,7 @@ public class ActivePassive
     }
     public static void IM (Character tony, StatEff buff) //called by hero.remove
     {
-        Empower emp= new Empower (500, buff.power, buff.duration, tony.Cname, 4); 
+        Empower emp= new Empower (500, buff.power, buff.duration, tony); 
         StatEff.CheckApply(tony, tony, emp); 
     }
     public static void Gamora (Character gam, StatEff buff, boolean add) //add is whether the buff is being added or removed; called by hero.remove and hero.add
@@ -843,11 +872,8 @@ public class ActivePassive
             {
                 if (eff.getimmunityname().equalsIgnoreCase("Protect")&&eff.getProtector().equals(knight))
                 {
-                    int dmg=55;
                     System.out.println ("\nThe Lunar Protector strikes back!");
-                    dmg-=attacker.ADR;
-                    System.out.println ("\n"+knight.Cname+" did "+dmg+" damage to "+attacker.Cname);
-                    attacker.TakeDamage(dmg, false);  
+                    Damage_Stuff.ElusiveDmg(knight, attacker, 55);
                     break;
                 }
             }

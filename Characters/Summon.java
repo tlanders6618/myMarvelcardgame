@@ -200,6 +200,10 @@ public class Summon extends Character
         }
     }
     @Override
+    public void StatFailed (Character hero, StatEff e, String cause)
+    {
+    }
+    @Override
     public void onEnemyGain (Character foe, StatEff e)
     {
     }

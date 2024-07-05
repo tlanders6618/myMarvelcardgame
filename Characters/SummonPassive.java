@@ -35,7 +35,7 @@ public class SummonPassive
     }
     public static void Decoy (Character decoy) //onsummon
     {
-        decoy.add(new Taunt(500, 616)); decoy.binaries.add("Stunned");
+        decoy.add(new Taunt(500, 616, decoy)); decoy.binaries.add("Stunned");
     }
     public static int Daemon (Character matt, boolean start, Character attacker, int dmg)
     {
@@ -67,7 +67,7 @@ public class SummonPassive
             System.out.println("CONNECTION LOST. SELF TERMINATION IN 3...2...1..."); lil.onDeath(null, "self");
         }
     }
-    public static void Drone (Character husk, StatEff effecter)
+    public static void Drone (Character husk, StatEff effecter) //add
     {
         if (!(husk.binaries.contains("Stunned"))&&husk.passivefriend[0]!=null) 
         {
@@ -75,26 +75,7 @@ public class SummonPassive
             String name=effecter.getimmunityname(); int dur=effecter.oduration; int pow=effecter.power;
             String[] morb={name, "500", Integer.toString(pow), Integer.toString(dur), "false"}; String[][] morbintime=StatFactory.MakeParam(morb, null);
             StatEff e=StatFactory.MakeStat(morbintime, target);  
-            if (target.immunities.contains(e.getefftype())||target.immunities.contains(e.getimmunityname()))
-            {
-                System.out.println(husk.Cname+"'s "+e.geteffname()+" could not be applied to "+target.Cname+" due to an immunity.");
-            }
-            else if (husk.CheckFor("Undermine", false)==true&&!(husk.ignores.contains("Undermine")))
-            { 
-                System.out.println(husk.Cname+"'s "+e.geteffname()+" could not be applied to "+target.Cname+" due to a conflicting status effect.");
-            }
-            else if (e.getimmunityname().equals("Speed"))
-            {
-                System.out.println(husk.Cname+"'s "+e.geteffname()+" could not be applied to "+target.Cname+" due to a duplicate status effect.");
-            }
-            else if (target.dead==false)
-            {
-                boolean apple=e.CheckStacking(target, e, e.stackable); 
-                if (apple==true)
-                target.add(e);
-                else
-                System.out.println(husk.Cname+"'s "+e.geteffname()+" could not be applied to "+target.Cname+" due to a duplicate status effect.");
-            }
+            StatEff.CheckApply(husk, target, e);
         }
     }
     public static void Crushbot (Character bot)
@@ -104,19 +85,19 @@ public class SummonPassive
             System.out.println("\nSEARCHING...CRUSHBOT TARGET ACQUIRED");
             ArrayList<Character> low=Battle.ChooseTarget(bot, "enemy", "lowest");
             Character law=low.get(0);
-            Target enron= new Target(100, 5, 1);
+            Target enron= new Target(100, 5, 1, bot);
             boolean yes=CoinFlip.Flip(100+bot.Cchance);
             if (yes==true)
             StatEff.CheckApply(bot, law, enron);
             else
-            StatEff.applyfail(bot, enron, "chance");
+            StatEff.applyfail(law, enron, "chance");
         }
     }
     public static void NickLMD (Summon lmd) //onsummon
     {
         if (lmd.passivefriend[0]!=null&&lmd.passivefriend[0].dead==false)
         {
-            StatEff prot= new ProtectE (500, 616);
+            StatEff prot= new ProtectE (500, 616, lmd);
             prot.PrepareProtect(lmd, lmd.passivefriend[0]);
             StatEff.CheckApply(lmd, lmd, prot);
         }
