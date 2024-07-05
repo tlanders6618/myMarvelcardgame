@@ -673,7 +673,7 @@ class DamageCounterRemove extends BeforeAbility //increase damage based on numbe
         }
         if (aoe==true&&increase>0&&(Battle.team1[Battle.P1active]==hero||Battle.team2[Battle.P2active]==hero)) //to avoid applying empower after an assist
         {
-            Empower e= new Empower(500, increase, 1, "THIS IS A BUG", 39);
+            Empower e= new Empower(500, increase, 1, hero);
             hero.effects.add(e); //so the damage boost affects all targets hit by aoe attack instead of only the first; should be applied and consumed without player seeing it
         }
         return increase;
@@ -699,7 +699,7 @@ class DamageCounterSimple extends BeforeAbility //just checks if the target has 
         Self="the target";
         String Has;
         if (has==true)
-        Has=" has ";
+        Has=" has any ";
         else
         Has=" doesn't have ";
         this.desc="Does +"+amount+" damage if "+Self+Has+name+". ";
@@ -965,7 +965,7 @@ class DebuffMod extends BeforeAbility //for altering the debuffs an ab applies, 
                     }
                     if (!(user.binaries.contains("Missed")))
                     {
-                        Shatter s= new Shatter (100, 1); boolean yes=CoinFlip.Flip(100+user.Cchance);
+                        Shatter s= new Shatter (100, 1, user); boolean yes=CoinFlip.Flip(100+user.Cchance);
                         if (yes==true)
                         StatEff.CheckApply(user, target, s);
                         else
@@ -1081,6 +1081,7 @@ class DebuffMod extends BeforeAbility //for altering the debuffs an ab applies, 
                 }
                 return 45;
             }
+            break;
             case 91: Card_HashCode.RandomStat(user, target, "Goblin"); break; //green goblin
             case 100: //elixir
             if (user.index==100&&user==target)

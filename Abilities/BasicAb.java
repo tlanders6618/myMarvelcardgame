@@ -10,36 +10,13 @@ package myMarvelcardgamepack;
 import java.util.ArrayList;
 class BasicAb extends AttackAb
 {
-    public BasicAb ()
+    public BasicAb (String aname, String atype, String afriendly, int dmg)
     {
+        super(aname, atype, afriendly, dmg, 0);
     }
-    public BasicAb (String aname, String atarget, String afriendly, int dmg)
+    public BasicAb (String aname, String atype, String afriendly, int dmg, int mult)
     {
-        this.oname=aname;
-        this.friendly=afriendly;
-        this.target=atarget;
-        this.damage=dmg;
-        this.odamage=damage;
-        this.attack=true;
-        if (atarget.equalsIgnoreCase("aoe"))
-        {
-            this.aoe=true;
-        }
-    }
-    public BasicAb (String aname, String atarget, String afriendly, int dmg, int mult)
-    {
-        this.oname=aname;
-        this.friendly=afriendly;
-        this.target=atarget;
-        this.damage=dmg;
-        this.odamage=damage;
-        this.attack=true;
-        this.multihit=mult;
-        this.omulti=mult;
-        if (atarget.equalsIgnoreCase("aoe"))
-        {
-            this.aoe=true;
-        }
+        super(aname, atype, afriendly, dmg, 0, mult);
     }
     @Override
     public void PrintDesc (boolean ignore)
@@ -73,8 +50,8 @@ class BasicAb extends AttackAb
             int change=0;
             if (targets.size()<=0)
             {
-                uses=-1;
                 System.out.println(ab.oname+" could not be used due to a lack of eligible targets.");
+                return null;
             }
             for (Character chump: targets) //use the ability on its target
             {
@@ -102,14 +79,9 @@ class BasicAb extends AttackAb
                             change=ob.Use(user, chump); //apply unique ability functions before attacking; this only affects before abs
                             damage+=change;
                         } 
-                        if (elusive==true) 
+                        if (elusive==true&&(this.odamage>0||this.damage>0)) //only print damage if attack was meant to do damage; abs that call assists shouldn't print
                         {
-                            damage-=chump.ADR;
-                            if (damage<0)
-                            damage=0;
-                            if (this.odamage>0||this.damage>0) //only print damage if attack was meant to do damage
-                            System.out.println ("\n"+user.Cname+" did "+damage+" damage to "+chump.Cname);
-                            chump.TakeDamage(chump, damage, false);
+                            Damage_Stuff.ElusiveDmg(user, chump, damage);
                         }
                         else if (lose==true) 
                         {

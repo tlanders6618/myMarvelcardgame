@@ -84,6 +84,44 @@ class ActivatePassive extends AfterAbility //ability activates a hero's passive 
         {
             //flash's passive has to be after attacking, or he switches states before attacking and losing control bonuses will be applied despite attacking while in check
             case 25: ActivePassive.Flash(user, num, false, false); break; 
+            case 74: //songbird's critical heals are only possible due to her passive
+            int CC=0; int strong=0; //crit chance and heal amount
+            if (num==1) //targeting enemy, so include bulwark/vulnerable calc
+            {
+                strong=25; CC=Damage_Stuff.GetCC(user, target);
+            }
+            else if (num==2) //targeting ally, so don't
+            {
+                strong=60; CC=user.CC-user.nCC;
+            }
+            ArrayList<Character>hurt= new ArrayList<Character>();
+            if (num==1) //get target
+            {
+                hurt=Battle.ChooseTarget(user, "ally exclusive", "missing");
+            }
+            else if (num==2)
+            {
+                hurt.add(target);
+            }
+            if (hurt.size()>0) //if either ab is used when songbird has no allies, there'd be no one to heal, so no need to do mend calc
+            {
+                boolean crit=CoinFlip.Flip(CC);
+                if (crit==true)
+                {
+                    System.out.println(user+"'s Mend was critical!");
+                    double ndmg=strong*user.critdmg;
+                    strong=5*(int)(Math.floor(ndmg/5)); //crit damage rounded down to nearest 5
+                    if (num==1)
+                    user.onCrit(target); 
+                }
+                else if (user.CC>0)
+                {
+                    System.out.println(user.Cname+"'s Mend failed to crit.");
+                }
+                Mend m= new Mend(500, strong); 
+                m.Use(user, hurt.get(0), 0); //apply mend to target
+            }
+            break;
         }
         switch (num) //these are not passives, just too specific for an afterab; anyone who uses/copies the ability should be able to do this
         {
@@ -92,7 +130,7 @@ class ActivatePassive extends AfterAbility //ability activates a hero's passive 
             {
                 boolean yes=CoinFlip.Flip(500+user.Cchance);
                 user.activeability.dcd-=2;
-                Regen drugs= new Regen (500, 45, 2);
+                Regen drugs= new Regen (500, 45, 2, user);
                 if (yes==true)
                 StatEff.CheckApply(user, user, drugs);
                 else
@@ -104,6 +142,11 @@ class ActivatePassive extends AfterAbility //ability activates a hero's passive 
             {
                 BonusTurnHelper lastson=new BonusTurnHelper(); user.helpers.add(lastson); 
             }
+            break;
+            case 74: //songbird's acoustikinesis mend; usable by any who copy it
+            ArrayList<Character>hurt=Battle.ChooseTarget(user, "ally exclusive", "missing"); Mend m= new Mend(500, 25); 
+            if (hurt.size()>0)
+            m.Use(user, hurt.get(0), 0);
             break;
             case 84: //namor's tidal wave
             ArrayList<StatEff> joker= new ArrayList<StatEff>(); joker.addAll(target.effects);
@@ -598,12 +641,13 @@ class CopySteal extends AfterAbility //the only difference is that steal removes
     String[] efftype; //usually only buffs, except for hulkling
     int chance; 
     int number; //of effs to copy
-    String type; //chosen or random
+    String type; //chosen or random or all
     boolean together; 
     boolean steal=false;
-    public CopySteal (int echance, int num, String type, String[] ename, String[] etype, boolean tog, boolean steal)
+    String[][] replace; //when stealing a buff, may replace it with a different one
+    public CopySteal (int echance, int num, String type, String[] ename, String[] etype, boolean tog, boolean steal, String[][] replace)
     {
-        chance=echance; together=tog; number=num; effname=ename; efftype=etype; this.type=type; this.steal=steal;
+        chance=echance; together=tog; number=num; effname=ename; efftype=etype; this.type=type; this.steal=steal; this.replace=replace;
         String Chance;
         if (this.chance>=500&&this.steal==true)
         Chance="Steals ";
@@ -652,7 +696,10 @@ class CopySteal extends AfterAbility //the only difference is that steal removes
                 }
             }
         }
-        this.desc=Chance+Type+Name+"from the target. ";
+        String torefd="";
+        if (replace!=null)
+        torefd="and replaces it with a "+replace[0][0];
+        this.desc=Chance+Type+Name+"from the target "+torefd+". ";
     }
     @Override
     public void Use (Character user, Character target, int ignoreme)
@@ -674,6 +721,7 @@ class CopySteal extends AfterAbility //the only difference is that steal removes
                 delete.add(e);
             }
             effs.removeAll(delete);
+            boolean success=false;
             if (effs.size()>0)
             {
                 if (type.equals("chosen"))
@@ -763,7 +811,7 @@ class CopySteal extends AfterAbility //the only difference is that steal removes
                 while (falg==false);
                 StatEff ton= effs.get(index);
                 effs.remove(ton); //can't copy the same stateff twice in one use
-                String name=ton.getimmunityname(); int dur=ton.oduration; int pow=ton.power;
+                String name=ton.getimmunityname(); int dur=ton.oduration; int pow=ton.power; 
                 if (steal==false)
                 System.out.println(hero.Cname+" Copied "+target.Cname+"'s "+ton.geteffname()+"!");
                 else
@@ -777,6 +825,13 @@ class CopySteal extends AfterAbility //the only difference is that steal removes
                 else
                 {
                     StatEff e=StatFactory.MakeStat(string, hero); StatEff.CheckApply(hero, hero, e);
+                }
+                if (steal==true&&replace!=null)
+                {
+                    if (replace[0][3].equals("equal"))
+                    replace[0][3]=Integer.toString(dur);
+                    StatEff trickery=StatFactory.MakeStat(replace, hero);
+                    StatEff.CheckApply(hero, target, trickery);
                 }
                 if (effs.size()<=0)
                 {
@@ -837,6 +892,13 @@ class CopySteal extends AfterAbility //the only difference is that steal removes
                 {
                     StatEff e=StatFactory.MakeStat(string, hero); StatEff.CheckApply(hero, hero, e);
                 }
+                if (steal==true&&replace!=null)
+                {
+                    if (replace[0][3].equals("equal"))
+                    replace[0][3]=Integer.toString(dur);
+                    StatEff trickery=StatFactory.MakeStat(replace, hero);
+                    StatEff.CheckApply(hero, target, trickery);
+                }
                 if (effs.size()<=0)
                 {
                     break;
@@ -869,6 +931,13 @@ class CopySteal extends AfterAbility //the only difference is that steal removes
                     {
                         StatEff e=StatFactory.MakeStat(string, hero); StatEff.CheckApply(hero, hero, e);
                     }
+                    if (steal==true&&replace!=null)
+                    {
+                        if (replace[0][3].equals("equal"))
+                        replace[0][3]=Integer.toString(dur);
+                        StatEff trickery=StatFactory.MakeStat(replace, hero);
+                        StatEff.CheckApply(hero, target, trickery);
+                    }
                 }
             }
             else
@@ -900,6 +969,13 @@ class CopySteal extends AfterAbility //the only difference is that steal removes
                     else
                     {
                         StatEff e=StatFactory.MakeStat(string, hero); StatEff.CheckApply(hero, hero, e);
+                    }
+                    if (steal==true&&replace!=null)
+                    {
+                        if (replace[0][3].equals("equal"))
+                        replace[0][3]=Integer.toString(dur);
+                        StatEff trickery=StatFactory.MakeStat(replace, hero);
+                        StatEff.CheckApply(hero, target, trickery);
                     }
                 }
                 else

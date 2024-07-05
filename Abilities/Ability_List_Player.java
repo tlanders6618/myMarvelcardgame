@@ -63,6 +63,8 @@ public class Ability_List_Player
             //2.7: Thunderbolts
             case 72: return MakeAbZemo(counter);
             case 73: return MakeAbMimi(counter);
+            case 74: return MakeAbSongbird(counter, copy);
+            case 75: return MakeAbMoonstone(counter);
             //2.8: Defenders
             case 81: return MakeAbDD(counter);
             case 82: return MakeAbFist(counter);
@@ -601,6 +603,48 @@ public class Ability_List_Player
         }
     }
     //2.7: Thunderbolts
+    public static Ability MakeAbMoonstone (int counter)
+    {
+        switch (counter)
+        {
+            case 0: BasicAb storeek = new BasicAb("Photon Blast", "single", "enemy", 40);
+            String[] boom={"Intensify", "500", "10", "1", "true"}; String[][] pow=StatFactory.MakeParam(boom, null); storeek.AddStatString(pow);
+            return storeek;
+            case 1: OtherAb steal= new OtherAb("Hypnotise", "single", "enemy", 2); steal.unbound=true; steal.control=true;
+            String[] sesame={"Placebo (Buff)", "500", "616", "equal", "false"}; String[][] street=StatFactory.MakeParam(sesame, null);
+            steal.special.add(new CopySteal(500, 1, "chosen", new String[] {"any"}, new String[] {"Buffs"}, true, true, street));
+            return steal;
+            case 4: AttackAb warp= new AttackAb("Intangible Strike", "single", "enemy", 80, 3); warp.special.add(new DamageCounterSimple(15, "Placebo (Buff)", false, false, true));
+            warp.special.add(new DamageCounterSimple(15, "Buffs", true, true, true));
+            return warp;
+            default: return null;
+        }
+    }
+    public static Ability MakeAbSongbird (int counter, boolean copy)
+    {
+        switch (counter)
+        {
+            case 0: BasicAb a= new BasicAb("Acoustikinesis", "single", "enemy", 35); 
+            if (copy==false)
+            a.special.add(new ActivatePassive(1));
+            else
+            a.special.add(new ActivatePassive(74));
+            a.desc="Apply Mend: 25 to the ally with the most missing HP.";
+            return a;
+            case 3: HealAb s= new HealAb("Serenade", "single", "ally exclusive", 3); 
+            if (copy==false)
+            {
+                s.special.add(new ActivatePassive(2)); s.desc="Apply Mend: 60.";
+            }
+            else
+            s.special.add(new Mend(500, 60));
+            return s;
+            case 4: BuffAb b= new BuffAb("Uplifting Melody", "self", "self", 3); b.unbound=true; b.special.add(new Purify(500, 1, "random", "Afflicted", true, true));
+            String[] buff={"Precision", "500", "616", "2", "true"}; String[][] fish=StatFactory.MakeParam(buff, null); b.AddStatString(fish);
+            return b;
+            default: return null;
+        }
+    }
     public static Ability MakeAbMimi (int counter)
     {
         switch (counter)
@@ -629,7 +673,7 @@ public class Ability_List_Player
             return lunge;
             case 1: DefAb parry= new DefAb("Parry", "self", "self", 3); parry.unbound=true; parry.together=true;
             String[] happy={"Guard", "100", "45", "1", "true"}; String[][] meal=StatFactory.MakeParam(happy, null); parry.AddStatString(meal);
-            String[] freaky={"Safeguard", "100", "616", "1", "true"}; String[][] hate=StatFactory.MakeParam(freaky, null); parry.AddStatString(hate);
+            String[] freaky={"Safeguard", "100", "616", "2", "true"}; String[][] hate=StatFactory.MakeParam(freaky, null); parry.AddStatString(hate);
             return parry;
             case 4: AttackAb dom= new AttackAb("Dominating Blow", "single", "enemy", 55, 3); dom.special.add(new ActivatePassive(72));
             String[] rush={"Ferocity", "100", "616", "616", "true"}; String[][] heat=StatFactory.MakeParam(rush, null); dom.AddStatString(heat);
@@ -917,7 +961,7 @@ public class Ability_List_Player
         switch (counter)
         {
             case 0: BasicAb ray= new BasicAb("Encephalo Ray", "single", "enemy", 40); String[] name={"any"}; String[] type={"Buffs"};
-            ray.special.add(new CopySteal(100, 1, "random", name, type, true, true));
+            ray.special.add(new CopySteal(100, 1, "random", name, type, true, true, null));
             return ray;
             case 1: BasicAb shoot= new BasicAb("Disintegration Beam", "single", "enemy", 40); String[] mane={"any"}; String[] tepy={"Buffs"};
             shoot.special.add(new Extend(100, 616, "all", mane, tepy, 1, true, true, false));
@@ -1193,7 +1237,7 @@ public class Ability_List_Player
             cloak.AddStatString(redo); cloak.AddStatString(sped);
             return cloak;
             case 3: OtherAb kill= new OtherAb ("Kill Mode", "self", "self", 0); kill.singleuse=true; kill.unbound=true; kill.special.add(new ActivateP());
-            kill.desc="Activate Kill Mode, granting +15 damage at the cost of -15 health loss on friendly turns. ";
+            kill.desc="Activate Kill Mode, granting +15 damage at the cost of losing 15 health on friendly turns. ";
             return kill;
             case 4: AttackAb poke= new AttackAb ("Double Tap", "single", "enemy", 40, 2, 1); poke.special.add (new Ignore ("Missed", "passive", 1));
             return poke;

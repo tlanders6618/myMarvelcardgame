@@ -103,8 +103,8 @@ class AttackAb extends Ability
             int change=0;
             if (targets.size()<=0)
             {
-                uses=-1;
                 System.out.println(ab.oname+" could not be used due to a lack of eligible targets.");
+                return null;
             }
             for (Character chump: targets) //use the ability on its target
             {
@@ -132,14 +132,9 @@ class AttackAb extends Ability
                             change=ob.Use(user, chump); //apply unique ability functions before attacking; this only affects before abs
                             damage+=change;
                         } 
-                        if (elusive==true) 
+                        if (elusive==true&&(this.odamage>0||this.damage>0)) //only print damage if attack was meant to do damage; abs that call assists shouldn't print
                         {
-                            damage-=chump.ADR;
-                            if (damage<0)
-                            damage=0;
-                            if (this.odamage>0||this.damage>0) //only print damage if attack was meant to do damage
-                            System.out.println ("\n"+user.Cname+" did "+damage+" damage to "+chump.Cname);
-                            chump.TakeDamage(chump, damage, false);
+                            Damage_Stuff.ElusiveDmg(user, chump, damage);
                         }
                         else if (lose==true) //modified version of attacknodamage method
                         {
@@ -375,14 +370,9 @@ class AttackAb extends Ability
                             change=ob.Use(user, chump); //apply unique ability functions before attacking; this only affects before abs
                             damage+=change;
                         } 
-                        if (elusive==true) 
+                        if (elusive==true&&(this.odamage>0||this.damage>0)) //only print damage if attack was meant to do damage; abs that call assists shouldn't print
                         {
-                            damage-=chump.ADR;
-                            if (damage<0)
-                            damage=0;
-                            if (this.odamage>0||this.damage>0) //only print damage if attack was meant to do damage
-                            System.out.println ("\n"+user.Cname+" did "+damage+" damage to "+chump.Cname);
-                            chump.TakeDamage(chump, damage, false);
+                            Damage_Stuff.ElusiveDmg(user, chump, damage);
                         }
                         else if (lose==true) //modified version of attacknodamage method
                         {

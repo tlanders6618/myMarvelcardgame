@@ -69,6 +69,8 @@ public abstract class Ability
         System.out.print("AoE. ");
         else if (this.target.equals("lowest"))
         System.out.print("Targets the character with the lowest HP. ");
+        else if (this.target.equals("missing"))
+        System.out.print("Targets the character with the most missing HP. ");
         else if (this.target.substring(0, 6).equals("random")) //should be no problem with index exceptions as long as random target is checked for last
         {
             System.out.print("Random target. "); 
@@ -137,7 +139,7 @@ public abstract class Ability
     {
         return false;
     }
-    public boolean GetMax()
+    public boolean GetMax() //for assists; only attackabs use this
     {
         return false;
     }
@@ -205,8 +207,8 @@ public abstract class Ability
         {
             if (targets.size()<=0)
             {
-                uses=-1;
-                System.out.println(ab.oname+" could not be used due to a lack of eligible targets.");
+                System.out.println(ab.oname+" could not be used due to a lack of eligible targets."); 
+                return null;
             }
             for (Character chump: targets) //use the ability on its target
             {
@@ -517,16 +519,16 @@ public abstract class Ability
                            otherapply.add(New);
                        }
                        else //neither true nor false; capabable of affecting either self or an ally
-                        {
-                            if (user.hash==chump.hash)
-                            {
-                                selfapply.add(New);
-                            }
-                            else
-                            {
-                                otherapply.add(New);
-                            }
-                        }
+                       {
+                           if (user.hash==chump.hash)
+                           {
+                               selfapply.add(New);
+                           }
+                           else
+                           {
+                               otherapply.add(New);
+                           }
+                       }
                     }
                     ArrayList<StatEff> holder=Ability.ApplyStats(user, chump, together, selfapply, otherapply);
                     toadd.addAll(holder);
@@ -725,7 +727,7 @@ public abstract class Ability
         }
         if (together==true) //the application chance is rolled once for all the effects
         {
-            int chance=0;
+            int chance=0; boolean other=false;
             if (selfapp.size()!=0)
             { 
                 for (StatEff eff: selfapp)
@@ -737,6 +739,7 @@ public abstract class Ability
             }
             else if (!(hero.binaries.contains("Missed"))&&otherapp.size()!=0) //if the attack applies no status effects (if both arrays are empty), nothing happens
             {
+                other=true; //hero has effs in otherapp
                 for (StatEff eff: otherapp)
                 {
                     chance=eff.chance;
@@ -751,48 +754,33 @@ public abstract class Ability
             else if (succeed==false&&hero.binaries.contains("Missed")&&otherapp.size()>0) //if otherapp's stateffs can't be applied due to a miss, no need to print anything
             {
             }
-            else if (succeed==false&&target.dead==false)
+            else if (succeed==false)
             {
-                System.out.println (hero.Cname+"'s effect(s) failed to apply due to chance"); //(Test) The application chance was "+chance);
+                if (hero.dead==false)
+                {
+                    for (StatEff eff: selfapp)
+                    {
+                        StatEff.applyfail(hero, eff, "chance"); //(Test) The application chance was "+chance);
+                    }
+                }
+                if (other==true&&target.dead==false)
+                {
+                    for (StatEff eff: otherapp)
+                    {
+                        StatEff.applyfail(target, eff, "chance"); //(Test) The application chance was "+chance);
+                    }
+                }
             }
             else if (succeed==true)
             {
                 if (selfapp.size()!=0&&hero.dead==false)
                 {
                     for (StatEff eff: selfapp)
-                    {   //since these stateffs are applied after turn end when disables tick down/expire, the check needs to be here to account for them before expiry
-                        if (hero.immunities.contains(eff.getefftype())||hero.immunities.contains(eff.getimmunityname()))
+                    {   //since these stateffs are applied after turn end (when disable debuffs tick down), the check needs to be here to account for them before they expire
+                        if (StatEff.CheckFail(hero, hero, eff)==false) 
                         {
-                            StatEff.applyfail(hero, eff, "immune");
-                        }
-                        else if (eff.getefftype().equalsIgnoreCase("Debuffs")&&hero.CheckFor("Neutralise", false)==true&&!(hero.ignores.contains("Neutralise")))
-                        {
-                            StatEff.applyfail(hero, eff, "conflict");
-                        }
-                        else if (eff.getefftype().equalsIgnoreCase("Buffs")&&hero.CheckFor("Undermine", false)==true&&!(hero.ignores.contains("Undermine")))
-                        { 
-                            StatEff.applyfail(hero, eff, "conflict");
-                        }
-                        else if (eff.getefftype().equalsIgnoreCase("Defence")&&(target.binaries.contains("Shattered")))
-                        {
-                            StatEff.applyfail(hero, eff, "conflict");
-                        }
-                        else if (eff.getefftype().equalsIgnoreCase("Heal")&&hero.CheckFor("Afflicted", false)==true&&!(hero.ignores.contains("Afflicted")))
-                        {
-                            StatEff.applyfail(hero, eff, "conflict");
-                        }
-                        else
-                        {
-                            boolean apple=eff.CheckStacking(hero, eff, eff.stackable); 
-                            if (apple==true)
-                            {
-                                toadd.add(eff); 
-                            }
-                            else
-                            {
-                                StatEff.applyfail(hero, eff, "dupe");
-                            }
-                        }
+                            toadd.add(eff);
+                        } //else fail due to conflict, but checkapply already prints the failure message
                     }
                 }
                 if (!(hero.binaries.contains("Missed"))&&otherapp.size()!=0&&target!=null&&target.dead==false)
@@ -804,53 +792,25 @@ public abstract class Ability
                 }
             }
         }
-        else
+        else //same as above, but each chance is calculated separately
         { 
             if (selfapp.size()!=0&&hero.dead==false)
             { 
-                for (StatEff eff: selfapp) //each chance is calculated separately
+                for (StatEff eff: selfapp) 
                 {
                     int chance=eff.chance;
                     chance+=hero.Cchance;
                     boolean succeed=CoinFlip.Flip(chance);
                     if (succeed==true) 
                     {   
-                        if (hero.immunities.contains(eff.getefftype())||hero.immunities.contains(eff.getimmunityname()))
+                        if (StatEff.CheckFail(hero, hero, eff)==false) 
                         {
-                            StatEff.applyfail(hero, eff, "immune");
-                        }
-                        else if (eff.getefftype().equalsIgnoreCase("Debuffs")&&hero.CheckFor("Neutralise", false)==true&&!(hero.ignores.contains("Neutralise")))
-                        {
-                            StatEff.applyfail(hero, eff, "conflict");
-                        }
-                        else if (eff.getefftype().equalsIgnoreCase("Buffs")&&hero.CheckFor("Undermine", false)==true&&!(hero.ignores.contains("Undermine")))
-                        { 
-                            StatEff.applyfail(hero, eff, "conflict");
-                        }
-                        else if (eff.getefftype().equalsIgnoreCase("Defence")&&(target.binaries.contains("Shattered")))
-                        {
-                            StatEff.applyfail(hero, eff, "conflict");
-                        }
-                        else if (eff.getefftype().equalsIgnoreCase("Heal")&&hero.CheckFor("Afflicted", false)==true&&!(hero.ignores.contains("Afflicted")))
-                        {
-                            StatEff.applyfail(hero, eff, "conflict");
-                        }
-                        else
-                        {
-                            boolean apple=eff.CheckStacking(hero, eff, eff.stackable); 
-                            if (apple==true)
-                            {
-                                toadd.add(eff);
-                            }
-                            else
-                            {
-                                StatEff.applyfail(hero, eff, "dupe");
-                            }
-                        }
+                            toadd.add(eff);
+                        } //else fail due to conflict, but checkapply already prints the failure message
                     }
                     else 
                     {
-                        System.out.println (hero.Cname+"'s "+eff.geteffname()+" failed to apply due to chance"); //(Test) The application chance was "+chance);
+                        StatEff.applyfail(hero, eff, "chance"); //(Test) The application chance was "+chance);
                     }
                 }
             }
@@ -863,11 +823,11 @@ public abstract class Ability
                     boolean succeed=CoinFlip.Flip(chance);
                     if (succeed==true)
                     {
-                        eff.CheckApply(hero, target, eff); ///System.out.println ("(Test) The application chance was "+chance);
+                        StatEff.CheckApply(hero, target, eff); ///System.out.println ("(Test) The application chance was "+chance);
                     }
                     else
                     {
-                        System.out.println (hero.Cname+"'s "+eff.geteffname()+" failed to apply due to chance"); //(Test) The application chance was "+chance);
+                        StatEff.applyfail(target, eff, "chance"); //(Test) The application chance was "+chance);
                     }
                 }
             }
