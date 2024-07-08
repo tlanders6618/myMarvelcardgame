@@ -43,7 +43,7 @@ public abstract class Character
     boolean targetable=true;
     int accuracy=100; //for blind
     int dmgtaken=0;
-    int hash; //identifier number
+    int id; //identifier number
     int passivecount; //for keeping track of passive stuff
     Ability activeability=null; //last used ability     
     Character[] passivefriend= new Character[6]; //for lads like eddie brock venom
@@ -52,8 +52,10 @@ public abstract class Character
     ArrayList<String> binaries=new ArrayList<String>(); //overlapping conditions like stunned and invisible
     ArrayList<String> ignores=new ArrayList<String>(); //ignore when attacking
     ArrayList<SpecialAbility> helpers=new ArrayList<SpecialAbility>(); //performs unique misc. functions like redwing
-    public Character ()
+    public Character (int index)
     {
+        this.index=index;
+        this.id=CardCode.RandomCode();
     }
     @Override
     public String toString()
@@ -184,7 +186,7 @@ public abstract class Character
         WiT=0;
         if (ReT<0)
         ReT=0;
-        if (bleed==true) //if they had the eff, print how much total dmg/healing they took from it, even if it's 0, to avoid player confusion
+        if (bleed==true) //if they had the eff, print how much total dmg/healing they took from it, even if it's 0, because it isn't done by the effs themselves anymore
         System.out.println("\n"+this.Cname+" took "+BlT+" Bleed damage."); 
         if (burn==true)
         System.out.println("\n"+this.Cname+" took "+BuT+" Burn damage."); 
@@ -328,7 +330,7 @@ public abstract class Character
         System.out.println ("\nPlayer 1, choose an ability for "+this.Cname+" to use. Type its number, not its name.");
         else
         System.out.println ("\nPlayer 2, choose an ability for "+this.Cname+" to use. Type its number, not its name.");
-        boolean skip=Card_HashCode.CheckSkip(this); //allows heroes with no usable abilities to skip their turn
+        boolean skip=CardCode.CheckSkip(this); //allows heroes with no usable abilities to skip their turn
         for (int i=0; i<5; i++)
         {
             int a=i+1;
@@ -366,11 +368,11 @@ public abstract class Character
             }
             else if (choice==5)
             {
-                Card_HashCode.GetDesc(this);
+                CardCode.GetDesc(this);
             }
             else if (choice==6)
             {
-                Card_HashCode.GetPDesc(this);
+                CardCode.GetPDesc(this);
             }
         }
         while (good==false);
@@ -771,13 +773,13 @@ public abstract class Character
                 case 75: case 81: case 82: case 84: case 86: case 88: case 89: case 90: case 92: case 94: case 97: case 98: case 100: case 101:
                 return 230;
                 //240
-                case 12: case 13: case 15: case 16: case 17: case 22: case 27: case 28: case 30: case 32: case 35: case 38: case 41:
+                case 12: case 13: case 15: case 16: case 17: case 22: case 27: case 28: case 30: case 32: case 35: case 38: case 41: case 77:
                 case 83: case 85: case 87: case 99: case 104:
                 return 240;
                 //special carrots
-                case 26: return 130;
-                case 31: return 250;
-                case 105: return 100;
+                case 26: return 130; //modork
+                case 31: return 250; //hulk
+                case 76: case 105: return 100; //speedball and mr immortal
             }    
             return 616;
         }
@@ -860,6 +862,8 @@ public abstract class Character
                 case 73: return "Melissa Gold (Screaming Mimi)";
                 case 74: return "Melissa Gold (Songbird)";
                 case 75: return "Moonstone (Karla Sofen)";
+                case 76: return "Speedball (Classic)";
+                case 77: return "Speedball (Penance)";
                 //2.8: Defenders
                 case 81: return "Daredevil (Matt Murdock)";
                 case 82: return "Iron Fist (Danny Rand)";
@@ -1031,11 +1035,15 @@ public abstract class Character
                 return "Mend can critically hit, increasing the healing done based on critical damage.";
                 case 75: //moonstone
                 return "Gain immunity to Steal and ignore Provoke and Terror. When failing to gain a duplicate buff, Extend the original by 1 turn and Amplify it by the duplicate's strength.";
+                case 76: //speedball
+                return "Gain immunity to damage, Control, Snare, max HP reduction, health loss, and Heal. On fight start, gain Reflect. On turn, and when attacked or Stunned, sacrifice 15 health.";
+                case 77: //penance
+                return "Gain immunity to Control. Take half damage from attacks, and gain 1 Pain for every 20 damage taken before damage reduction.";
                 //2.8: Defenders
                 case 81: //daredevil
                 return "Ignore Blind and Invisible. Ignore the Counter activation limit.";
                 case 83: //luke cage
-                return "Gain immunity to Bleed, Shock, and Burn. Take -25 damage from attacks that do under 50 damage.";
+                return "Gain immunity to Bleed, Shock, and Burn. Take -25 damage from attacks that do less than 50 damage.";
                 case 85: //silver surfer
                 return "Gain immunity to status effects. Channelled abilities cannot be interrupted.";
                 //2.9: Fearsome Foes of Spider-Man

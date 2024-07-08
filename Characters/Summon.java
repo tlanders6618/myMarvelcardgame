@@ -15,14 +15,13 @@ public class Summon extends Character
         //Same as with characters
         //Need to manually assign team affiliation as well as passivefriend[0] when creating a summon; not done in constructor
         //passivefriend is set in battle.summonsomeone
-        index=Sindex;
+        super(Sindex);
         summoned=true;
-        hash=Card_HashCode.RandomCode();
         size=SetSizeSum(index);
         this.pdesc=Character.MakeDesc(Sindex, true);
         if (Sindex==13)
         {
-            System.out.println("You forgot to fix the summon constructor for clones."); //clone health, name, and abilities depend on who they're a clone of
+            System.out.println("You forgot to implement the summon constructor for clones."); //clone health, name, and abilities depend on who they're a clone of
         }
         else
         {
@@ -176,7 +175,7 @@ public class Summon extends Character
     {
         for (StatEff eff: this.effects)
         {
-            if (eff.hashcode==removalcode)
+            if (eff.id==removalcode)
             {
                 String name=eff.getimmunityname(); String type=eff.getefftype();
                 eff.Nullified(this);
@@ -390,6 +389,7 @@ public class Summon extends Character
     @Override
     public void TookDamage (Character dealer, int dmg) //for taking damage from a hero
     {
+        if (!(this.immunities.contains("Damage")))
         System.out.println ("\n"+dealer.Cname+" did "+dmg+" damage to "+this.Cname);
         this.dmgtaken+=dmg;
         if (this.HP<=0)
@@ -433,7 +433,7 @@ public class Summon extends Character
         {
             if (!(eff instanceof Tracker))
             {
-                this.remove(eff.hashcode, "silent"); 
+                this.remove(eff.id, "silent"); 
             }
         }
         Character[] people=Battle.GetTeammates(this);
@@ -466,7 +466,7 @@ public class Summon extends Character
     @Override
     public void onEnemyDeath (Character deadfoe, Character killer)
     {
-        if (killer!=null&&this.hash==killer.hash)
+        if (killer!=null&&this.id==killer.id)
         {
             killer.onKill(deadfoe);
         }
@@ -545,7 +545,7 @@ public class Summon extends Character
                 for (StatEff eff: removeme)
                 {
                     if (!(eff instanceof Tracker))
-                    this.remove(eff.hashcode, "normal"); 
+                    this.remove(eff.id, "normal"); 
                 }
             }
             this.AddImmune(false); //for getting rid of immunities when leaving a transformed form; e.g. a robot transforming would lose robot immunities

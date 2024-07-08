@@ -71,7 +71,7 @@ public class ActivePassive
                         holder=e; break; //this should be the taunt from bishop's passive; break because taunt doesn't stack and taunte isn't a concern
                     }
                 }
-                lucas.remove(holder.hashcode, "normal");
+                lucas.remove(holder.id, "normal");
                 Regen r= new Regen(500, 35, 1, lucas);
                 boolean go=CoinFlip.Flip(500+lucas.Cchance);
                 if (go==true)
@@ -95,7 +95,7 @@ public class ActivePassive
         if (!(dummy.ignores.contains("Counter")))
         {
             System.out.println ("\nBAMF!");
-            Damage_Stuff.ElusiveDmg(kurt, dummy, 25);
+            Damage_Stuff.ElusiveDmg(kurt, dummy, 25, "counter");
             Bleed bled= new Bleed(500, 15, 1, kurt); 
             boolean goon=CoinFlip.Flip(500+kurt.Cchance);
             if (goon==true)
@@ -208,7 +208,7 @@ public class ActivePassive
             {
                 if (e.getimmunityname().equals("Intensify")&&e.getefftype().equals("Other"))
                 {
-                    kasborn.remove(e.hashcode, "silent");
+                    kasborn.remove(e.id, "silent");
                 }
             }
             if (kasborn.passivecount>=5)
@@ -235,6 +235,50 @@ public class ActivePassive
         }
     }
     //2.7: Thunderbolts
+    public static int Penance (Character edgy, int dmg) //takedamage and turnend; ignore stun
+    {
+        if (dmg!=-616) //for taking damage/gaining pain
+        {
+            int pain=dmg/20;
+            if (pain>0)
+            {
+                edgy.passivecount+=pain;
+                System.out.println(edgy+" gained "+pain+" Pain.");
+            }
+            double ndmg= dmg*0.5;
+            dmg=5*(int)(Math.ceil(ndmg/5));
+        }
+        for (StatEff e: edgy.effects) //for updating tracker after gaining pain or attacking/consuming pain
+        {
+            if (e.getimmunityname().equals("Pain: "))
+            {
+                e.Attacked(edgy, null, 0); break;
+            }
+        }
+        return dmg;
+    }
+    public static void Speedball (Character robbie, boolean suitcase)
+    {
+        if (suitcase==true) //fightstart
+        {
+            ReflectE eff= new ReflectE(500, false, 616, robbie); 
+            boolean goal=CoinFlip.Flip(500+robbie.Cchance);
+            if (goal==true) 
+            StatEff.CheckApply(robbie, robbie, eff);
+            else
+            StatEff.applyfail(robbie, eff, "chance");
+        }
+        else if (suitcase==false) //onturnend, add, attacked; ignore stun
+        {
+            robbie.HP-=15;
+            System.out.println (robbie+" sacrificed 15 health");
+            if (robbie.HP<=0)
+            {
+                robbie.HP=0;
+                robbie.onLethalDamage(null, "other");
+            }
+        }
+    }
     public static void Moonstone (Character karla, StatEff mine) //statfailed, if target of stat was karla
     {
         if (!(karla.binaries.contains("Stunned"))&&mine.getefftype().equals("Buffs")&&karla.CheckFor(mine.getimmunityname(), false)==true)
@@ -293,7 +337,7 @@ public class ActivePassive
             for (StatEff e: opp)
             {
                 if (!(e.getefftype().equals("Secret")))
-                baker.remove(e.hashcode, "normal");
+                baker.remove(e.id, "normal");
             }
             String[]blast={"Safeguard", "500", "616", "1", "true"}; String[][] loopy=StatFactory.MakeParam(blast, null); baker.activeability.AddTempString(loopy);
             Character[] friends=Battle.GetTeammates(baker);
@@ -326,14 +370,14 @@ public class ActivePassive
                 {
                     if (chump!=null)
                     {
-                        Damage_Stuff.ElusiveDmg(baker, chump, 20);
+                        Damage_Stuff.ElusiveDmg(baker, chump, 20, "default");
                     }
                 }
                 for (Character chump: friends)
                 {
                     if (chump!=null)
                     {
-                        Damage_Stuff.ElusiveDmg(baker, chump, 20);
+                        Damage_Stuff.ElusiveDmg(baker, chump, 20, "default");
                     }
                 }
                 StatEff hope=null;
@@ -350,7 +394,7 @@ public class ActivePassive
                 }
                 if (hope!=null)
                 {
-                    baker.remove(hope.hashcode, "silent"); System.out.println(baker.Cname+"'s Sand Storm ended.");
+                    baker.remove(hope.id, "silent"); System.out.println(baker.Cname+"'s Sand Storm ended.");
                 }
             }
         }
@@ -365,7 +409,7 @@ public class ActivePassive
             if (burns.size()>1)
             {
                 System.out.print("\n");
-                baker.remove(burns.get(0).hashcode, "normal"); baker.remove(burns.get(1).hashcode, "normal");
+                baker.remove(burns.get(0).id, "normal"); baker.remove(burns.get(1).id, "normal");
                 StunE hope= new StunE(500, 1, baker); StatEff.CheckApply(baker, baker, hope);
             }
         }
@@ -512,7 +556,7 @@ public class ActivePassive
             {
                 if (n!=null)
                 {
-                    Damage_Stuff.ElusiveDmg(binary, n, 10);
+                    Damage_Stuff.ElusiveDmg(binary, n, 10, "default");
                 }
             }
             for (StatEff e: binary.effects) //update displayed energy count
@@ -530,7 +574,7 @@ public class ActivePassive
                 {
                     if (e instanceof Tracker&&e.getimmunityname().equals("Energy: "))
                     {
-                        binary.remove(e.hashcode, "silent");
+                        binary.remove(e.id, "silent");
                     }
                 }
             }
@@ -624,7 +668,7 @@ public class ActivePassive
             if (attacked==eddie.passivefriend[0])
             {
                 System.out.println ("\nThis one is under our protection!");
-                Damage_Stuff.ElusiveDmg(eddie, attacker, 40);
+                Damage_Stuff.ElusiveDmg(eddie, attacker, 40, "counter");
             }
         }
         if (eddie.binaries.contains("Missed")) //if his counterattack was evaded before; needed since miss is normally only cleared after using an ab
@@ -662,7 +706,7 @@ public class ActivePassive
                 }
                 for (StatEff e: removal)
                 {
-                    wolvie.remove(e.hashcode, "normal");
+                    wolvie.remove(e.id, "normal");
                 }
                 //gain passive bonuses
                 wolvie.ADR+=15;
@@ -796,7 +840,7 @@ public class ActivePassive
                             t=e; break;
                         }
                     }
-                    marcus.remove(t.hashcode, "silent");
+                    marcus.remove(t.id, "silent");
                 }
                 else
                 {
@@ -873,7 +917,7 @@ public class ActivePassive
                 if (eff.getimmunityname().equalsIgnoreCase("Protect")&&eff.getProtector().equals(knight))
                 {
                     System.out.println ("\nThe Lunar Protector strikes back!");
-                    Damage_Stuff.ElusiveDmg(knight, attacker, 55);
+                    Damage_Stuff.ElusiveDmg(knight, attacker, 55, "counter");
                     break;
                 }
             }

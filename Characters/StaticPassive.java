@@ -32,7 +32,7 @@ public class StaticPassive
             {
                 if (e instanceof Tracker&& e.getimmunityname().equals("Elixir will Resurrect after dying"))
                 {
-                    josh.remove(e.hashcode, "silent"); break;
+                    josh.remove(e.id, "silent"); break;
                 }
             }
         }
@@ -44,7 +44,7 @@ public class StaticPassive
         {
             String n=e.getimmunityname();
             if (e.getefftype().equals("Heal")||n.equals("Stun")||(e.getalttype().equals("damaging")&&!(n.equals("Countdown")&&!(n.equals("Wither")))))
-            emma.remove(e.hashcode, "normal");
+            emma.remove(e.id, "normal");
         }
         Taunt elephant=new Taunt (500, 1, emma); //gains taunt due to passive, so anyone transforming into her would gain her passive and thus taunt
         boolean dew=CoinFlip.Flip(500+emma.Cchance);
@@ -147,7 +147,7 @@ public class StaticPassive
     //2.7: Thunderbolts
     public static void Zemo (Character helmut, boolean turn)
     {
-        if (turn==true) //onturn
+        if (turn==true&&!(helmut.binaries.contains("Stunned"))) //onturn
         {
             if (helmut.CheckFor("Guard", false)==true)
             { 
@@ -156,7 +156,7 @@ public class StaticPassive
                 {
                     if (e.getimmunityname().equals("Guard"))
                     {
-                        helmut.remove(e.hashcode, "normal");
+                        helmut.remove(e.id, "normal");
                     }
                 }
             }
@@ -383,7 +383,7 @@ public class StaticPassive
         }
         for (StatEff e: r)
         {
-            binary.remove(e.hashcode, "normal");
+            binary.remove(e.id, "normal");
         }
         binary.SHLD=0;
         binary.passivecount=5;
@@ -409,7 +409,7 @@ public class StaticPassive
         ResistanceE res= new ResistanceE (500, 10, 616, eddie);
         Character allt=Card_Selection.ChooseTargetFriend (friends);
         StatEff.CheckApply(eddie, allt, res);
-        eddie.passivecount=res.hashcode;
+        eddie.passivecount=res.id;
         eddie.passivefriend[0]=allt;
         allt.add(new Tracker ("Watched by Venom (Eddie Brock)"));
     }
@@ -464,7 +464,7 @@ public class StaticPassive
                             bl=e; break;
                         }
                     }
-                    arthur.remove(bl.hashcode, "silent");
+                    arthur.remove(bl.id, "silent");
                 }
             }
         }
@@ -541,7 +541,7 @@ public class StaticPassive
             if (foes[0].effects.contains(bay))
             {
                 machine.passivefriend[0]=foes[0];
-                machine.passivecount=bay.hashcode;
+                machine.passivecount=bay.id;
                 foes[0].immunities.add("Invisible");
                 ArrayList<StatEff> concurrentmodificationexception2electricboogaloo= new ArrayList<StatEff>();
                 for (StatEff eff: foes[0].effects)
@@ -553,7 +553,7 @@ public class StaticPassive
                 }
                 for (StatEff eff: concurrentmodificationexception2electricboogaloo)
                 {
-                    foes[0].remove(eff.hashcode, "normal");
+                    foes[0].remove(eff.id, "normal");
                 }
             }
             CoinFlip.AddInescapable (machine, false);

@@ -6,7 +6,7 @@ package myMarvelcardgamepack;
 * Designer: Timothy Landers
 * Date: 1/12/22
 * Filename: Hero
-* Purpose: Creates heroes.
+* Purpose: Creates heroes and allows them to interact (fight) with each other.
 */
 import java.util.ArrayList; 
 import java.util.Scanner;
@@ -14,16 +14,15 @@ public class Hero extends Character
 {
     public Hero (int Pindex)
     {
-        index=Pindex; //character's semi-unique identifier number     
+        super(Pindex); //character's semi-unique identifier number     
         this.pdesc=Character.MakeDesc(Pindex, false);
         //set identifiers
-        HP=InHP (index, false);
-        maxHP=HP;
-        Cname=SetName(index, false);
-        hash=Card_HashCode.RandomCode();                
+        this.HP=InHP (index, false);
+        this.maxHP=HP;
+        this.Cname=SetName(index, false);                
         //set abilities and passives
         this.AddImmune(true);
-        abilities=Ability.AssignAb(index);     
+        this.abilities=Ability.AssignAb(index);     
     }
     @Override
     public void onTurn (boolean notbonus) 
@@ -57,6 +56,8 @@ public class Hero extends Character
         {
             case 12: ActivePassive.DraxOG(this, false, null, null); break;
             case 13: StaticPassive.Drax(this, null, "turnend"); break;
+            case 76: ActivePassive.Speedball(this, false); break;
+            case 77: ActivePassive.Penance(this, -616); break;
         }
     }
     @Override
@@ -96,6 +97,7 @@ public class Hero extends Character
             case 25: ActivePassive.Flash(this, 10, false, true); break;
             case 26: int ignore=StaticPassive.MODOC(this, null, "start", 0); break;
             case 41: StaticPassive.Rhino(this); break;
+            case 76: ActivePassive.Speedball(this, true); break;
         }
     }
     @Override
@@ -133,6 +135,10 @@ public class Hero extends Character
             if (name.equals("Burn"))
             ActivePassive.Sandy(this, "burn");
             break;
+            case 76:
+            if (name.equals("Stun"))
+            ActivePassive.Speedball(this, false);
+            break;
             case 90:
             if (name.equals("Burn"))
             StaticPassive.Symbiote(this, 10);
@@ -157,10 +163,10 @@ public class Hero extends Character
     }
     @Override
     public void remove (int removalcode, String how) //removes status effects; how is how it was removed, meaning purify or nullify or steal or normal (i.e. expiry)
-    {
+    { 
         for (StatEff eff: this.effects)
         {
-            if (eff.hashcode==removalcode)
+            if (eff.id==removalcode)
             {
                 String name=eff.getimmunityname(); String type=eff.getefftype();
                 eff.Nullified(this);
@@ -354,6 +360,7 @@ public class Hero extends Character
             switch (this.index)
             {
                 case 15: ActivePassive.Wolvie(this, true); break;
+                case 76: ActivePassive.Speedball(this, false); break;
                 case 81: StaticPassive.DD(this, attacker); break;
                 case 104: ActivePassive.Bishop(this, dmg, "attacked"); break;
             }
@@ -396,6 +403,7 @@ public class Hero extends Character
         switch (this.index)
         {
             case 26: dmg=StaticPassive.MODOC(this, dealer, "attacked", dmg); break;
+            case 77: dmg=ActivePassive.Penance(this, dmg); break;
             case 83: dmg=StaticPassive.LukeCage(this, dmg); break;
         }
         int odmg=dmg;
@@ -466,6 +474,9 @@ public class Hero extends Character
     @Override
     public void TookDamage (Character dealer, int dmg) //for taking damage from a hero
     {
+        if (this.immunities.contains("Damage")) //dmg number is unchanged, but print 0 because they didn't take any dmg
+        System.out.println ("\n"+dealer.Cname+" did 0 damage to "+this.Cname);
+        else
         System.out.println ("\n"+dealer.Cname+" did "+dmg+" damage to "+this.Cname);
         this.dmgtaken+=dmg; 
         int h=this.HP; h+=dmg;
@@ -532,7 +543,7 @@ public class Hero extends Character
         {
             if (!(eff instanceof Tracker))
             {
-                this.remove(eff.hashcode, "silent"); 
+                this.remove(eff.id, "silent"); 
             }
         }
         this.HP=0;
@@ -574,7 +585,7 @@ public class Hero extends Character
                             r=e; break;
                         }
                     }
-                    this.passivefriend[0].remove(r.hashcode, "silent");
+                    this.passivefriend[0].remove(r.id, "silent");
                 }
             }
             break;
@@ -600,7 +611,7 @@ public class Hero extends Character
                 case 93: ActivePassive.OGHobby(this, killer); break;
             }
         }
-        if (killer!=null&&this.hash==killer.hash)
+        if (killer!=null&&this.id==killer.id)
         this.onKill(deadfoe);
     }
     @Override
@@ -734,7 +745,7 @@ public class Hero extends Character
                 for (StatEff eff: removeme)
                 {
                     if (!(eff instanceof Tracker))
-                    this.remove(eff.hashcode, "normal"); 
+                    this.remove(eff.id, "normal"); 
                 }
             }
             this.AddImmune(false); //for getting rid of immunities when leaving a transformed form; e.g. a robot transforming would lose robot immunities
@@ -833,6 +844,11 @@ public class Hero extends Character
                 this.immunities.add("Disarm"); this.immunities.add("Steal"); this.ignores.add("Guard"); break;
                 case 75: //moonstone
                 this.immunities.add("Steal"); this.ignores.add("Provoke"); this.ignores.add("Terror"); break;
+                case 76: //speedball
+                this.immunities.add("Control"); this.immunities.add("Heal"); this.immunities.add("Snare"); this.immunities.add("Reduce"); this.immunities.add("Lose"); 
+                CoinFlip.DMGImmune(this, true); break;
+                case 77: //penance
+                Tracker hot= new Tracker ("Pain: "); this.effects.add(hot); hot.onApply(this); this.immunities.add("Control"); break;
                 //2.8: Defenders
                 case 81: //daredevil
                 this.ignores.add("Blind"); this.ignores.add("Invisible"); break;
@@ -873,7 +889,7 @@ public class Hero extends Character
                         thor=e; break;
                     }
                 }
-                this.remove(thor.hashcode, "silent");
+                this.remove(thor.id, "silent");
                 break;
                 case 16: case 17: case 90: //venom brock, venom mac, and carnage
                 this.ignores.remove("Evade"); break; 
@@ -886,7 +902,7 @@ public class Hero extends Character
                         tor=e; break;
                     }
                 }
-                this.remove(tor.hashcode, "silent"); this.immunities.remove("Poison"); this.BuDR-=999; this.ShDR-=999; 
+                this.remove(tor.id, "silent"); this.immunities.remove("Poison"); this.BuDR-=999; this.ShDR-=999; 
                 break; 
                 case 24: //binary
                 StatEff khan=null;
@@ -897,7 +913,7 @@ public class Hero extends Character
                         khan=e; break;
                     }
                 }
-                this.remove(khan.hashcode, "silent"); CoinFlip.StatImmune(this, false); 
+                this.remove(khan.id, "silent"); CoinFlip.StatImmune(this, false); 
                 break; 
                 case 25: //agent venom
                 StatEff ret=null;
@@ -908,7 +924,7 @@ public class Hero extends Character
                         ret=e; break;
                     }
                 }
-                this.remove(ret.hashcode, "silent"); this.ignores.remove("Evade"); 
+                this.remove(ret.id, "silent"); this.ignores.remove("Evade"); 
                 break; 
                 case 26: //modok
                 CoinFlip.IgnoreTargeting(this, false); break; 
@@ -923,7 +939,7 @@ public class Hero extends Character
                         tree=e; break;
                     }
                 }
-                this.remove(tree.hashcode, "silent"); this.immunities.remove("Persuaded"); this.immunities.remove("Control"); this.immunities.remove("Burn"); 
+                this.remove(tree.id, "silent"); this.immunities.remove("Persuaded"); this.immunities.remove("Control"); this.immunities.remove("Burn"); 
                 this.immunities.remove("Freeze"); this.immunities.remove("Shock"); 
                 break;
                 case 30: //brawn
@@ -937,7 +953,7 @@ public class Hero extends Character
                         tef=e; break;
                     }
                 }
-                this.remove(tef.hashcode, "silent"); this.immunities.remove("Terror"); this.immunities.remove("Poison"); 
+                this.remove(tef.id, "silent"); this.immunities.remove("Terror"); this.immunities.remove("Poison"); 
                 this.immunities.remove("Control"); this.immunities.remove("Persuaded"); 
                 break;
                 case 32: //black bolt
@@ -949,7 +965,7 @@ public class Hero extends Character
                         fer=e; break;
                     }
                 }
-                this.remove(fer.hashcode, "silent"); this.immunities.remove("Control"); 
+                this.remove(fer.id, "silent"); this.immunities.remove("Control"); 
                 break; 
                 case 35: //juggernaut
                 StatEff very=null;
@@ -960,7 +976,7 @@ public class Hero extends Character
                         very=e; break;
                     }
                 }
-                this.remove(very.hashcode, "silent"); this.immunities.remove("Snare"); this.immunities.remove("Stun");
+                this.remove(very.id, "silent"); this.immunities.remove("Snare"); this.immunities.remove("Stun");
                 if (this.HP>100)
                 {
                     this.ADR-=10; this.immunities.remove("Control"); 
@@ -972,7 +988,7 @@ public class Hero extends Character
                             fed=e; break;
                         }
                     }
-                    this.remove(fed.hashcode, "silent");
+                    this.remove(fed.id, "silent");
                 }
                 else
                 {
@@ -984,7 +1000,7 @@ public class Hero extends Character
                             derf=e; break;
                         }
                     }
-                    this.remove(derf.hashcode, "silent");
+                    this.remove(derf.id, "silent");
                 }
                 break;
                 //2.1: Sinister Six
@@ -998,6 +1014,20 @@ public class Hero extends Character
                 this.immunities.remove("Disarm"); this.immunities.remove("Steal"); this.ignores.remove("Guard"); break;
                 case 75: //moonstone
                 this.immunities.remove("Steal"); this.ignores.remove("Provoke"); this.ignores.remove("Terror"); break;
+                case 76: //speedball
+                this.immunities.remove("Control"); this.immunities.remove("Heal"); this.immunities.remove("Snare"); this.immunities.remove("Reduce"); this.immunities.remove("Lose");
+                CoinFlip.DMGImmune(this, false); break;
+                case 77: //penance
+                StatEff noggin=null;
+                for (StatEff e: this.effects)
+                {
+                    if (e instanceof Tracker&&e.getimmunityname().equals("Pain: "))
+                    {
+                        noggin=e; break;
+                    }
+                }
+                this.remove(noggin.id, "silent"); this.immunities.remove("Control"); 
+                break;
                 //2.8: Defenders
                 case 81: //daredevil
                 this.ignores.remove("Blind"); this.ignores.remove("Invisible"); break;
@@ -1025,7 +1055,7 @@ public class Hero extends Character
                         cant=e; break;
                     }
                 }
-                this.remove(cant.hashcode, "silent"); 
+                this.remove(cant.id, "silent"); 
                 break; 
             }       
         }

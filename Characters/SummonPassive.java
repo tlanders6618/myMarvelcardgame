@@ -74,7 +74,7 @@ public class SummonPassive
             Character target=husk.passivefriend[0]; //aka ultron
             String name=effecter.getimmunityname(); int dur=effecter.oduration; int pow=effecter.power;
             String[] morb={name, "500", Integer.toString(pow), Integer.toString(dur), "false"}; String[][] morbintime=StatFactory.MakeParam(morb, null);
-            StatEff e=StatFactory.MakeStat(morbintime, target);  
+            StatEff e=StatFactory.MakeStat(morbintime, husk);  
             StatEff.CheckApply(husk, target, e);
         }
     }
