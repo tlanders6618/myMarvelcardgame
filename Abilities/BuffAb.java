@@ -10,9 +10,6 @@ package myMarvelcardgamepack;
 import java.util.ArrayList;
 class BuffAb extends Ability
 {
-    public BuffAb ()
-    {
-    }
     public BuffAb (String aname, String atarget, String afriendly, int cod)
     {
         this.oname=aname;

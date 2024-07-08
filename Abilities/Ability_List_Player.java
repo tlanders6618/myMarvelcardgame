@@ -65,6 +65,8 @@ public class Ability_List_Player
             case 73: return MakeAbMimi(counter);
             case 74: return MakeAbSongbird(counter, copy);
             case 75: return MakeAbMoonstone(counter);
+            case 76: return MakeAbSpeedball(counter);
+            case 77: return MakeAbPenance(counter);
             //2.8: Defenders
             case 81: return MakeAbDD(counter);
             case 82: return MakeAbFist(counter);
@@ -135,10 +137,10 @@ public class Ability_List_Player
             case 0: BasicAb pew= new BasicAb("Laser Shot", "single", "enemy", 45);
             return pew;
             case 1: BasicAb zen= new BasicAb("Careful Release", "single", "enemy", 40); zen.special.add(new DebuffMod(104, 1));
-            zen.desc="Consume 40 R to do +40 damage.";
+            zen.desc="Consume 40 Energy to do +40 damage.";
             return zen;
             case 4: AttackAb yatta= new AttackAb("Diffusion Wave", "single", "enemy", 60, 3); yatta.special.add(new ApplyShatter(500, 0, false, false, false));
-            yatta.special.add(new DebuffMod(104, 2)); yatta.desc="Do extra damage equal to R and lose all R.";
+            yatta.special.add(new DebuffMod(104, 2)); yatta.desc="Do extra damage equal to Energy and lose all Energy.";
             return yatta;
             default: return null;
         }
@@ -603,6 +605,42 @@ public class Ability_List_Player
         }
     }
     //2.7: Thunderbolts
+    public static Ability MakeAbPenance (int counter)
+    {
+        switch (counter)
+        {
+            case 0: BasicAb punch=new BasicAb("Penitent Punch", "single", "enemy", 45);
+            String[] rick={"Provoke", "100", "616", "1", "false"}; String[][] oshay=StatFactory.MakeParam(rick, null); punch.AddStatString(oshay);
+            return punch;
+            case 1: OtherAb rake=new OtherAb("Spike Rake", "self", "self", 0); rake.special.add(new DebuffMod(77,3)); rake.special.add(new SelfDMG(60, false)); 
+            return rake;
+            case 3: AttackAb blast=new AttackAb("Kinetic Explosion", "single", "enemy", 100, 0); blast.restricted=true; blast.restriction=77;
+            blast.special.add(new DebuffMod(77,1)); blast.special.add(new Ricochet(500)); blast.desc="Requires and consumes 3 Pain on use. ";
+            return blast;
+            case 4: BasicAb bloom= new BasicAb("Explosive Shockwave", "AoE", "enemy", 35); bloom.special.add(new DebuffMod(77,2));
+            bloom.desc="Remove all Pain and do +15 damage for each.";
+            return bloom;
+            default: return null;
+        }
+    }
+    public static Ability MakeAbSpeedball (int counter)
+    {
+        switch (counter)
+        {
+            case 0: BasicAb boom= new BasicAb("Bubble Blast", "single", "enemy", 20, 1);
+            return boom;
+            case 1: AttackAb sling= new AttackAb("Clear The Way", "single", "enemy", 40, 2);
+            String[] rick={"Provoke", "100", "616", "1", "false"}; String[][] oshay=StatFactory.MakeParam(rick, null); 
+            sling.AddStatString(oshay); sling.special.add(new Ricochet(500, oshay));
+            return sling;
+            case 2: DefAb intercept= new DefAb("Rebound Intercept", "single", "ally exclusive", 2);
+            String[] ex={"Protect", "500", "616", "1", "true"}; String[][] or=StatFactory.MakeParam(ex, null); intercept.AddStatString(or);
+            return intercept;
+            case 4: BasicAb blast= new BasicAb("Momentum Release", "single", "enemy", 35); blast.special.add(new MissingDMG(5, 15, true));
+            return blast;
+            default: return null;
+        }
+    }
     public static Ability MakeAbMoonstone (int counter)
     {
         switch (counter)
@@ -970,7 +1008,7 @@ public class Ability_List_Player
             String[] safe={"Safeguard", "500", "616", "1", "true"}; String[][] guard=StatFactory.MakeParam(safe, null); s.AddStatString(guard);
             return s;
             case 4: AttackAb d= new AttackAb("Annihilate", "single", "enemy", 70, 3); d.special.add(new DamageCounter("Buffs", true, 20, true, true)); 
-            d.special.add(new Ignore("Defence", "always", 616));
+            d.special.add(new Ignore("Defence", "always", 616)); d.special.add(new ActivatePassive(27)); 
             return d;
             default: return null;
         }
@@ -1373,7 +1411,7 @@ public class Ability_List_Player
             case 1: BuffAb boost= new BuffAb ("Power Boost", "self", "self", 0); 
             String[] Antidisestablishmentarianism={"Intensify", "500", "30", "2", "true"}; String[][] redo=StatFactory.MakeParam(Antidisestablishmentarianism, null);
             String[] rewind={"Debilitate", "500", "10", "2", "true"}; String[][] overpower=StatFactory.MakeParam(rewind, null);
-            boost.AddStatString (redo); boost.AddStatString (overpower); boost.special.add (new SelfDMG (40, false));
+            boost.AddStatString (redo); boost.AddStatString (overpower); boost.special.add (new SelfDMG (30, false));
             return boost;
             case 2: HealAb recharge= new HealAb ("Recharge", "self", "self", 3); 
             recharge.special.add (new Confidence (500, 30)); recharge.special.add (new Purify (500, 1, "random", "any", true, true));

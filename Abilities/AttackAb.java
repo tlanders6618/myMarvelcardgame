@@ -17,9 +17,6 @@ class AttackAb extends Ability
     int omulti=0; //how many times to repeat the attack; the number of + signs
     boolean max=false; //whether the target directly loses max health instead of taking damage
     boolean lose=false; //whether the target directly loses health instead of taking damage
-    public AttackAb ()
-    {
-    }
     public AttackAb (String aname, String atype, String afriendly, int dmg, int cooldown)
     {
         this.oname=aname;
@@ -134,7 +131,7 @@ class AttackAb extends Ability
                         } 
                         if (elusive==true&&(this.odamage>0||this.damage>0)) //only print damage if attack was meant to do damage; abs that call assists shouldn't print
                         {
-                            Damage_Stuff.ElusiveDmg(user, chump, damage);
+                            Damage_Stuff.ElusiveDmg(user, chump, damage, "default");
                         }
                         else if (lose==true) //modified version of attacknodamage method
                         {
@@ -299,6 +296,7 @@ class AttackAb extends Ability
         }
         else if (channelled==true&&interrupt==false)
         {
+            interrupt=true; //so if they die in the middle of using a channelled ab, it won't print "channel was interrupted" on death
             System.out.println (oname+"'s channelling finished.");
             System.out.println (user.Cname+" used "+oname+"!");
             StatEff remove= null;
@@ -372,7 +370,7 @@ class AttackAb extends Ability
                         } 
                         if (elusive==true&&(this.odamage>0||this.damage>0)) //only print damage if attack was meant to do damage; abs that call assists shouldn't print
                         {
-                            Damage_Stuff.ElusiveDmg(user, chump, damage);
+                            Damage_Stuff.ElusiveDmg(user, chump, damage, "default");
                         }
                         else if (lose==true) //modified version of attacknodamage method
                         {
@@ -482,6 +480,7 @@ class AttackAb extends Ability
                 if (eff.getimmunityname().equalsIgnoreCase("Empower"))
                 eff.onTurnEnd(user); //removes used up empowerments from scoreboard after channelled ab use, to avoid confusion/the appearance of a bug
             }
+            interrupt=false; //reset so it isn't permanently unusable
         } 
         //don't go on cooldown bc useab already took care of it
         return toadd;
@@ -505,6 +504,16 @@ class AttackAb extends Ability
         else if (dcd>0) 
         {
             okay=false;
+        }
+        if (this.restricted==true)
+        {
+            switch (this.restriction)
+            {
+                case 77: //penance's ab #4
+                if (user.passivecount<3)
+                okay=false;
+                break;
+            }
         }
         return okay;
     }

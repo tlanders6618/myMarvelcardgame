@@ -10,9 +10,6 @@ package myMarvelcardgamepack;
 import java.util.ArrayList;
 class DebuffAb extends Ability
 {
-    public DebuffAb ()
-    {
-    }
     public DebuffAb (String aname, String atarget, String afriendly, int cod)
     {
         this.oname=aname;

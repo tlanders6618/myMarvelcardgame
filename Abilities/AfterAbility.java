@@ -125,6 +125,7 @@ class ActivatePassive extends AfterAbility //ability activates a hero's passive 
         }
         switch (num) //these are not passives, just too specific for an afterab; anyone who uses/copies the ability should be able to do this
         {
+            case 0: break; //instantly end the search since there is no num; 0 is default value
             case 17: //macdonald eating 
             if (target.dead==true)
             {
@@ -135,6 +136,13 @@ class ActivatePassive extends AfterAbility //ability activates a hero's passive 
                 StatEff.CheckApply(user, user, drugs);
                 else
                 StatEff.applyfail(user, drugs, "chance");
+            }
+            break;
+            case 27: //ultron's ult
+            if (target.dead==true)
+            {
+                Extend dispenser= new Extend(500, 616, "all", new String[] {"any"}, new String[]{"Buffs"}, 1, true, true, true);
+                dispenser.Use(user, target, 616);
             }
             break;
             case 72: //zemo's dominating blow
@@ -155,7 +163,7 @@ class ActivatePassive extends AfterAbility //ability activates a hero's passive 
                 if (e.getimmunityname().equals("Burn")&&e.getefftype().equals("Debuffs"))
                 {
                     StatEff hell=StaticPassive.InstaConversion(target, e, "Target Effect", 5, e.duration);
-                    target.remove(e.hashcode, "normal");
+                    target.remove(e.id, "normal");
                     target.add(hell);
                 }
             }
@@ -170,7 +178,7 @@ class ActivatePassive extends AfterAbility //ability activates a hero's passive 
                     if ((name.equals("Intensify")||name.equals("Focus"))&&e.getefftype().equals("Buffs"))
                     {
                         StatEff hell=StaticPassive.InstaConversion(user, e, name+" Effect", e.power, 616);
-                        user.remove(e.hashcode, "normal");
+                        user.remove(e.id, "normal");
                         user.add(hell);
                     }
                 }
@@ -196,7 +204,7 @@ class ActivatePassive extends AfterAbility //ability activates a hero's passive 
                     {
                         if (e.getimmunityname().equals("Bleed"))
                         {
-                            user.remove(e.hashcode, "normal"); 
+                            user.remove(e.id, "normal"); 
                             if (user.CheckFor("Afflicted", false)==false) 
                             {
                                 boolean success=CoinFlip.Flip(500+user.Cchance);
@@ -555,10 +563,7 @@ class Assist extends AfterAbility //either random allies hitting enemy or chosen
                         chump.LoseMaxHP (dealer, damage);
                         else //assists are elusive
                         {
-                            damage-=chump.ADR;
-                            if (damage<0)
-                            damage=0;
-                            chump.TakeDamage(dealer, damage, ab.aoe);
+                            Damage_Stuff.ElusiveDmg(dealer, chump, damage, "default");
                         }
                         for (SpecialAbility ob: ab.special)
                         {
@@ -573,7 +578,7 @@ class Assist extends AfterAbility //either random allies hitting enemy or chosen
                             otherapply.add(New);
                             else
                             {
-                                if (dealer.hash==chump.hash)
+                                if (dealer.id==chump.id)
                                 selfapply.add(New);
                                 else
                                 otherapply.add(New);
@@ -588,7 +593,7 @@ class Assist extends AfterAbility //either random allies hitting enemy or chosen
                             otherapply.add(New);
                             else
                             {
-                                if (dealer.hash==chump.hash)
+                                if (dealer.id==chump.id)
                                 selfapply.add(New);
                                 else
                                 otherapply.add(New);
@@ -817,7 +822,7 @@ class CopySteal extends AfterAbility //the only difference is that steal removes
                 else
                 {
                     System.out.println(hero.Cname+" Stole "+target.Cname+"'s "+ton.geteffname()+"!");
-                    target.remove(ton.hashcode, "steal");
+                    target.remove(ton.id, "steal");
                 }
                 String[] morb={name, "500", Integer.toString(pow), Integer.toString(dur), "true"}; String[][] string=StatFactory.MakeParam(morb, null);
                 if (hero.activeability!=null&&(Battle.team1[Battle.P1active]==hero||Battle.team2[Battle.P2active]==hero)) //to prevent bugs with assist
@@ -883,7 +888,7 @@ class CopySteal extends AfterAbility //the only difference is that steal removes
                 else
                 {
                     System.out.println(hero.Cname+" Stole "+target.Cname+"'s "+ton.geteffname()+"!");
-                    target.remove(ton.hashcode, "steal");
+                    target.remove(ton.id, "steal");
                 }
                 String[] morb={name, "500", Integer.toString(pow), Integer.toString(dur), "true"}; String[][] string=StatFactory.MakeParam(morb, null);
                 if (hero.activeability!=null&&(Battle.team1[Battle.P1active]==hero||Battle.team2[Battle.P2active]==hero)) //to prevent bugs with assist
@@ -922,7 +927,7 @@ class CopySteal extends AfterAbility //the only difference is that steal removes
                     else
                     {
                         System.out.println(hero.Cname+" Stole "+target.Cname+"'s "+eff.geteffname()+"!");
-                        target.remove(eff.hashcode, "steal");
+                        target.remove(eff.id, "steal");
                     }
                     String[] morb={name, "500", Integer.toString(pow), Integer.toString(dur), "true"}; String[][] string=StatFactory.MakeParam(morb, null);
                     if (hero.activeability!=null&&(Battle.team1[Battle.P1active]==hero||Battle.team2[Battle.P2active]==hero)) //to prevent bugs with assist
@@ -961,7 +966,7 @@ class CopySteal extends AfterAbility //the only difference is that steal removes
                     else
                     {
                         System.out.println(hero.Cname+" Stole "+target.Cname+"'s "+eff.geteffname()+"!");
-                        target.remove(eff.hashcode, "steal");
+                        target.remove(eff.id, "steal");
                     }
                     String[] morb={name, "500", Integer.toString(pow), Integer.toString(dur), "true"}; String[][] string=StatFactory.MakeParam(morb, null);
                     if (hero.activeability!=null&&(Battle.team1[Battle.P1active]==hero||Battle.team2[Battle.P2active]==hero)) //to prevent bugs with assist
@@ -1466,7 +1471,7 @@ class Nullify extends AfterAbility
                 while (falg==false);
                 StatEff ton= effs.get(index);
                 System.out.println(target.Cname+"'s "+ton.geteffname()+" was Nullified!");
-                target.remove(ton.hashcode, "nullify");                     
+                target.remove(ton.id, "nullify");                     
                 effs.remove(index);
                 if (effs.size()<=0)
                 {
@@ -1506,7 +1511,7 @@ class Nullify extends AfterAbility
                 int rando=(int) (Math.random()*(effs.size()-1));
                 StatEff get=effs.get(rando);
                 System.out.println(target.Cname+"'s "+get.geteffname()+" was Nullified!");
-                target.remove(get.hashcode, "nullify");                
+                target.remove(get.id, "nullify");                
                 effs.remove(rando);
                 if (effs.size()<=0)
                 {
@@ -1526,7 +1531,7 @@ class Nullify extends AfterAbility
                 for (StatEff eff: effs)
                 {
                     System.out.println(target.Cname+"'s "+eff.geteffname()+" was Nullified!");
-                    target.remove(eff.hashcode, "nullify"); 
+                    target.remove(eff.id, "nullify"); 
                 }
             }
             else
@@ -1542,7 +1547,7 @@ class Nullify extends AfterAbility
                 if (succeed==true)
                 {
                     System.out.println(target.Cname+"'s "+eff.geteffname()+" was Nullified!");
-                    target.remove(eff.hashcode, "nullify");                     
+                    target.remove(eff.id, "nullify");                     
                 }
                 else
                 {
@@ -1585,7 +1590,7 @@ class Purify extends AfterAbility
         else if (effname.equals("any"))
         Buff="debuff(s)";
         else
-        Buff=effname+" debuffs";
+        Buff=effname+" debuff(s)";
         String Self;
         if (self==true)
         Self="self. ";
@@ -1682,7 +1687,7 @@ class Purify extends AfterAbility
                 while (falg==false);
                 StatEff ton= effs.get(index);                  
                 System.out.println(target.Cname+"'s "+ton.geteffname()+" was Purified!");
-                target.remove(ton.hashcode, "purify");   
+                target.remove(ton.id, "purify");   
                 effs.remove(index);
                 if (effs.size()<=0)
                 {
@@ -1722,7 +1727,7 @@ class Purify extends AfterAbility
                 int rando=(int) (Math.random()*(effs.size()-1));
                 StatEff get=effs.get(rando);
                 System.out.println(target.Cname+"'s "+get.geteffname()+" was Purified!");
-                target.remove(get.hashcode, "purify");
+                target.remove(get.id, "purify");
                 effs.remove(rando);
                 if (effs.size()<=0)
                 {
@@ -1742,7 +1747,7 @@ class Purify extends AfterAbility
                 for (StatEff eff: effs)
                 {
                     System.out.println(target.Cname+"'s "+eff.geteffname()+" was Purified!");
-                    target.remove(eff.hashcode, "purify"); 
+                    target.remove(eff.id, "purify"); 
                 }
             }
             else
@@ -1758,7 +1763,7 @@ class Purify extends AfterAbility
                 if (succeed==true)
                 {                    
                     System.out.println(target.Cname+"'s "+eff.geteffname()+" was Purified!");
-                    target.remove(eff.hashcode, "purify"); 
+                    target.remove(eff.id, "purify"); 
                 }
                 else
                 {
@@ -1968,10 +1973,15 @@ class Ricochet extends AfterAbility //do ricochet damage
         targ=" to self on hit. ";
         else
         targ=" to those hit. ";
-        if (chance>=500)
-        this.desc="Ricochets and applies "+e[0][0]+targ;
+        String Chance;
+        if (Integer.valueOf(e[0][1])>=500)
+        Chance="applies";
         else
-        desc=this.chance+"% chance to Ricochet and apply "+e[0][0]+targ;
+        Chance="has an equal chance to apply";
+        if (chance>=500)
+        this.desc="Ricochets and "+Chance+" "+e[0][0]+targ;
+        else
+        desc=this.chance+"% chance to Ricochet and "+Chance+" "+e[0][0]+targ;
     }
     @Override
     public void Use (Character user, Character target, int dmg) //user is the one doing the damage 

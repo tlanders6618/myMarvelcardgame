@@ -50,7 +50,7 @@ class ActivateP extends BeforeAbility //ability activates a hero's passive
                 }
             }
             if (delete!=null)
-            user.remove(delete.hashcode, "normal");
+            user.remove(delete.id, "normal");
             break;
             case 40: ActivePassive.Sandy(user, "ult"); break; //activate sandstorm
         }
@@ -143,7 +143,7 @@ class ApplyShatter extends BeforeAbility //shatter applies before attacking, and
                     {
                         if (eff.getefftype().equalsIgnoreCase("Defence"))
                         {
-                            target.remove(eff.hashcode, "normal");
+                            target.remove(eff.id, "normal");
                         }
                     }
                 }
@@ -308,7 +308,7 @@ class BeforeNullify extends BeforeAbility //same as nullify but quick; only wm a
                 while (falg==false);
                 StatEff ton= effs.get(index);                  
                 System.out.println(target.Cname+"'s "+ton.geteffname()+" was Nullified!");
-                target.remove(ton.hashcode, "nullify");   
+                target.remove(ton.id, "nullify");   
                 String name=ton.getimmunityname(); 
                 if (hero.index==30&&!(name.equals("Protect"))&&!(name.equals("Taunt"))) //brawn's passive; can copy indefinite dur stateffs bc why not
                 {
@@ -356,7 +356,7 @@ class BeforeNullify extends BeforeAbility //same as nullify but quick; only wm a
                 int rando=(int) (Math.random()*(effs.size()-1));
                 StatEff get=effs.get(rando);                
                 System.out.println(target.Cname+"'s "+get.geteffname()+" was Nullified!");
-                target.remove(get.hashcode, "nullify");
+                target.remove(get.id, "nullify");
                 String name=get.getimmunityname(); 
                 if (hero.index==30&&!(name.equals("Protect"))&&!(name.equals("Taunt")))
                 {
@@ -384,7 +384,7 @@ class BeforeNullify extends BeforeAbility //same as nullify but quick; only wm a
                 for (StatEff eff: effs)
                 {
                     System.out.println(target.Cname+"'s "+eff.geteffname()+" was Nullified!");
-                    target.remove(eff.hashcode, "nullify"); 
+                    target.remove(eff.id, "nullify"); 
                 }
             }
             else
@@ -400,7 +400,7 @@ class BeforeNullify extends BeforeAbility //same as nullify but quick; only wm a
                 if (succeed==true)
                 {                    
                     System.out.println(target.Cname+"'s "+eff.geteffname()+" was Nullified!");
-                    target.remove(eff.hashcode, "nullify"); 
+                    target.remove(eff.id, "nullify"); 
                 }
                 else
                 {
@@ -669,7 +669,7 @@ class DamageCounterRemove extends BeforeAbility //increase damage based on numbe
         }
         for (StatEff eff: concurrentmodificationexception)
         {
-            target.remove(eff.hashcode, "normal");
+            target.remove(eff.id, "normal");
         }
         if (aoe==true&&increase>0&&(Battle.team1[Battle.P1active]==hero||Battle.team2[Battle.P2active]==hero)) //to avoid applying empower after an assist
         {
@@ -903,7 +903,7 @@ class DebuffMod extends BeforeAbility //for altering the debuffs an ab applies, 
                 System.out.println(user.Cname+"'s Copy failed to apply due to an immunity.");
             }
             else //random buff gain
-            Card_HashCode.RandomStat(user, target, "Ultron");
+            CardCode.RandomStat(user, target, "Ultron");
             break;
             case 13: //modern drax
             StaticPassive.Drax(user, target, "battack"); //check which debuff to apply
@@ -1044,7 +1044,24 @@ class DebuffMod extends BeforeAbility //for altering the debuffs an ab applies, 
                 return 30;
             }
             break;
-            case 36: Card_HashCode.RandomStat(user, target, "statdisable debuffs"); break; //vulture
+            case 36: CardCode.RandomStat(user, target, "statdisable debuffs"); break; //vulture
+            case 77: //penance
+            if (user.index==77)
+            {
+                switch (ab)
+                {
+                    case 1: user.passivecount-=3; break; //single target
+                    //so the damage boost affects all targets hit by aoe attack instead of only the first; should be applied and consumed without player seeing it
+                    case 2: int blooming=user.passivecount*15; user.passivecount=0; //aoe
+                    if (blooming>0)
+                    {
+                        Empower e= new Empower(500, blooming, 1, user); user.effects.add(e); return blooming;
+                    } 
+                    break;
+                    case 3: int hysop=ActivePassive.Penance(user, 60); break; //spike rake; passive doesn't trigger for self dmg so must trigger it manually
+                }
+            }
+            break;
             case 84: //namor's trident of neptune; giganto must be on his team and alive and unstunned for the assist to work
             if (user.passivefriend[0]!=null&&user.passivefriend[0].summoned==true&&user.passivefriend[0].index==12) //has summoned giganto
             {
@@ -1082,7 +1099,7 @@ class DebuffMod extends BeforeAbility //for altering the debuffs an ab applies, 
                 return 45;
             }
             break;
-            case 91: Card_HashCode.RandomStat(user, target, "Goblin"); break; //green goblin
+            case 91: CardCode.RandomStat(user, target, "Goblin"); break; //green goblin
             case 100: //elixir
             if (user.index==100&&user==target)
             {
@@ -1268,6 +1285,38 @@ class Ignore extends BeforeAbility
       }
    }
 }
+class MissingDMG extends BeforeAbility
+{
+    int multiplier; int missing; boolean self;
+    public MissingDMG (int mu, int mi, boolean se)
+    {
+        missing=mi; multiplier=mu; self=se;
+        String Targ;
+        if (se==true)
+        Targ="self. ";
+        else
+        Targ="the target. ";
+        this.desc="Deals +"+mu+" damage for every "+mi+" missing HP on "+Targ;
+    }
+    @Override
+    public int Use (Character hero, Character target)
+    {
+        Character focus;
+        if (self==false)
+        focus=target;
+        else
+        focus=hero;
+        int lost=focus.maxHP-focus.HP; //e.g. 250-100=150 hp lost
+        if (lost<0)
+        return 0;
+        else
+        {
+            int tomult=lost/missing; //e.g. 150 hp lost divided by 10 is 15
+            tomult*=multiplier; //e.g. has 150 missing HP and does +5 damage for every 10 missing health; 15*5=75 more dmg
+            return tomult;
+        }
+    }
+}
 class SelfDMG extends BeforeAbility
 {
     int amount; boolean loss;
@@ -1284,9 +1333,7 @@ class SelfDMG extends BeforeAbility
     {
         if (loss==false)
         {
-            amount-=hero.ADR; 
-            System.out.println (hero.Cname+" took "+amount+" damage");
-            hero.TakeDamage(hero, amount, false);
+            Damage_Stuff.ElusiveDmg(null, hero, amount, "default");
         }
         else
         {

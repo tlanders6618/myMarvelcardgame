@@ -12,7 +12,7 @@ public abstract class SpecialAbility
    String desc; //for printdesc for abs
    public SpecialAbility()
    {
-       this.hashcode=Card_HashCode.RandomCode();
+       this.hashcode=CardCode.RandomCode();
    }
    public int Use(Character hero, Character target) //for before abs; called before ab is used, after choosing targets
    {
@@ -269,7 +269,7 @@ class RedwingHelper extends SpecialAbility //called by character.attack, after d
                     break; //since there can only be one redwing
                 }
             }
-            victim.remove(removee.hashcode, "normal");
+            victim.remove(removee.id, "normal");
             victim.helpers.remove(remov);
             victim.immunities.remove("Debuffs"); 
         }

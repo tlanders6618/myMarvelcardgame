@@ -10,9 +10,6 @@ package myMarvelcardgamepack;
 import java.util.ArrayList;
 class DefAb extends Ability 
 {
-    public DefAb ()
-    {
-    }
     public DefAb (String aname, String atarget, String afriendly, int cod)
     {
         this.oname=aname;

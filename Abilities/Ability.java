@@ -11,6 +11,7 @@ import java.util.ArrayList;
 public abstract class Ability
 {
     boolean channelled=false; boolean interrupt=false; boolean usable=true; 
+    boolean restricted=false; int restriction=0; //restricted is whether ab has unique requirements for checkuse, e.g. hp is below 100
     boolean singleuse=false; boolean used=false; //used is only for keeeping track of single use
     boolean unbound=false, control=false, elusive=false; 
     boolean ignore=false; //for ignoring disable debuffs but not suppression
@@ -257,7 +258,7 @@ public abstract class Ability
                         }
                         else if (array[0][4].equalsIgnoreCase("knull"))
                         {
-                            if (user.hash==chump.hash)
+                            if (user.id==chump.id)
                             {
                                 selfapply.add(New);
                             }
@@ -280,7 +281,7 @@ public abstract class Ability
                        }
                        else if (array[0][4].equalsIgnoreCase("knull"))
                        {
-                            if (user.hash==chump.hash)
+                            if (user.id==chump.id)
                             {
                                 selfapply.add(New); 
                             }
@@ -407,6 +408,7 @@ public abstract class Ability
         }
         else if (channelled==true&&interrupt==false)
         {
+            interrupt=true; //so if they die in the middle of using a channelled ab, it won't print "channel was interrupted" on death
             System.out.println ("\n"+oname+"'s channelling finished.");
             System.out.println (user.Cname+" used "+oname+"!");
             StatEff remove= null;
@@ -497,7 +499,7 @@ public abstract class Ability
                         }
                         else
                         {
-                            if (user.hash==chump.hash)
+                            if (user.id==chump.id)
                             {
                                 selfapply.add(New);
                             }
@@ -520,7 +522,7 @@ public abstract class Ability
                        }
                        else //neither true nor false; capabable of affecting either self or an ally
                        {
-                           if (user.hash==chump.hash)
+                           if (user.id==chump.id)
                            {
                                selfapply.add(New);
                            }
@@ -589,6 +591,7 @@ public abstract class Ability
                 if (eff.getimmunityname().equalsIgnoreCase("Empower"))
                 eff.onTurnEnd(user); //removes used up empowerments from scoreboard after channelled ab use, to avoid confusion/the appearance of a bug
             }
+            interrupt=false; //reset so it isn't permanently unusable
         }
         //don't go on cooldown bc useab already took care of it
         return toadd;
@@ -646,12 +649,10 @@ public abstract class Ability
         Character villain=Ability.GetRandomHero(user, targ, shock, true); //random enemy, or teammate if the Ricochet is from a Shock
         if (villain!=null)
         {
-            dmg-=villain.ADR;
-            if (dmg>0)
-            {
-                System.out.println ("\n"+villain.Cname+" took "+dmg+" Ricochet damage"); 
-                villain.TakeDamage(dmg, false); //random enemy takes the damage
-            }
+            if (shock==true) //shock did the dmg; no dealer
+            Damage_Stuff.ElusiveDmg(null, villain, dmg, "ricochet");
+            else //ability did the dmg; dealer is the ab's user
+            Damage_Stuff.ElusiveDmg(user, villain, dmg, "ricochet");
             if (e!=null)
             {
                 if (e[0][4].equals("false")&&villain.dead==false)

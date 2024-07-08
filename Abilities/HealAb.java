@@ -10,9 +10,6 @@ package myMarvelcardgamepack;
 import java.util.ArrayList;
 class HealAb extends Ability
 {
-    public HealAb ()
-    {
-    }
     public HealAb (String aname, String atarget, String afriendly, int cod)
     {
         this.oname=aname;

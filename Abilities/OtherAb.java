@@ -10,9 +10,6 @@ package myMarvelcardgamepack;
 import java.util.ArrayList;
 class OtherAb extends Ability
 {
-    public OtherAb ()
-    {
-    }
     public OtherAb (String aname, String atarget, String afriendly, int cooldown)
     {
         this.oname=aname;

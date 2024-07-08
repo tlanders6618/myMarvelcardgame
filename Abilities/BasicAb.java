@@ -63,7 +63,7 @@ class BasicAb extends AttackAb
                     do 
                     {
                         for (StatEff eff: user.effects) //get empowerments
-                        {
+                        { 
                             if (eff.getimmunityname().equalsIgnoreCase("Empower"))
                             {
                                 change=eff.UseEmpower(user, ab, true);
@@ -81,7 +81,7 @@ class BasicAb extends AttackAb
                         } 
                         if (elusive==true&&(this.odamage>0||this.damage>0)) //only print damage if attack was meant to do damage; abs that call assists shouldn't print
                         {
-                            Damage_Stuff.ElusiveDmg(user, chump, damage);
+                            Damage_Stuff.ElusiveDmg(user, chump, damage, "default");
                         }
                         else if (lose==true) 
                         {
@@ -115,7 +115,7 @@ class BasicAb extends AttackAb
                             }
                             else
                             {
-                                if (user.hash==chump.hash)
+                                if (user.id==chump.id)
                                 {
                                     selfapply.add(New);
                                 }
@@ -139,7 +139,7 @@ class BasicAb extends AttackAb
                             }
                             else
                             {
-                                if (user.hash==chump.hash)
+                                if (user.id==chump.id)
                                 {
                                     selfapply.add(New);
                                 }
