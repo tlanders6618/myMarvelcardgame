@@ -22,6 +22,68 @@ public class Scoreboard
     static JTable table21; 
     static JTable table22;
     static JScrollPane Scroll11; static JScrollPane Scroll12; static JScrollPane Scroll21; static JScrollPane Scroll22; //where the tables are held
+    /*
+     * public static void createAndShowGUI() {
+		JFrame frame = new JFrame("Easy GUI");
+		frame.setContentPane(new EasyGUI());
+		frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+		frame.setPreferredSize(new Dimension(400, 150)); //default; width, height
+		frame.pack();
+		frame.setVisible(true);
+	}
+	
+	public static void main(String[] args) {
+		javax.swing.SwingUtilities.invokeLater(new Runnable() {
+			public void run() {
+				createAndShowGUI();
+			}
+		});
+	}
+	public class EasyGUI extends JPanel {
+	
+	private static final long serialVersionUID = 1L;
+	
+	private JButton button1, button2;
+	
+	private JLabel display;
+	
+	private int counter=0;
+	
+	public EasyGUI () 
+	{
+		this.setLayout(new BorderLayout());
+		display=new JLabel(Integer.toString(counter)); display.setFont(new Font("Arial", Font.BOLD, 48));
+		
+		button1=new JButton("Increment");
+		button1.addActionListener(new ActionListener() 
+		{
+			@Override
+			public void actionPerformed(ActionEvent e)  
+			{
+				counter++; display.setText(Integer.toString(counter));
+			}
+			
+		});
+		
+		button2=new JButton("Decrement");
+		button2.addActionListener(new ActionListener()
+		{
+			@Override
+			public void actionPerformed (ActionEvent e) 
+			{
+				counter--; display.setText(Integer.toString(counter));
+			}
+		});
+		
+		GridLayout layout=new GridLayout(1,0); //one row, flexible # of columns
+		layout.setHgap(150);
+		JPanel hold=new JPanel(layout); 
+		hold.add(button1); hold.add(button2);
+		this.add(hold, BorderLayout.SOUTH);
+		this.add(display, BorderLayout.CENTER);
+	}
+}
+     */
     public static void main (Character[] team1, Character[] team2)
     {           
         MainPanel = new JSplitPane( JSplitPane.VERTICAL_SPLIT );

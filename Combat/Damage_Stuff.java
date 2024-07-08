@@ -1,4 +1,4 @@
-package myMarvelcardgamepack;
+ package myMarvelcardgamepack;
 /**
  * Designer: Timothy Landers
  * Date: 16/8/22
@@ -57,7 +57,13 @@ public class Damage_Stuff
             }
         }
         else
-        hero.HP-=dmg;
+        {
+            if (hero.immunities.contains("Damage")) //for speedball, slapstick, etc
+            {
+                dmg=0; //(mainly bc speedball) cannot just do ADR+=999, or reflect, dmgtaken, etc will not work, so instead set dmg=0 after it's dealt but before being harmed
+            }
+            hero.HP-=dmg;
+        }
     }
     public static int GetInput()
     {
@@ -129,12 +135,35 @@ public class Damage_Stuff
         }
         return dmg;
     }
-    public static void ElusiveDmg (Character hero, Character target, int dmg)
+    public static void ElusiveDmg (Character dealer, Character target, int dmg, String cause)
     {
-        dmg-=target.ADR;
-        if (dmg<0)
-        dmg=0;
-        System.out.println ("\n"+hero.Cname+" did "+dmg+" damage to "+target.Cname);
+        if (target.immunities.contains("Damage"))
+        dmg=0; //should print dmg statement even if immune, to avoid confusion
+        else
+        {
+            dmg-=target.ADR;
+            if (dmg<0)
+            dmg=0;
+        }
+        if (dealer!=null) 
+        {
+            switch (cause)
+            {
+                case "counter": System.out.println("\n"+dealer+" counterattacked "+target+" for "+dmg+" damage!"); break;
+                case "reflect": System.out.println ("\n"+dealer+" Reflected "+dmg+" damage back to "+target); break; 
+                case "ricochet": System.out.println ("\n"+target+" took "+dmg+" Ricochet damage"); break; //ricochet from an ability
+                case "default": System.out.println ("\n"+dealer+" did "+dmg+" damage to "+target); break;
+            }
+        }
+        else 
+        {
+            switch (cause)
+            {
+                case "countdown": System.out.println("\n"+target+" took "+dmg+" damage from their Countdown"); break;
+                case "ricochet": System.out.println ("\n"+target+" took "+dmg+" Ricochet damage"); break; //ricochet from shock
+                case "default": System.out.println ("\n"+target+" took "+dmg+" damage"); break; //used for selfdmg/battlefield effs
+            }
+        }
         target.TakeDamage(dmg, false); 
     }
     public static void CheckBlind (Character hero)
@@ -165,7 +194,7 @@ public class Damage_Stuff
                         if (effect.getefftype().equalsIgnoreCase("Other")||(effect.getefftype().equalsIgnoreCase("Defence")&&!(dealer.ignores.contains("Defence"))))
                         {
                             System.out.println ("\n"+target.Cname+" Evaded "+dealer.Cname+"'s attack!");
-                            target.remove(effect.hashcode, "normal");
+                            target.remove(effect.id, "normal");
                             dealer.binaries.add("Missed");
                             target.onEvade(dealer);
                             break;

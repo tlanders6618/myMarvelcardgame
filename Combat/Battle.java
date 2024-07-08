@@ -153,7 +153,7 @@ public class Battle
                     }
                     for (StatEff e: concurrent)
                     {
-                        champions[P1active].remove(e.hashcode, "normal");
+                        champions[P1active].remove(e.id, "normal");
                     }
                     hero=champions[P1active];
                     fine=true;
@@ -206,7 +206,7 @@ public class Battle
                     }
                     for (StatEff e: concurrent)
                     {
-                        champions[P2active].remove(e.hashcode, "normal");
+                        champions[P2active].remove(e.id, "normal");
                     }
                     hero=champions[P2active];
                     fine=true;
@@ -685,7 +685,7 @@ public class Battle
             int i=0;
             for (Character hero:team1) 
             {
-                if (hero!=null&&hero.hash!=self.hash&&!(hero.binaries.contains("Banished"))&&hero.dead==false)
+                if (hero!=null&&hero.id!=self.id&&!(hero.binaries.contains("Banished"))&&hero.dead==false)
                 {
                     friends[i]=hero;
                     ++i;
@@ -699,7 +699,7 @@ public class Battle
             int i=0;
             for (Character hero:team2) 
             {
-                if (hero!=null&&hero.hash!=self.hash&&!(hero.binaries.contains("Banished"))&&hero.dead==false) 
+                if (hero!=null&&hero.id!=self.id&&!(hero.binaries.contains("Banished"))&&hero.dead==false) 
                 {
                     foes[i]=hero;
                     ++i;

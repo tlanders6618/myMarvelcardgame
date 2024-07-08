@@ -259,6 +259,27 @@ public class CoinFlip
             hero.immunities.remove ("Burn");
         }
     }
+    public static void DMGImmune (Character hero, boolean add)
+    {
+        if (add==true)
+        {
+            hero.BlDR+=999;
+            hero.PoDR+=999;
+            hero.ShDR+=999;
+            hero.BuDR+=999;
+            hero.WiDR+=999;
+            hero.immunities.add("Damage"); //means enemies can do dmg to hero for things like ricochet and reflect, but hero takes 0 (none of it); different from doing ADR+=999
+        }
+        else
+        {
+            hero.BlDR-=999;
+            hero.PoDR-=999;
+            hero.ShDR-=999;
+            hero.BuDR-=999;
+            hero.WiDR-=999;
+            hero.immunities.remove("Damage");
+        }
+    }
     public static void StatImmune (Character hero, boolean add)
     {
         if (add==true)
