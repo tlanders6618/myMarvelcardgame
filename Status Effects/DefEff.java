@@ -10,8 +10,9 @@ package myMarvelcardgamepack;
 import java.util.ArrayList;
 abstract class DefEff extends StatEff
 {
-    public DefEff ()
+    public DefEff (int c, Character p)
     {
+        this.chance=c; this.prog=p; this.id=CardCode.RandomCode();
     }
     @Override 
     public String getefftype()
@@ -31,14 +32,12 @@ class Barrier extends DefEff
     {
         return "Barrier: "+this.power+", "+this.duration+" turn(s)";
     }
-    public Barrier (int nchance, int npower, int ndur, Character p) 
+    public Barrier (int c, int npower, int ndur, Character p) 
     {
-        this.chance=nchance;
+        super(c, p);
         this.power=npower;
         this.duration=ndur;
         this.oduration=ndur;
-        this.hashcode=Card_HashCode.RandomCode();
-        this.prog=p;
     }
     @Override
     public void onTurnEnd (Character hero)
@@ -46,7 +45,7 @@ class Barrier extends DefEff
         --this.duration; 
         if (this.duration<=0||this.power==0)
         {
-            hero.remove(this.hashcode, "normal");
+            hero.remove(this.id, "normal");
         }
     }
     @Override
@@ -86,10 +85,8 @@ class Evade extends DefEff
     }
     public Evade (int achance, Character p) 
     {
-        this.chance=achance;
-        this.hashcode=Card_HashCode.RandomCode();
+        super(achance, p);
         this.stackable=true;
-        this.prog=p;
     }
 }
 class Guard extends DefEff
@@ -111,15 +108,13 @@ class Guard extends DefEff
             return "Guard: "+this.power+", "+this.duration+" attack(s)";
         }
     }
-    public Guard (int nchance, int npower, int ndur, Character p) 
+    public Guard (int c, int npower, int ndur, Character p) 
     //does nothing on its own; all handled by checkguard, called by character.attack as part of dmg calc, before the takedamage stuff
     {
-        this.chance=nchance;
+        super(c, p);
         this.power=npower;
         this.duration=ndur;
         this.oduration=ndur;
-        this.hashcode=Card_HashCode.RandomCode();
-        this.prog=p;
     }
     @Override
     public void onTurnEnd (Character hero) //overriden to avoid decreasing duration on turn
@@ -136,11 +131,16 @@ class Guard extends DefEff
         else //for quake
         System.out.println ("\n"+targ+"'s Guard increased " +dealer+"'s attack damage by "+Math.abs(this.power));
         if (this.duration<=0)
-        targ.remove(this.hashcode, "normal");
+        targ.remove(this.id, "normal");
         if (dmg<0)
         return 0;
         else
         return dmg;
+    }
+    @Override
+    public void Extended (int d, Character hero)
+    {
+        //cannot be extended
     }
 }
 class Protect extends DefEff
@@ -157,7 +157,7 @@ class Protect extends DefEff
         myfriend.duration+=dur;
         if (this.duration<=0)
         {
-            protector.remove(this.hashcode, "normal");
+            protector.remove(this.id, "normal");
         }
     }
     @Override
@@ -184,17 +184,15 @@ class Protect extends DefEff
         if (this.duration<=0) 
         {
             removed=true;
-            hero.remove(this.hashcode, "normal");
+            hero.remove(this.id, "normal");
         }
         else
         myfriend.lessprotected();
     }
-    public Protect (int chancce, int ndur, Character p) 
+    public Protect (int c, int ndur, Character p) 
     {
-        this.chance=chancce;
-        this.duration=ndur;
-        this.hashcode=Card_HashCode.RandomCode();   
-        this.prog=p;
+        super(c, p);
+        this.duration=ndur; //odur remains at 616 bc protect cannot be copied
     }
     @Override
     public void PrepareProtect (Character prot, Character weak)
@@ -211,14 +209,14 @@ class Protect extends DefEff
         invis=true;  
         for (StatEff e: protector.effects)
         {
-            if (e.getimmunityname().equals("Protect")&&e.hashcode!=this.hashcode) //check if the protector has a protect other than this one; protect shouldn't stack with ProtectE
+            if (e.getimmunityname().equals("Protect")&&e.id!=this.id) //check if the protector has a protect other than this one; protect shouldn't stack with ProtectE
             {
                 dupe=true; break;
             }
         }
         for (StatEff e: weakling.effects)
         {
-            if (e.getimmunityname().equals("Protect")&&e.hashcode!=this.hashcode)
+            if (e.getimmunityname().equals("Protect")&&e.id!=this.id)
             {
                 dupe=true; break;
             }
@@ -228,25 +226,25 @@ class Protect extends DefEff
             System.out.println ("Taunting characters cannot be Protected.");
             myfriend=null;
             removed=true;
-            hero.remove(this.hashcode, "silent");
+            hero.remove(this.id, "silent");
         }
         else if (invis==true)
         {
             System.out.println ("Invisible characters cannot be Protected.");
             myfriend=null;
             removed=true;
-            hero.remove(this.hashcode, "silent");
+            hero.remove(this.id, "silent");
         }
         else if (dupe==true)
         {
             System.out.println ("Characters who already have Protect cannot be Protected.");
             myfriend=null;
             removed=true;
-            hero.remove(this.hashcode, "silent");
+            hero.remove(this.id, "silent");
         }
         else 
         {
-            Protected pr= new Protected(this.duration, this.prog);
+            Protected pr= new Protected(this.chance, this.duration, this.prog);
             myfriend=pr;
             pr.myfriend=this;
             pr.PrepareProtect(protector, weakling);
@@ -270,7 +268,7 @@ class Protect extends DefEff
         removed=true;
         if (myfriend!=null&&myfriend.removed==false) 
         {
-            weakling.remove(myfriend.hashcode, "normal");
+            weakling.remove(myfriend.id, "normal");
         }
     }
     @Override
@@ -291,24 +289,21 @@ class Protected extends DefEff
         this.duration+=dur;
         for (StatEff f: protector.effects)
         {
-            if (f.hashcode==myfriend.hashcode&&f.getimmunityname().equalsIgnoreCase("protect")&&f.duration<this.duration)
+            if (f.id==myfriend.id&&f.getimmunityname().equalsIgnoreCase("protect")&&f.duration<this.duration)
             {
                 f.Extended(dur, null);
             }
         }
     }
     @Override
-    public void onApply(Character target)
-    {        
-    }
-    @Override
     public String getimmunityname()
     {
         return "Protect";
     }
-    public Protected (int ndur, Character p)
+    public Protected (int c, int ndur, Character p)
     {
-        this.duration=ndur; this.hashcode=Card_HashCode.RandomCode(); this.prog=p;
+        super(c, p);
+        this.duration=ndur; 
     }
     @Override
     public Character getProtector ()
@@ -344,7 +339,7 @@ class Protected extends DefEff
         if (this.duration<=0)
         {
             removed=true;
-            weakling.remove(this.hashcode, "normal");
+            weakling.remove(this.id, "normal");
         }
     }
     @Override
@@ -353,7 +348,7 @@ class Protected extends DefEff
         removed=true;
         if (myfriend!=null&&myfriend.removed==false)
         {
-            protector.remove(myfriend.hashcode, "normal");
+            protector.remove(myfriend.id, "normal");
         }
     }
 }
@@ -376,14 +371,12 @@ class Resistance extends DefEff
             return "Resistance: "+this.power+", "+this.duration+" turn(s)";
         }
     }
-    public Resistance (int nchance, int npower, int ndur, Character p) 
+    public Resistance (int c, int npower, int ndur, Character p) 
     {
-        this.chance=nchance;
+        super(c, p);
         this.power=npower;
         this.duration=ndur;
         this.oduration=ndur;
-        this.hashcode=Card_HashCode.RandomCode();
-        this.prog=p;
     }
     @Override
     public void onApply (Character hero) 
@@ -417,13 +410,11 @@ class Taunt extends DefEff
         }
         return name;
     }
-    public Taunt (int chan, int ndur, Character p) 
+    public Taunt (int c, int ndur, Character p) 
     {
-        this.chance=chan;
+        super(c, p);
         this.duration=ndur;
         this.oduration=ndur;
-        this.hashcode=Card_HashCode.RandomCode();
-        this.prog=p;
     }
     @Override
     public void onApply (Character hero) 
@@ -440,7 +431,7 @@ class Taunt extends DefEff
         }
         for (StatEff eff: effs) //taunting heroes cannot be protected or invisible
         {
-            hero.remove(eff.hashcode, "normal");
+            hero.remove(eff.id, "normal");
         }
     }
 }

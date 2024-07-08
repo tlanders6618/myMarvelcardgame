@@ -10,8 +10,9 @@ package myMarvelcardgamepack;
 import java.util.ArrayList;
 public abstract class DebuffEff extends StatEff 
 {
-    public DebuffEff ()
+    public DebuffEff (int c, Character p)
     {
+        this.chance=c; this.prog=p; this.id=CardCode.RandomCode();
     }
     @Override 
     public String getefftype()
@@ -34,28 +35,20 @@ class Afflicted extends DebuffEff
     @Override
     public String geteffname()
     {
-        String name;
         if (this.duration<100)
         {
-            name="Afflicted, "+this.duration+" turn(s)";
+            return "Afflicted, "+this.duration+" turn(s)";
         }
         else
         {
-            name="Afflicted";
+            return "Afflicted";
         }
-        return name;
     }
-    public Afflicted (int nchance, int ndur, Character p)
+    public Afflicted (int c, int ndur, Character p)
     {
+        super(c, p);
         this.duration=ndur;
         this.oduration=ndur;
-        this.chance=nchance;
-        this.hashcode=Card_HashCode.RandomCode();
-        this.prog=p;
-    }
-    @Override
-    public void onApply (Character target)
-    {
     }
 }
 class Bleed extends DebuffEff 
@@ -73,27 +66,22 @@ class Bleed extends DebuffEff
     @Override
     public String geteffname()
     {
-        String name;
         if (duration<100)
         {
-            name="Bleed: "+this.power+", "+this.duration+" turn(s)";
-            return name;
+            return "Bleed: "+this.power+", "+this.duration+" turn(s)";
         }
         else
         {
-            name="Bleed: "+this.power;
-            return name;
+            return "Bleed: "+this.power;
         }
     }
-    public Bleed (int nchance, int nstrength, int nduration, Character p)
+    public Bleed (int c, int nstrength, int nduration, Character p)
     {
+        super(c, p);
         this.power=nstrength;
         this.duration=nduration;
         this.oduration=nduration;
-        this.chance=nchance;
-        this.hashcode=Card_HashCode.RandomCode();
         this.stackable=true;
-        this.prog=p;
     }
     @Override
     public void onTurnStart (Character hero)
@@ -104,7 +92,7 @@ class Bleed extends DebuffEff
             --this.duration;
             if (this.duration<=0)
             {
-                hero.remove(this.hashcode, "normal");
+                hero.remove(this.id, "normal");
             }
         }
     }
@@ -112,10 +100,6 @@ class Bleed extends DebuffEff
     public void onTurnEnd (Character hero)
     {
         //do nothing
-    }
-    @Override
-    public void onApply (Character target)
-    {
     }
 }
 class Blind extends DebuffEff
@@ -143,13 +127,11 @@ class Blind extends DebuffEff
            return "Blind";
        }
     }
-    public Blind (int nchance, int ndur, Character q)
+    public Blind (int c, int ndur, Character q)
     {
-        this.chance=nchance;
+        super(c, q);
         this.duration=ndur;
         this.oduration=ndur;
-        this.hashcode=Card_HashCode.RandomCode();
-        this.prog=q;
         if (q.index==73)
         mimi=true;
         else
@@ -195,15 +177,13 @@ class Burn extends DebuffEff
             return "Burn: "+this.power;
         }
     }
-    public Burn (int nchance, int nstrength, int nduration, Character p)
+    public Burn (int c, int nstrength, int nduration, Character p)
     {
+        super(c, p);
         this.power=nstrength;
         this.duration=nduration;
         this.oduration=nduration;
-        this.chance=nchance;
-        this.hashcode=Card_HashCode.RandomCode();
         this.stackable=true;
-        this.prog=p;
     }
     @Override
     public void onTurnStart (Character hero)
@@ -214,7 +194,7 @@ class Burn extends DebuffEff
             --this.duration;
             if (this.duration<=0)
             {
-                hero.remove(this.hashcode, "normal");
+                hero.remove(this.id, "normal");
             }
         }
     }
@@ -251,16 +231,14 @@ class Countdown extends DebuffEff
     @Override
     public String geteffname()
     {
-        String name="Countdown: "+this.power+", "+this.duration+" turn(s)";
-        return name;
+        return "Countdown: "+this.power+", "+this.duration+" turn(s)";
     }
-    public Countdown (int nchance, int pow, int ndur, Character p, String[] neff)
+    public Countdown (int c, int pow, int ndur, Character p, String[] neff)
     {
+        super(c, p);
         this.duration=ndur;
-        this.chance=nchance;
         this.power=pow; 
         this.oduration=ndur;
-        this.prog=p;
         if (neff!=null)
         {
             if (neff[1]==null) //it's a one word array like ricochet, with the word in neff[0]
@@ -272,7 +250,6 @@ class Countdown extends DebuffEff
                 statstrings.add(neff); 
             }
         }
-        this.hashcode=Card_HashCode.RandomCode();
         this.stackable=true;
     }
     @Override
@@ -281,13 +258,10 @@ class Countdown extends DebuffEff
         --this.duration;
         if (this.duration<=0)
         {
-            hero.remove(this.hashcode, "normal");
+            hero.remove(this.id, "normal");
             int dmg=this.power; 
-            dmg=dmg-hero.ADR; //countdown dmg not affected by resistance
-            if (dmg<0)
-            dmg=0;
-            System.out.println("\n"+hero.Cname+" took "+dmg+" damage from their Countdown");
-            dmg=hero.TakeDamage(dmg, true);       
+            Damage_Stuff.ElusiveDmg(null, hero, dmg, "countdown");
+            dmg-=hero.ADR; //so ricochet is accurate
             if (specials.size()>0) 
             {
                 for (String[] eff: specials)
@@ -309,10 +283,6 @@ class Countdown extends DebuffEff
             }
         }
     }
-    @Override
-    public void onApply (Character target)
-    {
-    }
 }
 class Daze extends DebuffEff 
 {
@@ -330,24 +300,20 @@ class Daze extends DebuffEff
     @Override
     public String geteffname()
     {
-        String name;
         if (this.duration<100)
         {
-            name="Daze, "+this.duration+" turn(s)";
+            return "Daze, "+this.duration+" turn(s)";
         }
         else
         {
-            name="Daze";
+            return "Daze";
         }
-        return name;
     }
-    public Daze (int nchance, int ndur, Character q)
+    public Daze (int c, int ndur, Character q)
     {
+        super(c, q);
         this.duration=ndur;
         this.oduration=ndur;
-        this.chance=nchance;
-        this.hashcode=Card_HashCode.RandomCode();
-        this.prog=q;
         if (q.index==73)
         mimi=true;
         else
@@ -394,23 +360,17 @@ class Debilitate extends DebuffEff
             return "Debilitate: "+power;
         }
     }
-    public Debilitate (int nchance, int npow, int ndur, Character p)
+    public Debilitate (int c, int npow, int ndur, Character p)
     {
-        this.chance=nchance;
+        super(c, p);
         this.power=npow;
         this.duration=ndur;
         this.oduration=ndur;
-        this.hashcode=Card_HashCode.RandomCode();
-        this.prog=p;
-    }
-    @Override
-    public void onApply (Character target)
-    {
     }
     @Override
     public void Attacked (StatEff e)
     {
-        if (e.getefftype().equals("Debuffs")&&e.hashcode!=this.hashcode)
+        if (e.getefftype().equals("Debuffs")&&e.id!=this.id)
         {
             e.power+=this.power;
         }
@@ -440,13 +400,11 @@ class Disarm extends DebuffEff
            return "Disarm";
        }
     }
-    public Disarm (int nchance, int ndur, Character p)
+    public Disarm (int c, int ndur, Character p)
     {
-        this.chance=nchance;
+        super(c, p);
         this.duration=ndur;
         this.oduration=ndur;
-        this.hashcode=Card_HashCode.RandomCode();
-        this.prog=p;
     }
 }
 class Disorient extends DebuffEff 
@@ -474,13 +432,11 @@ class Disorient extends DebuffEff
             return "Disorient";
         }
     }
-    public Disorient (int nchance, int ndur, Character Q)
+    public Disorient (int c, int ndur, Character Q)
     {
+        super(c, Q);
         this.duration=ndur;
         this.oduration=ndur;
-        this.chance=nchance;
-        this.hashcode=Card_HashCode.RandomCode();
-        this.prog=Q;
         if (Q.index==73)
         mimi=true;
         else
@@ -527,13 +483,11 @@ class Disrupt extends DebuffEff
             return "Disrupt";
         }
     }
-    public Disrupt (int nchance, int ndur, Character p)
+    public Disrupt (int c, int ndur, Character p)
     {
+        super(c, p);
         this.duration=ndur;
         this.oduration=ndur;
-        this.chance=nchance;
-        this.hashcode=Card_HashCode.RandomCode();
-        this.prog=p;
     }
 }
 class Neutralise extends DebuffEff
@@ -560,13 +514,11 @@ class Neutralise extends DebuffEff
            return "Neutralise";
        }
     }
-    public Neutralise (int nchance, int ndur, Character p)
+    public Neutralise (int c, int ndur, Character p)
     {
-        this.chance=nchance;
+        super(c, p);
         this.duration=ndur;
         this.oduration=ndur;
-        this.hashcode=Card_HashCode.RandomCode();
-        this.prog=p;
     }
 }
 class PlaceboD extends DebuffEff
@@ -593,13 +545,11 @@ class PlaceboD extends DebuffEff
             return "Placebo (Debuff)";
         }
     }
-    public PlaceboD (int nchance, int nduration, Character p)
+    public PlaceboD (int c, int nduration, Character p)
     {
+        super(c, p);
         this.duration=nduration;
         this.oduration=nduration;
-        this.chance=nchance;
-        this.hashcode=Card_HashCode.RandomCode();
-        this.prog=p;
     }
 }
 class Poison extends DebuffEff 
@@ -626,15 +576,13 @@ class Poison extends DebuffEff
             return "Poison: "+this.power;
         }
     }
-    public Poison (int nchance, int nstrength, int nduration, Character p)
+    public Poison (int c, int nstrength, int nduration, Character p)
     {
+        super(c, p);
         this.power=nstrength;
         this.duration=nduration;
         this.oduration=nduration;
-        this.chance=nchance;
-        this.hashcode=Card_HashCode.RandomCode();
-        this.stackable=true;
-        this.prog=p;
+        this.id=CardCode.RandomCode();
     }
     @Override
     public void onTurnStart (Character hero)
@@ -645,7 +593,7 @@ class Poison extends DebuffEff
             --this.duration;
             if (this.duration<=0)
             {
-                hero.remove(this.hashcode, "normal");
+                hero.remove(this.id, "normal");
             }
         }
     }
@@ -679,13 +627,11 @@ class Provoke extends DebuffEff
             return "Provoke: "+this.prog.Cname;
         }
     }
-    public Provoke (int nchance, int ndur, Character Q)
+    public Provoke (int c, int ndur, Character Q)
     {
+        super(c, Q);
         this.duration=ndur;
         this.oduration=ndur;
-        this.chance=nchance;
-        this.hashcode=Card_HashCode.RandomCode();
-        this.prog=Q;
     }
     @Override
     public void onApply (Character target)
@@ -700,7 +646,7 @@ class Provoke extends DebuffEff
         }
         for (StatEff e: remove)
         {
-            target.remove(e.hashcode, "normal");
+            target.remove(e.id, "normal");
         }
     }
     @Override
@@ -736,13 +682,11 @@ class Shatter extends DebuffEff
             return "Shatter";
        }
     }
-    public Shatter (int nchance, int dur, Character p)
+    public Shatter (int c, int dur, Character p)
     {
+        super(c, p);
         this.duration=dur;
         this.oduration=dur;
-        this.chance=nchance;
-        this.hashcode=Card_HashCode.RandomCode();
-        this.prog=p;
     }
     @Override
     public void onApply (Character target)
@@ -758,7 +702,7 @@ class Shatter extends DebuffEff
         {
             if (eff.getefftype().equalsIgnoreCase("Defence"))
             {
-                target.remove(eff.hashcode, "normal");
+                target.remove(eff.id, "normal");
             }
         }
     }
@@ -792,15 +736,13 @@ class Shock extends DebuffEff
             return "Shock: "+this.power;
         }
     }
-    public Shock (int nchance, int nstrength, int nduration, Character p)
+    public Shock (int c, int nstrength, int nduration, Character p)
     {
+        super(c, p);
         this.power=nstrength;
         this.duration=nduration;
         this.oduration=nduration;
-        this.chance=nchance;
-        this.hashcode=Card_HashCode.RandomCode();
         this.stackable=true;
-        this.prog=p;
     }
     @Override
     public void onTurnStart (Character hero)
@@ -811,7 +753,7 @@ class Shock extends DebuffEff
             --this.duration;
             if (this.duration<=0)
             {
-                hero.remove(this.hashcode, "normal");
+                hero.remove(this.id, "normal");
             }
         }
     }
@@ -845,13 +787,11 @@ class Snare extends DebuffEff
             return "Snare";
         }
     }
-    public Snare (int nchance, int nduration, Character p)
+    public Snare (int c, int nduration, Character p)
     {
+        super(c, p);
         this.duration=nduration;
         this.oduration=nduration;
-        this.chance=nchance;
-        this.hashcode=Card_HashCode.RandomCode();
-        this.prog=p;
     }
     @Override
     public void onApply (Character target)
@@ -876,6 +816,7 @@ class Stun extends DebuffEff
     {
         return "nondamaging";
     }
+    @Override
     public void onApply (Character target)
     {
        target.binaries.add("Stunned");
@@ -884,13 +825,11 @@ class Stun extends DebuffEff
            target.activeability.InterruptChannelled(target, target.activeability);
        }
     }
-    public Stun (int nchance, Character p)
+    public Stun (int c, Character p)
     {
-        this.chance=nchance;
-        this.hashcode=Card_HashCode.RandomCode();
+        super(c, p);
         this.duration=1; 
         this.oduration=1;
-        this.prog=p;
     }
     @Override
     public String geteffname() 
@@ -927,13 +866,11 @@ class Suppression extends DebuffEff
             return "Suppression";
        }
     }
-    public Suppression (int nchance, int dur, Character p)
+    public Suppression (int c, int dur, Character p)
     {
+        super(c, p);
         this.duration=dur;
         this.oduration=dur;
-        this.chance=nchance;
-        this.hashcode=Card_HashCode.RandomCode();
-        this.prog=p;
     }
 }
 class Target extends DebuffEff 
@@ -960,14 +897,12 @@ class Target extends DebuffEff
             return "Target: "+power;
         }
     }
-    public Target (int nchance, int npow, int ndur, Character p)
+    public Target (int c, int npow, int ndur, Character p)
     {
+        super(c, p);
         this.duration=ndur;
         this.oduration=ndur;
-        this.chance=nchance;
         this.power=npow;
-        this.hashcode=Card_HashCode.RandomCode();
-        this.prog=p;
     }
     @Override
     public void onApply (Character target)
@@ -1004,13 +939,11 @@ class Terror extends DebuffEff
             return "Terror: "+this.prog.Cname;
         }
     }
-    public Terror (int nchance, int ndur, Character Q)
+    public Terror (int c, int ndur, Character Q)
     {
+        super(c, Q);
         this.duration=ndur;
         this.oduration=ndur;
-        this.chance=nchance;
-        this.hashcode=Card_HashCode.RandomCode();
-        this.prog=Q;
     }
     @Override
     public void onApply (Character target)
@@ -1025,7 +958,7 @@ class Terror extends DebuffEff
         }
         for (StatEff e: remove)
         {
-            target.remove(e.hashcode, "normal");
+            target.remove(e.id, "normal");
         }
     }
     @Override
@@ -1061,13 +994,11 @@ class Undermine extends DebuffEff
             return "Undermine";
         }
     }
-    public Undermine (int nchance, int nduration, Character p)
+    public Undermine (int c, int nduration, Character p)
     {
+        super(c, p);
         this.duration=nduration;
         this.oduration=nduration;
-        this.chance=nchance;
-        this.hashcode=Card_HashCode.RandomCode();
-        this.prog=p;
     }
 }
 class Weakness extends DebuffEff 
@@ -1094,14 +1025,12 @@ class Weakness extends DebuffEff
             return"Weakness: "+this.power;
         }
     }
-    public Weakness (int nchance, int npow, int ndur, Character p)
+    public Weakness (int c, int npow, int ndur, Character p)
     {
+        super(c, p);
         this.duration=ndur;
         this.oduration=ndur;
-        this.chance=nchance;
         this.power=npow;
-        this.hashcode=Card_HashCode.RandomCode();
-        this.prog=p;
     }
     @Override
     public void onApply (Character target)
@@ -1138,15 +1067,13 @@ class Wither extends DebuffEff
             return "Wither: "+this.power;
         }
     }
-    public Wither (int nchance, int nstrength, int nduration, Character p)
+    public Wither (int c, int nstrength, int nduration, Character p)
     {
+        super(c, p);
         this.power=nstrength;
         this.duration=nduration;
         this.oduration=nduration;
-        this.chance=nchance;
-        this.hashcode=Card_HashCode.RandomCode();
         this.stackable=true;
-        this.prog=p;
     }
     @Override
     public void onTurnStart (Character hero)
@@ -1157,7 +1084,7 @@ class Wither extends DebuffEff
             --this.duration;
             if (this.duration<=0)
             {
-                hero.remove(this.hashcode, "normal");
+                hero.remove(this.id, "normal");
             }
         }
     }
@@ -1191,13 +1118,11 @@ class Wound extends DebuffEff
             return "Wound";
         }
     }
-    public Wound (int nchance, int ndur, Character p)
+    public Wound (int c, int ndur, Character p)
     {
+        super(c, p);
         this.duration=ndur;
-        this.chance=nchance;
         this.oduration=ndur;
-        this.hashcode=Card_HashCode.RandomCode();
-        this.prog=p;
     }
     @Override
     public void onApply (Character target)

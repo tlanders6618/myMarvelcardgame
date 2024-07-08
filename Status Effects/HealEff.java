@@ -9,8 +9,9 @@ package myMarvelcardgamepack;
  */
 public abstract class HealEff extends StatEff
 {
-    public HealEff ()
+    public HealEff (int c, Character p)
     {
+        this.chance=c; this.prog=p; this.id=CardCode.RandomCode();
     }
     @Override 
     public String getefftype()
@@ -38,17 +39,15 @@ class Drain extends HealEff
             return "Drain: Full, "+this.duration+" turn(s)";
         }
     }
-    public Drain (int nchance, boolean half, int ndur, Character p) //50 for drain half and 100 for drain full
+    public Drain (int c, boolean half, int ndur, Character p) 
     {
+        super(c, p);
         this.duration=ndur;
         this.oduration=ndur;
-        this.chance=nchance;
         if (half==false)
         this.half=false;
         else 
         this.half=true;
-        this.hashcode=Card_HashCode.RandomCode();
-        this.prog=p;
     }
     @Override
     public void onApply (Character target)
@@ -89,18 +88,12 @@ class Recovery extends HealEff
             return name;
         }
     }
-    public Recovery (int nchance, int nstrength, int nduration, Character p)
+    public Recovery (int c, int nstrength, int nduration, Character p)
     {
+        super(c, p);
         this.power=nstrength;
         this.duration=nduration;
         this.oduration=nduration;
-        this.chance=nchance;
-        this.hashcode=Card_HashCode.RandomCode();
-        this.prog=p;
-    }
-    @Override
-    public void onApply (Character target)
-    {
     }
 }
 class Regen extends HealEff 
@@ -125,15 +118,13 @@ class Regen extends HealEff
             return name;
         }
     }
-    public Regen (int nchance, int nstrength, int nduration, Character p)
+    public Regen (int c, int nstrength, int nduration, Character p)
     {
+        super(c, p);
         this.power=nstrength;
         this.duration=nduration;
         this.oduration=nduration;
-        this.chance=nchance;
-        this.hashcode=Card_HashCode.RandomCode();
         this.stackable=true;
-        this.prog=p;
     }
     @Override
     public void onTurnStart (Character hero)
@@ -142,16 +133,12 @@ class Regen extends HealEff
         --this.duration;
         if (this.duration<=0)
         {
-            hero.remove(this.hashcode, "normal");
+            hero.remove(this.id, "normal");
         }
     }
     @Override
     public void onTurnEnd (Character hero)
     {
         //do nothing
-    }
-    @Override
-    public void onApply (Character target)
-    {
     }
 }

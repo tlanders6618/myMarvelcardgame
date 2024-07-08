@@ -71,6 +71,8 @@ public class StatFactory
             case "Protect": eff=new Protect (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3]), Q); break;
             case "Provoke": eff =new Provoke(Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3]), Q); break;
             case "Recovery": eff= new Recovery (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][2]), Integer.valueOf(param[0][3]), Q); break;
+            case "Reflect": eff=new Reflect (Integer.valueOf(param[0][1]), Boolean.valueOf(param[0][2]), Integer.valueOf(param[0][3]), Q); break;
+            case "Reflect Effect": eff=new ReflectE (Integer.valueOf(param[0][1]), Boolean.valueOf(param[0][2]), Integer.valueOf(param[0][3]), Q); break;
             case "Regen": eff=new Regen (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][2]), Integer.valueOf(param[0][3]), Q); break;
             case "Resistance": eff=new Resistance (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][2]), Integer.valueOf(param[0][3]), Q); break;
             case "Resistance Effect": eff=new ResistanceE (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][2]), Integer.valueOf(param[0][3]), Q); break;
@@ -106,11 +108,11 @@ class Tracker extends StatEff //displays a character's relevant personal statist
     int info; //value of stat being tracked
     public Tracker(String nname)
     {
-        name=nname; oname=name; this.hashcode=Card_HashCode.RandomCode();
+        name=nname; oname=name; this.id=CardCode.RandomCode();
     }
     public Tracker (String nname, int dur) //for the weaver and kang
     {
-        name=nname; oname=name; this.duration=dur; this.hashcode=Card_HashCode.RandomCode();
+        name=nname; oname=name; this.duration=dur; this.id=CardCode.RandomCode();
     }
     @Override
     public String geteffname()
@@ -118,16 +120,12 @@ class Tracker extends StatEff //displays a character's relevant personal statist
         return name;
     }
     @Override
-    public void Nullified(Character target)
-    {
-    }
-    @Override
     public void onApply(Character target)
     {
         switch (oname)
         {
             case "Damage Taken: ": info=target.dmgtaken; name=oname+info+"/180"; break;
-            case "Energy: ": case "Control Points: ": case "Rage: ": case "Electrons: ": case "Momentum: ": case "Energy Reserve: ":
+            case "Energy: ": case "Control Points: ": case "Rage: ": case "Electrons: ": case "Momentum: ": case "Energy Reserve: ": case "Pain: ":
             info=target.passivecount; name=oname+info; 
             break;
             case "Sand Storm active: ": info=target.passivecount; name=oname+(target.passivecount+" turns"); break;
@@ -186,7 +184,7 @@ class Tracker extends StatEff //displays a character's relevant personal statist
                 name=oname+info+"/180";
             }
             break;
-            case "Energy: ": case "Control Points: ": case "Rage: ": case "Energy Reserve: ":
+            case "Energy: ": case "Control Points: ": case "Rage: ": case "Energy Reserve: ": case "Pain: ":
             info=hero.passivecount; name=(oname+info); 
             break;
         }

@@ -11,8 +11,9 @@ import java.util.ArrayList;
 public abstract class BuffEff extends StatEff 
 {
     boolean myriad=true;
-    public BuffEff ()
+    public BuffEff (int c, Character p)
     {
+        this.chance=c; this.prog=p; this.id=CardCode.RandomCode();
     }
     @Override 
     public String getefftype() 
@@ -39,13 +40,11 @@ class Bulwark extends BuffEff
             return "Bulwark";
         }
     }
-    public Bulwark (int nchance, int nduration, Character p)
+    public Bulwark (int c, int nduration, Character p)
     {
+        super(c, p);
         this.duration=nduration;
         this.oduration=nduration;
-        this.chance=nchance;
-        this.hashcode=Card_HashCode.RandomCode();
-        this.prog=p;
     }
     @Override 
     public void onApply (Character target)
@@ -78,40 +77,40 @@ class Counter extends BuffEff
             return "Counter: "+this.power;
         }
     }
-    public Counter (int nchance, int nstrength, int nduration, Character p, String[] stat)
+    public Counter (int c, int nstrength, int nduration, Character p, String[] stat)
     {
+        super(c, p);
         this.power=nstrength;
         this.duration=nduration;
         this.oduration=nduration;
-        this.chance=nchance;
-        this.hashcode=Card_HashCode.RandomCode();
         this.stackable=true;
         this.myriad=false;
-        this.prog=p;
         if (stat!=null)
         {
             statstrings.add(stat);
         }
     }
     @Override
-    public void Attacked (Character hero, Character attacker, int ignore) //dmg is elusive
+    public void Attacked (Character hero, Character attacker, int ignore)
     {
         if (!(attacker.ignores.contains("Counter"))&&!(hero.binaries.contains("Stunned"))&&attacker.dead==false)
         {   
             int dmg=this.power; 
-            dmg-=attacker.ADR;
-            System.out.println (hero.Cname+" counterattacks for "+dmg+" damage!");
-            attacker.TakeDamage(dmg, false);  
+            Damage_Stuff.ElusiveDmg(hero, attacker, dmg, "counter");
             if (statstrings.size()>0)
             {
                 for (String[] array: statstrings)
                 {
                     String[][] toapply=StatFactory.MakeParam(array, null);
                     StatEff New=StatFactory.MakeStat(toapply, hero); 
+                    int chance=New.chance;
+                    if (CoinFlip.Flip(chance+hero.Cchance)==true)
                     StatEff.CheckApply(hero, attacker, New);
+                    else
+                    StatEff.applyfail(hero, New, "chance");
                 }
             }
-            hero.remove(this.hashcode, "normal"); //counter is consumed after use
+            hero.remove(this.id, "normal"); //counter is consumed after use
         }
     }
 }
@@ -134,13 +133,11 @@ class Evasion extends BuffEff
             return "Evasion";
         }
     }
-    public Evasion (int nchance, int nduration, Character p)
+    public Evasion (int c, int nduration, Character p)
     {
+        super(c, p);
         this.duration=nduration;
         this.oduration=nduration;
-        this.chance=nchance;
-        this.hashcode=Card_HashCode.RandomCode();
-        this.prog=p;
     }
 }
 class Ferocity extends BuffEff 
@@ -162,13 +159,11 @@ class Ferocity extends BuffEff
             return "Ferocity";
         }
     }
-    public Ferocity (int nchance, int nduration, Character p)
+    public Ferocity (int c, int nduration, Character p)
     {
+        super(c, p);
         this.duration=nduration;
         this.oduration=nduration;
-        this.chance=nchance;
-        this.hashcode=Card_HashCode.RandomCode();
-        this.prog=p;
     }
     @Override 
     public void onApply (Character target)
@@ -200,13 +195,11 @@ class Focus extends BuffEff
             return "Focus";
         }
     }
-    public Focus (int nchance, int nduration, Character p)
+    public Focus (int c, int nduration, Character p)
     {
+        super(c, p);
         this.duration=nduration;
         this.oduration=nduration;
-        this.chance=nchance;
-        this.hashcode=Card_HashCode.RandomCode();
-        this.prog=p;
     }
     @Override 
     public void onApply (Character target)
@@ -238,15 +231,13 @@ class Intensify extends BuffEff
             return "Intensify: "+this.power;
         }
     }
-    public Intensify (int nchance, int nstrength, int nduration, Character p)
+    public Intensify (int c, int nstrength, int nduration, Character p)
     {
+        super(c, p);
         this.power=nstrength;
         this.duration=nduration;
         this.oduration=nduration;
-        this.chance=nchance;
-        this.hashcode=Card_HashCode.RandomCode();
         this.myriad=false;
-        this.prog=p;
     }
     @Override
     public void onApply (Character target)
@@ -278,13 +269,11 @@ class Invisible extends BuffEff
             return "Invisible";
         }
     }
-    public Invisible (int nchance, int nduration, Character p)
+    public Invisible (int c, int nduration, Character p)
     {
+        super(c, p);
         this.duration=nduration;
         this.oduration=nduration;
-        this.chance=nchance;
-        this.hashcode=Card_HashCode.RandomCode();
-        this.prog=p;
     }
     @Override 
     public void onApply (Character target)
@@ -300,7 +289,7 @@ class Invisible extends BuffEff
         }
         for (StatEff e: r)
         {
-            target.remove(e.hashcode, "normal");
+            target.remove(e.id, "normal");
         }
     }
     @Override
@@ -329,13 +318,11 @@ class MightyBlows extends BuffEff
             return "Mighty Blows";
         }
     }
-    public MightyBlows (int nchance, int nduration, Character p)
+    public MightyBlows (int c, int nduration, Character p)
     {
+        super(c, p);
         this.duration=nduration;
         this.oduration=nduration;
-        this.chance=nchance;
-        this.hashcode=Card_HashCode.RandomCode();
-        this.prog=p;
     }
     @Override
     public void onApply (Character target)
@@ -399,13 +386,11 @@ class PlaceboB extends BuffEff
             return "Placebo (Buff)";
         }
     }
-    public PlaceboB (int nchance, int nduration, Character p)
+    public PlaceboB (int c, int nduration, Character p)
     {
+        super(c, p);
         this.duration=nduration;
         this.oduration=nduration;
-        this.chance=nchance;
-        this.hashcode=Card_HashCode.RandomCode();
-        this.prog=p;
     }
 }
 class Precision extends BuffEff 
@@ -427,14 +412,12 @@ class Precision extends BuffEff
             return "Precision";
         }
     }
-    public Precision (int nchance, int nduration, Character p)
+    public Precision (int c, int nduration, Character p)
     {
+        super(c, p);
         this.duration=nduration;
         this.oduration=nduration;
-        this.chance=nchance;
-        this.hashcode=Card_HashCode.RandomCode();
         this.stackable=true;
-        this.prog=p;
     }
     @Override
     public void onApply (Character target)
@@ -445,6 +428,55 @@ class Precision extends BuffEff
     public void Nullified (Character target)
     {
         target.CC-=50;
+    }
+}
+class Reflect extends BuffEff
+{
+    boolean half;
+    @Override
+    public String getimmunityname()
+    {
+        return "Reflect";
+    }
+    @Override
+    public String geteffname()
+    {
+        String name;
+        if (half==true)
+        name="Reflect: Half";
+        else
+        name="Reflect: Full";
+        if (this.duration<100)
+        {
+            return name+", "+this.duration+" turn(s)";
+        }
+        else
+        {
+            return name;
+        }
+    }
+    public Reflect (int c, boolean h, int d, Character p)
+    {
+        super(c, p);
+        this.duration=d;
+        this.oduration=d;
+        if (h==false)
+        this.half=false;
+        else 
+        this.half=true;
+    }
+    @Override
+    public void Attacked(Character hero, Character attacker, int dmg)
+    {
+        if (!(attacker.ignores.contains("Reflect")))
+        {
+            if (half==true)
+            {
+                double ndmg=dmg*0.5;
+                dmg=5*(int)(Math.floor(ndmg/5));
+            }
+            Damage_Stuff.ElusiveDmg(hero, attacker, dmg, "reflect");
+        }
     }
 }
 class Safeguard extends BuffEff 
@@ -466,13 +498,11 @@ class Safeguard extends BuffEff
             return "Safeguard";
         }
     }
-    public Safeguard (int nchance, int nduration, Character p)
+    public Safeguard (int c, int nduration, Character p)
     {
+        super(c, p);
         this.duration=nduration;
         this.oduration=nduration;
-        this.chance=nchance;
-        this.hashcode=Card_HashCode.RandomCode();
-        this.prog=p;
     }
 }
 class Speed extends BuffEff 
@@ -494,13 +524,11 @@ class Speed extends BuffEff
             return "Speed";
         }
     }
-    public Speed (int nchance, int nduration, Character p)
+    public Speed (int c, int nduration, Character p)
     {
+        super(c, p);
         this.duration=nduration;
         this.oduration=nduration;
-        this.chance=nchance;
-        this.hashcode=Card_HashCode.RandomCode();
-        this.prog=p;
     }
     @Override
     public void onApply (Character target)

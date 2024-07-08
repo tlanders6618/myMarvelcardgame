@@ -11,9 +11,9 @@ public abstract class StatEff
 {   
     int duration=616; int chance=500; int power=616;
     int oduration=616; //for copy/steal 
-    int hashcode; boolean stackable=false; 
-    Character prog; //progenitor who made the stateff
-    public void StatEff ()
+    int id; boolean stackable=false; 
+    Character prog; //progenitor who made the stateff; needed for elsa, magneto, etc
+    public void StatEff () //bluej won't let me modify this for some reason, so all its subclasses instead have the same redundant constructor
     {   
     }
     public Character getProtector()
@@ -28,7 +28,7 @@ public abstract class StatEff
         --this.duration;
         if (this.duration<=0)
         {
-            hero.remove(this.hashcode, "normal");
+            hero.remove(this.id, "normal");
         }
     }
     public abstract String geteffname(); //name to be displayed on scoreboard, including strength and duration
@@ -49,7 +49,7 @@ public abstract class StatEff
         this.duration+=d;
         if (this.duration<=0)
         {
-            hero.remove(this.hashcode, "normal");
+            hero.remove(this.id, "normal");
         }
     }
     public void PrepareProtect (Character tank, Character weak)
@@ -72,8 +72,6 @@ public abstract class StatEff
     }
     public void Attacked(Character hero, Character attacker, int dmg) //called when hero is attacked; used for paralyse, counter, reflect, etc
     {
-        if (hero.binaries.contains("Missed")) //if his counterattack was evaded before; needed since miss is normally only cleared after using an ab
-        hero.binaries.remove("Missed");
     }
     public void Attacked(StatEff e) //called when hero gains a stateff; for debilitate, fortify, etc
     {
@@ -198,7 +196,7 @@ public abstract class StatEff
                 {   //there's already an effect of the exact same type trying to be applied 
                     if (this.power>eff.power) //but if the new effect is stronger, it replaces the old one
                     {
-                        target.remove(eff.hashcode, "normal"); 
+                        target.remove(eff.id, "normal"); 
                         return true;
                     }
                     else

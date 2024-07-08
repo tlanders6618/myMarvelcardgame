@@ -10,13 +10,14 @@ package myMarvelcardgamepack;
 import java.util.ArrayList; 
 public abstract class OtherEff extends StatEff 
 {
-    public OtherEff ()
+    public OtherEff (int c, Character p)
     {
+        this.chance=c; this.prog=p; this.id=CardCode.RandomCode();
     }
     @Override 
     public String getefftype()
     {
-        return "Other";
+        return "Other"; 
     }
 }
 class BleedE extends OtherEff 
@@ -41,15 +42,13 @@ class BleedE extends OtherEff
             return name;
         }
     }
-    public BleedE (int nchance, int nstrength, int nduration, Character p)
+    public BleedE (int c, int nstrength, int nduration, Character p)
     {
+        super(c, p);
         this.power=nstrength;
         this.duration=nduration;
         this.oduration=nduration;
-        this.chance=nchance;
-        this.hashcode=Card_HashCode.RandomCode();
         this.stackable=true;
-        this.prog=p;
     }
     @Override
     public void onTurnStart (Character hero)
@@ -60,7 +59,7 @@ class BleedE extends OtherEff
             --this.duration;
             if (this.duration<=0)
             {
-                hero.remove(this.hashcode, "normal");
+                hero.remove(this.id, "normal");
             }
         }
     }
@@ -68,10 +67,6 @@ class BleedE extends OtherEff
     public void onTurnEnd (Character hero)
     {
         //do nothing
-    }
-    @Override
-    public void onApply (Character target)
-    {
     }
 }
 class CounterE extends OtherEff 
@@ -97,43 +92,39 @@ class CounterE extends OtherEff
             return name;
         }
     }
-    public CounterE (int nchance, int nstrength, int nduration, Character p, String[] stat)
+    public CounterE (int c, int nstrength, int nduration, Character p, String[] stat)
     {
+        super(c, p);
         this.power=nstrength;
         this.duration=nduration;
         this.oduration=nduration;
-        this.chance=nchance;
-        this.hashcode=Card_HashCode.RandomCode();
         this.stackable=true;
-        this.prog=p;
         if (stat!=null)
         {
             statstrings.add(stat);
         }
     }
     @Override
-    public void onApply (Character target)
-    {          
-    }
-    @Override
-    public void Attacked (Character hero, Character attacker, int ignore) //dmg is elusive
+    public void Attacked (Character hero, Character attacker, int ignore)
     {
         if (!(attacker.ignores.contains("Counter"))&&!(hero.binaries.contains("Stunned"))&&attacker.dead==false)
         {   
-            int dmg=this.power;  
-            dmg-=attacker.ADR;
-            System.out.println (hero.Cname+" counterattacks for "+dmg+" damage!");
-            attacker.TakeDamage(dmg, false);  
+            int dmg=this.power; 
+            Damage_Stuff.ElusiveDmg(hero, attacker, dmg, "counter");
             if (statstrings.size()>0)
             {
                 for (String[] array: statstrings)
                 {
                     String[][] toapply=StatFactory.MakeParam(array, null);
                     StatEff New=StatFactory.MakeStat(toapply, hero); 
+                    int chance=New.chance;
+                    if (CoinFlip.Flip(chance+hero.Cchance)==true)
                     StatEff.CheckApply(hero, attacker, New);
+                    else
+                    StatEff.applyfail(hero, New, "chance");
                 }
             }
-            hero.remove(this.hashcode, "normal"); //counter is consumed after use
+            hero.remove(this.id, "normal"); //counter is consumed after use
         }
     }
 }
@@ -157,13 +148,11 @@ class DazeE extends OtherEff
             return "Daze Effect";
         }
     }
-    public DazeE (int nchance, int ndur, Character p)
+    public DazeE (int c, int ndur, Character p)
     {
+        super(c, p);
         this.duration=ndur;
         this.oduration=ndur;
-        this.chance=nchance;
-        this.hashcode=Card_HashCode.RandomCode();
-        this.prog=p;
     }
     @Override
     public void onApply (Character target)
@@ -195,19 +184,14 @@ class Empower extends OtherEff
         else
         return "Empower: "+name+", "+this.uses+" use(s)";
     }
-    public Empower (int chance, int power, int use, Character p)
+    public Empower (int c, int power, int use, Character p)
     {
-        this.prog=p;        
-        this.chance=chance;        
+        super(c, p);    
         this.power=power;
         name=p.Cname;
         index=p.index;
         uses=use;
         this.stackable=true;
-    }
-    @Override
-    public void onApply (Character target) 
-    {
     }
     @Override
     public int UseEmpower(Character hero, Ability ab, boolean use) //use is true for applying effects and false when undoing an empowerment 
@@ -217,8 +201,8 @@ class Empower extends OtherEff
         {
             switch (index) //has to be this way since every empowerment is unique
             {
-                case 4: case 39: //39 is for damagecounterremove when intense==true, or else the dmg boost only applies to the first enemy hit by the attack
-                if (ab instanceof AttackAb) //damage boost only applies to abs that do dmg
+                case 4: case 39: case 77: //for beforeabs to boost the dmg of an aoe attack, or else the dmg boost only applies to the first enemy hit by the attack
+                if (ab instanceof AttackAb) //damage boost only applies to abs that do dmg; also used for iron man's passive
                 {
                     used=true; value=this.power; 
                 }
@@ -266,10 +250,10 @@ class Empower extends OtherEff
     {
         if (uses<=0)
         {
-            if (index==39) //silent empower that lets electro's ult work properly
-            hero.remove(this.hashcode, "silent");
+            if (index==39||index==77) //silent empower that lets dmg boosting beforeabs work properly with aoe
+            hero.remove(this.id, "silent");
             else
-            hero.remove(this.hashcode, "normal");
+            hero.remove(this.id, "normal");
         }
     }
 }
@@ -285,20 +269,10 @@ class EvadeE extends OtherEff
     {
         return "Evade Effect";
     }
-    @Override
-    public void onTurnEnd(Character hero)
+    public EvadeE (int c, Character p) 
     {
-    }
-    public EvadeE (int nchance, Character p) 
-    {
-        this.chance=nchance;
-        this.hashcode=Card_HashCode.RandomCode();
+        super(c, p);
         this.stackable=true;
-        this.prog=p;
-    }
-    @Override
-    public void onApply (Character target) 
-    {
     }
 }
 class FocusE extends OtherEff 
@@ -320,14 +294,12 @@ class FocusE extends OtherEff
             return "Focus Effect";
         }
     }
-    public FocusE (int nchance, int nduration, Character p)
+    public FocusE (int c, int nduration, Character p)
     {
+        super(c, p);
         this.duration=nduration;
         this.oduration=nduration;
-        this.chance=nchance;
-        this.hashcode=Card_HashCode.RandomCode();
         this.stackable=true;
-        this.prog=p;
     }
     public void onApply (Character target)
     {
@@ -361,15 +333,13 @@ class IntensifyE extends OtherEff
             return name;
         }
     }
-    public IntensifyE (int nchance, int nstrength, int nduration, Character p)
+    public IntensifyE (int c, int nstrength, int nduration, Character p)
     {
+        super(c, p);
         this.power=nstrength;
         this.duration=nduration;
         this.oduration=nduration;
-        this.chance=nchance;
-        this.hashcode=Card_HashCode.RandomCode();
         this.stackable=true;
-        this.prog=p;
     }
     @Override
     public void onApply (Character target)
@@ -394,17 +364,11 @@ class Nauseated extends OtherEff
     {
         return "Nauseated Effect, "+this.duration+" turn(s)";
     }
-    public Nauseated (int nchance, int nduration, Character p)
+    public Nauseated (int c, int nduration, Character p)
     {
+        super(c, p);
         this.duration=nduration;
         this.oduration=nduration;
-        this.chance=nchance;
-        this.hashcode=Card_HashCode.RandomCode();
-        this.prog=p;
-    }
-    @Override
-    public void onApply (Character target) 
-    {
     }
 }
 class Obsession extends OtherEff
@@ -419,19 +383,12 @@ class Obsession extends OtherEff
     {
         return "Obsession Effect";
     }
-    @Override
-    public void onTurnEnd(Character hero)
-    {
-    }
     public Obsession(Character p) 
     {
-        this.hashcode=Card_HashCode.RandomCode();
+        super(500, p);
+        this.id=CardCode.RandomCode();
         this.stackable=true; 
         this.prog=p;
-    }
-    @Override
-    public void onApply (Character target) 
-    {
     }
 }
 class PrecisionE extends OtherEff 
@@ -453,14 +410,12 @@ class PrecisionE extends OtherEff
             return "Precision Effect";
         }
     }
-    public PrecisionE (int nchance, int nduration, Character p)
+    public PrecisionE (int c, int nduration, Character p)
     {
+        super(c, p);
         this.duration=nduration;
         this.oduration=nduration;
-        this.chance=nchance;
-        this.hashcode=Card_HashCode.RandomCode();
         this.stackable=true;
-        this.prog=p;
     }
     @Override
     public void onApply (Character target)
@@ -487,7 +442,7 @@ class ProtectE extends OtherEff
         myfriend.duration+=dur;
         if (this.duration<=0)
         {
-            protector.remove(this.hashcode, "normal");
+            protector.remove(this.id, "normal");
         }
     }
     @Override
@@ -516,17 +471,15 @@ class ProtectE extends OtherEff
         if (this.duration<=0) 
         {
             removed=true;
-            hero.remove(this.hashcode, "normal");
+            hero.remove(this.id, "normal");
         }
         else
         myfriend.lessprotected();
     }
-    public ProtectE (int chancce, int ndur, Character p) 
+    public ProtectE (int c, int ndur, Character p) 
     {
-        this.chance=chancce;
+        super(c, p);
         this.duration=ndur;
-        this.hashcode=Card_HashCode.RandomCode();   
-        this.prog=p;
     }
     @Override
     public void PrepareProtect (Character prot, Character weak)
@@ -543,14 +496,14 @@ class ProtectE extends OtherEff
         invis=true;  
         for (StatEff e: protector.effects)
         {
-            if (e.getimmunityname().equals("Protect")&&e.hashcode!=this.hashcode) //check if the protector has a protect other than this one; protect shouldn't stack with ProtectE
+            if (e.getimmunityname().equals("Protect")&&e.id!=this.id) //check if the protector has a protect other than this one; protect shouldn't stack with ProtectE
             {
                 dupe=true; break;
             }
         }
         for (StatEff e: weakling.effects)
         {
-            if (e.getimmunityname().equals("Protect")&&e.hashcode!=this.hashcode)
+            if (e.getimmunityname().equals("Protect")&&e.id!=this.id)
             {
                 dupe=true; break;
             }
@@ -560,25 +513,25 @@ class ProtectE extends OtherEff
             System.out.println ("Taunting characters cannot be Protected.");
             myfriend=null;
             removed=true;
-            hero.remove(this.hashcode, "silent");
+            hero.remove(this.id, "silent");
         }
         else if (invis==true)
         {
             System.out.println ("Invisible characters cannot be Protected.");
             myfriend=null;
             removed=true;
-            hero.remove(this.hashcode, "silent");
+            hero.remove(this.id, "silent");
         }
         else if (dupe==true)
         {
             System.out.println ("Characters who already have Protect cannot be Protected.");
             myfriend=null;
             removed=true;
-            hero.remove(this.hashcode, "silent");
+            hero.remove(this.id, "silent");
         }
         else 
         {
-            ProtectedE pr= new ProtectedE(this.duration, this.prog);
+            ProtectedE pr= new ProtectedE(this.chance, this.duration, this.prog);
             myfriend=pr;
             pr.myfriend=this;
             pr.PrepareProtect(protector, weakling);
@@ -602,7 +555,7 @@ class ProtectE extends OtherEff
         removed=true;
         if (myfriend!=null&&myfriend.removed==false) 
         {
-            weakling.remove(myfriend.hashcode, "normal");
+            weakling.remove(myfriend.id, "normal");
         }
     }
     @Override
@@ -630,17 +583,14 @@ class ProtectedE extends OtherEff
         }
     }
     @Override
-    public void onApply(Character target)
-    {        
-    }
-    @Override
     public String getimmunityname()
     {
         return "Protect";
     }
-    public ProtectedE (int ndur, Character p)
+    public ProtectedE (int c, int ndur, Character p)
     {
-        this.duration=ndur; this.hashcode=Card_HashCode.RandomCode(); this.prog=p;
+        super(c, p);
+        this.duration=ndur;
     }
     @Override
     public Character getProtector ()
@@ -676,7 +626,7 @@ class ProtectedE extends OtherEff
         if (this.duration<=0)
         {
             removed=true;
-            weakling.remove(this.hashcode, "normal");
+            weakling.remove(this.id, "normal");
         }
     }
     @Override
@@ -685,7 +635,7 @@ class ProtectedE extends OtherEff
         removed=true;
         if (myfriend!=null&&myfriend.removed==false)
         {
-            protector.remove(myfriend.hashcode, "normal");
+            protector.remove(myfriend.id, "normal");
         }
     }
 }
@@ -701,13 +651,9 @@ class Redwing extends OtherEff
     {
         return "Redwing Effect";
     }
-    @Override
-    public void onTurnEnd(Character hero)
-    {
-    }
     public Redwing (Character p) 
     {
-        this.hashcode=Card_HashCode.RandomCode(); this.prog=p;
+        super(500, p);
     }
     @Override
     public void onApply (Character hero) 
@@ -728,6 +674,55 @@ class Redwing extends OtherEff
         if (concurrentmodificationexception!=null)
         {
             target.helpers.remove(concurrentmodificationexception);
+        }
+    }
+}
+class ReflectE extends OtherEff
+{
+    boolean half;
+    @Override
+    public String getimmunityname()
+    {
+        return "Reflect";
+    }
+    @Override
+    public String geteffname()
+    {
+        String name;
+        if (half==true)
+        name="Reflect: Half Effect";
+        else
+        name="Reflect: Full Effect";
+        if (this.duration<100)
+        {
+            return name+", "+this.duration+" turn(s)";
+        }
+        else
+        {
+            return name;
+        }
+    }
+    public ReflectE (int c, boolean h, int d, Character p)
+    {
+        super(c, p);
+        this.duration=d;
+        this.oduration=d;
+        if (h==false)
+        this.half=false;
+        else 
+        this.half=true;
+    }
+    @Override
+    public void Attacked(Character hero, Character attacker, int dmg)
+    {
+        if (!(attacker.ignores.contains("Reflect")))
+        {
+            if (half==true)
+            {
+                double ndmg=dmg*0.5;
+                dmg=5*(int)(Math.floor(ndmg/5));
+            }
+            Damage_Stuff.ElusiveDmg(hero, attacker, dmg, "reflect");
         }
     }
 }
@@ -752,15 +747,13 @@ class ResistanceE extends OtherEff
         }
         return name;
     }
-    public ResistanceE (int nchance, int npower, int ndur, Character p) 
+    public ResistanceE (int c, int npower, int ndur, Character p) 
     {
-        this.chance=nchance;
+        super(c, p);
         this.power=npower;
         this.duration=ndur;
         this.oduration=ndur;
-        this.hashcode=Card_HashCode.RandomCode();
         this.stackable=true;
-        this.prog=p;
     }
     @Override
     public void onApply (Character hero) 
@@ -795,15 +788,14 @@ class ShatterE extends OtherEff
             return name;
        }
     }
-    public ShatterE (int nchance, int dur, Character p)
+    public ShatterE (int c, int dur, Character p)
     {
+        super(c, p);
         this.duration=dur;
         this.oduration=dur;
-        this.chance=nchance;
-        this.hashcode=Card_HashCode.RandomCode();
         this.stackable=true;
-        this.prog=p;
     }
+    @Override
     public void onApply (Character target)
     {
         target.binaries.add("Shattered");
@@ -817,7 +809,7 @@ class ShatterE extends OtherEff
         {
             if (eff.getefftype().equalsIgnoreCase("Defence"))
             {
-                target.remove(eff.hashcode, "normal");
+                target.remove(eff.id, "normal");
             }
         }
     }
@@ -849,14 +841,13 @@ class SnareE extends OtherEff
             return name;
         }
     }
-    public SnareE (int nchance, int nduration, Character p)
+    public SnareE (int c, int nduration, Character p)
     {
+        super(c, p);
         this.duration=nduration;
         this.oduration=nduration;
-        this.chance=nchance;
-        this.hashcode=Card_HashCode.RandomCode();
-        this.prog=p;
     }
+    @Override
     public void onApply (Character target)
     {
         Battle.Snared(target);
@@ -886,18 +877,16 @@ class Soaked extends OtherEff
         {
             if (eff.getimmunityname().equals("Evade")||eff.getimmunityname().equals("Evasion"))
             {
-                target.remove(eff.hashcode, "normal");
+                target.remove(eff.id, "normal");
             }
         }
     }
-    public Soaked (int nchance, int d, Character p)
+    public Soaked (int c, int d, Character p)
     {
-        this.chance=nchance;
-        this.hashcode=Card_HashCode.RandomCode();
+        super(c, p);
         this.duration=d; 
         this.oduration=d;
         this.stackable=true;
-        this.prog=p;
     }
     @Override
     public String geteffname() 
@@ -925,14 +914,12 @@ class StunE extends OtherEff
            target.activeability.InterruptChannelled(target, target.activeability);
        }
     }
-    public StunE (int nchance, int d, Character p)
+    public StunE (int c, int d, Character p)
     {
-        this.chance=nchance;
-        this.hashcode=Card_HashCode.RandomCode();
+        super(c, p);
         this.duration=d; 
         this.oduration=d;
         this.stackable=true;
-        this.prog=p;
     }
     @Override
     public String geteffname() 
@@ -964,15 +951,13 @@ class TargetE extends OtherEff
             return "Target Effect: "+power;
         }
     }
-    public TargetE (int nchance, int npow, int ndur, Character p)
+    public TargetE (int c, int npow, int ndur, Character p)
     {
+        super(c, p);
         this.duration=ndur;
         this.oduration=ndur;
-        this.chance=nchance;
         this.power=npow;
-        this.hashcode=Card_HashCode.RandomCode();
         this.stackable=true;
-        this.prog=p;
     }
     @Override
     public void onApply (Character target)
@@ -999,15 +984,9 @@ class Tracer extends OtherEff
     }
     public Tracer (int c, int d, Character p) 
     {
-        this.hashcode=Card_HashCode.RandomCode(); 
-        this.chance=c;
+        super(c, p);
         this.duration=d;
         this.oduration=d;
         this.stackable=true;
-        this.prog=p;
-    }
-    @Override
-    public void onApply (Character hero) 
-    {
     }
 }
