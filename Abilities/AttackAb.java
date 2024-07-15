@@ -60,6 +60,8 @@ class AttackAb extends Ability
         System.out.print("Does "+damage+" damage. ");
         if (this.multihit>0)
         System.out.print("Multihit: "+this.omulti+". ");
+        if (this.ignore==true)
+        System.out.print("Ignores Disarm. ");
         super.PrintDesc(false);
     }
     @Override
@@ -97,7 +99,6 @@ class AttackAb extends Ability
         }
         while (uses>0&&channelled==false) //repeat the attack for each multiuse; channelled abilities will do nothing now and activate later
         {
-            int change=0;
             if (targets.size()<=0)
             {
                 System.out.println(ab.oname+" could not be used due to a lack of eligible targets.");
@@ -112,6 +113,8 @@ class AttackAb extends Ability
                 {
                     do 
                     {
+                        int change=0;
+                        this.CheckIgnore(user, true);
                         for (StatEff eff: user.effects) //get empowerments
                         {
                             if (eff.getimmunityname().equalsIgnoreCase("Empower"))
@@ -211,6 +214,7 @@ class AttackAb extends Ability
                         {
                             ob.Use(user, 616, chump); //for now this only activates chain
                         }
+                        this.CheckIgnore(user, false);
                         damage=odamage; //reset damage 
                     }
                     while (multihit>-1); //then repeat the attack for each multihit
@@ -279,8 +283,6 @@ class AttackAb extends Ability
     public ArrayList<StatEff> ActivateChannelled(Character user, Ability ab)
     {
         ArrayList<StatEff> toadd= new ArrayList<StatEff>();   
-        if (user.binaries.contains("Missed")) //to prevent a miss if the hero's assist/counterattack was evaded after they last attacked (miss is otherwise cleared after attacking)
-        user.binaries.remove("Missed");
         if (channelled==true&&interrupt==true) 
         {
             interrupt=false; //reset it so the ab is not permanently unusable
@@ -290,13 +292,13 @@ class AttackAb extends Ability
             }
             else
             {
-                dcd=cd;
+                dcd+=cd;
             }
             return null;
         }
         else if (channelled==true&&interrupt==false)
         {
-            interrupt=true; //so if they die in the middle of using a channelled ab, it won't print "channel was interrupted" on death
+            finished=true; //so if they die in the middle of using a channelled ab, it won't print "channel was interrupted" on death
             System.out.println (oname+"'s channelling finished.");
             System.out.println (user.Cname+" used "+oname+"!");
             StatEff remove= null;
@@ -351,6 +353,7 @@ class AttackAb extends Ability
                 {
                     do 
                     {
+                        this.CheckIgnore(user, true);
                         for (StatEff eff: user.effects) //get empowerments
                         {
                             if (eff.getimmunityname().equalsIgnoreCase("Empower"))
@@ -446,11 +449,12 @@ class AttackAb extends Ability
                         this.blind=false; this.evade=false;
                         this.UseMultihit();
                         damage=odamage; //reset damage 
-                        dmgdealt=0;
+                        this.CheckIgnore(user, false);
                         for (SpecialAbility ob: special)
                         {
                             ob.Use(user, 616, chump); //for now this only activates chain
                         }
+                        dmgdealt=0;
                     }
                     while (multihit>-1); //then repeat the attack for each multihit
                     multihit=omulti; //reset the multihit counter for the next use
@@ -480,30 +484,32 @@ class AttackAb extends Ability
                 if (eff.getimmunityname().equalsIgnoreCase("Empower"))
                 eff.onTurnEnd(user); //removes used up empowerments from scoreboard after channelled ab use, to avoid confusion/the appearance of a bug
             }
-            interrupt=false; //reset so it isn't permanently unusable
         } 
         //don't go on cooldown bc useab already took care of it
         return toadd;
     }
     @Override
+    public void CheckIgnore(Character user, boolean add) //does nothing, since disarm doesn't do anything
+    {
+    }
+    @Override
     public boolean CheckUse (Character user)
     {
-        boolean okay=true;
         if ((user.CheckFor("Disarm", false)==true&&this.ignore==false)||user.CheckFor("Suppression", false)==true)
         {
-            okay=false;
+            return false;
         }
         else if (singleuse==true&&used==true)
         {
-            okay=false;
+            return false;
         }
         else if (usable==false)
         {
-            okay=false;
+            return false;
         }
         else if (dcd>0) 
         {
-            okay=false;
+            return false;
         }
         if (this.restricted==true)
         {
@@ -511,10 +517,9 @@ class AttackAb extends Ability
             {
                 case 77: //penance's ab #4
                 if (user.passivecount<3)
-                okay=false;
-                break;
+                return false;
             }
         }
-        return okay;
+        return true;
     }
 }

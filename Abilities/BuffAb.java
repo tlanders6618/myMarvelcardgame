@@ -28,7 +28,18 @@ class BuffAb extends Ability
     @Override
     public void PrintDesc (boolean ignore)
     {
-        System.out.print("Buff ability. "); super.PrintDesc(false);
+        System.out.print("Buff ability. ");
+        if (this.ignore==true)
+        System.out.print("Ignores Undermine. ");
+        super.PrintDesc(false);
+    }
+    @Override
+    public void CheckIgnore(Character user, boolean add) //enusures ab ignores its disable debuff both when checking useability, and when applying stateffs
+    {
+        if (add==true)
+        user.ignores.add("Undermine");
+        else
+        user.ignores.remove("Undermine");
     }
     @Override
     public boolean CheckUse (Character user)

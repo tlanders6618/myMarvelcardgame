@@ -28,7 +28,18 @@ class DebuffAb extends Ability
     @Override
     public void PrintDesc (boolean ignore)
     {
-        System.out.print("Debuff ability. "); super.PrintDesc(false);
+        System.out.print("Debuff ability. "); 
+        if (this.ignore==true)
+        System.out.print("Ignores Neutralise. ");
+        super.PrintDesc(false);
+    }
+    @Override
+    public void CheckIgnore(Character user, boolean add) //enusures ab ignores its disable debuff both when checking useability, and when applying stateffs
+    {
+        if (add==true)
+        user.ignores.add("Neutralise");
+        else
+        user.ignores.remove("Neutralise");
     }
     @Override
     public boolean CheckUse (Character user)

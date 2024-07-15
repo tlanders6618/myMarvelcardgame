@@ -31,6 +31,10 @@ class OtherAb extends Ability
         System.out.print("Other ability. "); super.PrintDesc(false);
     }
     @Override
+    public void CheckIgnore(Character user, boolean add) //does nothing, since otherabs have no corresponding disable debuff to ignore
+    {
+    }
+    @Override
     public boolean CheckUse (Character user)
     {
         if (user.CheckFor("Suppression", false)==true)
@@ -48,6 +52,15 @@ class OtherAb extends Ability
         else if (dcd>0) 
         {
             return false;
+        }
+        if (this.restricted==true)
+        {
+            switch (this.restriction)
+            {
+                case 78: //rulk's aura ab
+                if (CoinFlip.GetStatCount(user, "Burn", "Other")<3)
+                return false;
+            }
         }
         return true;
     }

@@ -424,7 +424,7 @@ class Boost extends BeforeAbility //for abs with increased stat chance
         return 0;
     }
     @Override
-    public int Use (Character hero, int ignore, Character target) //specialab to undo so cchance boost stays active during stateff gen and application
+    public int Use (Character hero, int ignore, Character target) //specialab to undo so statchance increase stays active during stateff gen and application
     {
         hero.Cchance-=amount;
         return ignore;
@@ -1062,6 +1062,57 @@ class DebuffMod extends BeforeAbility //for altering the debuffs an ab applies, 
                 }
             }
             break;
+            case 79: //radioactive man
+            if (target.CheckFor("Poison", false)==true)
+            {
+                String[] heybuddy={"Afflicted", "100", "616", "1", "false"}; String[][] azir=StatFactory.MakeParam(heybuddy, null); user.activeability.AddTempString(azir);
+            }
+            break;
+            case 80: //scarecrow's feeding off fear; his fear doubling is in activatepassive since it wouldn't work here
+            ArrayList<StatEff> modexception= new ArrayList<StatEff>(); boolean onceler=false; boolean apply=false;
+            for (StatEff e: target.effects)
+            {
+                if (e.getimmunityname().equals("Terror")||e.getimmunityname().equals("Fear"))
+                {
+                    modexception.add(e);
+                }
+            }
+            for (StatEff e: modexception)
+            {
+                if (onceler==false)
+                System.out.println(target+"'s Fears expired.");
+                target.remove(e.id, "silent"); 
+                IntensifyE nero= new IntensifyE(500, 5, 616, user);
+                RegenE nemo=new RegenE(500, 5, 616, user);
+                //chance is calculated together, and only once, both to avoid wasting time and to avoid printing numerous failure messages
+                //since stats are effs and the stat chance is so high, if they ever fail to apply once, it'd be due to something like leader or kang
+                //and thus would fail to apply again, so no need to check more than once
+                if (onceler==false&&CoinFlip.Flip(500+user.Cchance)==true&&StatEff.CheckFail(user, user, nero)==false&&StatEff.CheckFail(user, user, nemo)==false) 
+                {
+                    apply=true;
+                    if (modexception.size()>1)
+                    {
+                        System.out.println ("\n"+user+" gained a(n) "+nero.geteffname()+" ("+modexception.size()+")"); 
+                        System.out.println ("\n"+user+" gained a(n) "+nemo.geteffname()+" ("+modexception.size()+")");
+                    }
+                    else
+                    {
+                        System.out.println ("\n"+user+" gained a(n) "+nero.geteffname()); 
+                        System.out.println ("\n"+user+" gained a(n) "+nemo.geteffname());
+                    }
+                }
+                else if (onceler==false) //do not print 3+ failure messages; only do so the very first time
+                {
+                    apply=false;
+                    StatEff.applyfail(user, nero, "chance"); StatEff.applyfail(user, nemo, "chance"); 
+                }
+                if (apply==true)
+                {
+                    user.add(nero, false); user.add(nemo, false); 
+                }
+                onceler=true;
+            }
+            break;
             case 84: //namor's trident of neptune; giganto must be on his team and alive and unstunned for the assist to work
             if (user.passivefriend[0]!=null&&user.passivefriend[0].summoned==true&&user.passivefriend[0].index==12) //has summoned giganto
             {
@@ -1103,7 +1154,7 @@ class DebuffMod extends BeforeAbility //for altering the debuffs an ab applies, 
             case 100: //elixir
             if (user.index==100&&user==target)
             {
-                user.passivecount=1; Tracker hacker= new Tracker("Elixir will Resurrect after dying"); user.effects.add(hacker);
+                user.passivecount=1; Tracker hacker= new Tracker(user+" will Resurrect after dying"); user.effects.add(hacker);
             }
             else
             {
@@ -1171,23 +1222,33 @@ class Ignore extends BeforeAbility
    public Ignore (String toignore, String cond, int number)
    {
       toig=toignore; condition=cond; condnumber=number;
-      String C="Error generating description for this ability's Ignore";
-      if (cond.equals("always"))
-      C="Always";
-      else if (cond.equals("enemy health below"))
-      C="When enemy health is below "+number+",";
-      else if (cond.equals("passive"))
-      C="Conditionally";
-      else if (cond.substring(0, 8).equals("self has"))
-      C="When self has "+cond.substring(9)+",";
-      else if (cond.substring(0, 9).equals("enemy has"))
-      C="When the target has "+cond.substring(10)+",";
-      if (toignore.equals("Missed"))
-      this.desc=C+" ignore Miss. ";
-      else if (toignore.equals("inescapable"))
-      this.desc=C+" "+toignore+". ";
-      else 
-      this.desc=C+" ignore "+toignore+". ";
+      if (!(cond.equals("always")))
+      {
+          String C="Error generating description for this ability's Ignore";
+          if (cond.equals("enemy health below"))
+          C="When enemy health is below "+number+",";
+          else if (cond.equals("passive"))
+          C="Conditionally";
+          else if (cond.substring(0, 8).equals("self has"))
+          C="When self has "+cond.substring(9)+",";
+          else if (cond.substring(0, 9).equals("enemy has"))
+          C="When the target has "+cond.substring(10)+",";
+          if (toignore.equals("Missed"))
+          this.desc=C+" ignore Miss. ";
+          else if (toignore.equals("inescapable"))
+          this.desc=C+" "+toignore+". ";
+          else 
+          this.desc=C+" ignore "+toignore+". ";
+      }
+      else //the "i" in ignore is capital
+      {
+          if (toignore.equals("Missed"))
+          this.desc="Ignores miss. ";
+          else if (toignore.equals("inescapable"))
+          this.desc="Inescapable. ";
+          else 
+          this.desc="Ignores "+toignore+". ";
+      }
    }
    @Override
    public int Use (Character hero, Character target) //beforeab; also activated during target selection 
@@ -1337,7 +1398,7 @@ class SelfDMG extends BeforeAbility
         }
         else
         {
-            hero.LoseHP(null, amount, "knull");
+            hero.LoseHP(null, amount, "self");
         }
         return 0;
     }

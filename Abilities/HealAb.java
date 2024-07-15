@@ -28,7 +28,18 @@ class HealAb extends Ability
     @Override
     public void PrintDesc (boolean ignore)
     {
-        System.out.print("Heal ability. "); super.PrintDesc(false);
+        System.out.print("Heal ability. "); 
+        if (this.ignore==true)
+        System.out.print("Ignores Afflicted. ");
+        super.PrintDesc(false);
+    }
+    @Override
+    public void CheckIgnore(Character user, boolean add) //enusures ab ignores its disable debuff both when checking useability, and when applying stateffs
+    {
+        if (add==true)
+        user.ignores.add("Afflicted");
+        else
+        user.ignores.remove("Afflicted");
     }
     @Override
     public boolean CheckUse (Character user)

@@ -10,11 +10,11 @@ package myMarvelcardgamepack;
 import java.util.ArrayList;
 public abstract class Ability
 {
-    boolean channelled=false; boolean interrupt=false; boolean usable=true; 
+    boolean channelled=false; boolean finished=false; boolean interrupt=false; boolean usable=true; 
     boolean restricted=false; int restriction=0; //restricted is whether ab has unique requirements for checkuse, e.g. hp is below 100
     boolean singleuse=false; boolean used=false; //used is only for keeeping track of single use
     boolean unbound=false, control=false, elusive=false; 
-    boolean ignore=false; //for ignoring disable debuffs but not suppression
+    boolean ignore=false; //for ignoring disable debuffs but not suppression (nothing ignores suppression)
     boolean together=false; //whether status effects are applied separately or together
     String oname; String desc=null;
     String target; String friendly; 
@@ -125,7 +125,10 @@ public abstract class Ability
                     else*/
                     s=s+" for "+e[0][3]+" turn(s)";
                 }
+                if (!(e[0][0].equals("Aura")))
                 System.out.print(a+e[0][0]+s+". ");
+                else
+                System.out.print(a+e[0][0]+": "+e[1][0]+s+". ");
             }
         }
         for (SpecialAbility a: this.special)
@@ -175,10 +178,11 @@ public abstract class Ability
         return true;
         else
         {
-            System.out.println(user.Cname+"'s "+user.activeability.GetAbName(user)+" had no effect due to "+target.Cname+"'s immunity to Control.");
+            System.out.println(user.Cname+"'s "+user.activeability.GetAbName(user)+" had no effect due to "+target+"'s immunity to Control.");
             return false;
         }
     }
+    public abstract void CheckIgnore(Character user, boolean add); //if ability ignores a disable debuff, add it to hero binaries so stateff.checkapply doesn't cause failure
     public ArrayList<StatEff> UseAb (Character user, Ability ab, ArrayList<Character> targets) //only applies for the non-attack abs since they all work the same
     {
         boolean typo=true; int uses=1; 
@@ -218,6 +222,7 @@ public abstract class Ability
                 okay=CheckControl(user, chump);
                 if (chump!=null&&okay==true) //if null, skip entirely
                 {
+                    this.CheckIgnore(user, true);
                     int change=0; //does nothing, but beforeabs and empowers return ints so this stores them
                     for (StatEff eff: user.effects) //get empowerments
                     {
@@ -234,7 +239,7 @@ public abstract class Ability
                     {
                         change=ob.Use(user, chump); //apply unique ability functions before attacking; this only affects before abs
                     } 
-                    if (this.attack==true)
+                    if (this.attack==true&&this.elusive==false)
                     {
                         if (chump.team1!=user.team1) //hitting an enemy
                         {
@@ -324,6 +329,7 @@ public abstract class Ability
                     {
                         ob.Use(user, 616, chump); 
                     }
+                    this.CheckIgnore(user, false);
                 }
                 --uses;
             }
@@ -367,12 +373,13 @@ public abstract class Ability
     public void SetChannelled (Character hero, Ability ab, ArrayList<Character> targets)
     {
         ctargets=targets;
+        ab.finished=false; //makes ab interruptable; exists to prevent printing interrupt message if hero dies after channelled activates (since there's nothing to interrupt)
         hero.effects.add(new Tracker ("Channelling "+ab.oname)); //so it's impossible to forget someone is channelling
     }
     public void InterruptChannelled (Character hero, Ability ab) //same for all non abs
     {
-        if (interrupt==false&&(hero.dead==true||(hero.dead==false&&!(hero.immunities.contains("Interrupt"))))) //death must always interrupt, to avoid channels activating on resurrect
-        {
+        if (interrupt==false&&finished==false&&(hero.dead==true||(hero.dead==false&&!(hero.immunities.contains("Interrupt"))))) 
+        {   //death must always interrupt, to avoid channels activating on resurrect; can't interrupt if ab is in middle of being used though
             interrupt=true;
             if (hero.dead==false)
             System.out.println(hero.Cname+"'s Channelling was interrupted!");
@@ -391,8 +398,6 @@ public abstract class Ability
     public ArrayList<StatEff> ActivateChannelled(Character user, Ability ab)
     {
         ArrayList<StatEff> toadd= new ArrayList<StatEff>();
-        if (user.binaries.contains("Missed")) //to prevent a miss if the hero's assist/counterattack was evaded after they last attacked (miss is otherwise cleared after attacking)
-        user.binaries.remove("Missed");
         if (channelled==true&&interrupt==true) 
         {
             interrupt=false; //reset it so the ab is not permanently unusable
@@ -402,13 +407,13 @@ public abstract class Ability
             }
             else
             {
-                dcd=cd;
+                dcd+=cd;
             }
             return null;
         }
         else if (channelled==true&&interrupt==false)
         {
-            interrupt=true; //so if they die in the middle of using a channelled ab, it won't print "channel was interrupted" on death
+            finished=true; //so if they die in the middle of using a channelled ab, it won't print "channel was interrupted" on death
             System.out.println ("\n"+oname+"'s channelling finished.");
             System.out.println (user.Cname+" used "+oname+"!");
             StatEff remove= null;
@@ -460,6 +465,7 @@ public abstract class Ability
                 if (chump!=null&&okay==true) 
                 {
                     int change=0; 
+                    this.CheckIgnore(user, true);
                     for (StatEff eff: user.effects) //get empowerments
                     {
                         if (eff.getimmunityname().equalsIgnoreCase("Empower"))
@@ -565,6 +571,7 @@ public abstract class Ability
                     {
                         ob.Use(user, 616, chump); //for now this only activates chain
                     }
+                    this.CheckIgnore(user, false);
                 }
             }
             if (aoe==true)
@@ -591,7 +598,6 @@ public abstract class Ability
                 if (eff.getimmunityname().equalsIgnoreCase("Empower"))
                 eff.onTurnEnd(user); //removes used up empowerments from scoreboard after channelled ab use, to avoid confusion/the appearance of a bug
             }
-            interrupt=false; //reset so it isn't permanently unusable
         }
         //don't go on cooldown bc useab already took care of it
         return toadd;

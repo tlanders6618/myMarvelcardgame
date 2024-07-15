@@ -31,6 +31,10 @@ class DefAb extends Ability
         System.out.print("Defence ability. "); super.PrintDesc(false);
     }
     @Override
+    public void CheckIgnore(Character user, boolean add) //does nothing, since def abs have no corresponding disable debuff
+    {
+    }
+    @Override
     public boolean CheckUse (Character user)
     {
         if (user.CheckFor("Suppression", false)==true)

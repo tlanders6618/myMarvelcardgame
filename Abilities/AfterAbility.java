@@ -14,55 +14,83 @@ public abstract class AfterAbility extends SpecialAbility //applied after a hero
 }
 class Activate extends AfterAbility //forcibly ticks all stateffs of a given type on the target down to 0, optionally doing extra dmg for each
 {
-    boolean type; //determines whether to get name or type
-    String name; //of eff to activate
+    String name, type; //of eff to activate
     int dmg; //dmg to be dealt for each eff activated
-    public Activate (boolean t, String n, int d)
+    public Activate (String na, String ty, int dm)
     {
-        type=t; name=n; dmg=d;
-        if (d>0)
-        this.desc="Rapidly tick down the target's "+name+"(s) and do +"+d+" damage for each. ";
+        type=ty; name=na; dmg=dm;
+        String Name="";
+        if (type.equals("any")) //simple if statement (unlike ones in purify, extend, etc) since activate is only used on damaging effs
+        Name=name+"s";
         else
-        this.desc="Rapidly tick down the target's "+name+"(s). ";
+        Name=name+" "+type;
+        if (dmg>0)
+        this.desc="Rapidly tick down the target's "+Name+" and do +"+dmg+" damage for each. ";
+        else
+        this.desc="Rapidly tick down the target's "+Name+". ";
     }
     @Override 
     public void Use (Character user, Character target, int ignoreme)
     {
-        ArrayList<StatEff> toact= new ArrayList<StatEff>();
-        if (type==true) 
+        ArrayList<StatEff> toact=CoinFlip.GetEffs(target, name, type); 
+        if (toact.size()>0&&!(user.binaries.contains("Missed"))) 
         {
-            toact=CoinFlip.GetEffs(target, "any", name);
-        }
-        else
-        {
-            toact=CoinFlip.GetEffs(target, name, "any");
-        }
-        int todeal=0;
-        if (toact.size()>0&&!(user.binaries.contains("Missed"))) //then reduce their duration to 0
-        {
-            for (StatEff eff: toact) 
-            {
-                do 
-                { 
-                    eff.onTurnEnd(target); 
+            for (StatEff eff: toact) //rapidly reduce their duration to 0
+            { 
+                if (eff.getalttype().equals("damaging")&&!(eff.getimmunityname().equals("Countdown")))
+                {
+                    int toprint=0; //in order to condense dmg message into one line instead of printing "target took 15 damage" 6 times
+                    do 
+                    { 
+                        eff.onTurnStart(target); toprint+=eff.power-target.ADR;
+                        switch (eff.getimmunityname())
+                        {
+                            case "Bleed": toprint-=target.BlDR; break;
+                            case "Burn": toprint-=target.BuDR; break;
+                            case "Shock": toprint-=target.ShDR; break;
+                            case "Poison": 
+                            if (!(target.immunities.contains("Lose")))
+                            {
+                                toprint-=target.PoDR; 
+                            }
+                            else
+                            {
+                                toprint=616; //assuming that all effs in toact are of the same type; otherwise, printing would be messed up
+                            }
+                            break;
+                            case "Wither":
+                            if (!(target.immunities.contains("Lose")))
+                            {
+                                toprint-=target.WiDR; 
+                            }
+                            else
+                            {
+                                toprint=616;
+                            }
+                            break;
+                        }
+                    }
+                    while (eff.duration>0);
+                    if (toprint<616)
+                    {
+                        if (eff.getimmunityname().equals("Poison")||eff.getimmunityname().equals("Wither"))
+                        System.out.println(target+" lost "+toprint+" health from their "+eff.getimmunityname());
+                        else
+                        System.out.println(target+" took "+toprint+" damage from their "+eff.getimmunityname());
+                    }
                 }
-                while (eff.duration>0);
-                todeal+=dmg; //doing extra dmg for each eff target had
+                else //countdown already prints dmg message when dealing it, unlike the dot effs
+                {
+                    do 
+                    { 
+                        eff.onTurnEnd(target); 
+                    }
+                    while (eff.duration>0);
+                }
             }
-            if (todeal>0&&target.dead==false)
+            if ((toact.size()*dmg)>0&&target.dead==false) //always does elusive dmg, not just for winter soldier
             {
-                if (user.ignores.contains("Defence"))
-                {
-                    todeal-=target.ADR; todeal-=target.DR; todeal-=target.PRDR;
-                    todeal=Damage_Stuff.CheckGuard(user, target, todeal);
-                    target.TakeDamage(user, todeal, false);  
-                }
-                else
-                {
-                    todeal-=target.ADR; todeal-=target.DR; todeal-=target.RDR; todeal-=target.PRDR;
-                    todeal=Damage_Stuff.CheckGuard(user, target, todeal);
-                    target.TakeDamage(user, todeal, false);    
-                }    
+                Damage_Stuff.ElusiveDmg(user, target, (toact.size()*dmg), "default");  //dmg dealt is just dmg per eff * number of effs on target; no need to make variable for it
             }
         }
     }
@@ -156,6 +184,37 @@ class ActivatePassive extends AfterAbility //ability activates a hero's passive 
             if (hurt.size()>0)
             m.Use(user, hurt.get(0), 0);
             break;
+            case 80: //scarecrow's doubling fear; his fear conversion is in debuffmod since activatepassive only allows for 1 use case
+            int fears=CoinFlip.GetStatCount(target, "Fear", "any"); fears+=CoinFlip.GetStatCount(target, "Terror", "any");
+            boolean onceler=false, apply=false;  
+            //chance is calculated together, and only once, both to avoid wasting time and to avoid printing numerous failure messages
+            //since stats are effs and the stat chance is so high, if they ever fail to apply once, it'd be due to something like leader or kang
+            //and thus would fail to apply again, so no need to check more than once
+            for (int i=0; i<fears; i++)
+            {
+                Fear cry= new Fear(100, 3, user);
+                if (onceler==false&&StatEff.CheckFail(user, target, cry)==false) 
+                {
+                    if (CoinFlip.Flip(100+user.Cchance)==true)
+                    {
+                        apply=true;
+                        if (fears>1)
+                        System.out.println ("\n"+target+" gained a(n) "+cry+" ("+fears+")"); 
+                        else
+                        System.out.println ("\n"+target+" gained a(n) "+cry); 
+                    }
+                    else
+                    {
+                        StatEff.applyfail(target, cry, "chance"); 
+                    }
+                } //else apply is already false by default, so leave it
+                if (apply==true)
+                {
+                    target.add(cry, false);
+                }
+                onceler=true;
+            }
+            break;
             case 84: //namor's tidal wave
             ArrayList<StatEff> joker= new ArrayList<StatEff>(); joker.addAll(target.effects);
             for (StatEff e: joker)
@@ -164,7 +223,7 @@ class ActivatePassive extends AfterAbility //ability activates a hero's passive 
                 {
                     StatEff hell=StaticPassive.InstaConversion(target, e, "Target Effect", 5, e.duration);
                     target.remove(e.id, "normal");
-                    target.add(hell);
+                    target.add(hell, true);
                 }
             }
             break;
@@ -179,7 +238,7 @@ class ActivatePassive extends AfterAbility //ability activates a hero's passive 
                     {
                         StatEff hell=StaticPassive.InstaConversion(user, e, name+" Effect", e.power, 616);
                         user.remove(e.id, "normal");
-                        user.add(hell);
+                        user.add(hell, true);
                     }
                 }
             }
@@ -628,7 +687,7 @@ class Assist extends AfterAbility //either random allies hitting enemy or chosen
         }
     }
 }
-class BonusTurn extends AfterAbility //for letting ally take bonus turn, but not self
+class BonusTurn extends AfterAbility //for letting ally take bonus turn, but not self; self bonusturn is a helper
 {
     public BonusTurn()
     {
@@ -703,8 +762,8 @@ class CopySteal extends AfterAbility //the only difference is that steal removes
         }
         String torefd="";
         if (replace!=null)
-        torefd="and replaces it with a "+replace[0][0];
-        this.desc=Chance+Type+Name+"from the target "+torefd+". ";
+        torefd=" and replaces it with a "+replace[0][0];
+        this.desc=Chance+Type+Name+"from the target"+torefd+". ";
     }
     @Override
     public void Use (Character user, Character target, int ignoreme)

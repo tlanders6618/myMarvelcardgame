@@ -115,7 +115,7 @@ public class Ability_List_Summon
         {
             case 0: BasicAb blast= new BasicAb("Electric Blast", "single", "enemy", 35); blast.special.add(new Ignore("Invisible", "always", 616));
             return blast;
-            case 1: BasicAb core= new BasicAb("Self Destruct", "single", "enemy", 50); core.ignore=true; core.special.add(new Suicide());
+            case 1: BasicAb core= new BasicAb("Self Destruct", "single", "enemy", 60); core.ignore=true; core.special.add(new Suicide());
             return core;
             default: return null; 
         }
@@ -127,7 +127,7 @@ public class Ability_List_Summon
             case 0: BasicAb laser= new BasicAb("Laser Beam", "single", "enemy", 30); laser.special.add(new DebuffMod(4));
             laser.desc="100% chance to Copy 1 random buff(s) on the target. \nIf they have none, randomly gain Bulwark, Focus, or Placebo (Buff) for 2 turns.";
             return laser;
-            case 1: BasicAb core= new BasicAb("Core Meltdown", "single", "enemy", 50); core.special.add(new DamageCounterRemove("Buffs", true, 10, true, false, false));
+            case 1: BasicAb core= new BasicAb("Core Meltdown", "single", "enemy", 60); core.special.add(new DamageCounterRemove("Buffs", true, 10, true, false, false));
             core.special.add(new Suicide()); core.ignore=true; 
             return core;
             default: return null; 
