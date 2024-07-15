@@ -39,11 +39,7 @@ public class Test
        /*
         * To do/to test:
         * test that extend does/doesn't affect immortal/stun
-        * delete/rework snare and speed
         * for hulk boss fight: use both shangs and roblin and thanos and spider-man
-        * 
-        * add damage dealt and healing dealt stat for characters; buff namor's imperius rex
-        * printing wolvie regen heals for 0 while berserk; channelled ab used twice if suppressed while channelling; inescapable not ignore provoke/terror
         * 
         * make sure all basicabs work with assist as intended from now on
         * 
