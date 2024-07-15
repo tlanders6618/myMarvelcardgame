@@ -13,11 +13,57 @@ public abstract class OtherEff extends StatEff
     public OtherEff (int c, Character p)
     {
         this.chance=c; this.prog=p; this.id=CardCode.RandomCode();
+        this.stackable=true; //by default, all other effs are stackable
     }
     @Override 
     public String getefftype()
     {
         return "Other"; 
+    }
+}
+class Aura extends OtherEff
+{
+    String[][] statstring;
+    @Override
+    public String getimmunityname()
+    {
+        return "Aura";
+    }
+    @Override
+    public String geteffname()
+    {
+        String ename=statstring[0][0]+": "+statstring[0][2];
+        if (duration<100)
+        {
+            return "Aura: "+ename+", "+this.duration+" turn(s)";
+        }
+        else
+        {
+            return "Aura: "+ename;
+        }
+    }
+    public Aura (int c, int nduration, Character p, String[] stat)
+    {
+        super(c, p);
+        this.duration=nduration;
+        this.oduration=nduration;
+        statstring=StatFactory.MakeParam(stat, null);
+    }
+    @Override
+    public void Attacked (Character hero, Character attacker, int ignore) //called by hero beforeattack and attacked; aoe check done there
+    {
+        if (attacker==hero) //hero is attacking; add tempstring
+        {   
+            hero.activeability.AddTempString(statstring);
+        }
+        else //hero was attacked; debuff the attacker; ignores stun
+        {
+            StatEff eff=StatFactory.MakeStat(statstring, hero); 
+            if (CoinFlip.Flip(50+hero.Cchance)==true)
+            StatEff.CheckApply(hero, attacker, eff);
+            else
+            StatEff.applyfail(attacker, eff, "chance");
+        }
     }
 }
 class BleedE extends OtherEff 
@@ -28,18 +74,20 @@ class BleedE extends OtherEff
         return "Bleed";
     }
     @Override
+    public String getalttype() 
+    {
+        return "damaging";
+    }
+    @Override
     public String geteffname()
     {
-        String name;
         if (duration<100)
         {
-            name="Bleed Effect: "+this.power+", "+this.duration+" turn(s)";
-            return name;
+            return "Bleed Effect: "+this.power+", "+this.duration+" turn(s)";
         }
         else
         {
-            name="Bleed Effect: "+this.power;
-            return name;
+            return "Bleed Effect: "+this.power;
         }
     }
     public BleedE (int c, int nstrength, int nduration, Character p)
@@ -48,7 +96,6 @@ class BleedE extends OtherEff
         this.power=nstrength;
         this.duration=nduration;
         this.oduration=nduration;
-        this.stackable=true;
     }
     @Override
     public void onTurnStart (Character hero)
@@ -69,6 +116,66 @@ class BleedE extends OtherEff
         //do nothing
     }
 }
+class BurnE extends OtherEff 
+{
+    @Override
+    public String getimmunityname()
+    {
+        return "Burn";
+    }
+    @Override
+    public String getalttype() 
+    {
+        return "damaging";
+    }
+    @Override
+    public String geteffname()
+    {
+        if (duration<100)
+        {
+            return "Burn Effect: "+this.power+", "+this.duration+" turn(s)";
+        }
+        else
+        {
+            return "Burn Effect: "+this.power;
+        }
+    }
+    public BurnE (int c, int nstrength, int nduration, Character p)
+    {
+        super(c, p);
+        this.power=nstrength;
+        this.duration=nduration;
+        this.oduration=nduration;
+    }
+    @Override
+    public void onTurnStart (Character hero)
+    {
+        if (hero!=null) //after hero dies, their spot in the team array becomes null; if they die from one dot and another tries to tick down, it would cause a null exception
+        {
+            hero.DOTdmg(this.power, "burn");
+            --this.duration;
+            if (this.duration<=0)
+            {
+                hero.remove(this.id, "normal");
+            }
+        }
+    }
+    @Override
+    public void onTurnEnd (Character hero)
+    {
+        //do nothing
+    }
+    @Override
+    public void onApply (Character target)
+    {
+        target.DV+=5;
+    }
+    @Override
+    public void Nullified (Character target)
+    {
+        target.DV-=5;
+    }
+}
 class CounterE extends OtherEff 
 {
     ArrayList<String[]>statstrings= new ArrayList<String[]>();
@@ -80,16 +187,13 @@ class CounterE extends OtherEff
     @Override
     public String geteffname()
     {
-        String name;
         if (duration<100)
         {
-            name="Counter Effect: "+this.power+", "+this.duration+" turn(s)";
-            return name;
+            return "Counter Effect: "+this.power+", "+this.duration+" turn(s)";
         }
         else
         {
-            name="Counter Effect: "+this.power;
-            return name;
+            return "Counter Effect: "+this.power;
         }
     }
     public CounterE (int c, int nstrength, int nduration, Character p, String[] stat)
@@ -98,7 +202,6 @@ class CounterE extends OtherEff
         this.power=nstrength;
         this.duration=nduration;
         this.oduration=nduration;
-        this.stackable=true;
         if (stat!=null)
         {
             statstrings.add(stat);
@@ -191,7 +294,6 @@ class Empower extends OtherEff
         name=p.Cname;
         index=p.index;
         uses=use;
-        this.stackable=true;
     }
     @Override
     public int UseEmpower(Character hero, Ability ab, boolean use) //use is true for applying effects and false when undoing an empowerment 
@@ -272,7 +374,30 @@ class EvadeE extends OtherEff
     public EvadeE (int c, Character p) 
     {
         super(c, p);
-        this.stackable=true;
+    }
+}
+class Fear extends OtherEff
+{
+    @Override
+    public String getimmunityname()
+    {
+        return "Fear";
+    }
+    @Override
+    public String getalttype()
+    {
+        return "Terror";
+    }
+    @Override
+    public String geteffname()
+    {
+        return "Fear Effect, "+this.duration+" turn(s)";
+    }
+    public Fear (int c, int d, Character p) 
+    {
+        super(c, p);
+        this.duration=d;
+        this.oduration=d;
     }
 }
 class FocusE extends OtherEff 
@@ -299,7 +424,6 @@ class FocusE extends OtherEff
         super(c, p);
         this.duration=nduration;
         this.oduration=nduration;
-        this.stackable=true;
     }
     public void onApply (Character target)
     {
@@ -321,16 +445,13 @@ class IntensifyE extends OtherEff
     @Override
     public String geteffname()
     {
-        String name;
         if (duration<100)
         {
-            name="Intensify Effect: "+this.power+", "+this.duration+" turn(s)";
-            return name;
+            return "Intensify Effect: "+this.power+", "+this.duration+" turn(s)";
         }
         else
         {
-            name="Intensify Effect: "+this.power;
-            return name;
+            return "Intensify Effect: "+this.power;
         }
     }
     public IntensifyE (int c, int nstrength, int nduration, Character p)
@@ -339,7 +460,6 @@ class IntensifyE extends OtherEff
         this.power=nstrength;
         this.duration=nduration;
         this.oduration=nduration;
-        this.stackable=true;
     }
     @Override
     public void onApply (Character target)
@@ -386,9 +506,6 @@ class Obsession extends OtherEff
     public Obsession(Character p) 
     {
         super(500, p);
-        this.id=CardCode.RandomCode();
-        this.stackable=true; 
-        this.prog=p;
     }
 }
 class PrecisionE extends OtherEff 
@@ -415,7 +532,6 @@ class PrecisionE extends OtherEff
         super(c, p);
         this.duration=nduration;
         this.oduration=nduration;
-        this.stackable=true;
     }
     @Override
     public void onApply (Character target)
@@ -453,16 +569,14 @@ class ProtectE extends OtherEff
     @Override
     public String geteffname()
     {
-        String name;
         if (duration>100)
         {
-            name="(Effect) Protecting: "+weakling.Cname;
+            return "(Effect) Protecting: "+weakling.Cname;
         }
         else
         {
-            name="(Effect) Protecting: "+weakling.Cname+", "+this.duration+" turn(s)";
+            return "(Effect) Protecting: "+weakling.Cname+", "+this.duration+" turn(s)";
         }
-        return name;
     }
     @Override
     public void onTurnEnd(Character hero) 
@@ -535,7 +649,7 @@ class ProtectE extends OtherEff
             myfriend=pr;
             pr.myfriend=this;
             pr.PrepareProtect(protector, weakling);
-            weakling.add(pr);
+            weakling.add(pr, false);
             String s;
             if (duration>500)
             {
@@ -545,8 +659,8 @@ class ProtectE extends OtherEff
             {
                 s="(Effect) Protecting: "+weakling.Cname+", "+this.duration+" turn(s)"; //since the add method doesn't print anything for protect effects
             }
-            System.out.println ("\n"+protector.Cname+" gained "+s);
-            System.out.println ("\n"+weakling.Cname+" gained "+pr.geteffname());
+            System.out.println ("\n"+protector.Cname+" gained a(n) "+s);
+            System.out.println ("\n"+weakling.Cname+" gained a(n) "+pr.geteffname());
         }
     }
     @Override
@@ -726,6 +840,48 @@ class ReflectE extends OtherEff
         }
     }
 }
+class RegenE extends OtherEff 
+{
+    @Override
+    public String getimmunityname()
+    {
+        return "Regen";
+    }
+    @Override
+    public String geteffname()
+    {
+        if (this.duration<100)
+        {
+            return "Regen Effect: "+this.power+", "+this.duration+" turn(s)";
+        }
+        else
+        {
+            return "Regen Effect: "+this.power;
+        }
+    }
+    public RegenE (int c, int nstrength, int nduration, Character p)
+    {
+        super(c, p);
+        this.power=nstrength;
+        this.duration=nduration;
+        this.oduration=nduration;
+    }
+    @Override
+    public void onTurnStart (Character hero)
+    {
+        hero.Healed(this.power, false, true);
+        --this.duration;
+        if (this.duration<=0)
+        {
+            hero.remove(this.id, "normal");
+        }
+    }
+    @Override
+    public void onTurnEnd (Character hero)
+    {
+        //do nothing
+    }
+}
 class ResistanceE extends OtherEff
 {
     @Override
@@ -736,16 +892,14 @@ class ResistanceE extends OtherEff
     @Override
     public String geteffname()
     {
-        String name;
-        if (duration>500)
+        if (duration>100)
         {
-            name="Resistance Effect: "+this.power;
+            return "Resistance Effect: "+this.power;
         }
         else
         {
-            name="Resistance Effect: "+this.power+", "+this.duration+" turn(s)";
+            return "Resistance Effect: "+this.power+", "+this.duration+" turn(s)";
         }
-        return name;
     }
     public ResistanceE (int c, int npower, int ndur, Character p) 
     {
@@ -753,7 +907,6 @@ class ResistanceE extends OtherEff
         this.power=npower;
         this.duration=ndur;
         this.oduration=ndur;
-        this.stackable=true;
     }
     @Override
     public void onApply (Character hero) 
@@ -776,16 +929,13 @@ class ShatterE extends OtherEff
     @Override
     public String geteffname() 
     {
-       String name;
        if (duration<100)
        {
-            name="Shatter Effect, "+this.duration+" turn(s)";
-            return name;
+            return "Shatter Effect, "+this.duration+" turn(s)";
        }
        else
        {
-            name="Shatter Effect";
-            return name;
+            return "Shatter Effect";
        }
     }
     public ShatterE (int c, int dur, Character p)
@@ -793,7 +943,6 @@ class ShatterE extends OtherEff
         super(c, p);
         this.duration=dur;
         this.oduration=dur;
-        this.stackable=true;
     }
     @Override
     public void onApply (Character target)
@@ -829,16 +978,13 @@ class SnareE extends OtherEff
     @Override
     public String geteffname()
     {
-        String name;
         if (this.duration<100)
         {
-            name="Snare Effect, "+this.duration+" turn(s)";
-            return name;
+            return "Snare Effect, "+this.duration+" turn(s)";
         }
         else
         {
-            name="Snare Effect";
-            return name;
+            return "Snare Effect";
         }
     }
     public SnareE (int c, int nduration, Character p)
@@ -846,6 +992,7 @@ class SnareE extends OtherEff
         super(c, p);
         this.duration=nduration;
         this.oduration=nduration;
+        this.stackable=false;
     }
     @Override
     public void onApply (Character target)
@@ -886,7 +1033,6 @@ class Soaked extends OtherEff
         super(c, p);
         this.duration=d; 
         this.oduration=d;
-        this.stackable=true;
     }
     @Override
     public String geteffname() 
@@ -906,6 +1052,7 @@ class StunE extends OtherEff
     {
         return "Stun";
     }
+    @Override
     public void onApply (Character target)
     {
        target.binaries.add("Stunned");
@@ -919,7 +1066,6 @@ class StunE extends OtherEff
         super(c, p);
         this.duration=d; 
         this.oduration=d;
-        this.stackable=true;
     }
     @Override
     public String geteffname() 
@@ -957,7 +1103,6 @@ class TargetE extends OtherEff
         this.duration=ndur;
         this.oduration=ndur;
         this.power=npow;
-        this.stackable=true;
     }
     @Override
     public void onApply (Character target)
@@ -985,8 +1130,5 @@ class Tracer extends OtherEff
     public Tracer (int c, int d, Character p) 
     {
         super(c, p);
-        this.duration=d;
-        this.oduration=d;
-        this.stackable=true;
     }
 }

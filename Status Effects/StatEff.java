@@ -16,6 +16,11 @@ public abstract class StatEff
     public void StatEff () //bluej won't let me modify this for some reason, so all its subclasses instead have the same redundant constructor
     {   
     }
+    @Override
+    public String toString()
+    {
+        return this.geteffname();
+    }
     public Character getProtector()
     {
         return null;
@@ -34,7 +39,7 @@ public abstract class StatEff
     public abstract String geteffname(); //name to be displayed on scoreboard, including strength and duration
     public abstract String getimmunityname(); //just the generic name of the eff, e.g. Target
     public abstract String getefftype();
-    public String getalttype() //this is primarily for debuffeffs to override; damaging vs non damaging; also used for things like iceman's freeze 
+    public String getalttype() //this is primarily for debuffeffs to override; damaging vs non damaging; also used for things like scarecrow's fear
     {
         return "knull";
     }
@@ -106,7 +111,7 @@ public abstract class StatEff
     {   
         if (StatEff.CheckFail(hero, target, effect)==false)
         {
-            target.add(effect);
+            target.add(effect, true);
         } //else check fail already prints the failure message so do nothing
     }
     public static boolean CheckFail (Character hero, Character target, StatEff effect) //same as above, but returns whether eff can be applied without applying it
@@ -115,7 +120,7 @@ public abstract class StatEff
         {
             return true;
         }
-        else if (target.immunities.contains(effect.getefftype())||target.immunities.contains(effect.getimmunityname()))
+        else if (target.immunities.contains(effect.getefftype())||target.immunities.contains(effect.getimmunityname())||target.immunities.contains(effect.getalttype()))
         {
             StatEff.applyfail(target, effect, "immune");
             return true;

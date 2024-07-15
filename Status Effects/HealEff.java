@@ -76,16 +76,13 @@ class Recovery extends HealEff
     @Override
     public String geteffname()
     {
-        String name;
         if (this.duration<100)
         {
-            name="Recovery: "+this.power+", "+this.duration+" turn(s)";
-            return name;
+            return "Recovery: "+this.power+", "+this.duration+" turn(s)";
         }
         else
         {
-            name="Recovery: "+this.power;
-            return name;
+            return "Recovery: "+this.power;
         }
     }
     public Recovery (int c, int nstrength, int nduration, Character p)
@@ -106,16 +103,13 @@ class Regen extends HealEff
     @Override
     public String geteffname()
     {
-        String name;
         if (this.duration<100)
         {
-            name="Regen: "+this.power+", "+this.duration+" turn(s)";
-            return name;
+            return "Regen: "+this.power+", "+this.duration+" turn(s)";
         }
         else
         {
-            name="Regen: "+this.power;
-            return name;
+            return "Regen: "+this.power;
         }
     }
     public Regen (int c, int nstrength, int nduration, Character p)

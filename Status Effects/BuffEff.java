@@ -45,6 +45,7 @@ class Bulwark extends BuffEff
         super(c, p);
         this.duration=nduration;
         this.oduration=nduration;
+        this.stackable=true;
     }
     @Override 
     public void onApply (Character target)
@@ -391,6 +392,7 @@ class PlaceboB extends BuffEff
         super(c, p);
         this.duration=nduration;
         this.oduration=nduration;
+        this.stackable=true;
     }
 }
 class Precision extends BuffEff 
@@ -468,7 +470,7 @@ class Reflect extends BuffEff
     @Override
     public void Attacked(Character hero, Character attacker, int dmg)
     {
-        if (!(attacker.ignores.contains("Reflect")))
+        if (!(attacker.ignores.contains("Reflect"))) //ignores stun
         {
             if (half==true)
             {

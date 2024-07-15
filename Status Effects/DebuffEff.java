@@ -5,7 +5,7 @@ package myMarvelcardgamepack;
  * Designer: Timothy Landers
  * Date: 8/8/22
  * Filename: DebuffEff
- * Purpose: To list all the debuffs in one file because there's a lot of them.
+ * Purpose: To list all the debuffs in one file.
  */
 import java.util.ArrayList;
 public abstract class DebuffEff extends StatEff 
@@ -137,6 +137,7 @@ class Blind extends DebuffEff
         else
         mimi=false;
     }
+    @Override
     public void onApply (Character target)
     {
         if (mimi==true)
@@ -437,6 +438,7 @@ class Disorient extends DebuffEff
         super(c, Q);
         this.duration=ndur;
         this.oduration=ndur;
+        this.stackable=true;
         if (Q.index==73)
         mimi=true;
         else
@@ -550,6 +552,7 @@ class PlaceboD extends DebuffEff
         super(c, p);
         this.duration=nduration;
         this.oduration=nduration;
+        this.stackable=true;
     }
 }
 class Poison extends DebuffEff 
@@ -583,6 +586,7 @@ class Poison extends DebuffEff
         this.duration=nduration;
         this.oduration=nduration;
         this.id=CardCode.RandomCode();
+        this.stackable=true;
     }
     @Override
     public void onTurnStart (Character hero)

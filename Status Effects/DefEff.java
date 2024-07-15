@@ -248,7 +248,7 @@ class Protect extends DefEff
             myfriend=pr;
             pr.myfriend=this;
             pr.PrepareProtect(protector, weakling);
-            weakling.add(pr);
+            weakling.add(pr, false);
             String s;
             if (duration>500)
             {
@@ -258,8 +258,8 @@ class Protect extends DefEff
             {
                 s="Protecting: "+weakling.Cname+", "+this.duration+" turn(s)"; //since the add method doesn't print anything for protect effects
             }
-            System.out.println ("\n"+protector.Cname+" gained "+s);
-            System.out.println ("\n"+weakling.Cname+" gained "+pr.geteffname());
+            System.out.println ("\n"+protector.Cname+" gained a(n) "+s);
+            System.out.println ("\n"+weakling.Cname+" gained a(n) "+pr.geteffname());
         }
     }
     @Override
@@ -399,16 +399,14 @@ class Taunt extends DefEff
     @Override
     public String geteffname()
     {
-        String name;
         if (this.duration>100)
         {
-            name="Taunt";
+            return "Taunt";
         }
         else
         {
-            name="Taunt, "+this.duration+" turn(s)";
+            return "Taunt, "+this.duration+" turn(s)";
         }
-        return name;
     }
     public Taunt (int c, int ndur, Character p) 
     {
