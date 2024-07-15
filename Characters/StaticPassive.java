@@ -17,7 +17,7 @@ public class StaticPassive
         System.out.println(target.Cname+"'s "+e.geteffname()+" was converted into a "+brand.geteffname()+"!");
         return brand;
     }
-    public static void Symbiote (Character venom, int vuln) //efficient since they all have the same passive; add/remove
+    public static void Burn (Character venom, int vuln) //efficient since symbiotes all have the same passive, as well as human torch, mephisto, etc; add/remove
     {
         venom.DV+=vuln;
     }
@@ -30,7 +30,7 @@ public class StaticPassive
             ArrayList<StatEff> effects=josh.effects;
             for (StatEff e: effects)
             {
-                if (e instanceof Tracker&& e.getimmunityname().equals("Elixir will Resurrect after dying"))
+                if (e instanceof Tracker&& e.getimmunityname().equals(josh+" will Resurrect after dying"))
                 {
                     josh.remove(e.id, "silent"); break;
                 }
@@ -411,7 +411,7 @@ public class StaticPassive
         StatEff.CheckApply(eddie, allt, res);
         eddie.passivecount=res.id;
         eddie.passivefriend[0]=allt;
-        allt.add(new Tracker ("Watched by Venom (Eddie Brock)"));
+        allt.add(new Tracker ("Watched by Venom (Eddie Brock)"), false);
     }
     public static void Drax (Character arthur, Character target, String time) //in here bc I assume this'll be used once per fight due to its strict requirements
     {

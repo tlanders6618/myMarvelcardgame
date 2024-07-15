@@ -25,67 +25,6 @@ public class Hero extends Character
         this.abilities=Ability.AssignAb(index);     
     }
     @Override
-    public void onTurn (boolean notbonus) 
-    {
-        switch (this.index) //first turn is turn 0
-        {
-            case 5: StaticPassive.WM(this); break;
-            case 6: ActivePassive.CaptainA(this); break;
-            case 9: ActivePassive.StarLord(this); break; 
-            case 11: ActivePassive.FuryJr (this, "onturn", false); break;
-            case 18: ActivePassive.Spidey(this, null, false, false); break;
-            case 23: ActivePassive.CM(this, true, 0); break;
-            case 24: ActivePassive.Binary(this); break;
-            case 28: StaticPassive.DOOM(this, "turn", this); break;
-            case 32: StaticPassive.BB(this); break;
-            case 33: StaticPassive.Deadpool(this, "heal", null); break;
-            case 35: ActivePassive.Cain(this, "turn", 616); break;
-            case 40: ActivePassive.Sandy(this, "turn"); break;
-            case 72: StaticPassive.Zemo(this, true); break;
-            case 74: ActivePassive.Songbird(this); break;
-            case 97: ActivePassive.Angel(this, true, 0); break;
-            case 104: ActivePassive.Bishop(this, 0, "turn"); break;
-        }
-        super.onTurn(notbonus); //call on allyturn and onenemyturn
-    }
-    @Override
-    public void onTurnEnd (boolean notbonus)
-    {
-        super.onTurnEnd(notbonus); //tick stateffs and cds
-        switch (this.index)
-        {
-            case 12: ActivePassive.DraxOG(this, false, null, null); break;
-            case 13: StaticPassive.Drax(this, null, "turnend"); break;
-            case 76: ActivePassive.Speedball(this, false); break;
-            case 77: ActivePassive.Penance(this, -616); break;
-        }
-    }
-    @Override
-    public void onAllyTurn (Character ally, boolean summoned) //ally is the one triggering call and this is one reacting
-    {
-        if (!(this.binaries.contains("Banished"))) //remember that this triggers for dead heroes too
-        {
-            switch (index)
-            {
-                case 11: ActivePassive.FuryJr(this, "allyturn", summoned); break;
-                case 24: ActivePassive.Binary(this); break;
-                case 40: ActivePassive.Sandy(this, "turn"); break;
-                case 105: ActivePassive.Immortal(this, "ally"); break;
-            }
-        }
-    }
-    @Override
-    public void onEnemyTurn (Character enemy, boolean summoned) //enemy is the one triggering call and this is one reacting
-    {
-        if (!(this.binaries.contains("Banished")))
-        {
-            switch (index)
-            {
-                case 24: ActivePassive.Binary(this); break;
-            }
-        }
-    }
-    @Override
     public void onFightStart()
     {
         switch (this.index)
@@ -101,14 +40,13 @@ public class Hero extends Character
         }
     }
     @Override
-    public void add (StatEff eff) //adding a stateff
+    public void add (StatEff eff, boolean print) //adding a stateff
     {
         for (StatEff e: this.effects) //for stateffs that react to other stateffs, e.g. fortify
         {
             e.Attacked(eff);
         }
-        if (!(eff.getefftype().equals("Secret"))&&!(eff.getimmunityname().equalsIgnoreCase("Protect"))) 
-        //due to taunt/protect interaction; no point in announcing it being added if it's instantly removed
+        if (print==true&&!(eff.getimmunityname().equalsIgnoreCase("Protect"))) //due to taunt/protect interaction; no point in announcing it being added if it's instantly removed
         {
             System.out.println ("\n"+this.Cname+" gained a(n) "+eff.geteffname());
         }
@@ -120,16 +58,17 @@ public class Hero extends Character
             break;
         }
         this.effects.add(eff);  
-        eff.onApply(this); String name=eff.getimmunityname();
+        eff.onApply(this); 
+        String type=eff.getefftype(); String name=eff.getimmunityname();
         switch (this.index) //after gaining effect
         {
             case 2: 
             if (name.equals("Intensify")&&eff.getefftype().equals("Buffs"))
             ActivePassive.Gamora(this, eff, true); 
             break;
-            case 16: case 17: case 25:
+            case 16: case 17: case 25: //venoms
             if (name.equals("Burn"))
-            StaticPassive.Symbiote(this, 5);
+            StaticPassive.Burn(this, 5);
             break;
             case 40:
             if (name.equals("Burn"))
@@ -139,12 +78,20 @@ public class Hero extends Character
             if (name.equals("Stun"))
             ActivePassive.Speedball(this, false);
             break;
-            case 90:
+            case 78: 
             if (name.equals("Burn"))
-            StaticPassive.Symbiote(this, 10);
+            {
+                StaticPassive.Burn(this, -10);
+                if (type.equals("Other")&&eff.power==0)
+                ActivePassive.Rulk(this, "add", 616);
+            }
+            break;
+            case 90: //carnage
+            if (name.equals("Burn"))
+            StaticPassive.Burn(this, 10);
             break;
             case 92:
-            if (name.equals("Intensify")&&eff.getefftype().equals("Other")&&eff.power==5)
+            if (name.equals("Intensify")&&type.equals("Other")&&eff.power==5)
             ActivePassive.Roblin(this, this, "gain");
             break;
             case 99:
@@ -190,13 +137,21 @@ public class Hero extends Character
                         ActivePassive.IM(this, eff); 
                         break;
                     }
-                    case 16: case 17: case 25:
+                    case 16: case 17: case 25: //venoms
                     if (name.equals("Burn"))
-                    StaticPassive.Symbiote(this, -5);
+                    StaticPassive.Burn(this, -5);
                     break;
-                    case 90:
+                    case 78: 
                     if (name.equals("Burn"))
-                    StaticPassive.Symbiote(this, -10);
+                    {
+                        StaticPassive.Burn(this, 10);
+                        if (type.equals("Other")&&eff.power==0)
+                        ActivePassive.Rulk(this, "remove", 616);
+                    }
+                    break;
+                    case 90: //cletus kasady
+                    if (name.equals("Burn"))
+                    StaticPassive.Burn(this, -10);
                     break;
                     case 99:
                     if (name.equals("Taunt"))
@@ -208,7 +163,7 @@ public class Hero extends Character
         }
     }
     @Override
-    public void StatFailed (Character target, StatEff e, String cause) //target is hero the stateff was supposed to be applied to; for leader, magneto, gorr, etc
+    public void StatFailed (Character target, StatEff e, String cause) //any hero's eff failed to apply; target is hero the stateff was supposed to be applied to
     {
         switch (this.index)
         {
@@ -219,7 +174,7 @@ public class Hero extends Character
         }
     }
     @Override
-    public void onEnemyGain (Character foe, StatEff e)
+    public void onEnemyGain (Character foe, StatEff e) //enemy gained a stateff
     {
         if (!(this.binaries.contains("Banished")))
         {
@@ -233,25 +188,97 @@ public class Hero extends Character
         }
     }
     @Override
-    public void BeforeAttack (Character dealer, Character victim, boolean target)
+    public void onTurn (boolean notbonus) 
+    {
+        switch (this.index) //first turn is turn 0
+        {
+            case 5: StaticPassive.WM(this); break;
+            case 6: ActivePassive.CaptainA(this); break;
+            case 9: ActivePassive.StarLord(this); break; 
+            case 11: ActivePassive.FuryJr (this, "onturn", false); break;
+            case 18: ActivePassive.Spidey(this, null, false, false); break;
+            case 23: ActivePassive.CM(this, true, 0); break;
+            case 24: ActivePassive.Binary(this); break;
+            case 28: StaticPassive.DOOM(this, "turn", this); break;
+            case 32: StaticPassive.BB(this); break;
+            case 33: StaticPassive.Deadpool(this, "heal", null); break;
+            case 35: ActivePassive.Cain(this, "turn", 616); break;
+            case 40: ActivePassive.Sandy(this, "turn"); break;
+            case 72: StaticPassive.Zemo(this, true); break;
+            case 74: ActivePassive.Songbird(this); break;
+            case 78: ActivePassive.Rulk(this, "turn", 0); break;
+            case 97: ActivePassive.Angel(this, true, 0); break;
+            case 104: ActivePassive.Bishop(this, 0, "turn"); break;
+        }
+        super.onTurn(notbonus); //call on allyturn and onenemyturn
+    }
+    @Override
+    public void onTurnEnd (boolean notbonus)
+    {
+        super.onTurnEnd(notbonus); //tick stateffs and cds
+        switch (this.index)
+        {
+            case 12: ActivePassive.DraxOG(this, false, null, null); break;
+            case 13: StaticPassive.Drax(this, null, "turnend"); break;
+            case 76: ActivePassive.Speedball(this, false); break;
+            case 77: ActivePassive.Penance(this, -616); break;
+        }
+    }
+    @Override
+    public void onAllyTurn (Character ally, boolean summoned) //ally is the one triggering call and this is one reacting
+    {
+        if (!(this.binaries.contains("Banished"))) //remember that this triggers for dead heroes too
+        {
+            switch (index)
+            {
+                case 11: ActivePassive.FuryJr(this, "allyturn", summoned); break;
+                case 24: ActivePassive.Binary(this); break;
+                case 40: ActivePassive.Sandy(this, "turn"); break;
+                case 105: ActivePassive.Immortal(this, "ally"); break;
+            }
+        }
+    }
+    @Override
+    public void onEnemyTurn (Character enemy, boolean summoned) //enemy is the one triggering call and this is one reacting
+    {
+        if (!(this.binaries.contains("Banished")))
+        {
+            switch (index)
+            {
+                case 24: ActivePassive.Binary(this); break;
+            }
+        }
+    }
+    @Override
+    public void BeforeAttack (Character victim, boolean target)
     {
         if (target==true)
         {
-            switch (dealer.index) //for passives that let the dealer ignore protect or miss or etc against certain targets; called before checking for protect 
+            switch (this.index) //for passives that let the dealer ignore protect or miss or etc against certain targets; called before checking for protect 
             {
-                case 20: ActivePassive.Superior(dealer, victim, true); break;
+                case 20: ActivePassive.Superior(this, victim, true); break;
+            }
+            if (this.CheckFor("Aura", false)==true&&this.activeability.aoe==false) //aura tempstring applied regardless of target
+            {
+                for (StatEff e: this.effects)
+                {
+                    if (e.getimmunityname().equals("Aura"))
+                    {
+                        e.Attacked(this, this, 616);
+                    }
+                }
             }
         }
         else //once target is determined after checking for protect and passives like spidey's, check if passive activates against the target
         {
-            switch (dealer.index)
+            switch (this.index)
             {
-                case 13: StaticPassive.Drax(dealer, victim, "battack"); break;
-                case 14: ActivePassive.X23(dealer, victim, false, true); break;
-                case 25: ActivePassive.Flash(dealer, 0, true, false); break;
-                case 26: int ignore=StaticPassive.MODOC(dealer, victim, "attack", 616); break;
-                case 33: StaticPassive.Deadpool(dealer, "attack", victim); break;
-                case 36: StaticPassive.Vulture(dealer, victim); break;
+                case 13: StaticPassive.Drax(this, victim, "battack"); break;
+                case 14: ActivePassive.X23(this, victim, false, true); break;
+                case 25: ActivePassive.Flash(this, 0, true, false); break;
+                case 26: int ignore=StaticPassive.MODOC(this, victim, "attack", 616); break;
+                case 33: StaticPassive.Deadpool(this, "attack", victim); break;
+                case 36: StaticPassive.Vulture(this, victim); break;
                 case 86: StaticPassive.Kraven(this, victim, true); break;
             }
         }
@@ -264,35 +291,26 @@ public class Hero extends Character
         {
             for (StatEff eff: target.effects)
             {
-                if (eff.getimmunityname().equalsIgnoreCase("Protect")&&!(eff.getProtector().equals(target))) //protect has no effect if the target isn't the one being protected
+                if (eff.getimmunityname().equalsIgnoreCase("Protect")&&!(eff.getProtector()==target)) //target must have protected, not be protecting someone else
                 {
-                    if (eff.getefftype().equalsIgnoreCase("Defence")&&!(attacker.ignores.contains("Defence"))) 
-                    //if the target has protect and the attacker doesn't ignore it, their protector instead takes the hit
+                    Character bigman=eff.getProtector(); 
+                    if (!(bigman.binaries.contains("Stunned"))&&!(bigman.binaries.contains("Banished")))
                     {
-                        ntarg=eff.getProtector();
-                        System.out.println(ntarg.Cname+" protected "+target.Cname+"!");
-                        break;
-                    } 
-                    else if (eff.getefftype().equalsIgnoreCase("Other")) 
-                    //if the target has a protect Effect, their protector always takes the hit
-                    {
-                        ntarg=eff.getProtector();
-                        System.out.println(ntarg.Cname+" protected "+target.Cname+"!");
-                        break;
-                    }            
+                        if (eff.getefftype().equalsIgnoreCase("Defence")&&!(attacker.ignores.contains("Defence"))) 
+                        {
+                            System.out.println(bigman+" protected "+target+"!");
+                            return bigman; //protector becomes target instead
+                        } 
+                        else if (eff.getefftype().equalsIgnoreCase("Other")) 
+                        {
+                            System.out.println(bigman+" protected "+target+"!");
+                            return bigman; //if the character is protected, end method bc they're safe now
+                        }            
+                    }
                 }
             }
         }
-        switch (target.index) //for passives like howard the duck's that apply when attacked but take place before damage is dealt; mainly for avoidance
-        {
-            //no need to trigger some of these passives if protect was activated since protect changes the attack's target
-            case 18: ActivePassive.Spidey(target, attacker, true, aoe); break;
-        }
-        if (ntarg!=target&&!(ntarg.binaries.contains("Banished"))) //if the character is protected, no one else needs to do anything bc they're safe now
-        {
-            return ntarg;
-        }
-        if (ntarg==target) //only need to notify allies if the character is still vulnerable
+        else //only need to notify allies and activate their passives if the character is still vulnerable
         {
             Character[] friends=Battle.GetTeammates(target);
             for (Character friend: friends) //this is where spidey, thing, etc do their thing
@@ -301,10 +319,16 @@ public class Hero extends Character
                 {
                     ntarg=friend.onAllyTargeted(attacker, target, dmg, aoe);
                     if (ntarg!=target)
-                    return ntarg;
+                    return ntarg; //only the first target switching passive should take effect
                 }
             }
-        } 
+            switch (target.index) //for passives like howard the duck's that apply when attacked but take place before damage is dealt; mainly for avoidance
+            {
+                //no need to trigger these passives if protect/another passive was activated, since protect changes the attack's target
+                //but if no one else is going to be the target, then the original target triggers their ontargeted passive
+                case 18: ActivePassive.Spidey(target, attacker, true, aoe); break;
+            }
+        }
         return ntarg;
     }
     @Override
@@ -334,7 +358,7 @@ public class Hero extends Character
         }
     }
     @Override
-    public void onAttacked(Character attacker, int dmg)
+    public void onAttacked(Character attacker, int dmg, boolean aoe)
     {
         switch (this.index) //for passives that trigger even if the hero died from the attack
         {
@@ -354,6 +378,7 @@ public class Hero extends Character
                 }               
                 else if (!(eff.getimmunityname().equals("Counter")))
                 {
+                    if (!(eff.getimmunityname().equals("Aura"))||(eff.getimmunityname().equals("Aura")&&aoe==false))
                     eff.Attacked(this, attacker, dmg);
                 }
             }
@@ -466,6 +491,7 @@ public class Hero extends Character
             switch (this.index)
             {
                 case 15: ActivePassive.Wolvie(this, false); break;
+                case 78: ActivePassive.Rulk(this, "hurt", dmg); break;
                 case 97: ActivePassive.Angel(this, false, dmg); break;
                 case 104: ActivePassive.Bishop(this, dmg, "damaged"); break;
             }
@@ -493,6 +519,7 @@ public class Hero extends Character
             {
                 case 15: ActivePassive.Wolvie(this, false); break;
                 case 23: ActivePassive.CM(this, false, dmg); break;
+                case 78: ActivePassive.Rulk(this, "hurt", dmg); break;
                 case 97: ActivePassive.Angel(this, false, dmg); break;
                 case 104: ActivePassive.Bishop(this, dmg, "damaged"); break;
             }
@@ -535,7 +562,7 @@ public class Hero extends Character
         }
         if (this.activeability!=null&&this.activeability.channelled==true)
         {
-            this.activeability.InterruptChannelled(this, this.activeability);
+            this.activeability.InterruptChannelled(this, this.activeability); //already checks if channelling was finished
         }
         ArrayList <StatEff> removeme= new ArrayList<StatEff>();
         removeme.addAll(this.effects);  
@@ -633,7 +660,7 @@ public class Hero extends Character
         {
             case 16: 
             if (this.passivefriend[0].dead==false) //readd tracker that was removed on venom's death
-            this.passivefriend[0].add(new Tracker ("Watched by Venom (Eddie Brock)"));
+            this.passivefriend[0].add(new Tracker ("Watched by Venom (Eddie Brock)"), false);
             break;
         }
         Character[] friends=Battle.GetTeammates(this);
@@ -824,7 +851,8 @@ public class Hero extends Character
                 case 32: //black bolt
                 this.immunities.add("Control"); Tracker elect= new Tracker ("Electrons: "); this.effects.add(elect); elect.onApply(this); break; 
                 case 35: //juggernaut
-                Tracker wrath= new Tracker("Momentum: "); this.effects.add(wrath); wrath.onApply(this); this.immunities.add("Snare"); this.immunities.add("Stun");
+                Tracker wrath= new Tracker("Momentum: "); this.effects.add(wrath); wrath.onApply(this); 
+                this.immunities.add("Copy"); this.immunities.add("Snare"); this.immunities.add("Stun");
                 if (this.HP>100)
                 {
                     this.ADR+=10; this.immunities.add("Control"); Tracker salt= new Tracker("Cyttorak's Blessing active"); this.effects.add(salt);
@@ -848,7 +876,9 @@ public class Hero extends Character
                 this.immunities.add("Control"); this.immunities.add("Heal"); this.immunities.add("Snare"); this.immunities.add("Reduce"); this.immunities.add("Lose"); 
                 CoinFlip.DMGImmune(this, true); break;
                 case 77: //penance
-                Tracker hot= new Tracker ("Pain: "); this.effects.add(hot); hot.onApply(this); this.immunities.add("Control"); break;
+                Tracker hot= new Tracker ("Pain: "); this.effects.add(hot); hot.onApply(this); this.immunities.add("Control"); this.immunities.add("Heal"); break;
+                case 80: //scarecrow
+                this.immunities.add("Terror"); break;
                 //2.8: Defenders
                 case 81: //daredevil
                 this.ignores.add("Blind"); this.ignores.add("Invisible"); break;
@@ -976,7 +1006,7 @@ public class Hero extends Character
                         very=e; break;
                     }
                 }
-                this.remove(very.id, "silent"); this.immunities.remove("Snare"); this.immunities.remove("Stun");
+                this.remove(very.id, "silent"); this.immunities.remove("Snare"); this.immunities.remove("Stun"); this.immunities.remove("Copy");
                 if (this.HP>100)
                 {
                     this.ADR-=10; this.immunities.remove("Control"); 
@@ -1026,8 +1056,10 @@ public class Hero extends Character
                         noggin=e; break;
                     }
                 }
-                this.remove(noggin.id, "silent"); this.immunities.remove("Control"); 
+                this.remove(noggin.id, "silent"); this.immunities.remove("Control"); this.immunities.remove("Heal");  
                 break;
+                case 80: //scarecrow
+                this.immunities.remove("Terror"); break;
                 //2.8: Defenders
                 case 81: //daredevil
                 this.ignores.remove("Blind"); this.ignores.remove("Invisible"); break;

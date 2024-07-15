@@ -35,7 +35,7 @@ public class SummonPassive
     }
     public static void Decoy (Character decoy) //onsummon
     {
-        decoy.add(new Taunt(500, 616, decoy)); decoy.binaries.add("Stunned");
+        decoy.add(new Taunt(500, 616, decoy), true); decoy.binaries.add("Stunned");
     }
     public static int Daemon (Character matt, boolean start, Character attacker, int dmg)
     {

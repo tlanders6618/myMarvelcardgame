@@ -63,7 +63,7 @@ public abstract class Character
         return this.Cname;
     }
     public abstract void AddImmune (boolean b);
-    public abstract void add (StatEff eff); //adding a stateff    
+    public abstract void add (StatEff eff, boolean loud); //adding a stateff, with or without notification message    
     public abstract void remove (int removalcode, String nullify); //removes status effects
     public abstract void StatFailed (Character h, StatEff e, String c); //notification when any hero fails to apply a stateff; for leader, gorr, magneto, etc
     public abstract void onEnemyGain (Character enemy, StatEff e); //for when an enemy gains a stateff
@@ -490,62 +490,18 @@ public abstract class Character
             System.out.println("\n"+this.Cname+" received "+amount+" shield!");
         }
     }
-    public Character onTargeted (Character attacker, Character target, int dmg, boolean aoe)
-    {
-        Character ntarg=target;
-        if (aoe==false&&target.CheckFor("Protect", false)==true&&!(attacker.ignores.contains("Protect"))) //check for protect
-        {
-            for (StatEff eff: target.effects)
-            {
-                if (eff.getimmunityname().equalsIgnoreCase("Protect")&&!(eff.getProtector().equals(target))) //protect has no effect if the target isn't the one being protected
-                {
-                    if (eff.getefftype().equalsIgnoreCase("Defence")&&!(attacker.ignores.contains("Defence"))) 
-                    //if the target has protect and the attacker doesn't ignore it, their protector instead takes the hit
-                    {
-                        ntarg=eff.getProtector();
-                        System.out.println(ntarg.Cname+" protected "+target.Cname+"!");
-                        break;
-                    } 
-                    else if (eff.getefftype().equalsIgnoreCase("Other")) 
-                    //if the target has a protect Effect, their protector always takes the hit
-                    {
-                        ntarg=eff.getProtector();
-                        System.out.println(ntarg.Cname+" protected "+target.Cname+"!");
-                        break;
-                    }            
-                }
-            }
-        }
-        if (ntarg!=target&&!(ntarg.binaries.contains("Banished"))) //if the character is protected, no one else needs to do anything bc they're safe now
-        {
-            return ntarg;
-        }
-        if (ntarg==target) //only need to notify allies if the character is still vulnerable
-        {
-            Character[] friends=Battle.GetTeammates(target);
-            for (Character friend: friends) //this is where spidey, thing, etc do their thing
-            {
-                if (friend!=null&&!(friend.binaries.contains("Banished")))
-                {
-                    ntarg=friend.onAllyTargeted(attacker, target, dmg, aoe);
-                    if (ntarg!=target)
-                    return ntarg;
-                }
-            }
-        }
-        return ntarg;
-    }
+    public abstract Character onTargeted (Character attacker, Character target, int dmg, boolean aoe);
     public abstract void onAllyTurn (Character ally, boolean summoned); 
     public abstract void onEnemyTurn (Character enemy, boolean summoned);
     public abstract void onFightStart();
     public abstract void onAllyAttacked(Character ally, Character hurtfriend, Character attacker, int dmg);
     public abstract Character onAllyTargeted (Character dealer, Character target, int dmg, boolean aoe); //for passives that change the target hero, like thing's
-    public abstract void BeforeAttack (Character dealer, Character target, boolean t); //whether to call before or after checking for protect
+    public abstract void BeforeAttack (Character target, boolean t); //t is whether it was called before or after checking for protect
     public Character Attack (Character dealer, Character target, int dmg, boolean aoe) //for attack skills
     {
-        BeforeAttack(dealer, target, true);
+        BeforeAttack(target, true);
         target=target.onTargeted(dealer, target, dmg, aoe); 
-        BeforeAttack(dealer, target, false);
+        BeforeAttack(target, false);
         if (!(dealer.binaries.contains("Missed"))&&!(dealer.immunities.contains("Missed"))) //only check if dealer isn't immune to miss and hasn't missed already; can't miss twice 
         { 
             if (dealer.activeability.blind==false)
@@ -576,7 +532,7 @@ public abstract class Character
         dealer.onAttack(target); //activate relevant passives after attacking
         if (target.dead==false)
         {
-            target.onAttacked(dealer, dmg);
+            target.onAttacked(dealer, dmg, aoe);
         }
         Character[] friends=Battle.GetTeammates(target);
         for (Character friend: friends)
@@ -592,12 +548,11 @@ public abstract class Character
         }
         return target;
     }
-    public Character AttackNoDamage (Character dealer, Character target, boolean aoe)
+    public Character AttackNoDamage (Character dealer, Character target, boolean aoe) //modified version of attack method since debuff skills cannot do damage
     {
-        //modified version of attack method since debuff skills cannot do damage
-        BeforeAttack(dealer, target, true);
+        BeforeAttack(target, true);
         target=target.onTargeted(dealer, target, 0, aoe);
-        BeforeAttack(dealer, target, false);
+        BeforeAttack(target, false);
         if ((!(dealer.binaries.contains("Missed"))&&!(dealer.immunities.contains("Missed"))))
         {
             if (dealer.activeability.blind==false)
@@ -612,7 +567,7 @@ public abstract class Character
             }
         }
         dealer.onAttack(target);
-        target.onAttacked(dealer, 0);
+        target.onAttacked(dealer, 0, aoe);
         Character[] friends=Battle.GetTeammates(target);
         for (Character friend: friends)
         {
@@ -625,9 +580,9 @@ public abstract class Character
     }
     public Character AttackNoDamage (Character dealer, Character target, int lossy, boolean aoe, boolean max) //for (max) health loss attacks
     {
-        BeforeAttack(dealer, target, true);
+        BeforeAttack(target, true);
         target=target.onTargeted(dealer, target, 0, aoe);
-        BeforeAttack(dealer, target, false);
+        BeforeAttack(target, false);
         if ((!(dealer.binaries.contains("Missed"))&&!(dealer.immunities.contains("Missed"))))
         {
             if (dealer.activeability.blind==false)
@@ -650,7 +605,7 @@ public abstract class Character
         }
         dealer.onAttack(target);
         if (target.dead==false)
-        target.onAttacked(dealer, 0);
+        target.onAttacked(dealer, 0, aoe);
         Character[] friends=Battle.GetTeammates(target);
         for (Character friend: friends)
         {
@@ -663,7 +618,7 @@ public abstract class Character
     }
     public abstract void onCrit (Character target); //called after successful crit; for passives
     public abstract void onAttack (Character personIjustattacked);
-    public abstract void onAttacked(Character attacker, int dmg);
+    public abstract void onAttacked(Character attacker, int dmg, boolean aoe);
     public abstract void onEvade (Character attacker);
     public abstract void onAllyEvade (Character ally, Character attacker);
     public abstract void onEnemyEvade (Character enemy, Character attacker);
@@ -721,7 +676,7 @@ public abstract class Character
             {
                 this.onLethalDamage(null, "DOT");
             }
-            else if (this.HP==0&&dot.equals("Self")&&!(this.binaries.contains("Immortal")))
+            else if (this.HP==0&&dot.equalsIgnoreCase("Self")&&!(this.binaries.contains("Immortal")))
             {
                 this.onLethalDamage(null, "Lose");
             }
@@ -766,20 +721,21 @@ public abstract class Character
             switch (index)
             {
                 //220
-                case 6: case 9: case 10: case 14: case 19: case 21: case 29: case 33: case 36: case 37: case 73: case 91: case 93: case 95: case 96: case 102: case 103:
+                case 6: case 9: case 10: case 14: case 19: case 21: case 29: case 33: case 36: case 37: case 73: case 80: case 91: case 93: case 95: case 96: case 102: case 103:
                 return 220;
                 //230
                 case 1: case 2: case 3: case 4: case 5: case 7: case 8: case 11: case 18: case 20: case 23: case 24: case 25: case 34: case 39: case 40: case 72: case 74: 
-                case 75: case 81: case 82: case 84: case 86: case 88: case 89: case 90: case 92: case 94: case 97: case 98: case 100: case 101:
+                case 75: case 79: case 81: case 82: case 84: case 86: case 88: case 89: case 90: case 92: case 94: case 97: case 98: case 100: case 101:
                 return 230;
                 //240
-                case 12: case 13: case 15: case 16: case 17: case 22: case 27: case 28: case 30: case 32: case 35: case 38: case 41: case 77:
+                case 12: case 13: case 15: case 16: case 17: case 22: case 27: case 28: case 30: case 32: case 35: case 38: case 41: case 78:
                 case 83: case 85: case 87: case 99: case 104:
                 return 240;
                 //special carrots
                 case 26: return 130; //modork
                 case 31: return 250; //hulk
                 case 76: case 105: return 100; //speedball and mr immortal
+                case 77: return 200; //penance
             }    
             return 616;
         }
@@ -864,6 +820,9 @@ public abstract class Character
                 case 75: return "Moonstone (Karla Sofen)";
                 case 76: return "Speedball (Classic)";
                 case 77: return "Speedball (Penance)";
+                case 78: return "Red Hulk (Classic)";
+                case 79: return "Radioactive Man (Classic)";
+                case 80: return "Scarecrow (Modern)";
                 //2.8: Defenders
                 case 81: return "Daredevil (Matt Murdock)";
                 case 82: return "Iron Fist (Danny Rand)";
@@ -1008,9 +967,9 @@ public abstract class Character
                 case 30: //brawn
                 return "Gain immunity to Poison and Control. Brawn can Nullify Heal and Defence effects, and gains copies of effects he Nullified. ";
                 case 31: //hulk
-                return "Gain immunity to Poison, Control, Terror, and Persuaded. Take less and deal more damage for every 50 missing HP.";
+                return "Gain immunity to Poison, Control, Terror, and Persuaded. Take less and deal more damage for every 40 missing HP.";
                 case 32: //black bolt
-                return "Every other turn, gain 1 E; lose all when attacking to do +20 damage for each. Gain immunity to Control.";
+                return "Every other turn, gain 1 E; when using an ability, lose all E to do +20 damage for each. Gain immunity to Control.";
                 case 33: //deadpool
                 return "On turn, gain 30 HP. Do +15 damage against Summons and reduce all cooldowns by 1 turn on kill.";
                 case 35: //juggernaut
@@ -1038,7 +997,11 @@ public abstract class Character
                 case 76: //speedball
                 return "Gain immunity to damage, Control, Snare, max HP reduction, health loss, and Heal. On fight start, gain Reflect. On turn, and when attacked or Stunned, sacrifice 15 health.";
                 case 77: //penance
-                return "Gain immunity to Control. Take half damage from attacks, and gain 1 Pain for every 20 damage taken before damage reduction.";
+                return "Gain immunity to Control and Heal. Take half damage from attacks, and gain 1 Pain for every 20 damage taken before damage reduction.";
+                case 78: //red hulk
+                return "Take -10 damage for each Burn on self. Every 40 damage taken, gain Burn: 0 for 3 turns; at 5+, lose 40 HP on turn until there are less than 5."; 
+                case 80: //scarecrow
+                return "Gain immunity to Terror. Enemies immune to Terror cannot gain Fear.";
                 //2.8: Defenders
                 case 81: //daredevil
                 return "Ignore Blind and Invisible. Ignore the Counter activation limit.";

@@ -235,6 +235,46 @@ public class ActivePassive
         }
     }
     //2.7: Thunderbolts
+    public static void Rulk (Character ross, String cause, int dmg) //tookdamage and add/remove; ignores stun
+    {
+        if (cause.equals("hurt"))
+        {
+            ross.passivecount+=dmg;
+            while (ross.passivecount/40>0) //can gain multiple burns from one attack
+            {
+                ross.passivecount-=40;
+                BurnE rage=new BurnE(500, 0, 3, ross); 
+                if (CoinFlip.Flip(500+ross.Cchance)==true)
+                StatEff.CheckApply(ross, ross, rage);
+                else
+                StatEff.applyfail(ross, rage, "chance");
+            }
+        }
+        else 
+        {
+            int burns=CoinFlip.GetStatCount(ross, "Burn", "Other");
+            if (cause.equals("turn")&&burns>=5)
+            {
+                ross.LoseHP(null, 30, "self");
+            }
+            else if (cause.equals("add")&&burns>=5&&ross.CheckFor(ross+" is overheated!", false)==false) 
+            {
+                Tracker heated=new Tracker(ross+" is overheated!"); ross.effects.add(heated);
+            }
+            else if (cause.equals("remove")&&burns<5&&ross.CheckFor(ross+" is overheated!", false)==true)
+            {
+                StatEff themightytor=null;
+                for (StatEff e: ross.effects)
+                {
+                    if (e instanceof Tracker&&e.getimmunityname().equals(ross+" is overheated!"))
+                    {
+                        themightytor=e; break;
+                    }
+                }
+                ross.remove(themightytor.id, "silent");
+            }
+        }
+    }
     public static int Penance (Character edgy, int dmg) //takedamage and turnend; ignore stun
     {
         if (dmg!=-616) //for taking damage/gaining pain

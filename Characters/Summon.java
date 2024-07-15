@@ -136,9 +136,18 @@ public class Summon extends Character
     }
     //Below are overridden to avoid conflict between summmon and hero indexes
     @Override
-    public void add (StatEff eff) //adding a stateff
+    public void add (StatEff eff, boolean print) //adding a stateff
     {
+        for (StatEff e: this.effects) //for stateffs that react to other stateffs
+        {
+            e.Attacked(eff);
+        }
+        if (print==true&&!(eff.getimmunityname().equalsIgnoreCase("Protect"))) //due to taunt/protect interaction; no point in announcing it being added if it's instantly removed
+        {
+            System.out.println ("\n"+this.Cname+" gained a(n) "+eff.geteffname());
+        }
         this.effects.add(eff); 
+        eff.onApply(this);
         String type=eff.getefftype(); String name=eff.getimmunityname();
         switch (this.index)
         {
@@ -151,16 +160,6 @@ public class Summon extends Character
             SummonPassive.Giganto(this, "gain");
             break;
         }
-        for (StatEff e: this.effects) //for stateffs that react to other stateffs
-        {
-            e.Attacked(eff);
-        }
-        if (!(eff.getefftype().equals("Secret"))&&!(eff.getimmunityname().equalsIgnoreCase("Protect"))) 
-        //due to taunt/protect interaction; no point in announcing it being added if it's instantly removed
-        {
-            System.out.println ("\n"+this.Cname+" gained a(n) "+eff.geteffname());
-        }
-        eff.onApply(this);
         Character[] foes=Battle.GetTeam(CoinFlip.TeamFlip(this.team1));
         for (Character c: foes)
         {
@@ -204,6 +203,10 @@ public class Summon extends Character
     }
     @Override
     public void onEnemyGain (Character foe, StatEff e)
+    {
+    }
+    @Override
+    public void onFightStart()
     {
     }
     @Override
@@ -267,12 +270,66 @@ public class Summon extends Character
     {
     }
     @Override
-    public void onFightStart()
-    {
+    public Character onTargeted (Character attacker, Character target, int dmg, boolean aoe)
+    { 
+        Character ntarg=target; 
+        if (aoe==false&&target.CheckFor("Protect", false)==true&&!(attacker.ignores.contains("Protect"))) //check for protect
+        { 
+            for (StatEff eff: target.effects)
+            {
+                if (eff.getimmunityname().equalsIgnoreCase("Protect")&&!(eff.getProtector()==target)) //target must have protected, not be protecting someone else
+                {
+                    Character bigman=eff.getProtector(); 
+                    if (!(bigman.binaries.contains("Stunned"))&&!(bigman.binaries.contains("Banished")))
+                    {
+                        if (eff.getefftype().equalsIgnoreCase("Defence")&&!(attacker.ignores.contains("Defence"))) 
+                        {
+                            System.out.println(bigman+" protected "+target+"!");
+                            return bigman; //protector becomes target instead
+                        } 
+                        else if (eff.getefftype().equalsIgnoreCase("Other")) 
+                        {
+                            System.out.println(bigman+" protected "+target+"!");
+                            return bigman; //if the character is protected, end method bc they're safe now
+                        }            
+                    }
+                }
+            }
+        }
+        else //only need to notify allies and activate their passives if the character is still vulnerable
+        {
+            Character[] friends=Battle.GetTeammates(target);
+            for (Character friend: friends) //this is where spidey, thing, etc do their thing
+            {
+                if (friend!=null&&!(friend.binaries.contains("Banished")))
+                {
+                    ntarg=friend.onAllyTargeted(attacker, target, dmg, aoe);
+                    if (ntarg!=target)
+                    return ntarg; //only the first target switching passive should take effect
+                }
+            }
+        }
+        return ntarg;
     }
     @Override
-    public void BeforeAttack (Character dealer, Character victim, boolean target)
+    public void BeforeAttack (Character victim, boolean target)
     {
+        if (target==true) //called before checking for protect 
+        {
+            if (this.CheckFor("Aura", false)==true&&this.activeability.aoe==false) //aura tempstring applied regardless of target
+            {
+                for (StatEff e: this.effects)
+                {
+                    if (e.getimmunityname().equals("Aura"))
+                    {
+                        e.Attacked(this, this, 616);
+                    }
+                }
+            }
+        }
+        else //once target is determined after checking for protect and certain passives like spidey's
+        {
+        }
     }
     @Override
     public void onAttack (Character victim)
@@ -287,7 +344,7 @@ public class Summon extends Character
     {
     }
     @Override
-    public void onAttacked(Character attacker, int dmg)
+    public void onAttacked(Character attacker, int dmg, boolean aoe)
     {
         if (this.dead==false)
         {
@@ -302,6 +359,7 @@ public class Summon extends Character
                 }               
                 else if (!(eff.getimmunityname().equals("Counter")))
                 {
+                    if (!(eff.getimmunityname().equals("Aura"))||(eff.getimmunityname().equals("Aura")&&aoe==false))
                     eff.Attacked(this, attacker, dmg);
                 }
             }
