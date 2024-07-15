@@ -7,15 +7,25 @@ public class Test
    public static void main (String[] args)
    {
        //System.out.println(System.getProperty("java.class.version")); //55 means 11, 56 means 12, etc
-       Character Char11= new Hero (1); //Char11.binaries.add("Stunned"); 
-       Character Char12= new Hero (90); //Char12.binaries.add("Stunned"); 
-       Character Char13= new Hero (16); //Char13.binaries.add("Stunned"); 
-       Character Char21= new Hero (28); //Char21.binaries.add("Stunned"); 
-       Character Char22= new Hero (31); //Char22.binaries.add("Stunned"); 
-       Character Char23= new Hero (13); //Char23.binaries.add("Stunned"); 
-       boolean Pwinner=false;  
-       //Char21.add(new Terror(0, 999, Char12)); //Char21.add(new Poison (100, 15, 999)); //Char11.add(new Blind (0, 3, new Hero(73))); 
-       System.out.println("\nDonut forget to update card selection indexes");
+       Character Char11= new Hero (76); //Char11.binaries.add("Stunned"); 
+       Character Char12= new Hero (13); //Char12.binaries.add("Stunned"); 
+       Character Char13= new Hero (22); Char13.binaries.add("Stunned"); 
+       Character Char21= new Hero (21); //Char21.binaries.add("Stunned"); 
+       Character Char22= new Hero (6); //Char22.binaries.add("Stunned"); 
+       Character Char23= new Hero (85); Char23.binaries.add("Stunned"); 
+       boolean Pwinner=false; 
+       
+       //testing misc things unrelated to characters
+       //String t="random 1"; System.out.println(true&&false); System.out.println(t.substring(0, t.length()-2)+" k "+t.substring(t.length()-1)); System.out.println("random k 1");
+       
+       //for adding stateffs
+       //Char21.add(new Undermine(0, 3, Char11), false); //Char11.add(new Disrupt(500, 500, Char11)); //Char11.add(new Blind (0, 3, new Hero(73))); 
+       //Char21.add(new Poison(0, 15, 3, Char11), false); Char21.add(new Poison(0, 15, 3, Char11), false);
+       
+       //for modifiying stats
+       //Char23.HP=50; Char13.HP=50; //Char11.Cchance-=900;
+       
+       //System.out.println("\nDon't forget to update card selection indexes");
        Pwinner=Battle.main(Char11, Char12, Char13, Char21, Char22, Char23);
        if (Pwinner==true)
        {
@@ -27,8 +37,16 @@ public class Test
        }        
        Card_Game_Main.trash.close();
        /*
-        * To do/to test today:
-        * once added to the game, test that extend does/doesn't affect immortal/stun
+        * To do/to test:
+        * test that extend does/doesn't affect immortal/stun
+        * delete/rework snare and speed
+        * for hulk boss fight: use both shangs and roblin and thanos and spider-man
+        * 
+        * add damage dealt and healing dealt stat for characters; buff namor's imperius rex
+        * printing wolvie regen heals for 0 while berserk; channelled ab used twice if suppressed while channelling; inescapable not ignore provoke/terror
+        * 
+        * make sure all basicabs work with assist as intended from now on
+        * 
         */
        
        //random number=Min + (int)(Math.random() * ((Max - Min) + 1))

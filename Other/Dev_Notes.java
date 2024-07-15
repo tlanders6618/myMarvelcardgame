@@ -29,7 +29,7 @@ public class Dev_Notes
      * Combat (7):
      * -Battle 
      * -CardGameMain
-     * -CardHashcode
+     * -CardCode
      * -CardSelection
      * -CoinFlip
      * -DamageStuff
@@ -48,9 +48,7 @@ public class Dev_Notes
      * -StatEff
      * -StatFactory
      * 
-     * all new methods go under cardhashcode which is empty for some reason
-     * 
-     * make sure all basicabs work with assist as intended from now on
+     * all new methods go under cardcode which is empty for some reason
      * 
      * Always add ricochet before multichain in an ability's afterabs
      * always add ignore miss as an ability's first beforeab OR change every miss to check for ignoring miss and remove immunity to miss from game
@@ -66,6 +64,7 @@ public class Dev_Notes
      * New characters need inhp and setname, then passive descs and abs, then passives + adding them to hero methods, then bug testing and finally check balancing before release
      * All AoE attack abs call the attack method, which contains onattack, so all AoE attacks trigger onattack once for each target hit, instead of once after the attack ends
      * Passives should not apply if Stunned
+     * Always put break after switch statements; half of the bugs related to passives are the result of this
      * 
      * */
      
