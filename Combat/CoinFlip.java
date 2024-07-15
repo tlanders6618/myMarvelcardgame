@@ -35,18 +35,17 @@ public class CoinFlip
         {
             return true;
         }
-        else if (team==true)
+        else //if (team==true)
         {
             return false;
         }
-        return team;
     }
     public static ArrayList GetEffs (Character hero, String effname, String efftype) //for getting all debuffs, buffs, etc on a target
     {
         ArrayList<StatEff> effs=new ArrayList<StatEff>();
         for (StatEff eff: hero.effects)
-        {
-            if ((effname.equalsIgnoreCase("any")||eff.getimmunityname().equalsIgnoreCase(effname))&&(efftype.equalsIgnoreCase("any"))||eff.getefftype().equalsIgnoreCase(efftype))
+        { 
+            if ((effname.equalsIgnoreCase("any")||eff.getimmunityname().equalsIgnoreCase(effname))&&(efftype.equalsIgnoreCase("any")||eff.getefftype().equalsIgnoreCase(efftype)))
             {
                 effs.add(eff);
             }

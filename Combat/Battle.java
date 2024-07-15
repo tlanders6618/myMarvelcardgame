@@ -26,7 +26,7 @@ public class Battle
         boolean gamewinner=false; //game has been won
         boolean Pwinner=false; //true for player 1 wins, and false for player 2 wins
         FightStart(Char11, Char12, Char13, Char21, Char22, Char23); //allows certain passives to take effect
-        Scoreboard.main(team1, team2);
+        Scoreboard2.main(team1, team2);
         int winner=616;
         while (gamewinner==false)
         {
@@ -43,7 +43,7 @@ public class Battle
             }
             winner=CheckWin(tturns%2); 
             ++tturns;
-            Scoreboard.UpdateScore(team1, team2); 
+            Scoreboard2.UpdateScore(team1, team2); 
             if (winner==1)
             {
                 Pwinner=true; gamewinner=true;
@@ -182,7 +182,7 @@ public class Battle
             }
             if (p1heroes==0||p2heroes==0) //for abilities like sandman's sandstorm that can potentially kill enemies and end the game in-between turns
             {
-                Scoreboard.UpdateScore(team1, team2);
+                Scoreboard2.UpdateScore(team1, team2);
                 return true;
             }
         }
@@ -235,7 +235,7 @@ public class Battle
             }
             if (p1heroes==0||p2heroes==0) //for abilities like sandman's sandstorm that can potentially kill enemies and end the game in-between turns
             {
-                Scoreboard.UpdateScore(team1, team2);
+                Scoreboard2.UpdateScore(team1, team2);
                 return true;
             }
         }
@@ -277,12 +277,12 @@ public class Battle
             }
             if (hero.team1==true&&p2heroes==0)
             {
-                Scoreboard.UpdateScore(team1, team2); //show that all enemies are dead
+                Scoreboard2.UpdateScore(team1, team2); //show that all enemies are dead
                 return true; //end the game because the enemy team died from the channelled ability; no point in taking a turn now
             }
             else if (hero.team1==false&&p1heroes==0)
             {
-                Scoreboard.UpdateScore(team1, team2);
+                Scoreboard2.UpdateScore(team1, team2);
                 return true;
             }
         }
@@ -290,14 +290,14 @@ public class Battle
         ArrayList<Character> targets= new ArrayList<Character>(); //chars to hit with ab
         ArrayList<StatEff> selfadd= new ArrayList<StatEff>(); //status effects for hero to apply to self
         hero.onTurnStart(); //tick down all regen and dot effs 
-        Scoreboard.UpdateScore(team1, team2); //show effects of dot dmg/regen
+        Scoreboard2.UpdateScore(team1, team2); //show effects of dot dmg/regen
         if (hero.dead==false) //if they have not died from DoT damage
         {
             if (bonus==false) //makes distinction between bonus turns and normal turns primarily to avoid quicksilver taking infinite turns
             hero.onTurn(true);
             else
             hero.onTurn(false);
-            Scoreboard.UpdateScore(team1, team2);
+            Scoreboard2.UpdateScore(team1, team2);
             if (hero.team1==true&&p2heroes==0)
             return true; //end the game because the enemy team died from a passive or channelled ability, e.g. sandman's sandstorm
             else if (hero.team1==false&&p1heroes==0)
@@ -324,7 +324,7 @@ public class Battle
                                     eff.CheckApply(hero, hero, eff);
                                 }
                             }
-                            Scoreboard.UpdateScore(team1, team2); 
+                            Scoreboard2.UpdateScore(team1, team2); 
                         }
                         else //end the loop and end turn; chooseab already prevents infinite spamming of unbound abs so there are no infinite turns 
                         {

@@ -108,8 +108,10 @@ public class Damage_Stuff
     }
     public static int DamageIncrease (Character dealer, Character chump, int dmg) //dealer is the one doing the damage and chump is the one taking it
     {
-        dmg=dmg+dealer.BD+dealer.PBD+chump.DV; //dealer's dmg boosts plus the chump's damage vulnerabilities
-        return dmg;
+        if (dealer.ignores.contains("DR")&&chump.DV<0) //negative dmg vuln is dr, so ignore it
+        return dmg+dealer.BD+dealer.PBD;
+        else
+        return dmg+dealer.BD+dealer.PBD+chump.DV; //dealer's dmg boosts plus the chump's damage vulnerabilities
     }
     public static int DamageDecrease (Character dealer, boolean crit, Character chump, int dmg)
     {
@@ -123,7 +125,14 @@ public class Damage_Stuff
         }
         else if (dealer!=null&&dealer.ignores.contains("DR"))
         {
-            dmg=dmg; //ignore all damage reduction
+            if (chump.DR<0) //if target takes more damage from attacks/all sources, do not ignore that; only ignore positive damage reduction
+            dmg-=chump.DR;
+            if (chump.ADR<0)
+            dmg-=chump.ADR;
+            if (chump.RDR<0)
+            dmg-=chump.RDR;
+            if (chump.PRDR<0)
+            dmg-=chump.PRDR;
         }
         else //normal formula; accounts for all forms of DR
         {
