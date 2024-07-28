@@ -101,23 +101,23 @@ public abstract class Character
         {
             if (this.effects.contains(e)) //if something like wolvie's frenzy removes the eff from him in the middle of the loop, skip the removed eff 
             {
-                int dmg=0; //this method condenses dot dmg to one message to reduce clutter; instead of printing "took 5 burn dmg" 5 times, now print "took 25 burn dmg" one time
-                String name=e.getimmunityname(); dmg=e.power-this.ADR; 
+                int dmg=e.power; //this method condenses dot dmg to reduce clutter; instead of printing "took 5 burn dmg" 5 times, now print "took 25 burn dmg" one time
+                String name=e.getimmunityname();
                 if (name.equals("Bleed")) 
                 {
-                    dmg-=this.BlDR; BlT+=dmg; //System.out.println("Took "+dmg+" bleed dmg");
+                    dmg-=this.BlDR; dmg-=this.ADR; BlT+=dmg; //System.out.println("Took "+dmg+" bleed dmg");
                     if (e.power>0) //due to angel; don't want to print taking 0 damage from an eff with 0 strength bc it's redundant
                     bleed=true;
                 }
                 else if (name.equals("Burn"))
                 {
-                    dmg-=this.BuDR; BuT+=dmg; //System.out.println("Took "+dmg+" burn dmg");
+                    dmg-=this.BuDR; dmg-=this.ADR; BuT+=dmg; //System.out.println("Took "+dmg+" burn dmg");
                     if (e.power>0) 
                     burn=true;
                 }
                 else if (name.equals("Shock"))
                 {
-                    dmg-=this.ShDR; ShT+=dmg; //System.out.println("Took "+dmg+" shock dmg");
+                    dmg-=this.ShDR; dmg-=this.ADR; ShT+=dmg; //System.out.println("Took "+dmg+" shock dmg");
                     if (e.power>0) 
                     shock=true; 
                 }
@@ -125,7 +125,7 @@ public abstract class Character
                 {
                     if (!(this.immunities.contains("Lose")))
                     {
-                        dmg-=this.PoDR; PoT+=dmg; //System.out.println("Took "+dmg+" poison dmg");
+                        dmg-=this.PoDR; PoT+=dmg;
                         if (e.power>0) 
                         poison=true; 
                     }
@@ -138,7 +138,7 @@ public abstract class Character
                 {
                     if (!(this.immunities.contains("Lose")))
                     {
-                        dmg-=this.WiDR; WiT+=dmg; //System.out.println("Took "+dmg+" wither dmg");
+                        dmg-=this.WiDR; WiT+=dmg; 
                         if (e.power>0) 
                         wither=true; 
                     }
@@ -324,12 +324,12 @@ public abstract class Character
             } 
         }
     }
-    public Ability ChooseAb () //called by turn in battle
+    public Ability ChooseAb () //called by battle.turn
     {
         if (this.team1==true)
-        System.out.println ("\nPlayer 1, choose an ability for "+this.Cname+" to use. Type its number, not its name.");
+        System.out.println ("\nPlayer 1, choose an ability for "+this+" to use. Type its number, not its name.");
         else
-        System.out.println ("\nPlayer 2, choose an ability for "+this.Cname+" to use. Type its number, not its name.");
+        System.out.println ("\nPlayer 2, choose an ability for "+this+" to use. Type its number, not its name.");
         boolean skip=CardCode.CheckSkip(this); //allows heroes with no usable abilities to skip their turn
         for (int i=0; i<5; i++)
         {
@@ -637,7 +637,7 @@ public abstract class Character
     {
         if (!(this.immunities.contains("Reduce")))
         {
-            System.out.println(this.Cname+"'s max health was reduced by "+lossy+"!");
+            System.out.println("\n"+this.Cname+"'s max health was reduced by "+lossy+"!");
             this.maxHP-=lossy;
             if (this.index==105) //mr.immortal is currently (4.2) the only hero with a passive relating to losing max hp, so this is an if instead of a switch
             ActivePassive.Immortal(this, "hp");
@@ -667,7 +667,7 @@ public abstract class Character
                 //System.out.println(this.Cname+" lost "+lossy+" health from Wither!");
             }
             else
-            System.out.println(this.Cname+" lost "+lossy+" health!");
+            System.out.println("\n"+this.Cname+" lost "+lossy+" health!");
             int h=this.HP;
             Damage_Stuff.CheckBarrier(this, null, lossy); //attacker has to be null or barrier won't have its value reduced by the health loss; see checkbarrier for why
             if (this.HP<=0)
@@ -700,7 +700,7 @@ public abstract class Character
                 //System.out.println(this.Cname+" lost no health from Wither due to an immunity!");
             }
             else
-            System.out.println(attacker.Cname+"'s health loss failed due to"+this.Cname+"'s immunity.");
+            System.out.println(attacker.Cname+"'s health loss failed due to "+this.Cname+"'s immunity.");
         }
     }
     public static String GetHP (Character hero)
@@ -724,8 +724,8 @@ public abstract class Character
                 case 6: case 9: case 10: case 14: case 19: case 21: case 29: case 33: case 36: case 37: case 73: case 80: case 91: case 93: case 95: case 96: case 102: case 103:
                 return 220;
                 //230
-                case 1: case 2: case 3: case 4: case 5: case 7: case 8: case 11: case 18: case 20: case 23: case 24: case 25: case 34: case 39: case 40: case 72: case 74: 
-                case 75: case 79: case 81: case 82: case 84: case 86: case 88: case 89: case 90: case 92: case 94: case 97: case 98: case 100: case 101:
+                case 1: case 2: case 3: case 4: case 5: case 7: case 8: case 11: case 18: case 20: case 23: case 24: case 25: case 34: case 39: case 40: case 68: case 69:
+                case 72: case 74: case 75: case 79: case 81: case 82: case 84: case 86: case 88: case 89: case 90: case 92: case 94: case 97: case 98: case 100: case 101:
                 return 230;
                 //240
                 case 12: case 13: case 15: case 16: case 17: case 22: case 27: case 28: case 30: case 32: case 35: case 38: case 41: case 78:
@@ -813,6 +813,9 @@ public abstract class Character
                 case 39: return "Electro (Classic)";
                 case 40: return "Sandman (Classic)";
                 case 41: return "Rhino (Classic)";
+                //2.6: U-Foes
+                case 68: return "Vector (Classic)";
+                case 69: return "X-Ray (Classic)";
                 //2.7: Thunderbolts
                 case 72: return "Baron Zemo (Helmut Zemo)";
                 case 73: return "Melissa Gold (Screaming Mimi)";
@@ -886,18 +889,15 @@ public abstract class Character
     public abstract void onSelfControlled (Character controller);
     public void BanishTick ()
     {
-        ArrayList <StatEff> ban= new ArrayList<StatEff>();
+        StatEff ban=null;
         for (StatEff eff: this.effects)
         {
-            if (eff.getimmunityname().equalsIgnoreCase("Banish"))
+            if (eff.getimmunityname().equals("Banish"))
             {
-                ban.add(eff); 
+                ban=eff; break; //banish does not stack since it would be redundant, not to mention impossible to apply more than once
             }
         }
-        for (StatEff eff: ban)
-        {
-            eff.UseBanish();
-        }
+        ban.UseBanish(this);
     }
     public static String MakeDesc (int index, boolean summoned) //descriptions of every character's passives
     {
@@ -985,6 +985,11 @@ public abstract class Character
                 return "Gain immunity to Bleed, Disarm, Snare, and Shock, and ignore Counters; when receiving 2 Burns, convert them into a Stun Effect for 1 turn.";
                 case 41: //rhino
                 return "On fight start, gain Resistance. Take -10 Bleed damage. Gain immunity to max HP reduction, Suppression, Vulnerable, and Terror.";
+                //2.6: U-Foes
+                case 68: //vector
+                return "Gain immunity to Shock, Bleed, Burn, and Freeze. When using an ability on self or an ally, 100% chance to Purify. When using an ability on an enemy, 100% chance to Nullify.";
+                case 69: //x-ray
+                return "Gain immunity to Bleed, Poison, and Heal. Take no damage from Wither.";
                 //2.7: Thunderbolts
                 case 72: //zemo
                 return "Gain immunity to Steal and Disarm, and ignore Guard. On turn, remove Guard from self. When using Deadly Lunge for the first time, gain Precision.";

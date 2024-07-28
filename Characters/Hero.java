@@ -46,9 +46,10 @@ public class Hero extends Character
         {
             e.Attacked(eff);
         }
-        if (print==true&&!(eff.getimmunityname().equalsIgnoreCase("Protect"))) //due to taunt/protect interaction; no point in announcing it being added if it's instantly removed
+        if (print==true&&!(eff.getimmunityname().equalsIgnoreCase("Protect"))&&!(eff.getimmunityname().equalsIgnoreCase("Banish"))) 
+        //due to taunt/protect interaction as well as banish; no point in announcing it being added if it's instantly removed
         {
-            System.out.println ("\n"+this.Cname+" gained a(n) "+eff.geteffname());
+            System.out.println ("\n"+this+" gained a(n) "+eff);
         }
         switch (this.index) //modify effect before gaining it
         {
@@ -59,52 +60,55 @@ public class Hero extends Character
         }
         this.effects.add(eff);  
         eff.onApply(this); 
-        String type=eff.getefftype(); String name=eff.getimmunityname();
-        switch (this.index) //after gaining effect
+        if (this.effects.contains(eff)) //if it wasn't instantly removed; primarily for banish
         {
-            case 2: 
-            if (name.equals("Intensify")&&eff.getefftype().equals("Buffs"))
-            ActivePassive.Gamora(this, eff, true); 
-            break;
-            case 16: case 17: case 25: //venoms
-            if (name.equals("Burn"))
-            StaticPassive.Burn(this, 5);
-            break;
-            case 40:
-            if (name.equals("Burn"))
-            ActivePassive.Sandy(this, "burn");
-            break;
-            case 76:
-            if (name.equals("Stun"))
-            ActivePassive.Speedball(this, false);
-            break;
-            case 78: 
-            if (name.equals("Burn"))
+            String type=eff.getefftype(); String name=eff.getimmunityname();
+            switch (this.index) //after gaining effect
             {
-                StaticPassive.Burn(this, -10);
-                if (type.equals("Other")&&eff.power==0)
-                ActivePassive.Rulk(this, "add", 616);
+                case 2: 
+                if (name.equals("Intensify")&&eff.getefftype().equals("Buffs"))
+                ActivePassive.Gamora(this, eff, true); 
+                break;
+                case 16: case 17: case 25: //venoms
+                if (name.equals("Burn"))
+                StaticPassive.Burn(this, 5);
+                break;
+                case 40:
+                if (name.equals("Burn"))
+                ActivePassive.Sandy(this, "burn");
+                break;
+                case 76:
+                if (name.equals("Stun"))
+                ActivePassive.Speedball(this, false);
+                break;
+                case 78: 
+                if (name.equals("Burn"))
+                {
+                    StaticPassive.Burn(this, -10);
+                    if (type.equals("Other")&&eff.power==0)
+                    ActivePassive.Rulk(this, "add", 616);
+                }
+                break;
+                case 90: //carnage
+                if (name.equals("Burn"))
+                StaticPassive.Burn(this, 10);
+                break;
+                case 92:
+                if (name.equals("Intensify")&&type.equals("Other")&&eff.power==5)
+                ActivePassive.Roblin(this, this, "gain");
+                break;
+                case 99:
+                if (name.equals("Taunt"))
+                ActivePassive.Colossus(this, true);
+                break;
             }
-            break;
-            case 90: //carnage
-            if (name.equals("Burn"))
-            StaticPassive.Burn(this, 10);
-            break;
-            case 92:
-            if (name.equals("Intensify")&&type.equals("Other")&&eff.power==5)
-            ActivePassive.Roblin(this, this, "gain");
-            break;
-            case 99:
-            if (name.equals("Taunt"))
-            ActivePassive.Colossus(this, true);
-            break;
-        }
-        Character[] foes=Battle.GetTeam(CoinFlip.TeamFlip(this.team1));
-        for (Character c: foes)
-        {
-            if (c!=null)
+            Character[] foes=Battle.GetTeam(CoinFlip.TeamFlip(this.team1));
+            for (Character c: foes)
             {
-                c.onEnemyGain(this, eff);
+                if (c!=null)
+                {
+                    c.onEnemyGain(this, eff);
+                }
             }
         }
     }
@@ -294,7 +298,7 @@ public class Hero extends Character
                 if (eff.getimmunityname().equalsIgnoreCase("Protect")&&!(eff.getProtector()==target)) //target must have protected, not be protecting someone else
                 {
                     Character bigman=eff.getProtector(); 
-                    if (!(bigman.binaries.contains("Stunned"))&&!(bigman.binaries.contains("Banished")))
+                    if (!(target.binaries.contains("Banished"))&&!(bigman.binaries.contains("Stunned"))&&!(bigman.binaries.contains("Banished"))) //doesn't work while banished
                     {
                         if (eff.getefftype().equalsIgnoreCase("Defence")&&!(attacker.ignores.contains("Defence"))) 
                         {
@@ -855,7 +859,7 @@ public class Hero extends Character
                 this.immunities.add("Copy"); this.immunities.add("Snare"); this.immunities.add("Stun");
                 if (this.HP>100)
                 {
-                    this.ADR+=10; this.immunities.add("Control"); Tracker salt= new Tracker("Cyttorak's Blessing active"); this.effects.add(salt);
+                    this.ADR+=15; this.immunities.add("Control"); Tracker salt= new Tracker("Cyttorak's Blessing active"); this.effects.add(salt);
                 }
                 else
                 {
@@ -867,6 +871,11 @@ public class Hero extends Character
                 this.immunities.add("Bleed"); this.immunities.add("Shock"); this.immunities.add("Snare"); this.immunities.add("Disarm"); this.ignores.add("Counter"); break;
                 case 41: //rhino
                 this.immunities.add("Vulnerable"); this.immunities.add("Suppression"); this.immunities.add("Reduce"); this.immunities.add("Terror"); this.BlDR+=15; break; 
+                //2.6: U-Foes
+                case 68: //vector
+                this.immunities.add("Bleed"); this.immunities.add("Shock"); this.immunities.add("Freeze"); this.immunities.add("Burn"); break;
+                case 69: //x-ray
+                this.immunities.add("Bleed"); this.immunities.add("Poison"); this.immunities.add("Heal"); this.WiDR+=999; break;
                 //2.7: Thunderbolts
                 case 72: //zemo
                 this.immunities.add("Disarm"); this.immunities.add("Steal"); this.ignores.add("Guard"); break;
@@ -1009,7 +1018,7 @@ public class Hero extends Character
                 this.remove(very.id, "silent"); this.immunities.remove("Snare"); this.immunities.remove("Stun"); this.immunities.remove("Copy");
                 if (this.HP>100)
                 {
-                    this.ADR-=10; this.immunities.remove("Control"); 
+                    this.ADR-=15; this.immunities.remove("Control"); 
                     StatEff fed=null;
                     for (StatEff e: this.effects)
                     {
@@ -1039,6 +1048,11 @@ public class Hero extends Character
                 this.immunities.remove("Disarm"); this.ignores.remove("Counter"); break;
                 case 41: //rhino
                 this.immunities.remove("Vulnerable"); this.immunities.remove("Suppression"); this.immunities.remove("Reduce"); this.immunities.remove("Terror"); this.BlDR-=15; break; 
+                //2.6: U-Foes
+                case 68: //vector
+                this.immunities.remove("Bleed"); this.immunities.remove("Shock"); this.immunities.remove("Freeze"); this.immunities.remove("Burn"); break;
+                case 69: //x-ray
+                this.immunities.remove("Bleed"); this.immunities.remove("Poison"); this.immunities.remove("Heal"); this.WiDR-=999; break;
                 //2.7: Thunderbolts
                 case 72: //zemo
                 this.immunities.remove("Disarm"); this.immunities.remove("Steal"); this.ignores.remove("Guard"); break;

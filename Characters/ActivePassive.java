@@ -440,13 +440,8 @@ public class ActivePassive
         }
         else //if (o.equals("burn")) //add
         {
-            ArrayList<StatEff> burns= new ArrayList<StatEff>();
-            for (StatEff e: baker.effects)
-            {
-                if (e.getimmunityname().equals("Burn"))
-                burns.add(e);
-            }
-            if (burns.size()>1)
+            ArrayList<StatEff> burns= CoinFlip.GetEffs(baker, "Burn", "any");
+            if (burns.size()>1) //2 or more
             {
                 System.out.print("\n");
                 baker.remove(burns.get(0).id, "normal"); baker.remove(burns.get(1).id, "normal");
@@ -473,11 +468,11 @@ public class ActivePassive
                 }
             }
         }
-        else if (time.equals("change")) //hpchange
+        else if (time.equals("change")) //hpchange; also initially gains this under the set immunities functions
         {
             if (old>100&marko.HP<=100) //fallen below threshold; lost bonuses
             {
-                marko.ADR-=10; marko.immunities.remove("Control");
+                marko.ADR-=15; marko.immunities.remove("Control");
                 StatEff too=null;
                 for (StatEff e: marko.effects)
                 {
@@ -491,7 +486,7 @@ public class ActivePassive
             }
             else if (old<=100&marko.HP>100) //healed back above threshold; gain bonuses
             {
-                marko.ADR+=10; marko.immunities.add("Control");
+                marko.ADR+=15; marko.immunities.add("Control");
                 StatEff too=null;
                 for (StatEff e: marko.effects)
                 {

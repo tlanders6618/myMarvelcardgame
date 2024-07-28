@@ -148,24 +148,27 @@ public class Summon extends Character
         }
         this.effects.add(eff); 
         eff.onApply(this);
-        String type=eff.getefftype(); String name=eff.getimmunityname();
-        switch (this.index)
+        if (this.effects.contains(eff)) //if it wasn't instantly removed; primarily for banish
         {
-            case 4: 
-            if (type.equals("Buffs"))
-            SummonPassive.Drone(this, eff); 
-            break;
-            case 12:
-            if (name.equals("Stun"))
-            SummonPassive.Giganto(this, "gain");
-            break;
-        }
-        Character[] foes=Battle.GetTeam(CoinFlip.TeamFlip(this.team1));
-        for (Character c: foes)
-        {
-            if (c!=null)
+            String type=eff.getefftype(); String name=eff.getimmunityname();
+            switch (this.index)
             {
-                c.onEnemyGain(this, eff);
+                case 4: 
+                if (type.equals("Buffs"))
+                SummonPassive.Drone(this, eff); 
+                break;
+                case 12:
+                if (name.equals("Stun"))
+                SummonPassive.Giganto(this, "gain");
+                break;
+            }
+            Character[] foes=Battle.GetTeam(CoinFlip.TeamFlip(this.team1));
+            for (Character c: foes)
+            {
+                if (c!=null)
+                {
+                    c.onEnemyGain(this, eff);
+                }
             }
         }
     }
@@ -280,7 +283,7 @@ public class Summon extends Character
                 if (eff.getimmunityname().equalsIgnoreCase("Protect")&&!(eff.getProtector()==target)) //target must have protected, not be protecting someone else
                 {
                     Character bigman=eff.getProtector(); 
-                    if (!(bigman.binaries.contains("Stunned"))&&!(bigman.binaries.contains("Banished")))
+                    if (!(target.binaries.contains("Banished"))&&!(bigman.binaries.contains("Banished"))&&!(bigman.binaries.contains("Stunned"))) //doesn't work while banished
                     {
                         if (eff.getefftype().equalsIgnoreCase("Defence")&&!(attacker.ignores.contains("Defence"))) 
                         {
