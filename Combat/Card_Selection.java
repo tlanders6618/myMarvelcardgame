@@ -34,7 +34,7 @@ public class Card_Selection
             {
                 Cname=Damage_Stuff.GetInput(); 
                 good=false;
-                if (Cname==616||Cname<=0||Cname>105||(Cname>41&&Cname<72))//&&!(Cname>=72&&Cname<=77))) //updated as more characters are released in each version
+                if (Cname==616||Cname<=0||Cname>105||(Cname>41&&Cname<72)&&!(Cname>=68&&Cname<=69)) //updated as more characters are released in each version
                 {
                     System.out.println("Index number not found.");
                 }
@@ -66,7 +66,7 @@ public class Card_Selection
         do
         {
             rename=Damage_Stuff.GetInput();
-            if (rename==616||rename<=0||rename>105||(rename>41&&rename<72))
+            if (rename==616||rename<=0||rename>105||(rename>41&&rename<72)&&!(rename>=68&&rename<=69))
             {
                 System.out.println("Index number not found.");
             }
@@ -139,13 +139,13 @@ public class Card_Selection
     public static Character[] ChooseTargetFoe (Character hero, Character[] list) //targeting an enemy
     {
         int targ=56; boolean typo=true;
-        ArrayList<Character> team=CoinFlip.ToList(list);
+        ArrayList<Character> team=CoinFlip.ToList(list); //targetable enemies
         ArrayList<Character> safe=new ArrayList<Character>();
         ArrayList<Character> remove=new ArrayList<Character>();        
         if (hero.activeability!=null) //war machine's passive triggers before he uses any abilities, so null check is needed to avoid nullexception
         {
             for (SpecialAbility s: hero.activeability.special) //has to be called here or else the ignore is applied after target filtering
-            {
+            { 
                 if (s instanceof Ignore)
                 {
                     int ignoreme=s.Use(hero, null);
@@ -209,7 +209,7 @@ public class Card_Selection
         if (team.size()>1&&((hero.team1==true&&Battle.p2solo!=true)||(hero.team1==false&&Battle.p1solo!=true))) 
         {
             if (hero.CheckFor("Terror", false)==true&&!(hero.ignores.contains("Terror"))) //terror only works if the one the hero is terrified of isn't alone
-            {
+            { 
                 ArrayList <Character> afraid= new ArrayList <Character>(); 
                 for (StatEff eff: hero.effects)
                 {

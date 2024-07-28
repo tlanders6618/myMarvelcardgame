@@ -204,7 +204,7 @@ public class CoinFlip
     public static void AddInescapable (Character hero, boolean add) //can ignore everything except untargetable and banish
     {
         if (add==true)
-        {
+        { 
             hero.ignores.add ("Taunt");
             hero.ignores.add ("Protect");
             hero.ignores.add ("Terror");
@@ -214,7 +214,7 @@ public class CoinFlip
             hero.ignores.add ("Evade");
         }
         else
-        {
+        { 
             hero.ignores.remove ("Taunt");
             hero.ignores.remove ("Protect");
             hero.ignores.remove ("Terror");

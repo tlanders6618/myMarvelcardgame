@@ -161,7 +161,7 @@ public class Battle
                 else
                 {
                     System.out.println ("\n"+champions[P1active].Cname+" skips their turn due to being Banished.");
-                    champions[P1active].BanishTick(); //ensures banished heroes take no turns but still have their banish duration reduced 
+                    champions[P1active].BanishTick(); //ensures banished heroes take no turns and don't have stateffs or cds reduced but still have their banish duration reduced 
                     Battle.CheckActive(team);
                 }
             }
@@ -213,8 +213,8 @@ public class Battle
                 }
                 else
                 {
-                    System.out.println ("\n"+champions[P1active].Cname+" skips their turn due to being Banished.");
-                    champions[P1active].BanishTick(); //ensures banished heroes take no turns but still have their banish duration reduced 
+                    System.out.println ("\n"+champions[P2active].Cname+" skips their turn due to being Banished.");
+                    champions[P2active].BanishTick(); //ensures banished heroes take no turns but still have their banish duration reduced 
                     Battle.CheckActive(team);
                 }
             }
@@ -286,93 +286,197 @@ public class Battle
                 return true;
             }
         }
-        Ability activeAb=null;
-        ArrayList<Character> targets= new ArrayList<Character>(); //chars to hit with ab
-        ArrayList<StatEff> selfadd= new ArrayList<StatEff>(); //status effects for hero to apply to self
-        hero.onTurnStart(); //tick down all regen and dot effs 
-        Scoreboard2.UpdateScore(team1, team2); //show effects of dot dmg/regen
-        if (hero.dead==false) //if they have not died from DoT damage
+        if (!(hero.binaries.contains("Banished"))) //if channelled ab applies linked banish or hero is banished by passive after attacking with channelled ab
         {
-            if (bonus==false) //makes distinction between bonus turns and normal turns primarily to avoid quicksilver taking infinite turns
-            hero.onTurn(true);
-            else
-            hero.onTurn(false);
-            Scoreboard2.UpdateScore(team1, team2);
-            if (hero.team1==true&&p2heroes==0)
-            return true; //end the game because the enemy team died from a passive or channelled ability, e.g. sandman's sandstorm
-            else if (hero.team1==false&&p1heroes==0)
-            return true; 
-            boolean flag=false;
-            ArrayList<StatEff> selfadd2= new ArrayList<StatEff>(); //to save unbound ab's stateffs to be applied at turn end
-            while (flag==false) 
+            Ability activeAb=null;
+            ArrayList<Character> targets= new ArrayList<Character>(); //chars to hit with ab
+            ArrayList<StatEff> selfadd= new ArrayList<StatEff>(); //status effects for hero to apply to self
+            hero.onTurnStart(); //tick down all regen and dot effs 
+            Scoreboard2.UpdateScore(team1, team2); //show effects of dot dmg/regen
+            if (hero.dead==false) //if they have not died from DoT damage
             {
-                activeAb=hero.ChooseAb(); //hero chooses an ab to use, which then becomes their activeability
-                if (activeAb==null) //hero chose to skip turn; end instantly since there's no ab to use
-                break;
-                else  
-                {
-                    targets=Battle.ChooseTarget(hero, activeAb.friendly, activeAb.target); //choose targets and use the ab
-                    selfadd2=activeAb.UseAb(hero, activeAb, targets); //stateffs to apply to self
-                    if (selfadd2!=null) //abs only return null if they can't be used due to a lack of targets; if null, restart the loop and choose something usable this time
-                    {
-                        if (activeAb.unbound==true) //update scoreboard to immediately see effect of used unbound ab, and keep looping and use another ab
-                        {
-                            if (selfadd2.size()>0&&hero.dead==false) //also, unbound buffs apply to self immediately, instead of after turn end
-                            { 
-                                for (StatEff eff: selfadd2)
-                                {
-                                    eff.CheckApply(hero, hero, eff);
-                                }
-                            }
-                            Scoreboard2.UpdateScore(team1, team2); 
-                        }
-                        else //end the loop and end turn; chooseab already prevents infinite spamming of unbound abs so there are no infinite turns 
-                        {
-                            flag=true; selfadd.addAll(selfadd2); //if not unbound, apply stateffs to self after turn end
-                        }
-                    }
-                }
-            }
-            if (hero.dead==false) //finally, hero ends their turn and applies stateffs from their abilities to self
-            {
-                if (bonus==false)
-                hero.onTurnEnd(true);
+                if (bonus==false) //makes distinction between bonus turns and normal turns primarily to avoid quicksilver taking infinite turns
+                hero.onTurn(true);
                 else
-                hero.onTurnEnd(false);
-                if (selfadd.size()>0&&hero.dead==false) //if the ab buffs the hero, the effs must be added after their turn end so they don't prematurely tick down
+                hero.onTurn(false);
+                Scoreboard2.UpdateScore(team1, team2);
+                if (hero.team1==true&&p2heroes==0)
+                return true; //end the game because the enemy team died from a passive or channelled ability, e.g. sandman's sandstorm
+                else if (hero.team1==false&&p1heroes==0)
+                return true; 
+                boolean flag=false;
+                ArrayList<StatEff> selfadd2= new ArrayList<StatEff>(); //to save unbound ab's stateffs to be applied at turn end
+                while (flag==false) 
                 {
-                    for (StatEff eff: selfadd)
+                    activeAb=hero.ChooseAb(); //hero chooses an ab to use, which then becomes their activeability
+                    if (activeAb==null) //hero chose to skip turn; end instantly since there's no ab to use
+                    break;
+                    else  
                     {
-                        eff.CheckApply(hero, hero, eff); 
+                        targets=Battle.ChooseTarget(hero, activeAb.friendly, activeAb.target); //choose targets and use the ab
+                        selfadd2=activeAb.UseAb(hero, activeAb, targets); //stateffs to apply to self
+                        if (selfadd2!=null) //abs only return null if they can't be used due to a lack of targets; if null, restart the loop and choose something usable this time
+                        {
+                            if (activeAb.unbound==true) //update scoreboard to immediately see effect of used unbound ab, and keep looping and use another ab
+                            {
+                                if (selfadd2.size()>0&&hero.dead==false) //also, unbound buffs apply to self immediately, instead of after turn end
+                                { 
+                                    for (StatEff eff: selfadd2)
+                                    {
+                                        eff.CheckApply(hero, hero, eff);
+                                    }
+                                }
+                                Scoreboard2.UpdateScore(team1, team2); 
+                            }
+                            else //end the loop and end turn; chooseab already prevents infinite spamming of unbound abs so there are no infinite turns 
+                            {
+                                flag=true; selfadd.addAll(selfadd2); //if not unbound, apply stateffs to self after turn end
+                            }
+                        }
                     }
                 }
-            }
-            for (Character target: targets) 
-            {
-                if (target!=null)
+                if (hero.dead==false) //finally, hero ends their turn and applies stateffs from their abilities to self
                 {
-                    ArrayList<SpecialAbility> exception= new ArrayList<SpecialAbility>(); 
-                    for (SpecialAbility h: target.helpers) //for helpers like redwing; removed after an attack so it can prevent status effect application during it
+                    if (bonus==false)
+                    hero.onTurnEnd(true);
+                    else
+                    hero.onTurnEnd(false);
+                    if (selfadd.size()>0&&hero.dead==false) //if the ab buffs the hero, the effs must be added after their turn end so they don't prematurely tick down
                     {
-                        exception.add(h); 
-                    }
-                    for (SpecialAbility h: exception)
-                    {
-                        h.Undo (target); 
+                        for (StatEff eff: selfadd)
+                        {
+                            eff.CheckApply(hero, hero, eff); 
+                        }
                     }
                 }
-            }
-            ArrayList<SpecialAbility> exceptions= new ArrayList<SpecialAbility>(); //then remove hero's used helpers too, or trigger a bonus turn
-            for (SpecialAbility h: hero.helpers)
-            {
-                exceptions.add(h); 
-            }
-            for (SpecialAbility h: exceptions)
-            {
-                h.Undo (hero); 
+                for (Character target: targets) 
+                {
+                    if (target!=null)
+                    {
+                        ArrayList<SpecialAbility> exception= new ArrayList<SpecialAbility>(); 
+                        for (SpecialAbility h: target.helpers) //for helpers like redwing; removed after an attack so it can prevent status effect application during it
+                        {
+                            exception.add(h); 
+                        }
+                        for (SpecialAbility h: exception)
+                        {
+                            h.Undo (target); 
+                        }
+                    }
+                }
+                ArrayList<SpecialAbility> exceptions= new ArrayList<SpecialAbility>(); //then remove hero's used helpers too, or trigger a bonus turn
+                for (SpecialAbility h: hero.helpers)
+                {
+                    exceptions.add(h); 
+                }
+                for (SpecialAbility h: exceptions)
+                {
+                    h.Undo (hero); 
+                }
             }
         }
+        else
+        System.out.println ("\n"+hero+" skips their turn due to being Banished.");
         return false;
+    }
+    public static void BanishTurn (Character hero, Character enemy) //taking turn during linked banish
+    {
+        //channelled abilities are ignored and stay channelling until the banish ends since they activate on the hero's next turn, and they can't take turns while banished
+        Ability activeAb=null;
+        ArrayList<StatEff> selfadd= new ArrayList<StatEff>(); //status effects for hero to apply to self
+        //status effects do not tick down while banished
+        //on turn passives skipped because banished heroes cannot take turns
+        ArrayList<StatEff> selfadd2=null; //to save unbound ab's stateffs to be applied at turn end
+        while (true) 
+        {
+            activeAb=hero.ChooseAb(); //hero chooses an ab to use, which then becomes their activeability
+            if (activeAb==null) //hero chose to skip turn; end instantly since there's no ab to use
+            break;
+            else  //only two ab options while banished: attack enemy or buff self
+            {
+                System.out.println ("\nChoose a target. Type the number that appears before their name."); 
+                ArrayList<Character> param=new ArrayList<Character>(); 
+                if ((activeAb.friendly.equals("enemy")&&!(activeAb.target.equals("AoE")))||(activeAb.friendly.equals("ally inclusive")&&!(activeAb.target.equals("AoE")))) 
+                {
+                    Character only=null;
+                    if (activeAb.friendly.equals("enemy"))
+                    only=enemy;
+                    else 
+                    only=hero;
+                    System.out.println ("1. "+only); //providing the illusion of choice because not having it feels weird
+                    do
+                    {
+                        int answer=Damage_Stuff.GetInput();
+                        if (answer!=1)
+                        {
+                            
+                        }
+                        else
+                        {
+                            param.add(only); break;
+                        }
+                    }
+                    while (true);     
+                }
+                else if (activeAb.friendly.equals("self")||(activeAb.friendly.equals("ally inclusive")&&activeAb.target.equals("AoE")))
+                {
+                    param.add(hero);
+                }
+                else if (activeAb.friendly.equals("enemy")&&activeAb.target.equals("AoE"))
+                {
+                    param.add(enemy);
+                }
+                else if (activeAb.friendly.equals("either")||activeAb.friendly.equals("both"))
+                {
+                    System.out.println("Will implement this function later since no currently playable characters even have abilities like this (4.4)."); break;
+                }
+                if (param.size()>0) //useab if it's valid
+                {
+                    selfadd2=activeAb.UseAb(hero, activeAb, param); 
+                }
+                if (selfadd2!=null) //else selfadd2 stays null bc ab is invalid; hero must either choose something valid or skip turn to continue
+                {
+                    if (activeAb.unbound==true) 
+                    {
+                        if (selfadd2.size()>0&&hero.dead==false) 
+                        { 
+                            for (StatEff eff: selfadd2)
+                            {
+                                eff.CheckApply(hero, hero, eff);
+                            }
+                        }
+                        Scoreboard2.UpdateScore(team1, team2); 
+                    }
+                    else //end the loop and end turn; chooseab already prevents infinite spamming of unbound abs so there are no infinite turns 
+                    {
+                        selfadd.addAll(selfadd2); //if not unbound, apply stateffs to self after turn end
+                        break;
+                    }
+                }
+            }
+        }
+        if (hero.dead==false) //can still die from counter, passives, etc; all of those still work normally
+        {
+            //no turn end since no turn was taken
+            if (selfadd.size()>0&&hero.dead==false) 
+            {
+                for (StatEff eff: selfadd)
+                {
+                    eff.CheckApply(hero, hero, eff); //can still gain stateffs, they just do not tick down
+                }
+                Scoreboard2.UpdateScore(team1, team2); 
+            }
+        }
+        ArrayList<SpecialAbility> exception= new ArrayList<SpecialAbility>(enemy.helpers); 
+        for (SpecialAbility h: exception) //for helpers like redwing, if target had it
+        {
+            h.Undo (enemy); 
+        }
+        ArrayList<SpecialAbility> exceptions= new ArrayList<SpecialAbility>(hero.helpers); //then remove hero's used helpers too, if any
+        for (SpecialAbility h: exceptions)
+        {
+            h.Undo (hero); 
+        }
     }
     public static ArrayList ChooseTarget (Character hero, String friendly, String type) 
     {
@@ -649,15 +753,15 @@ public class Battle
         }
         return targets;
     }
-    public static Character[] GetTeam(boolean team)
+    public static Character[] GetTeam(boolean team) //returns all valid character on a team
     {
-        //this makes a copy to avoid sending over the team itself, as that would cause problems
+        //this makes a copy to avoid sending over the team itself, as that would cause aliasing problems
         Character[] targs= new Character[6]; int ind=0;
         if (team==true)
         {
             for (int i=0; i<6; i++)
             {
-                if (team1[i]!=null)
+                if (team1[i]!=null&&!(team1[i].binaries.contains("Banished"))&&team1[i].dead==false)
                 {
                     targs[ind]=team1[i];
                     ++ind;
@@ -668,7 +772,7 @@ public class Battle
         {
             for (int i=0; i<6; i++)
             {
-                if (team2[i]!=null)
+                if (team2[i]!=null&&!(team2[i].binaries.contains("Banished"))&&team2[i].dead==false)
                 {
                     targs[ind]=team2[i];
                     ++ind;

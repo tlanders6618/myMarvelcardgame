@@ -5,12 +5,12 @@ package myMarvelcardgamepack;
  * Designer: Timothy Landers
  * Date: 8/8/22
  * Filename: CardCode
- * Purpose: Gives objects unique identifier numbers, checks if a hero meets the turn skip criteria, prints ab and passive descriptions, and generates random stateffs.
+ * Purpose: Misc. functions. Gives objects id numbers, checks if a hero meets the turn skip criteria, prints ab and passive descriptions, and generates random stateffs.
  */
 public class CardCode
 {
     static int counter=1;
-    public static int RandomCode()
+    public static int RandomCode() //for all heroes and stateffs
     {
         int code=counter; 
         ++counter; //to ensure every number is different
@@ -18,30 +18,30 @@ public class CardCode
     }
     public static boolean CheckSkip (Character hero) //heroes can only skip their turn if they have no usable abilities
     {
-        boolean usable=true; int use=0;
+        boolean usable=true;
         for (Ability a: hero.abilities)
         {
             if (a!=null&&a.CheckUse(hero)==true)
             {
                 if (a.friendly.equalsIgnoreCase("ally exclusive")||a.friendly.equalsIgnoreCase("both")) //requires an ally to target
                 {
-                    Character[] list=Battle.GetTeammates(hero);
-                    for (Character c: list)
+                    if (!(hero.binaries.contains("Banished"))) //cannot target teammates during linked banished
                     {
-                        if (c!=null) //only considered usable if the hero still has allies they can use the ab on
+                        Character[] list=Battle.GetTeammates(hero);
+                        for (Character c: list)
                         {
-                            ++use; break;
+                            if (c!=null) //only considered usable if the hero still has allies they can use the ab on
+                            {
+                                return false;
+                            }
                         }
                     }
                 }
                 else //ability targets self or an enemy
-                ++use;
+                return false;
             }
         }
-        if (use>0)
-        return false;
-        else 
-        return true;
+        return true; //may skip turn
     }
     public static void GetDesc (Character hero) //print desc of chosen ability of hero
     {
