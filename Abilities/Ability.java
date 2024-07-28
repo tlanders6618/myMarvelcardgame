@@ -24,11 +24,11 @@ public abstract class Ability
     boolean blind=false, evade=false; //blind and evade are usually checked after using beforeabs but not in all cases; keeps track of if they were checked to avoid checking twice
     int multiuse=0; int cd=0; int dcd=0; //all abilities are initially displayed with 0 cooldown (dcd) and switch to their listed cooldowns after use 
     ArrayList <Character> ctargets; //for channelled abs
-    ArrayList<SpecialAbility> special= new ArrayList<SpecialAbility>(); 
-    ArrayList<StatEff> otherapply= new ArrayList<StatEff>();
-    ArrayList<StatEff> selfapply= new ArrayList<StatEff>();
-    ArrayList<String[][]> statstrings= new ArrayList<String[][]>();
-    ArrayList<String[][]> tempstrings= new ArrayList<String[][]>();
+    ArrayList<SpecialAbility> special= new ArrayList<SpecialAbility>(); //purify, mend, etc
+    ArrayList<StatEff> otherapply= new ArrayList<StatEff>(); //applied to target(s)
+    ArrayList<StatEff> selfapply= new ArrayList<StatEff>(); //applied to self after turn end
+    ArrayList<String[][]> statstrings= new ArrayList<String[][]>(); //always applied
+    ArrayList<String[][]> tempstrings= new ArrayList<String[][]>(); //sometimes applied, from passive or empower
     public Ability ()
     {
         /* statstrings/tempstatstrings are added when the ab is created under ab list
@@ -100,35 +100,47 @@ public abstract class Ability
         {
             if (!(e[0][0].equals("Empower"))) //empower descriptions must be done manually due to their wide range of effects; they don't fit the regular format
             {
-                String a;
+                String Chance;
                 if (e[0][4].equals("true")||e[0][4].equals("true aoe"))
                 {
                     if (Integer.valueOf(e[0][1])>=500)
-                    a="Gain ";
+                    Chance="Gain ";
                     else
-                    a=e[0][1]+"% chance to gain ";
+                    Chance=e[0][1]+"% chance to gain ";
                 }
                 else
                 {
                     if (Integer.valueOf(e[0][1])>=500)
-                    a="Applies ";
+                    Chance="Applies ";
                     else
-                    a=e[0][1]+"% chance to apply ";
+                    Chance=e[0][1]+"% chance to apply ";
                 }
-                String s="";
-                if (Integer.valueOf(e[0][2])<616) //only print strength if it has one
-                s=s+": "+e[0][2];
-                if (Integer.valueOf(e[0][3])<616) //same for turns
+                String rest="";
+                if (e[0][2].equalsIgnoreCase("true")||e[0][2].equalsIgnoreCase("false")) //for banish, drain, and reflect, which have words instead of a strength value
                 {
-                    /*if (e[0][0].equals("Empower"))
-                    s=s+" for "+e[0][3]+" use(s)";
-                    else*/
-                    s=s+" for "+e[0][3]+" turn(s)";
+                    if (e[0][0].equals("Banish"))
+                    {
+                        if (e[0][2].equalsIgnoreCase("true"))
+                        rest=rest+" (Linked)";
+                    }
+                    else //drain and reflect
+                    {
+                        if (e[0][2].equalsIgnoreCase("true"))
+                        rest=rest+": Half";
+                        else
+                        rest=rest+": Full";
+                    }
+                }
+                else if (Integer.valueOf(e[0][2])<616) //only print strength if it has one
+                rest=rest+": "+e[0][2];
+                if (Integer.valueOf(e[0][3])<616) //same for duration
+                {
+                    rest=rest+" for "+e[0][3]+" turn(s)";
                 }
                 if (!(e[0][0].equals("Aura")))
-                System.out.print(a+e[0][0]+s+". ");
-                else
-                System.out.print(a+e[0][0]+": "+e[1][0]+s+". ");
+                System.out.print(Chance+"a(n) "+e[0][0]+rest+". ");
+                else //if aura, print what debuff it applies too
+                System.out.print(Chance+"a(n) "+e[0][0]+": "+e[1][0]+rest+". ");
             }
         }
         for (SpecialAbility a: this.special)
@@ -222,6 +234,7 @@ public abstract class Ability
                 okay=CheckControl(user, chump);
                 if (chump!=null&&okay==true) //if null, skip entirely
                 {
+                    if (this.ignore==true)
                     this.CheckIgnore(user, true);
                     int change=0; //does nothing, but beforeabs and empowers return ints so this stores them
                     for (StatEff eff: user.effects) //get empowerments
@@ -329,6 +342,7 @@ public abstract class Ability
                     {
                         ob.Use(user, 616, chump); 
                     }
+                    if (this.ignore==true)
                     this.CheckIgnore(user, false);
                 }
                 --uses;
@@ -364,10 +378,10 @@ public abstract class Ability
     }
     public void CDReduction(int amount)
     {
-        dcd-=amount;
-        if (dcd<=0)
+        this.dcd-=amount;
+        if (this.dcd<=0)
         {
-            dcd=0; //no negative cooldowns
+            this.dcd=0; //no negative cooldowns
         }
     }
     public void SetChannelled (Character hero, Ability ab, ArrayList<Character> targets)
@@ -465,6 +479,7 @@ public abstract class Ability
                 if (chump!=null&&okay==true) 
                 {
                     int change=0; 
+                    if (this.ignore==true)
                     this.CheckIgnore(user, true);
                     for (StatEff eff: user.effects) //get empowerments
                     {
@@ -571,6 +586,7 @@ public abstract class Ability
                     {
                         ob.Use(user, 616, chump); //for now this only activates chain
                     }
+                    if (this.ignore==true)
                     this.CheckIgnore(user, false);
                 }
             }

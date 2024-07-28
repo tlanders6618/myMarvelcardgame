@@ -1041,7 +1041,7 @@ class DebuffMod extends BeforeAbility //for altering the debuffs an ab applies, 
             else if (user.index==35&&ab==5&&user.passivecount==5)
             {
                 System.out.println(user.Cname+" is no longer unstoppable."); user.passivecount=0; user.immunities.remove("Debuffs"); 
-                return 30;
+                return 50;
             }
             break;
             case 36: CardCode.RandomStat(user, target, "statdisable debuffs"); break; //vulture
@@ -1253,7 +1253,7 @@ class Ignore extends BeforeAbility
    @Override
    public int Use (Character hero, Character target) //beforeab; also activated during target selection 
    {
-      String hold=condition; 
+      String hold=condition; //hold original condition so it's unaffected by substring change below
       if (condition.contains("enemy has"))
       condition=condition.substring(0, 9); //to activate enemy has case
       else if (condition.contains("self has"))
@@ -1291,7 +1291,7 @@ class Ignore extends BeforeAbility
          }
          break;
       }
-      condition=hold;
+      condition=hold; //restore condition to original
       return 0;
    }
    @Override
@@ -1315,7 +1315,7 @@ class Ignore extends BeforeAbility
               case "Blind": hero.ignores.add("Blind"); break; 
               case "Evade": hero.ignores.add("Evade"); break;
               case "Counter": hero.ignores.add("Counter"); break;
-              case "Inescapable": CoinFlip.AddInescapable (hero, true); break;
+              case "inescapable": CoinFlip.AddInescapable (hero, true); break;
               case "Missed": hero.immunities.add("Missed"); break;
               case "Invisible": hero.ignores.add("Invisible"); break;
               case "Afflicted": hero.ignores.add("Afflicted"); break;
@@ -1334,7 +1334,7 @@ class Ignore extends BeforeAbility
               case "Blind": hero.ignores.remove("Blind"); break;
               case "Evade": hero.ignores.remove("Evade"); break;
               case "Counter": hero.ignores.remove("Counter"); break;
-              case "Inescapable": CoinFlip.AddInescapable (hero, false); break;
+              case "inescapable": CoinFlip.AddInescapable (hero, false); break;
               case "Missed": hero.immunities.remove("Missed"); break;
               case "Invisible": hero.ignores.remove("Invisible"); break;
               case "Afflicted": hero.ignores.remove("Afflicted"); break;

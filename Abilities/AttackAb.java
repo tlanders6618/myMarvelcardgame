@@ -75,7 +75,7 @@ class AttackAb extends Ability
         return max;
     }
     @Override
-    public ArrayList<StatEff> UseAb (Character user, Ability ab, ArrayList<Character> targets)
+    public ArrayList<StatEff> UseAb (Character user, Ability ab, ArrayList<Character> targets) //doesn't call check ignore since disarm doesn't require it
     { 
         boolean typo=true; int uses=1;   
         ArrayList<StatEff> toadd= new ArrayList<StatEff>();
@@ -93,9 +93,13 @@ class AttackAb extends Ability
             }
             while (typo==true);
         }
-        if (channelled==true)
+        if (this.channelled==true)
         {
             ab.SetChannelled(user, ab, targets);
+        }
+        else
+        {
+            System.out.println (user+" used "+this.oname);
         }
         while (uses>0&&channelled==false) //repeat the attack for each multiuse; channelled abilities will do nothing now and activate later
         {
@@ -114,13 +118,14 @@ class AttackAb extends Ability
                     do 
                     {
                         int change=0;
-                        this.CheckIgnore(user, true);
                         for (StatEff eff: user.effects) //get empowerments
                         {
                             if (eff.getimmunityname().equalsIgnoreCase("Empower"))
                             {
                                 change=eff.UseEmpower(user, ab, true);
                                 damage+=change;
+                                if (damage<0)
+                                damage=0;
                             }
                         }
                         if (elusive==true)
@@ -131,6 +136,8 @@ class AttackAb extends Ability
                         {
                             change=ob.Use(user, chump); //apply unique ability functions before attacking; this only affects before abs
                             damage+=change;
+                            if (damage<0)
+                            damage=0;
                         } 
                         if (elusive==true&&(this.odamage>0||this.damage>0)) //only print damage if attack was meant to do damage; abs that call assists shouldn't print
                         {
@@ -138,15 +145,15 @@ class AttackAb extends Ability
                         }
                         else if (lose==true) //modified version of attacknodamage method
                         {
-                            chump=user.AttackNoDamage(user, chump, damage, aoe, false);
+                            chump=user.AttackNoDamage(user, chump, odamage, aoe, false); //ondamage since loss and reduce are unaffected by dmg modification
                         }
                         else if (max==true)
                         {
-                            chump=user.AttackNoDamage(user, chump, damage, aoe, true);
+                            chump=user.AttackNoDamage(user, chump, odamage, aoe, true);
                         }
                         else 
                         {
-                            if (this.odamage>0||this.damage>0)
+                            if (this.odamage>0||this.damage>0) //only call attack method if attack was meant to do dmg
                             chump=user.Attack(user, chump, damage, aoe); //damage formula is calculated here
                             else
                             chump=user.AttackNoDamage(user, chump, aoe); //let chump know he's been attacked
@@ -166,6 +173,17 @@ class AttackAb extends Ability
                             {
                                 otherapply.add(New);
                             }
+                            else
+                            {
+                                if (user.id==chump.id)
+                                {
+                                    selfapply.add(New);
+                                }
+                                else if (!(user.binaries.contains("Missed")))
+                                {
+                                    otherapply.add(New);
+                                }
+                            }
                         }
                         for (String[][] array: statstrings)
                         {  
@@ -174,9 +192,20 @@ class AttackAb extends Ability
                             {
                                 selfapply.add(New);
                             }
-                            else if (!(user.binaries.contains("Missed"))&&array[0][4].equalsIgnoreCase("false")) //they cannot apply effects if the target evaded/they are blind
+                            else if (!(user.binaries.contains("Missed"))&&array[0][4].equalsIgnoreCase("false")) //they cannot apply effects if blind or the target evaded
                             {
                                 otherapply.add(New);
+                            }
+                            else
+                            {
+                                if (user.id==chump.id)
+                                {
+                                    selfapply.add(New);
+                                }
+                                else if (!(user.binaries.contains("Missed")))
+                                {
+                                    otherapply.add(New);
+                                }
                             }
                         }
                         ArrayList<StatEff> holder=Ability.ApplyStats(user, chump, together, selfapply, otherapply);
@@ -214,7 +243,6 @@ class AttackAb extends Ability
                         {
                             ob.Use(user, 616, chump); //for now this only activates chain
                         }
-                        this.CheckIgnore(user, false);
                         damage=odamage; //reset damage 
                     }
                     while (multihit>-1); //then repeat the attack for each multihit
@@ -353,13 +381,14 @@ class AttackAb extends Ability
                 {
                     do 
                     {
-                        this.CheckIgnore(user, true);
                         for (StatEff eff: user.effects) //get empowerments
                         {
                             if (eff.getimmunityname().equalsIgnoreCase("Empower"))
                             {
                                 change=eff.UseEmpower(user, ab, true);
                                 damage+=change;
+                                if (damage<0)
+                                damage=0;
                             }
                         }
                         if (elusive==true)
@@ -370,6 +399,8 @@ class AttackAb extends Ability
                         {
                             change=ob.Use(user, chump); //apply unique ability functions before attacking; this only affects before abs
                             damage+=change;
+                            if (damage<0)
+                            damage=0;
                         } 
                         if (elusive==true&&(this.odamage>0||this.damage>0)) //only print damage if attack was meant to do damage; abs that call assists shouldn't print
                         {
@@ -377,11 +408,11 @@ class AttackAb extends Ability
                         }
                         else if (lose==true) //modified version of attacknodamage method
                         {
-                            chump=user.AttackNoDamage(user, chump, damage, aoe, false);
+                            chump=user.AttackNoDamage(user, chump, odamage, aoe, false); //ondamage since loss and reduce are unaffected by dmg modification
                         }
                         else if (max==true)
                         {
-                            chump=user.AttackNoDamage(user, chump, damage, aoe, true);
+                            chump=user.AttackNoDamage(user, chump, odamage, aoe, true);
                         }
                         else 
                         {
@@ -449,7 +480,6 @@ class AttackAb extends Ability
                         this.blind=false; this.evade=false;
                         this.UseMultihit();
                         damage=odamage; //reset damage 
-                        this.CheckIgnore(user, false);
                         for (SpecialAbility ob: special)
                         {
                             ob.Use(user, 616, chump); //for now this only activates chain
@@ -489,7 +519,7 @@ class AttackAb extends Ability
         return toadd;
     }
     @Override
-    public void CheckIgnore(Character user, boolean add) //does nothing, since disarm doesn't do anything
+    public void CheckIgnore(Character user, boolean add) //does nothing, since disarm doesn't need to be ignored with binaries
     {
     }
     @Override

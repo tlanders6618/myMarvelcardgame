@@ -112,6 +112,7 @@ class ActivatePassive extends AfterAbility //ability activates a hero's passive 
         {
             //flash's passive has to be after attacking, or he switches states before attacking and losing control bonuses will be applied despite attacking while in check
             case 25: ActivePassive.Flash(user, num, false, false); break; 
+            case 28: user.abilities[0].dcd+=2; break; //for dr doom's personal force field, since it specifically seals his magic blast and not just any basic attack
             case 74: //songbird's critical heals are only possible due to her passive
             int CC=0; int strong=0; //crit chance and heal amount
             if (num==1) //targeting enemy, so include bulwark/vulnerable calc
@@ -696,6 +697,7 @@ class BonusTurn extends AfterAbility //for letting ally take bonus turn, but not
     @Override
     public void Use (Character caster, Character hero, int ignore2)
     {
+        System.out.println(hero+" took a bonus turn!");
         Battle.Turn(hero, true);
     }
 }
@@ -1624,10 +1626,10 @@ class Purify extends AfterAbility
     int number;
     String type; //chosen, random, or all
     boolean together; //true for together and false for separate
-    boolean self;
-    public Purify (int echance, int num, String t, String ename, boolean self, boolean tog)
+    boolean self; //false for both ally exclusive and inclusive
+    public Purify (int echance, int num, String ty, String ename, boolean self, boolean tog)
     {
-        chance=echance; together=tog; number=num; effname=ename; type=t; this.self=self;
+        chance=echance; together=tog; number=num; effname=ename; type=ty; this.self=self;
         String Chance;
         if (this.chance>=500)
         Chance="Purifies ";
@@ -1639,12 +1641,12 @@ class Purify extends AfterAbility
         else
         Number="all ";
         String Type;
-        if (t.equalsIgnoreCase("all"))
+        if (this.type.equalsIgnoreCase("all"))
         Type="";
         else 
-        Type=type+" ";
+        Type=this.type+" ";
         String Buff;
-        if (type.equals("all"))
+        if (this.type.equals("all"))
         Buff="debuffs";
         else if (effname.equals("any"))
         Buff="debuff(s)";
