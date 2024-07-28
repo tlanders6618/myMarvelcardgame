@@ -51,6 +51,109 @@ class Afflicted extends DebuffEff
         this.oduration=ndur;
     }
 }
+class Banish extends DebuffEff
+{
+    boolean linked;
+    boolean added=false;
+    int removalcode; 
+    @Override
+    public String getimmunityname()
+    {
+        return "Banish";
+    }
+    @Override
+    public String getalttype() 
+    {
+        return "nondamaging";
+    }
+    @Override
+    public String geteffname() 
+    {
+       String n="Banish";
+       if (this.linked==true)
+       n+=" (Linked): "+this.prog;
+       if (this.duration<100)
+       {
+           return n+", "+this.duration+" turn(s)";
+       }
+       else
+       {
+           return n;
+       }
+    }
+    public Banish (int chance, boolean linked, int ndur, Character q)
+    {
+        super(chance, q);
+        this.duration=ndur;
+        this.oduration=ndur;
+        this.linked=linked;
+    }
+    @Override
+    public void onTurnEnd(Character t)
+    {
+        //does not tick down with other stateffs; has special method below instead
+    }
+    @Override
+    public void UseBanish(Character hero) 
+    {
+        if (linked==true) //hero takes turn and may fight against the prog
+        {
+            System.out.println("Instead, "+hero+"'s Linked Banish activates.");
+            if (!(hero.binaries.contains("Stunned")))
+            {
+                Battle.BanishTurn(hero, this.prog);
+            }
+            else
+            System.out.println("\n"+hero+" skips their turn due to being Stunned."); //stun does not tick down during banish btw
+            if (!(this.prog.binaries.contains("Stunned")))
+            {
+                Battle.BanishTurn(this.prog, hero);
+            }
+            else
+            System.out.println("\n"+this.prog+" skips their turn due to being Stunned.");
+        }
+        //linked banish only ticks down after both heroes take their turns; regular banish ignores the above and always ticks down
+        //ensures that when one hero attacks the other always gets to retaliate, for fairness, though the banished one always goes first
+        --this.duration;
+        if (this.duration<=0)
+        hero.remove(this.id, "normal");
+    }
+    @Override
+    public void onApply (Character target)
+    {
+        if (StatEff.CheckBanish(target)==true)
+        {
+            target.binaries.add("Banished"); this.added=true;
+            System.out.println ("\n"+target+" gained a(n) "+this); //print done here instead of add due to banish's unique add conditions
+            if (linked==true)
+            {
+                //linked banishes tick down on the turn of whoever gained them; "hero is banished for Y of their turns", so prog doesn't need a stateff, just a visual indicator
+                this.prog.binaries.add("Banished");
+                Tracker thousand=new Tracker("Linked Banish active: "+target); 
+                this.removalcode=thousand.id;
+                this.prog.effects.add(thousand);
+            }
+        }
+        else
+        {
+            StatEff.applyfail(target, this, "banish"); this.added=false; 
+            target.remove(this.id, "silent");
+        }
+    }
+    @Override
+    public void Nullified (Character target)
+    {
+        if (this.added==true) //only if banish was actually applied instead of instantly removed by the above
+        {
+            target.binaries.remove("Banished");
+            if (linked==true)
+            {
+                this.prog.binaries.remove("Banished");
+                this.prog.remove(removalcode, "silent");
+            }
+        }
+    }
+}
 class Bleed extends DebuffEff 
 {
     @Override

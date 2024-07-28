@@ -282,7 +282,7 @@ class Empower extends OtherEff
     @Override
     public String geteffname() //since every Empower has a unique effect, they don't use standard eff names
     {
-        if (power>0)
+        if (power!=616)
         return "Empower "+power+": "+name+", "+uses+" use(s)";
         else
         return "Empower: "+name+", "+this.uses+" use(s)";
@@ -303,8 +303,9 @@ class Empower extends OtherEff
         {
             switch (index) //has to be this way since every empowerment is unique
             {
-                case 4: case 39: case 77: //for beforeabs to boost the dmg of an aoe attack, or else the dmg boost only applies to the first enemy hit by the attack
-                if (ab instanceof AttackAb) //damage boost only applies to abs that do dmg; also used for iron man's passive
+                case 4: case 39: case 68: case 77: 
+                //for beforeabs to boost the dmg of an aoe attack, or else the dmg boost only applies to the first enemy hit by the attack; also used for iron man and vector
+                if (ab instanceof AttackAb) //damage boost only applies to abs that do dmg
                 {
                     used=true; value=this.power; 
                 }
@@ -433,6 +434,61 @@ class FocusE extends OtherEff
     public void Nullified (Character target)
     {
         target.Cchance-=50;
+    }
+}
+class GuardE extends OtherEff
+{
+    @Override
+    public String getimmunityname()
+    {
+        return "Guard";
+    }
+    @Override
+    public String geteffname()
+    {
+        if (duration>500)
+        {
+            return "Guard Effect: "+this.power;
+        }
+        else
+        {
+            return "Guard Effect: "+this.power+", "+this.duration+" attack(s)";
+        }
+    }
+    public GuardE (int c, int npower, int ndur, Character p) 
+    //does nothing on its own; all handled by checkguard, called by character.attack as part of dmg calc, before the takedamage stuff
+    {
+        super(c, p);
+        this.power=npower;
+        this.duration=ndur;
+        this.oduration=ndur;
+        this.stackable=false;
+    }
+    @Override
+    public void onTurnEnd (Character hero) //overriden to avoid decreasing duration on turn
+    {
+    }
+    @Override
+    public int UseGuard (Character dealer, Character targ, int dmg) 
+    {
+        int odmg=dmg;
+        dmg-=this.power;
+        this.duration--;
+        if (this.power>=0)
+        System.out.println ("\n"+targ+"'s Guard reduced " +dealer+"'s attack damage by "+Math.abs(odmg-dmg));
+        else //for quake
+        System.out.println ("\n"+targ+"'s Guard increased " +dealer+"'s attack damage by "+Math.abs(this.power));
+        if (this.duration<=0)
+        targ.remove(this.id, "normal");
+        if (dmg<0)
+        return 0;
+        else
+        return dmg;
+    }
+    @Override
+    public void Extended (int d, Character hero)
+    {
+        //cannot be extended
     }
 }
 class IntensifyE extends OtherEff 

@@ -34,6 +34,7 @@ public class StatFactory
         {
             case "Afflicted": return new Afflicted (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3]), Q);  
             case "Aura": return new Aura(Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3]), Q, param[1]); 
+            case "Banish": return new Banish(Integer.valueOf(param[0][1]), Boolean.valueOf(param[0][2]), Integer.valueOf(param[0][3]), Q); //boolean is true for linked/false for not
             case "Barrier": return new Barrier (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][2]), Integer.valueOf(param[0][3]), Q);
             case "Bleed": return new Bleed (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][2]), Integer.valueOf(param[0][3]), Q);
             case "Bleed Effect": return new BleedE (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][2]), Integer.valueOf(param[0][3]), Q);
@@ -50,7 +51,7 @@ public class StatFactory
             case "Disarm": return new Disarm (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3]), Q);
             case "Disorient": return new Disorient (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3]), Q);
             case "Disrupt": return new Disrupt (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3]), Q);
-            case "Drain": return new Drain (Integer.valueOf(param[0][1]), Boolean.valueOf(param[0][2]), Integer.valueOf(param[0][3]), Q);
+            case "Drain": return new Drain (Integer.valueOf(param[0][1]), Boolean.valueOf(param[0][2]), Integer.valueOf(param[0][3]), Q); //boolean is true for half/false for full
             case "Empower": return new Empower(Integer.valueOf(param[0][1]), Integer.valueOf(param[0][2]), Integer.valueOf(param[0][3]), Q);
             case "Evade": return new Evade (Integer.valueOf(param[0][1]), Q);
             case "Evade Effect": return new EvadeE (Integer.valueOf(param[0][1]), Q);
@@ -60,6 +61,7 @@ public class StatFactory
             case "Focus": return new Focus (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3]), Q);
             case "Focus Effect": return new FocusE (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3]), Q);
             case "Guard": return new Guard (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][2]), Integer.valueOf(param[0][3]), Q);
+            case "Guard Effect": return new GuardE (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][2]), Integer.valueOf(param[0][3]), Q);
             case "Intensify": return new Intensify (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][2]), Integer.valueOf(param[0][3]), Q);
             case "Intensify Effect": return new IntensifyE (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][2]), Integer.valueOf(param[0][3]), Q);
             case "Invisible": return new Invisible (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3]), Q);
@@ -73,7 +75,7 @@ public class StatFactory
             case "Protect": return new Protect (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3]), Q);
             case "Provoke": return new Provoke(Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3]), Q);
             case "Recovery": return new Recovery (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][2]), Integer.valueOf(param[0][3]), Q);
-            case "Reflect": return new Reflect (Integer.valueOf(param[0][1]), Boolean.valueOf(param[0][2]), Integer.valueOf(param[0][3]), Q);
+            case "Reflect": return new Reflect (Integer.valueOf(param[0][1]), Boolean.valueOf(param[0][2]), Integer.valueOf(param[0][3]), Q); //boolean is true for half/false for full
             case "Reflect Effect": return new ReflectE (Integer.valueOf(param[0][1]), Boolean.valueOf(param[0][2]), Integer.valueOf(param[0][3]), Q);
             case "Regen": return new Regen (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][2]), Integer.valueOf(param[0][3]), Q);
             case "Regen Effect": return new RegenE (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][2]), Integer.valueOf(param[0][3]), Q);

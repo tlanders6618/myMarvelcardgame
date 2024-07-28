@@ -64,7 +64,24 @@ public abstract class StatEff
     {
         return dmg;
     }
-    public void UseBanish() //literally just --duration
+    public static boolean CheckBanish (Character target) //return whether banish can be applied to target or not
+    {
+        if ((target.team1==true&&Battle.p1solo==true)||(target.team1==false&&Battle.p2solo==true)) //cannot be banished if solo
+        {
+            return false;
+        }
+        else //cannot be banished if all teammates already are
+        {
+            Character[] team=Battle.GetTeammates(target);
+            for (Character ch: team)
+            {
+                if (ch!=null&&!(ch.binaries.contains("Banished"))) //ch is not banished, so target can be
+                return true;
+            }
+            return false;
+        }
+    }
+    public void UseBanish(Character c) //needed for linked banish
     {
     }
     public int UseEmpower(Character user, Ability b, boolean a) //buff stat chance/attack or add tempstrings to apply
@@ -93,7 +110,8 @@ public abstract class StatEff
             case "immune": System.out.println(start+" failed to apply to "+target+" due to an immunity."); break;
             case "chance": System.out.println(start+" failed to apply to "+target+" due to chance."); break;
             case "conflict": System.out.println(start+" could not be applied to "+target+" due to a conflicting status effect."); break; //shatter, safeguard, disrupt, disable debuffs
-            case "dupe": System.out.println(start+" could not be applied due to "+target+" due to a duplicate status effect."); break;
+            case "dupe": System.out.println(start+" could not be applied to "+target+" due to a duplicate status effect."); break;
+            case "banish": System.out.println(start+" could not be applied to "+target+" due to not meeting the Banish conditions."); break; //checkbanish failed, as per the glossary
             default: System.out.println("Forgot to program an error message for this kind of stateff failure."); 
         }
         for (Character c: Battle.team1)
