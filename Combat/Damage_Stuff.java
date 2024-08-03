@@ -21,6 +21,20 @@ public class Damage_Stuff
         print=false;
         return dmg;
     }
+    public static int GetInput()
+    {
+        int choice; 
+        Card_Game_Main.trash= new Scanner(System.in);
+        try
+        {
+            choice=Card_Game_Main.trash.nextInt();
+        }
+        catch (Exception e)
+        {
+            choice=616;
+        }
+        return choice;
+    }
     public static void CheckBarrier (Character hero, Character dealer, int dmg) //called as part of every damage calculation; for taking health dmg 
     {
         if (hero.CheckFor("Barrier", false)==true)
@@ -65,20 +79,6 @@ public class Damage_Stuff
             hero.HP-=dmg;
         }
     }
-    public static int GetInput()
-    {
-        int choice; 
-        Card_Game_Main.trash= new Scanner(System.in);
-        try
-        {
-            choice=Card_Game_Main.trash.nextInt();
-        }
-        catch (Exception e)
-        {
-            choice=616;
-        }
-        return choice;
-    }
     public static int GetCC (Character dealer, Character chump) //crit chance
     {
         int CC=dealer.CC-dealer.nCC;
@@ -94,7 +94,7 @@ public class Damage_Stuff
         if (crit==true) //the attack is a critical hit; damage is increased accordingly
         {
             //if (print==true)
-            System.out.println(dealer.Cname+"'s attack was critical!");
+            System.out.println(dealer+"'s attack was critical!");
             double ndmg= dmg*dealer.critdmg;
             dmg=5*(int)(Math.floor(ndmg/5)); //crit damage rounded down to nearest 5
             dealer.onCrit(chump);
@@ -102,7 +102,7 @@ public class Damage_Stuff
         else
         {
             if (print==true)
-            System.out.println(dealer.Cname+"'s attack failed to crit.");
+            System.out.println(dealer+"'s attack failed to crit.");
         }
         return dmg;
     }
@@ -196,31 +196,45 @@ public class Damage_Stuff
         {
             if (!(dealer.ignores.contains("Evade"))&&!(target.binaries.contains("Shattered"))&&!(target.binaries.contains("Stunned"))&&target.CheckFor("Soaked", false)==false)
             {
-                for (StatEff effect: target.effects)
+                boolean go=true;
+                if (dealer.activeability!=null)
                 {
-                    if (effect.getimmunityname().equalsIgnoreCase("Evade")) //evade Effects can't be stop, but regular evade can be ignored if attacker ignores defence
+                    for (SpecialAbility a: dealer.activeability.special)
                     {
-                        if (effect.getefftype().equalsIgnoreCase("Other")||(effect.getefftype().equalsIgnoreCase("Defence")&&!(dealer.ignores.contains("Defence"))))
+                        if (a instanceof ApplyShatter&&a.CheckApply()==true) //cannot evade attacks that apply shatter
                         {
-                            System.out.println ("\n"+target.Cname+" Evaded "+dealer.Cname+"'s attack!");
-                            target.remove(effect.id, "normal");
-                            dealer.binaries.add("Missed");
-                            target.onEvade(dealer);
-                            break;
+                            go=false; break;
                         }
                     }
-                    else if (effect.getimmunityname().equalsIgnoreCase("Evasion")&&!(dealer.ignores.contains("Evasion")))
+                }
+                if (go==true)
+                {
+                    for (StatEff effect: target.effects)
                     {
-                        boolean evade=CoinFlip.Flip((50+target.Cchance));
-                        if (evade==true)
+                        if (effect.getimmunityname().equalsIgnoreCase("Evade")) //evade Effects can't be stop, but regular evade can be ignored if attacker ignores defence
                         {
-                            System.out.println ("\n"+target.Cname+" successfully Evaded "+dealer.Cname+"'s attack!");
-                            dealer.binaries.add("Missed");
-                            target.onEvade(dealer);
-                            break;
-                        } 
-                        else
-                        System.out.println (target.Cname+" failed to Evade "+dealer.Cname+"'s attack.");
+                            if (effect.getefftype().equalsIgnoreCase("Other")||(effect.getefftype().equalsIgnoreCase("Defence")&&!(dealer.ignores.contains("Defence"))))
+                            {
+                                System.out.println ("\n"+target.Cname+" Evaded "+dealer.Cname+"'s attack!");
+                                target.remove(effect.id, "normal");
+                                dealer.binaries.add("Missed");
+                                target.onEvade(dealer);
+                                break;
+                            }
+                        }
+                        else if (effect.getimmunityname().equalsIgnoreCase("Evasion")&&!(dealer.ignores.contains("Evasion")))
+                        {
+                            boolean evade=CoinFlip.Flip((50+target.Cchance));
+                            if (evade==true)
+                            {
+                                System.out.println ("\n"+target.Cname+" successfully Evaded "+dealer.Cname+"'s attack!");
+                                dealer.binaries.add("Missed");
+                                target.onEvade(dealer);
+                                break;
+                            } 
+                            else
+                            System.out.println (target.Cname+" failed to Evade "+dealer.Cname+"'s attack.");
+                        }
                     }
                 }
             }

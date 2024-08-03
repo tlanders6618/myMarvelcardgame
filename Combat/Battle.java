@@ -286,7 +286,7 @@ public class Battle
                 return true;
             }
         }
-        if (!(hero.binaries.contains("Banished"))) //if channelled ab applies linked banish or hero is banished by passive after attacking with channelled ab
+        if (!(hero.binaries.contains("Banished"))) //if channelled ab applies linked banish or hero is banished by passive after attacking with channelled ab, do not take turn
         {
             Ability activeAb=null;
             ArrayList<Character> targets= new ArrayList<Character>(); //chars to hit with ab
@@ -304,6 +304,9 @@ public class Battle
                 return true; //end the game because the enemy team died from a passive or channelled ability, e.g. sandman's sandstorm
                 else if (hero.team1==false&&p1heroes==0)
                 return true; 
+            }
+            if (hero.dead==false) //if they have not died from onturn
+            {
                 boolean flag=false;
                 ArrayList<StatEff> selfadd2= new ArrayList<StatEff>(); //to save unbound ab's stateffs to be applied at turn end
                 while (flag==false) 
@@ -314,7 +317,7 @@ public class Battle
                     else  
                     {
                         targets=Battle.ChooseTarget(hero, activeAb.friendly, activeAb.target); //choose targets and use the ab
-                        selfadd2=activeAb.UseAb(hero, activeAb, targets); //stateffs to apply to self
+                        selfadd2=activeAb.UseAb(hero, targets); //stateffs to apply to self
                         if (selfadd2!=null) //abs only return null if they can't be used due to a lack of targets; if null, restart the loop and choose something usable this time
                         {
                             if (activeAb.unbound==true) //update scoreboard to immediately see effect of used unbound ab, and keep looping and use another ab
@@ -432,7 +435,7 @@ public class Battle
                 }
                 if (param.size()>0) //useab if it's valid
                 {
-                    selfadd2=activeAb.UseAb(hero, activeAb, param); 
+                    selfadd2=activeAb.UseAb(hero, param); 
                 }
                 if (selfadd2!=null) //else selfadd2 stays null bc ab is invalid; hero must either choose something valid or skip turn to continue
                 {
@@ -1060,7 +1063,7 @@ public class Battle
         {
             if (p1teamsize+size<=6) //they cannot have more than 6 characters per team, or the equivalent
             {
-                friend.passivefriend[0]=summoner;
+                friend.passivefriend.add(0,summoner); //add, not set, since arraylist starts empty and technically has no index 0 yet
                 Battle.AddSummon(friend);
                 Character[] friends=Battle.GetTeammates(summoner); //after they're summoned, allies and enemies apply relevant passives
                 for (Character prot: friends)
@@ -1088,7 +1091,7 @@ public class Battle
         {
             if (p2teamsize+size<=6)
             {
-                friend.passivefriend[0]=summoner;
+                friend.passivefriend.add(0,summoner); //add, not set, since arraylist starts empty and technically has no index 0 yet
                 Battle.AddSummon(friend);
                 Character[] friends=Battle.GetTeammates(summoner);
                 for (Character prot: friends)
@@ -1141,7 +1144,7 @@ public class Battle
             p2teamsize+=friend.size;
             p2heroes++;
         }
-        System.out.println(friend.passivefriend[0].Cname+" Summoned "+friend.Cname);
+        System.out.println(friend.passivefriend.get(0)+" Summoned "+friend);
         friend.onSummon();
     }
     public static int CheckWin (int turn) //turn is tturns%2
