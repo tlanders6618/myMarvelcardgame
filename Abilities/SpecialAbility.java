@@ -1,4 +1,4 @@
-package myMarvelcardgamepack;
+ package myMarvelcardgamepack;
 /**
  * Designer: Timothy Landers
  * Date: 18/8/22
@@ -43,9 +43,9 @@ class BonusTurnHelper extends SpecialAbility
     @Override
     public void Undo (Character hero) //bonus turn triggers at the end of a hero turn
     {
-        if (used==false&&hero.dead==false&&hero.activeability.channelled==false) //since helpers are triggered after using a channelled ability, right before hero starts their turn
+        if (used==false&&hero.dead==false&&hero.activeability.channelled==false&&!(hero.binaries.contains("Banished"))) //cannot take bonus turn during linked banish
         {
-            used=true;
+            used=true; System.out.println(hero+" took a bonus turn!");
             Battle.Turn(hero, true); //hero can only take a bonus turn after finishing their turn, so it cannot be triggered after using a channelled skill            
         }
         else //bonus turn helpers are single use only; removed immediately after use
@@ -273,5 +273,67 @@ class RedwingHelper extends SpecialAbility //called by character.attack, after d
             victim.helpers.remove(remov);
             victim.immunities.remove("Debuffs"); 
         }
+    }
+}
+class Use extends SpecialAbility //specialab so empowerments can be undone before it's triggered, since empowerments are supposed to only affect one ab at a time
+{
+    Ability ab; String condition; 
+    public Use (Ability ability, String usecase) //uses an ability outside of a turn, for characters like paladin and unstoppable colossus
+    {
+        this.ab=ability; this.condition=usecase; 
+        switch (condition)
+        {
+            case "maw": this.desc="If the target has Persuaded, Use one of their abilities."; break;
+            case "default": this.desc="Use "+ab.oname+". "; break; //ability is always used, no matter what
+        }
+    }
+    @Override
+    public int Use (Character hero, int dmgdealt, Character victim) //after hero finishes attacking and using afterabs
+    {
+        if (CheckCond(hero, dmgdealt, victim)==true) //meets use condition, e.g. paladin needs to do 60+ damage with his basic attack
+        {
+            Character user=null; //user is the one using the ab and should always be the one the ability belongs to
+            ArrayList<Character> targets=null;
+            if (hero.index==67) //ebony maw makes his target use an ability on anyone he wants (ignores targeting effs since he does, but not invisible/untargetable)
+            {
+                user=victim;
+                targets=Battle.ChooseTarget(hero, "either", ab.target);
+            }
+            else //the hero is using one of their abs
+            {
+                user=hero;
+                targets=Battle.ChooseTarget(hero, ab.friendly, ab.target);
+            }
+            int ocd=ab.dcd; //save original cooldown, since useab sets it on cooldown and Use shouldn't do that
+            ArrayList<StatEff> toapply=ab.UseAb(user, targets); //stateffs to be applied to user
+            ab.dcd=ocd;
+            if (toapply.size()>0&&user.dead==false) 
+            {
+                if (hero.index==67) //it's the maw's turn, so apply stateffs directly to the victim
+                {
+                    for (StatEff eff: toapply)
+                    {
+                        StatEff.CheckApply(user, user, eff);
+                    }
+                }
+                else
+                {
+                    for (StatEff eff: toapply) //it's the hero's turn, so they should only gain the stateffs after turn end, to avoid premature expiry
+                    {
+                        user.activeability.selfapply.add(eff);
+                    }
+                }
+            }
+        }
+        return 0;
+    }
+    private boolean CheckCond (Character hero, int dmgdealt, Character vic) 
+    {
+        boolean toret=true;
+        switch (condition)
+        {
+            case "maw": toret=(vic.CheckFor("Persuaded", false)==true); break;
+        }
+        return toret;
     }
 }
