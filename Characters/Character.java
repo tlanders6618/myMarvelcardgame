@@ -46,7 +46,7 @@ public abstract class Character
     int id; //identifier number
     int passivecount; //for keeping track of passive stuff
     Ability activeability=null; //last used ability     
-    Character[] passivefriend= new Character[6]; //for lads like eddie brock venom
+    ArrayList<Character> passivefriend= new ArrayList<Character>(); //for lads like eddie brock venom
     ArrayList<StatEff> effects= new ArrayList<StatEff>(); //holds status effects
     ArrayList<String> immunities= new ArrayList<String>(); 
     ArrayList<String> binaries=new ArrayList<String>(); //overlapping conditions like stunned and invisible
@@ -195,21 +195,21 @@ public abstract class Character
         if (poison==true)
         {
             if (immune==true)
-            System.out.println("\n"+this.Cname+" no health from Poison due to an immunity!"); 
+            System.out.println("\n"+this.Cname+" no health from Poison due to an immunity."); 
             else
             System.out.println("\n"+this.Cname+" lost "+PoT+" health from Poison."); 
         }
         if (wither==true)
         {
             if (immune==true)
-            System.out.println("\n"+this.Cname+" no health from Wither due to an immunity!"); 
+            System.out.println("\n"+this.Cname+" no health from Wither due to an immunity."); 
             else
             System.out.println("\n"+this.Cname+" lost "+WiT+" health from Wither."); 
         }
         if (regen==true)
         {
             if (this.CheckFor("Wound", false)==true)
-            System.out.println("\n"+this.Cname+" could not be healed due to being Wounded!");
+            System.out.println("\n"+this.Cname+" could not be healed due to being Wounded.");
             else
             System.out.println("\n"+this.Cname+" was healed for "+ReT+" health!"); 
         }
@@ -387,6 +387,8 @@ public abstract class Character
         }
     }
     public abstract void HPChange (int oldhp, int newhp);
+    public abstract void AllyHPChange (Character ally, int oldhp, int newhp);
+    public abstract void EnemyHPChange (Character enemy, int oldhp, int newhp);
     public void Healed (int regener, boolean passive, boolean regen) //passive refers to the "recover up to X missing health" type of healing abs
     {
         boolean nowound=true; int h=this.HP;
@@ -494,7 +496,7 @@ public abstract class Character
     public abstract void onAllyTurn (Character ally, boolean summoned); 
     public abstract void onEnemyTurn (Character enemy, boolean summoned);
     public abstract void onFightStart();
-    public abstract void onAllyAttacked(Character ally, Character hurtfriend, Character attacker, int dmg);
+    public abstract void onAllyAttacked(Character hurtfriend, Character attacker, int dmg);
     public abstract Character onAllyTargeted (Character dealer, Character target, int dmg, boolean aoe); //for passives that change the target hero, like thing's
     public abstract void BeforeAttack (Character target, boolean t); //t is whether it was called before or after checking for protect
     public Character Attack (Character dealer, Character target, int dmg, boolean aoe) //for attack skills
@@ -539,7 +541,7 @@ public abstract class Character
         {
             if (friend!=null&&!(friend.binaries.contains("Banished")))
             {
-                friend.onAllyAttacked(friend, target, dealer, dmg);
+                friend.onAllyAttacked(target, dealer, dmg);
             }
         }
         if (dealer.dead==false)
@@ -573,7 +575,7 @@ public abstract class Character
         {
             if (friend!=null&&!(friend.binaries.contains("Banished")))
             {
-                friend.onAllyAttacked(friend, target, dealer, 0);
+                friend.onAllyAttacked(target, dealer, 0);
             }
         }
         return target;
@@ -611,7 +613,7 @@ public abstract class Character
         {
             if (friend!=null&&!(friend.binaries.contains("Banished")))
             {
-                friend.onAllyAttacked(friend, target, dealer, 0);
+                friend.onAllyAttacked(target, dealer, 0);
             }
         }
         return target;
@@ -721,14 +723,15 @@ public abstract class Character
             switch (index)
             {
                 //220
-                case 6: case 9: case 10: case 14: case 19: case 21: case 29: case 33: case 36: case 37: case 73: case 80: case 91: case 93: case 95: case 96: case 102: case 103:
+                case 6: case 9: case 10: case 14: case 19: case 21: case 29: case 33: case 36: case 37: case 68: case 69: case 71: case 73: case 80: case 91: case 93: case 95: 
+                case 96: case 102: case 103:
                 return 220;
                 //230
-                case 1: case 2: case 3: case 4: case 5: case 7: case 8: case 11: case 18: case 20: case 23: case 24: case 25: case 34: case 39: case 40: case 68: case 69:
-                case 72: case 74: case 75: case 79: case 81: case 82: case 84: case 86: case 88: case 89: case 90: case 92: case 94: case 97: case 98: case 100: case 101:
+                case 1: case 2: case 3: case 4: case 5: case 7: case 8: case 11: case 18: case 20: case 23: case 24: case 25: case 34: case 39: case 40: case 72: case 74: 
+                case 75: case 79: case 81: case 82: case 84: case 86: case 88: case 89: case 90: case 92: case 94: case 97: case 98: case 100: case 101:
                 return 230;
                 //240
-                case 12: case 13: case 15: case 16: case 17: case 22: case 27: case 28: case 30: case 32: case 35: case 38: case 41: case 78:
+                case 12: case 13: case 15: case 16: case 17: case 22: case 27: case 28: case 30: case 32: case 35: case 38: case 41: case 70: case 78:
                 case 83: case 85: case 87: case 99: case 104:
                 return 240;
                 //special carrots
@@ -816,6 +819,8 @@ public abstract class Character
                 //2.6: U-Foes
                 case 68: return "Vector (Classic)";
                 case 69: return "X-Ray (Classic)";
+                case 70: return "Ironclad (Classic)";
+                case 71: return "Vapor (Classic)";
                 //2.7: Thunderbolts
                 case 72: return "Baron Zemo (Helmut Zemo)";
                 case 73: return "Melissa Gold (Screaming Mimi)";
@@ -917,9 +922,8 @@ public abstract class Character
                 case 6: //captain america
                 return "Gain Shield: 20 on fight start and on turn."; 
                 case 7: //falcon
-                String boo= "On fight start, apply Redwing, granting 50% damage reduction and debuff immunity once when taking 120+ damage from an attack.";
-                boo=boo+" Apply a small Mend to heroes who consume Redwing."; 
-                return boo;
+                return "On fight start, apply Redwing, granting 50% damage reduction and debuff immunity once when taking 120+ damage from an attack. "+
+                "Apply a small Mend to heroes who consume Redwing."; 
                 case 8: //bucky
                 return "Attacks ignore Defence."; 
                 case 9: //star lord
@@ -927,17 +931,15 @@ public abstract class Character
                 case 10: //fury sr
                 return "Summons Nick Fury LMD (Summon) when falling below 90 HP for the first time."; 
                 case 12: //drax og
-                String ga="On fight start, apply Obsession to an enemy. Apply +1 on attack (max 3).";
-                ga+=" Gain immunity to buffs and Persuaded, ignore targeting effects, and always takes status effect damage on turn end."; 
-                return ga; 
+                return "On fight start, apply Obsession to an enemy. Apply +1 on attack (max 3). "+
+                "Gain immunity to buffs and Persuaded, ignore targeting effects, and always takes status effect damage on turn end."; 
                 case 13: //drax modern
                 return "Do +15 damage and apply debuffs with +15 strength when attacking enemies with 75% HP or more."; 
                 case 14: //x23
                 return "Gain +50% crit chance against enemies below 90 HP. On crit, 50% chance to gain Regen: 15 for 1 turn."; 
                 case 15: //wolverine
-                String loo="Gain Regen: 15 for 1 turn when attacked. ";
-                loo+="After taking 180 damage, clear status effects on self and enter Berserker Frenzy, granting +15 damage reduction but making attacks Random Target."; 
-                return loo;
+                return "Gain Regen: 15 for 1 turn when attacked. "+
+                "After taking 180 damage, clear status effects on self and enter Berserker Frenzy, granting +15 damage reduction but making attacks Random Target."; 
                 case 16: //venom og
                 return "On fight start, choose an ally to gain Resistance; when they're attacked, counter for 40 damage. Ignore Evade but take +5 damage while Burning."; 
                 case 17: //venom gargan
@@ -946,20 +948,17 @@ public abstract class Character
                 return "Evade all enemy AoE attacks. On turn, gain Evade. While he has Evade, Spider-Man becomes the target when an ally with less HP than him is attacked."; 
                 case 20: //superior spidey
                 return "Attacks against enemies with Tracers are Inescapable."; 
-                case 23: //captain marvel
-                String mlb="Gain immunity to Poison and take no damage from Shock or Burn. On turn, when taking 80+ damage, and when attacking, gain 1 E. "; 
-                String blm="At 5 E, lose all status effects and Transform into Binary.";
-                return mlb+blm;
+                case 23: //captain marvel 
+                return "Gain immunity to Poison and take no damage from Shock or Burn. On turn, when taking 80+ damage, and when attacking, gain 1 E. "+
+                "At 5 E, lose all status effects and Transform into Binary.";
                 case 24: //binary
                 return "Gain immunity to status effects. On any turn, lose 1 E to do 10 Elusive damage to all enemies."; 
                 case 25: //agent venom
-                String clown="While above 5 C, gain +50% status chance; while below, apply Bleed: 10 for 1 turn and do +15 damage to self and enemies when attacking. ";
-                clown+="Ignore Evade but take +5 damage while Burning."; 
-                return clown;
+                return "While above 5 C, gain +50% status chance; while below, apply Bleed: 15 for 1 turn and do +10 damage to self and the target when attacking. "+
+                "\nIgnore Evade but take +5 damage while Burning. Lose 3 C when attacked."; 
                 case 26: //modok
-                String fool="Gain Shield: 100 on fight start; while active, gain debuff immunity and take -100 damage from attacks that do 100+ damage."; 
-                fool+="\nAttacks ignore targeting effects and apply a 1 turn Shatter or disable debuff based on the target's abilities.";
-                return fool;
+                return "Gain Shield: 100 on fight start; while active, gain debuff immunity and take -100 damage from attacks that do 100+ damage. "+
+                "\nAttacks ignore targeting effects and apply a 1 turn Shatter or disable debuff based on the target's abilities.";
                 case 27: //ultron
                 return "Gain immunity to Bleed, Poison, Copy, Snare, Control, and Steal; take no Wither damage."; 
                 case 28: //doom
@@ -973,9 +972,8 @@ public abstract class Character
                 case 33: //deadpool
                 return "On turn, gain 30 HP. Do +15 damage against Summons and reduce all cooldowns by 1 turn on kill.";
                 case 35: //juggernaut
-                String stupid="Gain immunity to Stun and Snare. Gain +10 damage reduction and Control immunity while above 100 HP. "; 
-                stupid+="Gain 1 M on turn and attack (max 5); while at 5, become debuff immune.";
-                return stupid;
+                return "Gain immunity to Stun and Snare. Gain +10 damage reduction and Control immunity while above 100 HP. "+ 
+                "Gain 1 M on turn and attack (max 5); while at 5, become debuff immune.";
                 //2.1: Sinister Six
                 case 36: //vulture
                 return "50% chance to apply Wound for 1 turn when attacking enemies below 120 HP.";
@@ -987,9 +985,15 @@ public abstract class Character
                 return "On fight start, gain Resistance. Take -10 Bleed damage. Gain immunity to max HP reduction, Suppression, Vulnerable, and Terror.";
                 //2.6: U-Foes
                 case 68: //vector
-                return "Gain immunity to Shock, Bleed, Burn, and Freeze. When using an ability on self or an ally, 100% chance to Purify. When using an ability on an enemy, 100% chance to Nullify.";
+                return "Gain immunity to Shock, Bleed, Burn, and Freeze. When using an ability on self or an ally, 100% chance to Purify. "+
+                "When using an ability on an enemy, 100% chance to Nullify.";
                 case 69: //x-ray
                 return "Gain immunity to Bleed, Poison, and Heal. Take no damage from Wither.";
+                case 70: //ironclad
+                return "Gain immunity to Bleed, Burn, and Freeze. When an ally takes over 95 damage, gain Taunt for 1 turn. "+ 
+                "If attacked while Taunting, counter for 0 damage, affected by status effects on self.";
+                case 71: //vapor
+                return "Gain immunity to Bleed and Poison. Ignore Evade.";
                 //2.7: Thunderbolts
                 case 72: //zemo
                 return "Gain immunity to Steal and Disarm, and ignore Guard. On turn, remove Guard from self. When using Deadly Lunge for the first time, gain Precision.";
@@ -998,9 +1002,11 @@ public abstract class Character
                 case 74: //songbird
                 return "Mend can critically hit, increasing the healing done based on critical damage.";
                 case 75: //moonstone
-                return "Gain immunity to Steal and ignore Provoke and Terror. When failing to gain a duplicate buff, Extend the original by 1 turn and Amplify it by the duplicate's strength.";
+                return "Gain immunity to Steal and ignore Provoke and Terror. "+
+                "When failing to gain a duplicate buff, Extend the original by 1 turn and Amplify it by the duplicate's strength.";
                 case 76: //speedball
-                return "Gain immunity to damage, Control, Snare, max HP reduction, health loss, and Heal. On fight start, gain Reflect. On turn, and when attacked or Stunned, sacrifice 15 health.";
+                return "Gain immunity to damage, Control, Snare, max HP reduction, health loss, and Heal. On fight start, gain Reflect. "+
+                "On turn, and when attacked or Stunned, sacrifice 15 health.";
                 case 77: //penance
                 return "Gain immunity to Control and Heal. Take half damage from attacks, and gain 1 Pain for every 20 damage taken before damage reduction.";
                 case 78: //red hulk
@@ -1035,9 +1041,8 @@ public abstract class Character
                 case 97: //angel
                 return "100% chance to gain Bleed: 0 for 2 turns when taking damage. On turn, gain 15 HP per Bleed on self.";
                 case 98: //archangel
-                String str="On attack, flat 50% chance to apply Bleed: 15 for 2 turns and flat 50% chance to apply Poison: 15 for 2 turns.";
-                String train="\nIf the target has 3 Bleed, apply Weakness: 30 for 1 turn and if they have 3 Poison, apply Wound for 1 turn.";
-                return str+train;
+                return "On attack, flat 50% chance to apply Bleed: 15 for 2 turns and flat 50% chance to apply Poison: 15 for 2 turns. "+
+                "\nIf the target has 3 Bleed, apply Weakness: 30 for 1 turn and if they have 3 Poison, apply Wound for 1 turn.";
                 case 99: //colossus
                 return "Gain immunity to Bleed, Burn, and Freeze; with Taunt, incoming attacks have -50% crit chance.";
                 case 102: //gambit
@@ -1077,9 +1082,8 @@ public abstract class Character
                 case 11: //loki's illusions
                 return "On Summon, gain Focus and Protect the summoner. Gain immunity to non-Other effects."; 
                 case 12: //giganto
-                String son="Gain immunity to Persuaded and +20 damage reduction. Lose this damage reduction and gain Stun and Target: 40 for 1 turn after attacking."; 
-                son+=" Giganto is counted as 2 characters for the purpose of the team size limit."; 
-                return son;
+                return "Gain immunity to Persuaded and +20 damage reduction. Lose this damage reduction and gain Stun and Target: 40 for 1 turn after attacking. "+
+                "Giganto is counted as 2 characters for the purpose of the team size limit."; 
                 case 14: //bruin
                 return "Bruin is counted as 2 characters for the purpose of the team size limit.";
                 case 15: //ringer

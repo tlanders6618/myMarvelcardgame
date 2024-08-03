@@ -398,20 +398,19 @@ public class StaticPassive
     {
         if (eddie.team1==true)
         {
-            System.out.println ("\nPlayer 1, choose a character for Venom (Eddie Brock) to watch over. Type the number in front of their name.");
+            System.out.println ("\nPlayer 1, choose a character for "+eddie+" to watch over. Type the number in front of their name.");
         }
         else
         {
-            System.out.println ("\nPlayer 2, choose a character for Venom (Eddie Brock) to watch over. Type the number in front of their name.");
+            System.out.println ("\nPlayer 2, choose a character for "+eddie+" to watch over. Type the number in front of their name.");
         }
-        Character[] friends=null;
-        friends=Battle.GetTeammates(eddie);
+        Character[] friends=Battle.GetTeammates(eddie);
         ResistanceE res= new ResistanceE (500, 10, 616, eddie);
-        Character allt=Card_Selection.ChooseTargetFriend (friends);
-        StatEff.CheckApply(eddie, allt, res);
+        Character friend=Card_Selection.ChooseTargetFriend (friends);
+        StatEff.CheckApply(eddie, friend, res);
         eddie.passivecount=res.id;
-        eddie.passivefriend[0]=allt;
-        allt.add(new Tracker ("Watched by Venom (Eddie Brock)"), false);
+        eddie.passivefriend.add(0,friend); //add, not set, since arraylist starts empty and technically has no index 0 yet
+        friend.add(new Tracker ("Watched by Venom (Eddie Brock)"), false);
     }
     public static void Drax (Character arthur, Character target, String time) //in here bc I assume this'll be used once per fight due to its strict requirements
     {
@@ -483,7 +482,7 @@ public class StaticPassive
         Character[] foes=Battle.TargetFilter(drax, "enemy", "single");
         Obsession obsess= new Obsession(drax);  
         StatEff.CheckApply(drax, foes[0], obsess);
-        drax.passivefriend[0]=foes[0];
+        drax.passivefriend.add(0,foes[0]); //add, not set, since arraylist starts empty and technically has no index 0 yet
         drax.ignores.remove("Invisible");
         if (foes[0].effects.contains(obsess)) //only if the apply was successful
         drax.passivecount=1;
@@ -540,7 +539,7 @@ public class StaticPassive
             StatEff.CheckApply(machine, foes[0], bay);
             if (foes[0].effects.contains(bay))
             {
-                machine.passivefriend[0]=foes[0];
+                machine.passivefriend.add(0,foes[0]); //add, not set, since arraylist starts empty and technically has no index 0 yet
                 machine.passivecount=bay.id;
                 foes[0].immunities.add("Invisible");
                 ArrayList<StatEff> concurrentmodificationexception2electricboogaloo= new ArrayList<StatEff>();

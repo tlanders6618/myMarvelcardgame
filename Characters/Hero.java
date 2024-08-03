@@ -42,9 +42,10 @@ public class Hero extends Character
     @Override
     public void add (StatEff eff, boolean print) //adding a stateff
     {
-        for (StatEff e: this.effects) //for stateffs that react to other stateffs, e.g. fortify
+        ArrayList<StatEff> conmod=new ArrayList<StatEff>(this.effects);
+        for (StatEff e: conmod) //for stateffs that react to other stateffs
         {
-            e.Attacked(eff);
+            e.Attacked(this, eff);
         }
         if (print==true&&!(eff.getimmunityname().equalsIgnoreCase("Protect"))&&!(eff.getimmunityname().equalsIgnoreCase("Banish"))) 
         //due to taunt/protect interaction as well as banish; no point in announcing it being added if it's instantly removed
@@ -180,7 +181,7 @@ public class Hero extends Character
     @Override
     public void onEnemyGain (Character foe, StatEff e) //enemy gained a stateff
     {
-        if (!(this.binaries.contains("Banished")))
+        if (!(this.binaries.contains("Banished"))&&!(foe.binaries.contains("Banished")))
         {
             switch (this.index)
             {
@@ -231,7 +232,7 @@ public class Hero extends Character
     @Override
     public void onAllyTurn (Character ally, boolean summoned) //ally is the one triggering call and this is one reacting
     {
-        if (!(this.binaries.contains("Banished"))) //remember that this triggers for dead heroes too
+        if (!(this.binaries.contains("Banished"))&&!(ally.binaries.contains("Banished"))) //remember that this triggers for dead heroes too
         {
             switch (index)
             {
@@ -389,6 +390,7 @@ public class Hero extends Character
             switch (this.index)
             {
                 case 15: ActivePassive.Wolvie(this, true); break;
+                case 70: ActivePassive.Ironclad(this, attacker, 616, true); break;
                 case 76: ActivePassive.Speedball(this, false); break;
                 case 81: StaticPassive.DD(this, attacker); break;
                 case 104: ActivePassive.Bishop(this, dmg, "attacked"); break;
@@ -396,21 +398,22 @@ public class Hero extends Character
         } 
     }
     @Override
-    public void onAllyAttacked(Character hero, Character hurtfriend, Character attacker, int dmg) 
+    public void onAllyAttacked(Character ally, Character attacker, int dmg) 
     {
-        if (!(hero.binaries.contains("Banished")))
+        if (!(this.binaries.contains("Banished"))&&!(ally.binaries.contains("Banished")))
         {
-            switch (hero.index)
+            switch (this.index)
             {
-                case 1: ActivePassive.MoonKnight(hero, hurtfriend, attacker); break;
-                case 16: ActivePassive.OGVenom (hero, hurtfriend, attacker); break;
+                case 1: ActivePassive.MoonKnight(this, ally, attacker); break;
+                case 16: ActivePassive.OGVenom (this, ally, attacker); break;
+                case 70: ActivePassive.Ironclad(this, ally, dmg, false); break;
             }
         }
     }
     @Override
     public Character onAllyTargeted (Character dealer, Character ally, int dmg, boolean aoe)
     {
-        if (!(this.binaries.contains("Banished"))&&aoe==false) //aoe abilities target everyone, so they're considered as targeting no one
+        if (!(this.binaries.contains("Banished"))&&!(ally.binaries.contains("Banished"))&&aoe==false) //aoe abilities target everyone, so they're considered as targeting no one
         {
             switch (this.index)
             {
@@ -539,6 +542,31 @@ public class Hero extends Character
             case 35: ActivePassive.Cain(this, "change", oldhp); break;
             case 94: StaticPassive.Phil(this); break;
         }
+        if (!(this.binaries.contains("Banished")))
+        {
+            Character[] people=Battle.GetTeammates(this);
+            for (Character friend: people)
+            {
+                if (friend!=null)
+                {
+                    friend.AllyHPChange(this, oldhp, newhp);
+                }
+            }
+        }
+    }
+    @Override
+    public void AllyHPChange (Character ally, int oldhp, int newhp)
+    {
+        if (!(this.binaries.contains("Banished")))
+        {
+        }
+    }
+    @Override
+    public void EnemyHPChange (Character enemy, int oldhp, int newhp)
+    {
+        if (!(this.binaries.contains("Banished"))||!(enemy.binaries.contains("Banished")))
+        {
+        }
     }
     @Override
     public void onLethalDamage (Character killer, String dmgtype)
@@ -601,22 +629,22 @@ public class Hero extends Character
         switch (this.index) //only trigger ondeath passives once stateffs and variables have been fully removed/properly changed
         {
             case 5: case 16:
-            if (this.passivefriend[0]!=null&&this.passivefriend[0].dead==false)
+            if (this.passivefriend.get(0)!=null&&this.passivefriend.get(0).dead==false)
             {
-                this.passivefriend[0].remove(passivecount, "normal"); //remove heat signature detection's target/lethal protector's resistance
+                this.passivefriend.get(0).remove(passivecount, "normal"); //remove heat signature detection's target/lethal protector's resistance
                 if (this.index==5)
-                this.passivefriend[0].immunities.remove("Invisible"); //undo heat signature's effects
+                this.passivefriend.get(0).immunities.remove("Invisible"); //undo heat signature's effects
                 else if (this.index==16) 
                 {
                     StatEff r=null; //remove the lethal protector tracker
-                    for (StatEff e: this.passivefriend[0].effects)
+                    for (StatEff e: this.passivefriend.get(0).effects)
                     {
                         if (e instanceof Tracker&&e.geteffname().equals("Watched by Venom (Eddie Brock)"))
                         {
                             r=e; break;
                         }
                     }
-                    this.passivefriend[0].remove(r.id, "silent");
+                    this.passivefriend.get(0).remove(r.id, "silent");
                 }
             }
             break;
@@ -627,14 +655,14 @@ public class Hero extends Character
     @Override
     public void onAllyDeath (Character deadfriend, Character killer)
     {
-        if (!(this.binaries.contains("Banished")))
+        if (!(this.binaries.contains("Banished"))&&!(deadfriend.binaries.contains("Banished")))
         {
         }
     }
     @Override
     public void onEnemyDeath (Character deadfoe, Character killer)
     {
-        if (!(this.binaries.contains("Banished")))
+        if (!(this.binaries.contains("Banished"))||!(deadfoe.binaries.contains("Banished")))
         {
             switch (this.index)
             {
@@ -646,15 +674,12 @@ public class Hero extends Character
         this.onKill(deadfoe);
     }
     @Override
-    public void onKill (Character victim)
+    public void onKill (Character victim) //no need to do banish check for obvious reasons
     {
-        if (!(this.binaries.contains("Banished")))
+        switch (this.index)
         {
-            switch (this.index)
-            {
-                case 17: case 90: ActivePassive.Venom(this); break; //macdonald and college have the same passive for some reason, so this is efficient albeit mildly confusing
-                case 33: StaticPassive.Deadpool(this, "kill", victim); break;
-            }
+            case 17: case 90: ActivePassive.Venom(this); break; //macdonald and college have the same passive for some reason, so this is efficient albeit mildly confusing
+            case 33: StaticPassive.Deadpool(this, "kill", victim); break;
         }
     } 
     @Override 
@@ -663,8 +688,8 @@ public class Hero extends Character
         switch (this.index)
         {
             case 16: 
-            if (this.passivefriend[0].dead==false) //readd tracker that was removed on venom's death
-            this.passivefriend[0].add(new Tracker ("Watched by Venom (Eddie Brock)"), false);
+            if (this.passivefriend.get(0).dead==false) //readd tracker that was removed on venom's death since his passive will continue to apply
+            this.passivefriend.get(0).add(new Tracker ("Watched by Venom (Eddie Brock)"), false);
             break;
         }
         Character[] friends=Battle.GetTeammates(this);
@@ -679,8 +704,11 @@ public class Hero extends Character
     @Override
     public void onAllyRez (Character ally, Character healer)
     {
-        switch (this.index)
+        if (!(this.binaries.contains("Banished")))
         {
+            switch (this.index)
+            {
+            }
         }
     }
     @Override
@@ -693,7 +721,7 @@ public class Hero extends Character
         Character[] friends=Battle.GetTeammates(this);
         for (Character c: friends)
         {
-            if (c!=null&&!(c.binaries.contains("Banished")))
+            if (c!=null)
             {
                 c.onAllyEvade(this, attacker);
             }
@@ -701,7 +729,7 @@ public class Hero extends Character
         Character[] foes=Battle.GetTeam(CoinFlip.TeamFlip(this.team1));
         for (Character c: foes)
         {
-            if (c!=null&&!(c.binaries.contains("Banished")))
+            if (c!=null)
             {
                 c.onEnemyEvade(this, attacker);
             }
@@ -710,10 +738,16 @@ public class Hero extends Character
     @Override
     public void onAllyEvade (Character ally, Character attacker)
     {
+        if (!(this.binaries.contains("Banished"))&&!(ally.binaries.contains("Banished")))
+        {
+        }
     }
     @Override
     public void onEnemyEvade (Character enemy, Character attacker)
     {
+        if (!(this.binaries.contains("Banished"))||!(enemy.binaries.contains("Banished")))
+        {
+        }
     }
     @Override
     public void Transform (int newindex, boolean greater) //new index is the index number of the character being transformed into
@@ -876,6 +910,10 @@ public class Hero extends Character
                 this.immunities.add("Bleed"); this.immunities.add("Shock"); this.immunities.add("Freeze"); this.immunities.add("Burn"); break;
                 case 69: //x-ray
                 this.immunities.add("Bleed"); this.immunities.add("Poison"); this.immunities.add("Heal"); this.WiDR+=999; break;
+                case 70: //ironclad
+                this.immunities.add("Bleed"); this.immunities.add("Burn"); this.immunities.add("Freeze"); break;
+                case 71: //vapor
+                this.immunities.add("Bleed"); this.immunities.add("Poison"); this.ignores.add("Evade"); break;
                 //2.7: Thunderbolts
                 case 72: //zemo
                 this.immunities.add("Disarm"); this.immunities.add("Steal"); this.ignores.add("Guard"); break;
@@ -1053,6 +1091,10 @@ public class Hero extends Character
                 this.immunities.remove("Bleed"); this.immunities.remove("Shock"); this.immunities.remove("Freeze"); this.immunities.remove("Burn"); break;
                 case 69: //x-ray
                 this.immunities.remove("Bleed"); this.immunities.remove("Poison"); this.immunities.remove("Heal"); this.WiDR-=999; break;
+                case 70: //ironclad
+                this.immunities.remove("Bleed"); this.immunities.remove("Burn"); this.immunities.remove("Freeze"); break;
+                case 71: //vapor
+                this.immunities.remove("Bleed"); this.immunities.remove("Poison"); this.ignores.remove("Evade"); break;
                 //2.7: Thunderbolts
                 case 72: //zemo
                 this.immunities.remove("Disarm"); this.immunities.remove("Steal"); this.ignores.remove("Guard"); break;

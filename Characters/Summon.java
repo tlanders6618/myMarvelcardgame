@@ -138,9 +138,10 @@ public class Summon extends Character
     @Override
     public void add (StatEff eff, boolean print) //adding a stateff
     {
-        for (StatEff e: this.effects) //for stateffs that react to other stateffs
+        ArrayList<StatEff> conmod=new ArrayList<StatEff>(this.effects);
+        for (StatEff e: conmod) //for stateffs that react to other stateffs
         {
-            e.Attacked(eff);
+            e.Attacked(this, eff);
         }
         if (print==true&&!(eff.getimmunityname().equalsIgnoreCase("Protect"))) //due to taunt/protect interaction; no point in announcing it being added if it's instantly removed
         {
@@ -369,11 +370,19 @@ public class Summon extends Character
         } 
     }
     @Override
-    public void onAllyAttacked(Character ally, Character hurtfriend, Character attacker, int dmg)
+    public void onAllyAttacked(Character hurtfriend, Character attacker, int dmg)
     {
     }
     @Override
     public void HPChange (int oldhp, int newhp)
+    {
+    }
+    @Override
+    public void AllyHPChange (Character ally, int oldhp, int newhp)
+    {
+    }
+    @Override
+    public void EnemyHPChange (Character enemy, int oldhp, int newhp)
     {
     }
     @Override

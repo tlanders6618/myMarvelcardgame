@@ -21,7 +21,7 @@ public class ActivePassive
             {
                 if (c!=null)
                 {
-                    if (print==true) //only print message if mr immortal has living teammates
+                    if (print==true) //only print message if mr immortal has living teammates, and only print once
                     {
                         System.out.println("Great Lakes Avengers, assemble!"); print=false;
                     }
@@ -159,7 +159,7 @@ public class ActivePassive
     {
         if (killer!=null) //passive occurs even if stunned
         {
-            if (killer.passivefriend[0]!=null&&killer.passivefriend[0]==kingsley) //all summons save their summoners as passivefriend[0]
+            if (killer.passivefriend.get(0)!=null&&killer.passivefriend.get(0)==kingsley) //all summons save their summoners at passivefriend index 0
             {
                 kingsley.Healed(100, true, false);
                 FocusE pumpkin= new FocusE(500, 1, kingsley); 
@@ -361,11 +361,39 @@ public class ActivePassive
         if (!(gold.binaries.contains("Stunned")))
         {
             PrecisionE p= new PrecisionE(500, 2, gold);
-            boolean score=CoinFlip.Flip(500+gold.Cchance);
-            if (score==true) 
+            if (CoinFlip.Flip(500+gold.Cchance)==true) 
             StatEff.CheckApply(gold, gold, p);
             else
             StatEff.applyfail(gold, p, "chance");
+        }
+    }
+    //2.6: U-Foes
+    public static void Ironclad (Character michael, Character other, int dmg, boolean counter) 
+    {
+        if (counter==false&&!(michael.binaries.contains("Stunned"))&&dmg>=100) //onallyattacked
+        {
+            Taunt p= new Taunt(500, 1, michael);
+            if (CoinFlip.Flip(500+michael.Cchance)==true)  
+            StatEff.CheckApply(michael, michael, p);
+            else
+            StatEff.applyfail(michael, p, "chance");
+        }
+        else if (counter==true&&michael.CheckFor("Taunt", false)==true&&!(other.ignores.contains("Counter"))&&!(michael.binaries.contains("Stunned"))) //onattacked
+        {
+            int strength=0+michael.BD+michael.PBD; //only affected by his status effects, not anything on the target
+            int CC=michael.CC-michael.nCC;
+            if (CoinFlip.Flip(CC)==true)
+            {
+                System.out.println(michael+"'s counterattack was critical!");
+                double crit= strength*michael.critdmg;
+                strength=5*(int)(Math.floor(crit/5)); //crit damage rounded down to nearest 5
+                michael.onCrit(other);
+            }
+            else if (michael.CC>0)
+            {
+                System.out.println(michael+"'s counterattack failed to crit.");
+            }
+            Damage_Stuff.ElusiveDmg(michael, other, strength, "counter");
         }
     }
     //2.1: Sinister 6
@@ -556,12 +584,12 @@ public class ActivePassive
                 if (old<=5&&eugene.passivecount>5) //losing control when at or under 5 C; this is for changing to in check
                 {
                     System.out.println(eugene.Cname+" is In Check.");
-                    eugene.BD-=15; eugene.Cchance+=50;
+                    eugene.BD-=10; eugene.Cchance+=50;
                 }
                 else if (old>5&&eugene.passivecount<=5) //in check while at or above 6 C; this is for changing to losing control
                 {
                     System.out.println(eugene.Cname+" is Losing Control!");
-                    eugene.BD+=15; eugene.Cchance-=50;
+                    eugene.BD+=10; eugene.Cchance-=50;
                 }
             }
             else //starts fight in check; can't use above code without giving him negative BD due to going from 0 C to 10
@@ -574,9 +602,9 @@ public class ActivePassive
         {
             if (eugene.passivecount<=5) 
             {
-                SelfDMG s= new SelfDMG(15, false);
+                SelfDMG s= new SelfDMG(10, false);
                 s.Use(eugene, null);
-                String[]akaban={"Bleed", "100", "10", "1", "false"}; String[][] niharu=StatFactory.MakeParam(akaban, null); eugene.activeability.AddTempString(niharu);
+                String[]akaban={"Bleed", "100", "15", "1", "false"}; String[][] niharu=StatFactory.MakeParam(akaban, null); eugene.activeability.AddTempString(niharu);
             }
         }
     }
@@ -700,14 +728,12 @@ public class ActivePassive
     {
         if (!(attacker.ignores.contains("Counter"))&&!(eddie.binaries.contains("Stunned")))
         {
-            if (attacked==eddie.passivefriend[0])
+            if (attacked==eddie.passivefriend.get(0))
             {
                 System.out.println ("\nThis one is under our protection!");
                 Damage_Stuff.ElusiveDmg(eddie, attacker, 40, "counter");
             }
         }
-        if (eddie.binaries.contains("Missed")) //if his counterattack was evaded before; needed since miss is normally only cleared after using an ab
-        eddie.binaries.remove("Missed");
     }
     public static void Wolvie (Character wolvie, boolean regen)
     {
@@ -825,7 +851,7 @@ public class ActivePassive
         }
         else if (attack==true) //onattack; add one more obsession to the target
         {
-            if (victim==drax.passivefriend[0]&&drax.passivecount<3&&(!(drax.binaries.contains("Missed"))))
+            if (victim==drax.passivefriend.get(0)&&drax.passivecount<3&&(!(drax.binaries.contains("Missed"))))
             {
                 if (victim.CheckFor("Obsession", false)==true)
                 {
@@ -833,12 +859,12 @@ public class ActivePassive
                     Obsession obs= new Obsession (drax);
                     if (yes==true)
                     {
-                        StatEff.CheckApply(drax, drax.passivefriend[0], obs);
-                        if (drax.passivefriend[0].effects.contains(obs))
+                        StatEff.CheckApply(drax, drax.passivefriend.get(0), obs);
+                        if (drax.passivefriend.get(0).effects.contains(obs))
                         drax.passivecount++;
                     }
                     else
-                    StatEff.applyfail(drax.passivefriend[0], obs, "chance");
+                    StatEff.applyfail(drax.passivefriend.get(0), obs, "chance");
                 }
             }
         }

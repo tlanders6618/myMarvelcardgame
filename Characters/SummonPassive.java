@@ -10,27 +10,27 @@ package myMarvelcardgamepack;
 import java.util.ArrayList;
 public class SummonPassive
 {
-    public static void Giganto (Character og, String duty)
+    public static void Giganto (Character giganto, String duty)
     {
         if (duty.equals("spawn")) //onsummon
         {
-            if (og.passivefriend[0].index==84) //summoned by namor
+            if (giganto.passivefriend.get(0).index==84) //must be summoned by namor, not hela
             {
-                og.passivefriend[0].passivefriend[0]=og; //so namor's "trident of neptune" works properly
+                giganto.passivefriend.get(0).passivefriend.add(0,giganto); //set namor's passivefriend to giganto so trident of neptune works properly
             }
         }
         else if (duty.equals("attack")) //onattack
         {
-            String[] sonk={"Stun Effect", "500", "616", "1", "true"}; String[][] money=StatFactory.MakeParam(sonk, null); og.activeability.AddTempString(money); 
-            String[] sank={"Target Effect", "500", "40", "1", "true"}; String[][] lmoney=StatFactory.MakeParam(sank, null); og.activeability.AddTempString(lmoney); 
+            String[] sonk={"Stun Effect", "500", "616", "1", "true"}; String[][] money=StatFactory.MakeParam(sonk, null); giganto.activeability.AddTempString(money); 
+            String[] sank={"Target Effect", "500", "40", "1", "true"}; String[][] lmoney=StatFactory.MakeParam(sank, null); giganto.activeability.AddTempString(lmoney); 
         }
-        else if (duty.equals("gain")&&og.passivecount==0) //add
+        else if (duty.equals("gain")&&giganto.passivecount==0) //add
         {
-            og.ADR-=20; og.passivecount=1;
+            giganto.ADR-=20; giganto.passivecount=1;
         }
-        else if (duty.equals("lose")&&og.passivecount==1) //remove
+        else if (duty.equals("lose")&&giganto.passivecount==1) //remove
         {
-            og.ADR+=20; og.passivecount=0;
+            giganto.ADR+=20; giganto.passivecount=0;
         }
     }
     public static void Decoy (Character decoy) //onsummon
@@ -69,9 +69,9 @@ public class SummonPassive
     }
     public static void Drone (Character husk, StatEff effecter) //add
     {
-        if (!(husk.binaries.contains("Stunned"))&&husk.passivefriend[0]!=null) 
+        if (!(husk.binaries.contains("Stunned"))&&husk.passivefriend.get(0)!=null) 
         {
-            Character target=husk.passivefriend[0]; //aka ultron
+            Character target=husk.passivefriend.get(0); //should be ultron
             String name=effecter.getimmunityname(); int dur=effecter.oduration; int pow=effecter.power;
             String[] morb={name, "500", Integer.toString(pow), Integer.toString(dur), "false"}; String[][] morbintime=StatFactory.MakeParam(morb, null);
             StatEff e=StatFactory.MakeStat(morbintime, husk);  
@@ -95,10 +95,10 @@ public class SummonPassive
     }
     public static void NickLMD (Summon lmd) //onsummon
     {
-        if (lmd.passivefriend[0]!=null&&lmd.passivefriend[0].dead==false)
+        if (lmd.passivefriend.get(0)!=null&&lmd.passivefriend.get(0).dead==false)
         {
             StatEff prot= new ProtectE (500, 616, lmd);
-            prot.PrepareProtect(lmd, lmd.passivefriend[0]);
+            prot.PrepareProtect(lmd, lmd.passivefriend.get(0));
             StatEff.CheckApply(lmd, lmd, prot);
         }
     }
