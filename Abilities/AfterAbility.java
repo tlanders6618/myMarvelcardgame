@@ -168,14 +168,14 @@ class ActivatePassive extends AfterAbility //ability activates a hero's passive 
             }
             break;
             case 27: //ultron's ult
-            if (target.dead==true)
+            if (target.dead==true&&user.dead==false)
             {
                 Extend dispenser= new Extend(500, 616, "all", new String[] {"any"}, new String[]{"Buffs"}, 1, true, true, true);
                 dispenser.Use(user, target, 616);
             }
             break;
             case 72: //zemo's dominating blow
-            if (target.dead==true)
+            if (target.dead==true&&user.dead==false)
             {
                 BonusTurnHelper lastson=new BonusTurnHelper(); user.helpers.add(lastson); 
             }
@@ -231,7 +231,7 @@ class ActivatePassive extends AfterAbility //ability activates a hero's passive 
             case 86: //kraven ambush
             if (target.dead==true)
             {
-                ArrayList<StatEff> jonkler= new ArrayList<StatEff>(); jonkler.addAll(user.effects);
+                ArrayList<StatEff> jonkler= new ArrayList<StatEff>(user.effects); 
                 for (StatEff e: jonkler)
                 {
                     String name=e.getimmunityname();
@@ -697,8 +697,11 @@ class BonusTurn extends AfterAbility //for letting ally take bonus turn, but not
     @Override
     public void Use (Character caster, Character hero, int ignore2)
     {
-        System.out.println(hero+" took a bonus turn!");
-        Battle.Turn(hero, true);
+        if (hero.dead==false)
+        {
+            System.out.println(hero+" took a bonus turn!");
+            Battle.Turn(hero, true);
+        }
     }
 }
 class CopySteal extends AfterAbility //the only difference is that steal removes the buff; otherwise they're identical so they share a method

@@ -67,15 +67,15 @@ class AttackAb extends Ability
     @Override
     public boolean GetLose() //for assists
     {
-        return lose;
+        return this.lose;
     }
     @Override
     public boolean GetMax()
     {
-        return max;
+        return this.max;
     }
     @Override
-    public ArrayList<StatEff> UseAb (Character user, Ability ab, ArrayList<Character> targets) //doesn't call check ignore since disarm doesn't require it
+    public ArrayList<StatEff> UseAb (Character user, ArrayList<Character> targets) //doesn't call check ignore since disarm doesn't require it
     { 
         boolean typo=true; int uses=1;   
         ArrayList<StatEff> toadd= new ArrayList<StatEff>();
@@ -95,7 +95,7 @@ class AttackAb extends Ability
         }
         if (this.channelled==true)
         {
-            ab.SetChannelled(user, ab, targets);
+            this.SetChannelled(user, this, targets);
         }
         else
         {
@@ -105,7 +105,7 @@ class AttackAb extends Ability
         {
             if (targets.size()<=0)
             {
-                System.out.println(ab.oname+" could not be used due to a lack of eligible targets.");
+                System.out.println(this.oname+" could not be used due to a lack of eligible targets.");
                 return null;
             }
             for (Character chump: targets) //use the ability on its target
@@ -122,7 +122,7 @@ class AttackAb extends Ability
                         {
                             if (eff.getimmunityname().equalsIgnoreCase("Empower"))
                             {
-                                change=eff.UseEmpower(user, ab, true);
+                                change=eff.UseEmpower(user, this, true);
                                 damage+=change;
                                 if (damage<0)
                                 damage=0;
@@ -208,15 +208,15 @@ class AttackAb extends Ability
                                 }
                             }
                         }
-                        ArrayList<StatEff> holder=Ability.ApplyStats(user, chump, together, selfapply, otherapply);
-                        toadd.addAll(holder);
+                        //see what can be applied and what fails; only successful selfapply effs are added to toadd and returned to be applied after
+                        toadd.addAll(Ability.ApplyStats(user, chump, together, selfapply, otherapply)); 
                         if (aoe==false)
                         {
                             for (StatEff eff: user.effects) //undo empowerments
                             {
                                 if (eff.getimmunityname().equalsIgnoreCase("Empower"))
                                 {
-                                    int irrelevant=eff.UseEmpower(user, ab, false);
+                                    int irrelevant=eff.UseEmpower(user, this, false);
                                 }
                             }
                         }
@@ -238,11 +238,16 @@ class AttackAb extends Ability
                         }
                         this.blind=false; this.evade=false;
                         this.UseMultihit();
-                        dmgdealt=0;
                         for (SpecialAbility ob: special)
                         {
-                            ob.Use(user, 616, chump); //for now this only activates chain
+                            ob.Use(user, dmgdealt, chump); 
                         }
+                        if (selfapply.size()!=0) //here to enable functionality of the specialab Use
+                        {
+                            toadd.addAll(selfapply);
+                            selfapply.removeAll(selfapply); 
+                        }
+                        this.dmgdealt=0;
                         damage=odamage; //reset damage 
                     }
                     while (multihit>-1); //then repeat the attack for each multihit
@@ -264,7 +269,7 @@ class AttackAb extends Ability
                 {
                     if (eff.getimmunityname().equalsIgnoreCase("Empower"))
                     {
-                        int irrelevant=eff.UseEmpower(user, ab, false);
+                        int irrelevant=eff.UseEmpower(user, this, false);
                     }
                 }
             }
@@ -449,8 +454,7 @@ class AttackAb extends Ability
                                 otherapply.add(New);
                             }
                         }
-                        ArrayList<StatEff> holder=Ability.ApplyStats(user, chump, together, selfapply, otherapply);
-                        toadd.addAll(holder);
+                        toadd.addAll(Ability.ApplyStats(user, chump, together, selfapply, otherapply));
                         if (aoe==false)
                         {
                             for (StatEff eff: user.effects) //undo empowerments
@@ -479,12 +483,17 @@ class AttackAb extends Ability
                         }
                         this.blind=false; this.evade=false;
                         this.UseMultihit();
-                        damage=odamage; //reset damage 
                         for (SpecialAbility ob: special)
                         {
-                            ob.Use(user, 616, chump); //for now this only activates chain
+                            ob.Use(user, dmgdealt, chump); 
                         }
-                        dmgdealt=0;
+                        if (selfapply.size()!=0) //here to enable functionality of the specialab Use
+                        {
+                            toadd.addAll(selfapply);
+                            selfapply.removeAll(selfapply); 
+                        }
+                        this.dmgdealt=0;
+                        damage=odamage; //reset damage 
                     }
                     while (multihit>-1); //then repeat the attack for each multihit
                     multihit=omulti; //reset the multihit counter for the next use

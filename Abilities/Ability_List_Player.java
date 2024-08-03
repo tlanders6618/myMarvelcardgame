@@ -9,6 +9,7 @@ package myMarvelcardgamepack;
  */
 public class Ability_List_Player
 {
+    static Ability hold=null; //for Use, so I don't need to remake any abilities    
     public static Ability GetAb (int index, int counter, boolean copy) //copy is for rogue and super adaptoid to copy abs
     {
         //abs construction: String name, String type, String friendly, int dmg, int cooldown
@@ -63,6 +64,8 @@ public class Ability_List_Player
             //2.6: U-Foes
             case 68: return MakeAbVector(counter, copy);
             case 69: return MakeAbXRay(counter);
+            case 70: return MakeAbIronclad(counter);
+            case 71: return MakeAbVapor(counter);
             //2.7: Thunderbolts
             case 72: return MakeAbZemo(counter);
             case 73: return MakeAbMimi(counter);
@@ -179,7 +182,7 @@ public class Ability_List_Player
             case 0: BasicAb pow= new BasicAb("Bo Staff Slam", "single", "enemy", 45);
             return pow;
             case 1: OtherAb trigger= new OtherAb("Stacked Deck", "self", "self", 3); trigger.unbound=true;
-            String[] sour={"Empower", "500", "0", "2", "true"}; String[][] burn=StatFactory.MakeParam(sour, null); trigger.AddStatString(burn);
+            String[] sour={"Empower", "500", "616", "2", "true"}; String[][] burn=StatFactory.MakeParam(sour, null); trigger.AddStatString(burn);
             trigger.desc="Gain a(n) Empower for 2 use(s), making abilities apply Burn: 10 for 1 turn(s).";
             return trigger;
             case 3: AttackAb three= new AttackAb("Three of a Kind", "single", "enemy", 5, 3, 2); 
@@ -321,7 +324,7 @@ public class Ability_List_Player
             hail.special.add(new Assist(true, 1, 10, true, 0, null, 500, false));
             return hail;
             case 1: OtherAb emp= new OtherAb("Psychic Meddling", "single", "enemy", 0); emp.control=true; emp.elusive=true;
-            String[] well={"Empower", "500", "0", "1", "false"}; String[][] youknow=StatFactory.MakeParam(well, null); emp.AddStatString(youknow);
+            String[] well={"Empower", "500", "616", "1", "false"}; String[][] youknow=StatFactory.MakeParam(well, null); emp.AddStatString(youknow);
             emp.desc="Apply a(n) Empower for 1 use(s), granting -100% status chance.";
             return emp;
             case 2: OtherAb ass= new OtherAb("Mental Assault", "single", "enemy", 3); ass.control=true;
@@ -458,7 +461,7 @@ public class Ability_List_Player
             String[] heat={"Poison", "100", "105", "1", "false"}; String[][] bringin=StatFactory.MakeParam(heat, null); spray.AddStatString(bringin);
             return spray;
             case 2: OtherAb barb= new OtherAb("Poisonous Barb", "self", "self", 3); barb.unbound=true;
-            String[] tryit={"Empower", "500", "0", "3", "true"}; String[][] bomb=StatFactory.MakeParam(tryit, null); barb.AddStatString(bomb);
+            String[] tryit={"Empower", "500", "616", "3", "true"}; String[][] bomb=StatFactory.MakeParam(tryit, null); barb.AddStatString(bomb);
             barb.desc="Gain a(n) Empower for 3 use(s), granting a 50% chance to apply Poison: 10 for 2 turn(s).";
             return barb;
             case 3: AttackAb sting= new AttackAb("Stinger Barrage", "single", "enemy", 30, 3, 2);
@@ -472,7 +475,7 @@ public class Ability_List_Player
     {
         switch (counter)
         {
-            case 0: BasicAb chomp= new BasicAb("Bite", "single", "enemy", 40);
+            case 0: BasicAb chomp= new BasicAb("Bite", "single", "enemy", 45);
             return chomp;
             case 1: AttackAb jumpup= new AttackAb("Tooth and Claw", "single", "enemy", 45, 3, 1); 
             return jumpup;
@@ -778,14 +781,49 @@ public class Ability_List_Player
             String[] happy={"Guard", "100", "45", "1", "true"}; String[][] meal=StatFactory.MakeParam(happy, null); parry.AddStatString(meal);
             String[] freaky={"Safeguard", "100", "616", "2", "true"}; String[][] hate=StatFactory.MakeParam(freaky, null); parry.AddStatString(hate);
             return parry;
-            case 4: AttackAb dom= new AttackAb("Dominating Blow", "single", "enemy", 60, 3); dom.special.add(new ActivatePassive(72));
+            case 4: AttackAb dom= new AttackAb("Dominating Blow", "single", "enemy", 60, 3); dom.special.add(new ActivatePassive(72)); dom.desc="On kill, take a bonus turn. ";
             String[] rush={"Ferocity", "100", "616", "616", "true"}; String[][] heat=StatFactory.MakeParam(rush, null); dom.AddStatString(heat);
-            dom.desc="On kill, take a bonus turn. ";
             return dom;
             default: return null;
         }
     }
     //2.6: U-Foes
+    public static Ability MakeAbVapor (int counter)
+    {
+        switch (counter)
+        {
+            case 0: DebuffAb melt= new DebuffAb("Hydrogen Sulfide", "single", "enemy", 0); melt.special.add(new DebuffMod(71)); 
+            melt.desc="If the target has a Defence effect, 100% chance to apply Poison: 55 for 1 turn(s).";
+            return melt;
+            case 1: DebuffAb normal= new DebuffAb("Arsine", "single", "enemy", 0); 
+            String[] pew={"Poison", "100", "25", "2", "false"}; String[][] pewpew=StatFactory.MakeParam(pew, null); normal.AddStatString(pewpew);
+            return normal;
+            case 3: DebuffAb amplify=new DebuffAb("Chlorine Trifluoride", "single", "enemy", 0); 
+            String[] clone={"Chlorine", "100", "616", "2", "false"}; String[][] triplicate=StatFactory.MakeParam(clone, null); amplify.AddStatString(triplicate);
+            return amplify;
+            case 4: DebuffAb boom=new DebuffAb("Hydrogen", "single", "enemy", 0); 
+            String[] boomboom={"Hydrogen", "100", "616", "2", "false"}; String[][] blammo=StatFactory.MakeParam(boomboom, null); boom.AddStatString(blammo);
+            return boom;
+            default: return null;
+        }
+    }
+    public static Ability MakeAbIronclad (int counter)
+    {
+        switch (counter)
+        {
+            case 0: BasicAb punch= new BasicAb("Slam", "single", "enemy", 35); 
+            return punch;
+            case 3: BuffAb inc=new BuffAb("Increase Density", "self", "self", 4); hold=inc;
+            String[] blaze={"Intensify Effect", "500", "30", "2", "true"}; String[][] blade=StatFactory.MakeParam(blaze, null); inc.AddStatString(blade);
+            String[] chicken={"Resistance Effect", "500", "30", "2", "true"}; String[][] golden=StatFactory.MakeParam(chicken, null); inc.AddStatString(golden);
+            return inc;
+            case 4: DefAb bruise= new DefAb("Bruiser", "self", "self", 4); 
+            String[] tikka={"Taunt", "500", "616", "1", "true"}; String[][] locke=StatFactory.MakeParam(tikka, null); bruise.AddStatString(locke);
+            bruise.special.add(new Use(hold, "default")); //in this order so it matches card desc
+            return bruise;
+            default: return null;
+        }
+    }
     public static Ability MakeAbXRay (int counter)
     {
         switch (counter)
@@ -1002,7 +1040,7 @@ public class Ability_List_Player
     {
         switch (counter)
         {
-            case 0: BasicAb blow= new BasicAb("Kingly Blow", "single", "enemy", 45);
+            case 0: BasicAb blow= new BasicAb("Kingly Blow", "single", "enemy", 50);
             return blow;
             case 2: AttackAb blast= new AttackAb("Electron Blast", "single", "enemy", 80, 3); blast.ignore=true; blast.desc="+20 damage for each E.";
             if (copy==false)

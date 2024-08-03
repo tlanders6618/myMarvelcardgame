@@ -195,13 +195,11 @@ public abstract class Ability
         }
     }
     public abstract void CheckIgnore(Character user, boolean add); //if ability ignores a disable debuff, add it to hero binaries so stateff.checkapply doesn't cause failure
-    public ArrayList<StatEff> UseAb (Character user, Ability ab, ArrayList<Character> targets) //only applies for the non-attack abs since they all work the same
+    public ArrayList<StatEff> UseAb (Character user, ArrayList<Character> targets) //only applies for the non-attack abs since they all work the same
     {
         boolean typo=true; int uses=1; 
         System.out.println (user.Cname+" used "+oname);
-        ArrayList<StatEff> toadd= new ArrayList<StatEff>();
-        if (user.binaries.contains("Missed")) //to prevent a miss if the hero's assist/counterattack was evaded after they last attacked (miss is otherwise cleared after attacking)
-        user.binaries.remove("Missed");
+        ArrayList<StatEff> toadd= new ArrayList<StatEff>(); //stateffs to be added to self right after turn ends
         if (multiuse>0)
         {
             System.out.println ("How many extra times would you like to use this ability?");
@@ -218,17 +216,17 @@ public abstract class Ability
         }
         if (channelled==true)
         {
-            ab.SetChannelled(user, ab, targets);
+            this.SetChannelled(user, this, targets);
         }
         while (uses>0&&channelled==false) //repeat the attack for each multiuse; channelled abilities will do nothing now and activate later
         {
             if (targets.size()<=0)
             {
-                System.out.println(ab.oname+" could not be used due to a lack of eligible targets."); 
+                System.out.println(this.oname+" could not be used due to a lack of eligible targets."); 
                 return null;
             }
             for (Character chump: targets) //use the ability on its target
-            {
+            { 
                 boolean okay=true;
                 if (chump!=null&&this.control==true)
                 okay=CheckControl(user, chump);
@@ -241,7 +239,7 @@ public abstract class Ability
                     {
                         if (eff.getimmunityname().equalsIgnoreCase("Empower"))
                         {
-                            change=eff.UseEmpower(user, ab, true);
+                            change=eff.UseEmpower(user, this, true);
                         }
                     }
                     if (elusive==true)
@@ -309,15 +307,15 @@ public abstract class Ability
                             }
                        }
                     }
-                    ArrayList<StatEff> holder=Ability.ApplyStats(user, chump, together, selfapply, otherapply);
-                    toadd.addAll(holder);
+                    //see what can be applied and what fails; only successful selfapply effs are added to toadd and returned to be applied after
+                    toadd.addAll(Ability.ApplyStats(user, chump, together, selfapply, otherapply)); 
                     if (aoe==false)
                     {
                         for (StatEff eff: user.effects) //undo empowerments
                         {
                             if (eff.getimmunityname().equalsIgnoreCase("Empower"))
                             {
-                                int irrelevant=eff.UseEmpower(user, ab, false);
+                                int irrelevant=eff.UseEmpower(user, this, false);
                             }
                         }
                     }
@@ -338,12 +336,17 @@ public abstract class Ability
                         user.binaries.remove("Missed");
                     }
                     this.blind=false; this.evade=false;
-                    for (SpecialAbility ob: special)
+                    if (this.ignore==true)
+                    this.CheckIgnore(user, false);
+                    for (SpecialAbility ob: special) //specialabs only used after everything is reset
                     {
                         ob.Use(user, 616, chump); 
                     }
-                    if (this.ignore==true)
-                    this.CheckIgnore(user, false);
+                    if (selfapply.size()!=0) //here to enable functionality of the specialab Use
+                    {
+                        toadd.addAll(selfapply);
+                        selfapply.removeAll(selfapply); 
+                    }
                 }
                 --uses;
             }
@@ -361,7 +364,7 @@ public abstract class Ability
                 {
                     if (eff.getimmunityname().equalsIgnoreCase("Empower"))
                     {
-                        int irrelevant=eff.UseEmpower(user, ab, false);
+                        int irrelevant=eff.UseEmpower(user, this, false);
                     }
                 }
             }
@@ -553,8 +556,7 @@ public abstract class Ability
                            }
                        }
                     }
-                    ArrayList<StatEff> holder=Ability.ApplyStats(user, chump, together, selfapply, otherapply);
-                    toadd.addAll(holder);
+                    toadd.addAll(Ability.ApplyStats(user, chump, together, selfapply, otherapply));
                     if (aoe==false)
                     {
                         for (StatEff eff: user.effects) //undo empowerments
@@ -582,12 +584,17 @@ public abstract class Ability
                         user.binaries.remove("Missed");
                     }
                     this.blind=false; this.evade=false;
-                    for (SpecialAbility ob: special)
-                    {
-                        ob.Use(user, 616, chump); //for now this only activates chain
-                    }
                     if (this.ignore==true)
                     this.CheckIgnore(user, false);
+                    for (SpecialAbility ob: special) //specialabs only used after everything is reset
+                    {
+                        ob.Use(user, 616, chump); 
+                    }
+                    if (selfapply.size()!=0) //here to enable functionality of the specialab Use
+                    {
+                        toadd.addAll(selfapply);
+                        selfapply.removeAll(selfapply); 
+                    }
                 }
             }
             if (aoe==true)
