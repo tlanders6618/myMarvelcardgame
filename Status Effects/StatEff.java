@@ -95,7 +95,7 @@ public abstract class StatEff
     public void Attacked(Character hero, Character attacker, int dmg) //called when hero is attacked; used for paralyse, counter, reflect, etc
     {
     }
-    public void Attacked(StatEff e) //called when hero gains a stateff; for debilitate, fortify, etc
+    public void Attacked(Character hero, StatEff e) //called when hero gains a stateff; for debilitate, fortify, etc
     {
     }
     public static void applyfail (Character target, StatEff eff, String cause) //error message for stateff application failure

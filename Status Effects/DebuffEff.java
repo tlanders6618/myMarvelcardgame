@@ -472,10 +472,11 @@ class Debilitate extends DebuffEff
         this.oduration=ndur;
     }
     @Override
-    public void Attacked (StatEff e)
+    public void Attacked (Character hero, StatEff e)
     {
-        if (e.getefftype().equals("Debuffs")&&e.id!=this.id)
+        if (e.getefftype().equals("Debuffs")&&e.power<600&&e.id!=this.id) //only trigger if eff has a strength to be increased
         {
+            System.out.println("\n"+hero+"'s Debilitate increased the strength of their "+e+" by "+this.power+"!");
             e.power+=this.power;
         }
     }

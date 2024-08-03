@@ -176,6 +176,35 @@ class BurnE extends OtherEff
         target.DV-=5;
     }
 }
+class Chlorine extends OtherEff
+{
+    @Override
+    public String getimmunityname()
+    {
+        return "Chlorine";
+    }
+    @Override
+    public String geteffname()
+    {
+        return "Chlorine Effect, "+duration+" turn(s)";
+    }
+    public Chlorine (int ch, int ndur, Character p)
+    {
+        super(ch, p);
+        this.duration=ndur;
+        this.oduration=ndur;
+    }
+    @Override
+    public void Attacked (Character hero, StatEff e)
+    {
+        if (e.getimmunityname().equals("Burn")&&e.getefftype().equals("Debuffs"))
+        {
+            System.out.println("\n"+hero+"'s Chlorine increased the strength of their "+e+" by 25!");
+            e.power+=25;
+            hero.remove(this.id, "normal");
+        }
+    }
+}
 class CounterE extends OtherEff 
 {
     ArrayList<String[]>statstrings= new ArrayList<String[]>();
@@ -489,6 +518,34 @@ class GuardE extends OtherEff
     public void Extended (int d, Character hero)
     {
         //cannot be extended
+    }
+}
+class Hydrogen extends OtherEff
+{
+    @Override
+    public String getimmunityname()
+    {
+        return "Hydrogen";
+    }
+    @Override
+    public String geteffname()
+    {
+        return "Hydrogen Effect, "+duration+" turn(s)";
+    }
+    public Hydrogen (int ch, int ndur, Character p)
+    {
+        super(ch, p);
+        this.duration=ndur;
+        this.oduration=ndur;
+    }
+    @Override
+    public void Attacked (Character hero, StatEff e)
+    {
+        if (e.getimmunityname().equals("Burn")&&e.getefftype().equals("Debuffs"))
+        {
+            Damage_Stuff.ElusiveDmg(null, hero, 55, "default");
+            hero.remove(this.id, "normal");
+        }
     }
 }
 class IntensifyE extends OtherEff 

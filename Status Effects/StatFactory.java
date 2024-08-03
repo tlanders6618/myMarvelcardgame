@@ -42,6 +42,7 @@ public class StatFactory
             case "Bulwark": return new Bulwark (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3]), Q);  
             case "Burn": return new Burn (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][2]), Integer.valueOf(param[0][3]), Q);    
             case "Burn Effect": return new BurnE (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][2]), Integer.valueOf(param[0][3]), Q);
+            case "Chlorine": return new Chlorine (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3]), Q);  
             case "Countdown": return new Countdown (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][2]), Integer.valueOf(param[0][3]), Q, param[1]); 
             case "Counter": return new Counter (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][2]), Integer.valueOf(param[0][3]), Q, param[1]); 
             case "Counter Effect": return new CounterE (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][2]), Integer.valueOf(param[0][3]), Q, param[1]); 
@@ -62,6 +63,7 @@ public class StatFactory
             case "Focus Effect": return new FocusE (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3]), Q);
             case "Guard": return new Guard (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][2]), Integer.valueOf(param[0][3]), Q);
             case "Guard Effect": return new GuardE (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][2]), Integer.valueOf(param[0][3]), Q);
+            case "Hydrogen": return new Hydrogen (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3]), Q);  
             case "Intensify": return new Intensify (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][2]), Integer.valueOf(param[0][3]), Q);
             case "Intensify Effect": return new IntensifyE (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][2]), Integer.valueOf(param[0][3]), Q);
             case "Invisible": return new Invisible (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3]), Q);
