@@ -8,6 +8,7 @@ package myMarvelcardgamepack;
  * Purpose: To make attack abilities.
  */
 import java.util.ArrayList;
+import java.util.Iterator;
 class AttackAb extends Ability
 {
     int damage=616; //dmg after empowerment, beforeab, etc
@@ -95,7 +96,7 @@ class AttackAb extends Ability
         }
         if (this.channelled==true)
         {
-            this.SetChannelled(user, this, targets);
+            this.SetChannelled(user, targets);
         }
         else
         {
@@ -108,8 +109,10 @@ class AttackAb extends Ability
                 System.out.println(this.oname+" could not be used due to a lack of eligible targets.");
                 return null;
             }
-            for (Character chump: targets) //use the ability on its target
+            Iterator<Character> iterator=targets.iterator();
+            while (iterator.hasNext()==true)
             {
+                Character chump=iterator.next();
                 boolean okay=true;
                 if (chump!=null&&this.control==true)
                 okay=CheckControl(user, chump);
@@ -139,7 +142,7 @@ class AttackAb extends Ability
                             if (damage<0)
                             damage=0;
                         } 
-                        if (elusive==true&&(this.odamage>0||this.damage>0)) //only print damage if attack was meant to do damage; abs that call assists shouldn't print
+                        if (elusive==true&&(this.odamage>0||this.damage>0)) //only try to do damage if attack was meant to do damage; abs that call assists shouldn't print
                         {
                             Damage_Stuff.ElusiveDmg(user, chump, damage, "default");
                         }
@@ -162,53 +165,9 @@ class AttackAb extends Ability
                         {
                             ob.Use(user, chump, dmgdealt); //apply unique ability functions after attacking; this only activates after abs
                         } 
-                        for (String[][] array: tempstrings)
-                        {  
-                            StatEff New=StatFactory.MakeStat(array, user); 
-                            if (array[0][4].equalsIgnoreCase("true"))
-                            {
-                                selfapply.add(New);
-                            }
-                            else if (!(user.binaries.contains("Missed"))&&array[0][4].equalsIgnoreCase("false")) 
-                            {
-                                otherapply.add(New);
-                            }
-                            else
-                            {
-                                if (user.id==chump.id)
-                                {
-                                    selfapply.add(New);
-                                }
-                                else if (!(user.binaries.contains("Missed")))
-                                {
-                                    otherapply.add(New);
-                                }
-                            }
-                        }
-                        for (String[][] array: statstrings)
-                        {  
-                            StatEff New=StatFactory.MakeStat(array, user); //this is how selfapply and other apply are populated
-                            if (array[0][4].equalsIgnoreCase("true"))
-                            {
-                                selfapply.add(New);
-                            }
-                            else if (!(user.binaries.contains("Missed"))&&array[0][4].equalsIgnoreCase("false")) //they cannot apply effects if blind or the target evaded
-                            {
-                                otherapply.add(New);
-                            }
-                            else
-                            {
-                                if (user.id==chump.id)
-                                {
-                                    selfapply.add(New);
-                                }
-                                else if (!(user.binaries.contains("Missed")))
-                                {
-                                    otherapply.add(New);
-                                }
-                            }
-                        }
-                        //see what can be applied and what fails; only successful selfapply effs are added to toadd and returned to be applied after
+                        this.UseStatStrings(user, chump, true); //turn ab's statstrings into stateffs
+                        this.UseStatStrings(user, chump, false);
+                        //then see what can be applied and what fails; only successful selfapply effs are added to toadd and returned to be applied after ab usage
                         toadd.addAll(Ability.ApplyStats(user, chump, together, selfapply, otherapply)); 
                         if (aoe==false)
                         {
@@ -220,24 +179,10 @@ class AttackAb extends Ability
                                 }
                             }
                         }
-                        if (selfapply.size()!=0)
-                        {
-                            selfapply.removeAll(selfapply); //ensures every status effect is unique, to avoid bugs
-                        }
-                        if (otherapply.size()!=0)
-                        {
-                            otherapply.removeAll(otherapply);
-                        }
-                        if (tempstrings.size()!=0) //these effects are only sometimes applied with attacks, hence the name temp; they're reset afterwards
-                        {
-                            tempstrings.removeAll(tempstrings);
-                        }
-                        if (user.binaries.contains("Missed"))
-                        {
-                            user.binaries.remove("Missed");
-                        }
-                        this.blind=false; this.evade=false;
+                        this.ResetAb(user); //clears selfapply, resets blind/evade checks, and removes tempstrings and missed
                         this.UseMultihit();
+                        if (iterator.hasNext()==false)
+                        this.done=true;
                         for (SpecialAbility ob: special)
                         {
                             ob.Use(user, dmgdealt, chump); 
@@ -282,6 +227,7 @@ class AttackAb extends Ability
         {
             dcd+=cd;
         }
+        this.done=false;
         return toadd;
     }
     @Override 
@@ -298,7 +244,7 @@ class AttackAb extends Ability
         return multihit;
     }
     @Override
-    public void UseMultihit () //for multichain
+    public void UseMultihit () //also for chain
     {
         --multihit;
     }
@@ -346,25 +292,11 @@ class AttackAb extends Ability
             user.effects.remove(remove);  
             int omulti=multihit;
             int change=0;
-            if (ctargets.size()<=0)
+            if (ctargets.size()<1)
             {
                 System.out.println(oname+" could not be used due to a lack of eligible targets."); //but can still apply stateffs to self
-                for (String[][] array: tempstrings)
-                {  
-                    StatEff New=StatFactory.MakeStat(array, user); 
-                    if (array[0][4].equalsIgnoreCase("true"))
-                    {
-                        selfapply.add(New);
-                    }
-                }
-                for (String[][] array: statstrings)
-                {  
-                    StatEff New=StatFactory.MakeStat(array, user); //this is how selfapply and other apply are populated
-                    if (array[0][4].equalsIgnoreCase("true"))
-                    {
-                        selfapply.add(New);
-                    }
-                }
+                this.UseStatStrings(user, null, true);
+                this.UseStatStrings(user, null, false);
                 ArrayList<StatEff> n= new ArrayList<StatEff>(); //empty array since there's no other targets to apply stateffs to 
                 toadd=Ability.ApplyStats(user, null, together, selfapply, n); 
                 if (selfapply.size()!=0)
@@ -377,8 +309,10 @@ class AttackAb extends Ability
                 }
                 return toadd; 
             }
-            for (Character chump: ctargets) //use the ability on its target
+            Iterator<Character> iterator=ctargets.iterator();
+            while (iterator.hasNext()==true) //use ab on each target
             {
+                Character chump=iterator.next();
                 boolean okay=true;
                 if (chump!=null&&this.control==true)
                 okay=CheckControl(user, chump);
@@ -430,30 +364,8 @@ class AttackAb extends Ability
                         {
                             ob.Use(user, chump, dmgdealt); //apply unique ability functions after attacking; this only activates after abs
                         } 
-                        for (String[][] array: tempstrings)
-                        {  
-                            StatEff New=StatFactory.MakeStat(array, user); 
-                            if (array[0][4].equalsIgnoreCase("true"))
-                            {
-                                selfapply.add(New);
-                            }
-                            else if (!(user.binaries.contains("Missed"))&&array[0][4].equalsIgnoreCase("false")) 
-                            {
-                                otherapply.add(New);
-                            }
-                        }
-                        for (String[][] array: statstrings)
-                        {  
-                            StatEff New=StatFactory.MakeStat(array, user); //this is how selfapply and other apply are populated
-                            if (array[0][4].equalsIgnoreCase("true"))
-                            {
-                                selfapply.add(New);
-                            }
-                            else if (!(user.binaries.contains("Missed"))&&array[0][4].equalsIgnoreCase("false")) //they cannot apply effects if the target evaded/they are blind
-                            {
-                                otherapply.add(New);
-                            }
-                        }
+                        this.UseStatStrings(user, chump, true); //turn ab's statstrings into stateffs
+                        this.UseStatStrings(user, chump, false);
                         toadd.addAll(Ability.ApplyStats(user, chump, together, selfapply, otherapply));
                         if (aoe==false)
                         {
@@ -465,24 +377,10 @@ class AttackAb extends Ability
                                 }
                             }
                         }
-                        if (selfapply.size()!=0)
-                        {
-                            selfapply.removeAll(selfapply); //ensures every status effect is unique, to avoid bugs
-                        }
-                        if (otherapply.size()!=0)
-                        {
-                            otherapply.removeAll(otherapply);
-                        }
-                        if (tempstrings.size()!=0) //these effects are only sometimes applied with attacks, hence the name temp; they're reset afterwards
-                        {
-                            tempstrings.removeAll(tempstrings);
-                        }
-                        if (user.binaries.contains("Missed"))
-                        {
-                            user.binaries.remove("Missed");
-                        }
-                        this.blind=false; this.evade=false;
+                        this.ResetAb(user); //clears selfapply, resets blind/evade checks, and removes tempstrings and missed
                         this.UseMultihit();
+                        if (iterator.hasNext()==false)
+                        this.done=true; //done using ab because no more targets for it to affect
                         for (SpecialAbility ob: special)
                         {
                             ob.Use(user, dmgdealt, chump); 
@@ -518,13 +416,14 @@ class AttackAb extends Ability
                 }
             }
             ArrayList<StatEff> errands= new ArrayList<StatEff>(); errands.addAll(user.effects);
-            for (StatEff eff: errands) //even though empowers won't activate again once used, they only expire onturnend
+            for (StatEff eff: errands) //even though empowers won't activate again once used, they only expire onturnend and channelled abs activate on turnstart
             {
                 if (eff.getimmunityname().equalsIgnoreCase("Empower"))
                 eff.onTurnEnd(user); //removes used up empowerments from scoreboard after channelled ab use, to avoid confusion/the appearance of a bug
             }
         } 
         //don't go on cooldown bc useab already took care of it
+        this.done=false; //reset for next use
         return toadd;
     }
     @Override

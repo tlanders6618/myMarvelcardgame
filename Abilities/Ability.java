@@ -8,6 +8,7 @@ package myMarvelcardgamepack;
  * Purpose: Creates characters' abilities.
  */
 import java.util.ArrayList;
+import java.util.Iterator;
 public abstract class Ability
 {
     boolean channelled=false; boolean finished=false; boolean interrupt=false; boolean usable=true; 
@@ -16,6 +17,7 @@ public abstract class Ability
     boolean unbound=false, control=false, elusive=false; 
     boolean ignore=false; //for ignoring disable debuffs but not suppression (nothing ignores suppression)
     boolean together=false; //whether status effects are applied separately or together
+    boolean done=false; //no more targets left to attack; mainly for aoe abs
     String oname; String desc=null;
     String target; String friendly; 
     //friendly means enemy, both, either, self, ally inc, ally exc
@@ -27,8 +29,9 @@ public abstract class Ability
     ArrayList<SpecialAbility> special= new ArrayList<SpecialAbility>(); //purify, mend, etc
     ArrayList<StatEff> otherapply= new ArrayList<StatEff>(); //applied to target(s)
     ArrayList<StatEff> selfapply= new ArrayList<StatEff>(); //applied to self after turn end
+    //statstrings are strings that hold stateff creation information; ensures that each stateff is its own unique object
     ArrayList<String[][]> statstrings= new ArrayList<String[][]>(); //always applied
-    ArrayList<String[][]> tempstrings= new ArrayList<String[][]>(); //sometimes applied, from passive or empower
+    ArrayList<String[][]> tempstrings= new ArrayList<String[][]>(); //only sometimes applied, from passive or empower or "choose one effect" abs
     public Ability ()
     {
         /* statstrings/tempstatstrings are added when the ab is created under ab list
@@ -195,10 +198,40 @@ public abstract class Ability
         }
     }
     public abstract void CheckIgnore(Character user, boolean add); //if ability ignores a disable debuff, add it to hero binaries so stateff.checkapply doesn't cause failure
+    public void UseStatStrings (Character user, Character target, boolean temp) //turn statstrings into stateffs
+    {
+        ArrayList<String[][]> strings=null;
+        if (temp==false)
+        strings=this.statstrings;
+        else
+        strings=this.tempstrings;
+        for (String[][] array: strings)
+        {  
+            StatEff New=StatFactory.MakeStat(array, user); //this is how selfapply and other apply are populated
+            if (array[0][4].equalsIgnoreCase("true"))
+            {
+                selfapply.add(New);
+            }
+            else if (!(user.binaries.contains("Missed"))&&array[0][4].equalsIgnoreCase("false")) //they cannot apply effects if blind or the target evaded
+            {
+                otherapply.add(New);
+            }
+            else if (!(array[0][4].equalsIgnoreCase("true aoe")))
+            {
+                if (target!=null&&user.id==target.id)
+                {
+                    selfapply.add(New);
+                }
+                else if (!(user.binaries.contains("Missed")))
+                {
+                    otherapply.add(New);
+                }
+            }
+        }
+    }
     public ArrayList<StatEff> UseAb (Character user, ArrayList<Character> targets) //only applies for the non-attack abs since they all work the same
     {
         boolean typo=true; int uses=1; 
-        System.out.println (user.Cname+" used "+oname);
         ArrayList<StatEff> toadd= new ArrayList<StatEff>(); //stateffs to be added to self right after turn ends
         if (multiuse>0)
         {
@@ -214,19 +247,25 @@ public abstract class Ability
             }
             while (typo==true);
         }
-        if (channelled==true)
+        if (targets.size()<=0)
         {
-            this.SetChannelled(user, this, targets);
+            System.out.println(this.oname+" could not be used due to a lack of eligible targets."); 
+            return null;
+        }
+        if (this.channelled==true)
+        {
+            this.SetChannelled(user, targets);
+        }
+        else
+        {
+            System.out.println (user+" used "+this.oname);
         }
         while (uses>0&&channelled==false) //repeat the attack for each multiuse; channelled abilities will do nothing now and activate later
         {
-            if (targets.size()<=0)
+            Iterator<Character> iterator=targets.iterator();
+            while (iterator.hasNext()==true) //use ab on each target
             {
-                System.out.println(this.oname+" could not be used due to a lack of eligible targets."); 
-                return null;
-            }
-            for (Character chump: targets) //use the ability on its target
-            { 
+                Character chump=iterator.next();
                 boolean okay=true;
                 if (chump!=null&&this.control==true)
                 okay=CheckControl(user, chump);
@@ -261,53 +300,9 @@ public abstract class Ability
                     {
                         ob.Use(user, chump, 0); //apply unique ability functions after attacking; this only activates after abs
                     } 
-                    for (String[][] array: tempstrings)
-                    {  
-                        StatEff New=StatFactory.MakeStat(array, user); 
-                        if (array[0][4].equalsIgnoreCase("true"))
-                        {
-                            selfapply.add(New);
-                        }
-                        else if ((!(user.binaries.contains("Missed"))||user.immunities.contains("Missed"))&&array[0][4].equalsIgnoreCase("false")) 
-                        {
-                            otherapply.add(New);
-                        }
-                        else if (array[0][4].equalsIgnoreCase("knull"))
-                        {
-                            if (user.id==chump.id)
-                            {
-                                selfapply.add(New);
-                            }
-                            else
-                            {
-                                otherapply.add(New);
-                            }
-                        }
-                    }
-                    for (String[][] array: statstrings)
-                    {  
-                       StatEff New=StatFactory.MakeStat(array, user); //this is how selfapply and other apply are populated
-                       if (array[0][4].equalsIgnoreCase("true"))
-                       {
-                           selfapply.add(New);
-                       }
-                       else if ((!(user.binaries.contains("Missed"))||user.immunities.contains("Missed"))&&array[0][4].equalsIgnoreCase("false"))
-                       {
-                           otherapply.add(New);
-                       }
-                       else if (array[0][4].equalsIgnoreCase("knull"))
-                       {
-                            if (user.id==chump.id)
-                            {
-                                selfapply.add(New); 
-                            }
-                            else
-                            {
-                                otherapply.add(New);
-                            }
-                       }
-                    }
-                    //see what can be applied and what fails; only successful selfapply effs are added to toadd and returned to be applied after
+                    this.UseStatStrings(user, chump, true); //turn ab's statstrings into stateffs
+                    this.UseStatStrings(user, chump, false);
+                    //then see what can be applied and what fails; only successful selfapply effs are added to toadd and returned to be applied after
                     toadd.addAll(Ability.ApplyStats(user, chump, together, selfapply, otherapply)); 
                     if (aoe==false)
                     {
@@ -319,25 +314,9 @@ public abstract class Ability
                             }
                         }
                     }
-                    if (selfapply.size()!=0)
-                    {
-                        selfapply.removeAll(selfapply); //ensures every status effect is unique, to avoid bugs
-                    }
-                    if (otherapply.size()!=0)
-                    {
-                        otherapply.removeAll(otherapply);
-                    }
-                    if (tempstrings.size()!=0) //these effects are only sometimes applied with attacks, hence the name temp; they're reset afterwards
-                    {
-                        tempstrings.removeAll(tempstrings);
-                    }
-                    if (user.binaries.contains("Missed"))
-                    {
-                        user.binaries.remove("Missed");
-                    }
-                    this.blind=false; this.evade=false;
-                    if (this.ignore==true)
-                    this.CheckIgnore(user, false);
+                    this.ResetAb(user); //clears selfapply, resets blind/evade checks, and removes tempstrings and missed
+                    if (iterator.hasNext()==false)
+                    this.done=true; //done using ab because no more targets for it to affect
                     for (SpecialAbility ob: special) //specialabs only used after everything is reset
                     {
                         ob.Use(user, 616, chump); 
@@ -377,7 +356,30 @@ public abstract class Ability
         {
             dcd+=cd;
         }
+        this.done=false; //reset for next use
         return toadd; 
+    }
+    public void ResetAb(Character user) //called at the end of every ability use; resets stuff for next use/target
+    {
+        if (selfapply.size()!=0)
+        {
+            selfapply.removeAll(selfapply); //ensures every status effect is unique, to avoid bugs
+        }
+        if (otherapply.size()!=0)
+        {
+            otherapply.removeAll(otherapply);
+        }
+        if (tempstrings.size()!=0) //these effects are only sometimes applied with attacks, hence the name temp; they're reset afterwards
+        {
+            tempstrings.removeAll(tempstrings);
+        }
+        if (user.binaries.contains("Missed"))
+        {
+            user.binaries.remove("Missed");
+        }
+        this.blind=false; this.evade=false;
+        if (this.ignore==true)
+        this.CheckIgnore(user, false);
     }
     public void CDReduction(int amount)
     {
@@ -387,23 +389,23 @@ public abstract class Ability
             this.dcd=0; //no negative cooldowns
         }
     }
-    public void SetChannelled (Character hero, Ability ab, ArrayList<Character> targets)
+    public void SetChannelled (Character hero, ArrayList<Character> targets)
     {
-        ctargets=targets;
-        ab.finished=false; //makes ab interruptable; exists to prevent printing interrupt message if hero dies after channelled activates (since there's nothing to interrupt)
-        hero.effects.add(new Tracker ("Channelling "+ab.oname)); //so it's impossible to forget someone is channelling
+        this.ctargets=targets;
+        this.finished=false; //makes ab interruptable; exists to prevent printing interrupt message if hero dies after channelled activates (since there's nothing to interrupt)
+        hero.effects.add(new Tracker ("Channelling "+this.oname)); //so it's impossible to forget someone is channelling
     }
-    public void InterruptChannelled (Character hero, Ability ab) //same for all non abs
+    public void InterruptChannelled (Character hero) //same for all non abs
     {
         if (interrupt==false&&finished==false&&(hero.dead==true||(hero.dead==false&&!(hero.immunities.contains("Interrupt"))))) 
         {   //death must always interrupt, to avoid channels activating on resurrect; can't interrupt if ab is in middle of being used though
-            interrupt=true;
+            this.interrupt=true;
             if (hero.dead==false)
             System.out.println(hero.Cname+"'s Channelling was interrupted!");
             StatEff remove= null;
             for (StatEff e: hero.effects)
             {
-                if (e instanceof Tracker&&e.geteffname().equals("Channelling "+ab.oname))
+                if (e instanceof Tracker&&e.geteffname().equals("Channelling "+this.oname))
                 {
                     remove=e; break;
                 }
@@ -417,15 +419,7 @@ public abstract class Ability
         ArrayList<StatEff> toadd= new ArrayList<StatEff>();
         if (channelled==true&&interrupt==true) 
         {
-            interrupt=false; //reset it so the ab is not permanently unusable
-            if (singleuse==true)
-            {
-                used=true;
-            }
-            else
-            {
-                dcd+=cd;
-            }
+            this.interrupt=false; //reset it so the ab is not permanently unusable
             return null;
         }
         else if (channelled==true&&interrupt==false)
@@ -445,23 +439,9 @@ public abstract class Ability
             user.effects.remove(remove);  
             if (ctargets.size()<=0)
             {
-                System.out.println(ab.oname+" could not be used due to a lack of eligible targets.");
-                for (String[][] array: tempstrings)
-                {  
-                    StatEff New=StatFactory.MakeStat(array, user); 
-                    if (!(array[0][4].equalsIgnoreCase("false")))
-                    {
-                        selfapply.add(New);
-                    }
-                }
-                for (String[][] array: statstrings)
-                {  
-                    StatEff New=StatFactory.MakeStat(array, user); //this is how selfapply and other apply are populated
-                    if (!(array[0][4].equalsIgnoreCase("false")))
-                    {
-                        selfapply.add(New);
-                    }
-                }
+                System.out.println(oname+" could not be used due to a lack of eligible targets."); //but can still apply stateffs to self
+                this.UseStatStrings(user, null, true);
+                this.UseStatStrings(user, null, false);
                 ArrayList<StatEff> n= new ArrayList<StatEff>(); //empty array since there's no other targets to apply stateffs to 
                 toadd=Ability.ApplyStats(user, null, together, selfapply, n);
                 if (selfapply.size()!=0)
@@ -474,8 +454,10 @@ public abstract class Ability
                 }
                 return toadd;
             }
-            for (Character chump: ctargets) //use the ability on its target
+            Iterator<Character> iterator=ctargets.iterator();
+            while (iterator.hasNext()==true) //use ab on each target
             {
+                Character chump=iterator.next();
                 boolean okay=true;
                 if (chump!=null&&this.control==true)
                 okay=CheckControl(user, chump);
@@ -510,52 +492,8 @@ public abstract class Ability
                     {
                         ob.Use(user, chump, 0); //apply unique ability functions after attacking; this only activates after abs
                     } 
-                    for (String[][] array: tempstrings)
-                    {  
-                        StatEff New=StatFactory.MakeStat(array, user); 
-                        if (array[0][4].equalsIgnoreCase("true"))
-                        {
-                            selfapply.add(New);
-                        }
-                        else if ((!(user.binaries.contains("Missed"))||user.immunities.contains("Missed"))&&array[0][4].equalsIgnoreCase("false")) 
-                        {
-                            otherapply.add(New);
-                        }
-                        else
-                        {
-                            if (user.id==chump.id)
-                            {
-                                selfapply.add(New);
-                            }
-                            else
-                            {
-                                otherapply.add(New);
-                            }
-                        }
-                    }
-                    for (String[][] array: statstrings)
-                    {  
-                       StatEff New=StatFactory.MakeStat(array, user); //this is how selfapply and other apply are populated
-                       if (array[0][4].equalsIgnoreCase("true"))
-                       {
-                           selfapply.add(New);
-                       }
-                       else if ((!(user.binaries.contains("Missed"))||user.immunities.contains("Missed"))&&array[0][4].equalsIgnoreCase("false"))
-                       {
-                           otherapply.add(New);
-                       }
-                       else //neither true nor false; capabable of affecting either self or an ally
-                       {
-                           if (user.id==chump.id)
-                           {
-                               selfapply.add(New);
-                           }
-                           else
-                           {
-                               otherapply.add(New);
-                           }
-                       }
-                    }
+                    this.UseStatStrings(user, chump, true); //turn ab's statstrings into stateffs
+                    this.UseStatStrings(user, chump, false);
                     toadd.addAll(Ability.ApplyStats(user, chump, together, selfapply, otherapply));
                     if (aoe==false)
                     {
@@ -567,25 +505,9 @@ public abstract class Ability
                             }
                         }
                     }
-                    if (selfapply.size()!=0)
-                    {
-                        selfapply.removeAll(selfapply); //ensures every status effect is unique, to avoid bugs
-                    }
-                    if (otherapply.size()!=0)
-                    {
-                        otherapply.removeAll(otherapply);
-                    }
-                    if (tempstrings.size()!=0) //these effects are only sometimes applied with attacks, hence the name temp; they're reset afterwards
-                    {
-                        tempstrings.removeAll(tempstrings);
-                    }
-                    if (user.binaries.contains("Missed"))
-                    {
-                        user.binaries.remove("Missed");
-                    }
-                    this.blind=false; this.evade=false;
-                    if (this.ignore==true)
-                    this.CheckIgnore(user, false);
+                    this.ResetAb(user); //clears selfapply, resets blind/evade checks, and removes tempstrings and missed
+                    if (iterator.hasNext()==false)
+                    this.done=true; //done using ab because no more targets for it to affect
                     for (SpecialAbility ob: special) //specialabs only used after everything is reset
                     {
                         ob.Use(user, 616, chump); 
@@ -623,6 +545,7 @@ public abstract class Ability
             }
         }
         //don't go on cooldown bc useab already took care of it
+        this.done=false;
         return toadd;
     }
     public void AddStatString(String[][] f)

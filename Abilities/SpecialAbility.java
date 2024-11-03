@@ -45,168 +45,148 @@ class BonusTurnHelper extends SpecialAbility
     {
         if (used==false&&hero.dead==false&&hero.activeability.channelled==false&&!(hero.binaries.contains("Banished"))) //cannot take bonus turn during linked banish
         {
-            used=true; System.out.println(hero+" took a bonus turn!");
-            Battle.Turn(hero, true); //hero can only take a bonus turn after finishing their turn, so it cannot be triggered after using a channelled skill            
+            used=true; //activeab must be false so hero only takes a bonus turn after finishing their turn, so it cannot be triggered immediately after using a channelled skill 
+            if (Battle.CheckWin(Battle.tturns%2)==0) //do not take bonus turn after killing last enemy, or else game cannot end
+            Battle.Turn(hero, true);           
         }
         else //bonus turn helpers are single use only; removed immediately after use
         {
-            for (SpecialAbility h: hero.helpers)
-            {
-                if (h.hashcode==this.hashcode)
-                {
-                    hero.helpers.remove(h); break; //System.out.println ("bonus turn helper successfully removed"); break; 
-                }
-            }
+            hero.helpers.remove(this);
         }
     }
 }
 class Chain extends SpecialAbility //both chain and multichain have been merged into one; in here since it's technically not an afterab
 {
-    boolean multi=false; int damage;
-    public Chain (boolean multi, Ability ability)
+    boolean multi=false; //multichain
+    int base; //base damage of attack, since each chain cuts it in half
+    int auses; //number of times to chain
+    boolean used=false; //chain has been activated
+    public Chain (boolean m, Ability ability)
     {
-        this.multi=multi; damage=ability.GetBaseDmg();
+        multi=m; base=ability.GetBaseDmg();
         if (multi==true)
-        this.desc="If the target dies before the last hit, continue the attack on a random enemy. ";
+        {
+            this.desc="If the target dies before the last hit, continue the attack on a random enemy. ";
+            auses=ability.GetMultihit(true); //set number; cannot chain more than multihit
+        }
         else
-        this.desc="Chain. ";
+        {
+            this.desc="Chain. ";
+            if (ability.aoe==true)
+            auses=0;
+            else
+            auses=1; //guaranteed to chain at least once on kill
+        }
     }
     @Override
     public int Use (Character user, int ignore, Character victim) //after hero finishes attacking and using afterabs
     {
-        Ability ab=user.activeability;
-        ArrayList<Character> targets= new ArrayList<Character>();
-        if (ab.aoe==true)
+        Ability ab=user.activeability; 
+        //single target attacks chain if they kill their target; aoe attacks chain if the attack killed at least one target (chain only occurs after all targets have been hit)
+        if (ab.done==true&&used==false&&(ab.aoe==false&&victim.dead==true||ab.aoe==true&&auses>0))
         {
-            Character[] targets1= new Character[6];
-            targets1=Battle.GetTeam(CoinFlip.TeamFlip(user.team1));
-            targets=CoinFlip.ToList(targets1);
-        }
-        else
-        {
-            targets.add(Ability.GetRandomHero (user, victim, false, false));
-        }
-        if ((multi==true&&victim.dead==true&&user.dead==false&&targets.size()>0&&ab.GetMultihit(false)>-1)||(multi==false&&victim.dead==true&&user.dead==false&&targets.size()>0))
-        { //usability check
-            if (multi==false) //regular chain
-            {
-                System.out.println ("\n"+user.Cname+" used "+ab.oname);
-                double d=damage/2;
-                damage=5*(int)Math.floor(d/5);
-            }
-            if (user.binaries.contains("Missed")) 
-            user.binaries.remove("Missed");
-            int change=0;
-            ArrayList<StatEff> toadd= new ArrayList<StatEff>();   
-            if (ab.aoe==true)
-            {
-                for (StatEff eff: user.effects) //get empowerments
+            ArrayList<Character> targets= new ArrayList<Character>(); targets.add(victim);
+            used=true; //subsequent kills should just ++auses instead of activating another chain loop
+            if (this.multi==true)
+            auses=ab.GetMultihit(false)+1; //+1 due to attackabs having do while (multihit>-1) instead of >0, so it's counted differently and needs to be adjusted
+            while (auses>0) 
+            { 
+                if (ab.aoe==true) //update targets to remove dead one(s)
                 {
-                    if (eff.getimmunityname().equalsIgnoreCase("Empower"))
+                    targets=CoinFlip.ToList(Battle.GetTeam(CoinFlip.TeamFlip(user.team1))); //getting enemy team
+                }
+                else if (targets.get(0).dead==true) //single target chain or multichain; last target died, so get new one
+                { 
+                    targets.set(0,Ability.GetRandomHero (user, victim, false, false)); //returns null if there are no heroes left
+                    if (targets.get(0)==null) //if all enemies are dead, fail below usability check and end chain
+                    targets.remove(0);
+                }
+                if (user.dead==false&&targets.size()>0) //usability check
+                { 
+                    if (multi==false) //regular chain
                     {
-                        change=eff.UseEmpower(user, ab, true);
-                        damage+=change;
+                        System.out.println ("\n"+user.Cname+" Chained "+ab.oname); 
+                        double d=base/2;
+                        base=5*(int)Math.floor(d/5);
                     }
                 }
-            }
-            for (Character chump: targets) //use the ability on its target
-            {
-                if (chump!=null) 
+                else //even if chain was triggered, if it isn't useable then it ends to avoid an infinite loop
                 {
-                    while (ab.GetMultihit(false)>-1)
+                    ResetChain(ab); 
+                    break;
+                }
+                ArrayList<StatEff> toadd= new ArrayList<StatEff>();   
+                for (Character chump: targets) //use the ability on its target(s)
+                {
+                    if (chump!=null) //does not check for control due to there being no overlap between chain and control as of 4.5; change if needed
                     {
-                        for (StatEff eff: user.effects) //get empowerments
-                        {
-                            if (eff.getimmunityname().equalsIgnoreCase("Empower"))
-                            {
-                                change=eff.UseEmpower(user, ab, true); damage+=change;
-                            }
-                        }
+                        int change=0; int damage=base;
                         Damage_Stuff.CheckBlind(user);
-                        for (SpecialAbility ob: ab.special)
+                        for (SpecialAbility ob: ab.special) //beforeabs
                         {
                             change=ob.Use(user, chump); 
                             damage+=change;
                         } 
-                        //removed attack options for elusive and causing health loss since they're so rare and so far don't overlap with chain; add back if needed
-                        chump=user.Attack(user, chump, damage, ab.aoe);
-                        for (SpecialAbility ob: ab.special)
+                        //removed attack options for max hp reduction and health loss since they're so rare and so far don't overlap with chain; add back if needed
+                        if (ab.elusive==true&&(ab.GetBaseDmg()>0||damage>0)) //only try to do damage if attack was meant to do damage; abs that call assists shouldn't print
+                        {
+                            Damage_Stuff.ElusiveDmg(user, chump, damage, "default");
+                        }
+                        else
+                        {
+                            chump=user.Attack(user, chump, damage, ab.aoe);
+                        }
+                        for (SpecialAbility ob: ab.special) //afterabs
                         {
                             ob.Use(user, chump, ab.GetDmgDealt()); 
                         } 
-                        for (String[][] array: ab.tempstrings)
-                        {  
-                            StatEff New=StatFactory.MakeStat(array, user); 
-                            if (array[0][4].equalsIgnoreCase("true"))
-                            {
-                                ab.selfapply.add(New);
-                            }
-                            else if (!(user.binaries.contains("Missed"))&&array[0][4].equalsIgnoreCase("false")) 
-                            {
-                                ab.otherapply.add(New);
-                            }
-                        }
-                        for (String[][] array: ab.statstrings)
-                        {  
-                            StatEff New=StatFactory.MakeStat(array, user); 
-                            if (array[0][4].equalsIgnoreCase("true"))
-                            {
-                                ab.selfapply.add(New);
-                            }
-                            else if (!(user.binaries.contains("Missed"))&&array[0][4].equalsIgnoreCase("false")) //they cannot apply effects if the target evaded/they are blind
-                            {
-                                ab.otherapply.add(New);
-                            }
-                        }
+                        ab.UseStatStrings(user, chump, true); //turn ab's statstrings into stateffs
+                        ab.UseStatStrings(user, chump, false);
                         toadd=Ability.ApplyStats(user, chump, ab.together, ab.selfapply, ab.otherapply); 
+                        ab.ResetAb(user); //clears selfapply, resets blind/evade checks, and removes tempstrings and missed
                         if (ab.aoe==false)
                         {
-                            for (StatEff eff: user.effects) //undo empowerments
-                            {
-                                if (eff.getimmunityname().equalsIgnoreCase("Empower"))
-                                {
-                                    int irrelevant=eff.UseEmpower(user, ab, false);
-                                }
-                            }
+                            --this.auses;
+                            if (this.multi==true) 
+                            ab.UseMultihit(); 
                         }
-                        if (ab.selfapply.size()!=0)
-                        {
-                            ab.selfapply.removeAll(ab.selfapply); 
-                        }
-                        if (ab.otherapply.size()!=0)
-                        {
-                            ab.otherapply.removeAll(ab.otherapply);
-                        }
-                        if (ab.tempstrings.size()!=0) 
-                        {
-                            ab.tempstrings.removeAll(ab.tempstrings);
-                        }
-                        if (user.binaries.contains("Missed"))
-                        {
-                            user.binaries.remove("Missed");
-                        }
-                        ab.UseMultihit();
-                        ab.ReturnDamage(0);
                         for (SpecialAbility ob: ab.special)
                         {
-                            ob.Use(user, 616, chump); //for now this only activates chain
+                            ob.Use(user, 616, chump); //check if the attack can chain again
                         }
-                        damage=ab.GetBaseDmg(); //reset damage 
                     }
                 }
-            }
-            if (ab.aoe==true)
-            {
-                for (StatEff eff: user.effects) //undo empowerments
+                if (ab.aoe==true)
+                --this.auses;
+                if (toadd.size()>0&&user.dead==false) 
                 {
-                    if (eff.getimmunityname().equalsIgnoreCase("Empower"))
+                    for (StatEff eff: toadd) //does the same thing Use does; saves stateffs to be applied to self so ab can apply them to user
                     {
-                        int irrelevant=eff.UseEmpower(user, ab, false);
+                        user.activeability.selfapply.add(eff);
                     }
                 }
             }
+            //chain ends
+            ResetChain(ab); //reset base only after chain is done being called; otherwise damage should remain half of what it was the previous call
+        }
+        else if (this.multi==false&&victim.dead==true) //chain one more time for each kill; occurs when chain is called before attack is over, or chain triggers itself
+        {
+            this.auses++;
+            if (ab.done==true&&this.used==false) //so the last enemy killed by aoe attack still triggers chain; above case excludes this
+            this.Use(user, 616, victim);
         }
         return 616;
+    }
+    public void ResetChain(Ability a) 
+    {
+        this.used=false; 
+        this.base=a.GetBaseDmg();
+        if (this.multi==true)
+        this.auses=a.GetMultihit(true)+1;
+        else if (a.aoe==true)
+        auses=0;
+        else
+        auses=1;        
     }
 }
 class RedwingHelper extends SpecialAbility //called by character.attack, after damage formula and before taking damage; elusive attacks don't check for redwing

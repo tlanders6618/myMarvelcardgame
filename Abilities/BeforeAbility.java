@@ -59,12 +59,13 @@ class ActivateP extends BeforeAbility //ability activates a hero's passive
 }
 class ApplyShatter extends BeforeAbility //shatter applies before attacking, and thus cannot simply be added to statstrings; this is used for mighty blows too for the same reason
 {
-    int chance; int duration; boolean debuff; boolean effect; 
+    int chance; int duration; 
+    boolean debuff; boolean effect; //whether to apply an eff or just do defence strip
     boolean mighty; //if granted by mighty blows, should not affect the hero's ability desc
     boolean applied=false; //whether shatter was successfully applied or not; for mr fantastic and peter parker so they can't evade aoe abs that apply shatter
-    public ApplyShatter (int chancer, int dur, boolean deb, boolean E, boolean m)
+    public ApplyShatter (int chancer, int dur, boolean deb, boolean other, boolean m)
     {
-       chance=chancer; duration=dur; debuff=deb; String start; effect=E; mighty=m;
+       chance=chancer; duration=dur; debuff=deb; String start; effect=other; mighty=m;
        if (this.chance>=500)
        start="Applies";
        else
@@ -73,10 +74,10 @@ class ApplyShatter extends BeforeAbility //shatter applies before attacking, and
        {
            if (deb==true)
            {
-               if (E==true)
-               this.desc=start+" Shatter Effect for "+duration+" turn(s). ";
+               if (effect==true)
+               this.desc=start+" a(n) Shatter Effect for "+duration+" turn(s). ";
                else
-               this.desc=start+" Shatter for "+duration+" turn(s). ";
+               this.desc=start+" a(n) Shatter for "+duration+" turn(s). ";
            }
            else
            this.desc=start+" Shatter. ";
@@ -131,14 +132,13 @@ class ApplyShatter extends BeforeAbility //shatter applies before attacking, and
             boolean yes=CoinFlip.Flip(chance+user.Cchance); 
             if (yes==true)
             {
-                if (debuff==false&&target.CheckFor("Shatter", false)==false) //mainly for kk; no need to say they're shattered if they already have a shatter on them
-                System.out.println(target.Cname+" was Shattered!");
+                if (debuff==false)
+                System.out.println("\n"+target.Cname+" was Shattered!");
                 applied=true;
                 target.SHLD=0;
-                ArrayList<StatEff>modexception= new ArrayList<StatEff>();
+                ArrayList<StatEff>modexception= new ArrayList<StatEff>(target.effects);
                 if (target.effects.size()>0)
                 {
-                    modexception.addAll(target.effects);
                     for (StatEff eff: modexception)
                     {
                         if (eff.getefftype().equalsIgnoreCase("Defence"))
@@ -216,9 +216,13 @@ class BeforeNullify extends BeforeAbility //same as nullify but quick; only wm a
     @Override
     public int Use (Character user, Character target)
     {
-        if (user.activeability!=null&&user.activeability.blind==false)
+        if (user.activeability!=null&&user.activeability.blind==false) //since this occurs before the attack method that normally checks misses, it must be checked here
         {
             Damage_Stuff.CheckBlind(user); user.activeability.blind=true;
+        }
+        if (!(user.binaries.contains("Missed"))&&user.activeability!=null&&user.activeability.evade==false)
+        {
+            Damage_Stuff.CheckEvade(user, target); user.activeability.evade=true;
         }
         if (!(target.immunities.contains("Nullify"))&&!(target.immunities.contains("Other"))&&!(user.binaries.contains("Missed")))
         {
@@ -228,11 +232,6 @@ class BeforeNullify extends BeforeAbility //same as nullify but quick; only wm a
                 neffname[i]=effname; 
             }
             ArrayList <StatEff> effs=CoinFlip.GetEffs(target, neffname, efftype); //the effs on the target that are eligible to be nullified
-            if (user.activeability!=null&&user.activeability.evade==false)
-            {
-                Damage_Stuff.CheckEvade(user, target); //since this occurs before the attack method that normally checks evade, it must be checked here
-                user.activeability.evade=true;
-            }
             if (effs.size()>0&&!(user.binaries.contains("Missed")))
             {
                 if (type.equals("chosen"))
@@ -811,7 +810,7 @@ class DamageCounterSimple extends BeforeAbility //just checks if the target has 
         return 0;
     }
 }
-class DebuffMod extends BeforeAbility //for altering the debuffs an ab applies, e.g. Superior Spidey and MODOK
+class DebuffMod extends BeforeAbility //for dynamically determining the debuffs an ab applies, e.g. MODOK
 {
     int index, ab=0; //also may vary based on the ab the hero uses
     public DebuffMod (int ind)
@@ -936,42 +935,14 @@ class DebuffMod extends BeforeAbility //for altering the debuffs an ab applies, 
                 String []akaban={"Countdown", "100", "55", "1", "false"}; String[][] niharu=StatFactory.MakeParam(akaban, null); user.activeability.AddTempString(niharu);
             }
             break;
-            case 22: //KK
+            case 22: //KK's marvellous finish; embiggened bash is an afterab
             if (user.CheckFor("Evasion", false)==true) 
             {
-                if (ab==2)
-                {
-                    String[] light={"Provoke", "100", "616", "1", "false"}; String[][] baby=StatFactory.MakeParam(light, null); 
-                    user.activeability.AddTempString(baby);
-                }
-                if (ab==5)
-                {
-                    String[] kira={"Disarm", "100", "616", "1", "false"}; String[][] fin=StatFactory.MakeParam(kira, null); 
-                    user.activeability.AddTempString(fin); 
-                }
+                String[] kira={"Stun", "100", "616", "1", "false"}; String[][] fin=StatFactory.MakeParam(kira, null); user.activeability.AddTempString(fin); 
             }
             if (user.CheckFor("Mighty Blows", false)==true) 
             {
-                if (ab==2)
-                {
-                    String[] mello={"Terror", "100", "616", "1", "false"}; String[][] baby=StatFactory.MakeParam(mello, null); 
-                    user.activeability.AddTempString(baby);
-                }
-                if (ab==5) //shatter is applied before attacking
-                {
-                    if (user.activeability.blind==false)
-                    {
-                        Damage_Stuff.CheckBlind(user); user.activeability.blind=true;
-                    }
-                    if (!(user.binaries.contains("Missed")))
-                    {
-                        Shatter s= new Shatter (100, 1, user); boolean yes=CoinFlip.Flip(100+user.Cchance);
-                        if (yes==true)
-                        StatEff.CheckApply(user, target, s);
-                        else
-                        StatEff.applyfail(user, s, "chance");
-                    }
-                }
+                String[] akaban={"Wound", "100", "616", "1", "false"}; String[][] niharu=StatFactory.MakeParam(akaban, null); user.activeability.AddTempString(niharu);
             }
             break;
             case 25: //agent venom
@@ -1045,6 +1016,12 @@ class DebuffMod extends BeforeAbility //for altering the debuffs an ab applies, 
             }
             break;
             case 36: CardCode.RandomStat(user, target, "statdisable debuffs"); break; //vulture
+            case 71: //vapor
+            if (target.CheckFor("Defence", true)==true)
+            {
+                String[] akaban={"Poison", "100", "60", "1", "false"}; String[][] niharu=StatFactory.MakeParam(akaban, null); user.activeability.AddTempString(niharu);
+            }
+            break;
             case 77: //penance
             if (user.index==77)
             {
@@ -1114,9 +1091,10 @@ class DebuffMod extends BeforeAbility //for altering the debuffs an ab applies, 
             }
             break;
             case 84: //namor's trident of neptune; giganto must be on his team and alive and unstunned for the assist to work
-            if (user.passivefriend[0]!=null&&user.passivefriend[0].summoned==true&&user.passivefriend[0].index==12) //has summoned giganto
+            if (user.passivefriend.size()>0&&user.passivefriend.get(0).summoned==true&&user.passivefriend.get(0).index==12) //has successfully summoned giganto
             {
-                if (user.passivefriend[0].team1==user.team1&&user.passivefriend[0].dead==false&&!(user.passivefriend[0].binaries.contains("Stunned"))) //not dominated by supergiant 
+                if (user.passivefriend.get(0).team1==user.team1&&user.passivefriend.get(0).dead==false&&!(user.passivefriend.get(0).binaries.contains("Stunned"))) 
+                //alive and usable, e.g. not dominated by supergiant 
                 {
                     Assist number= new Assist(true, 1, 0, true, 0, null, 500, true);
                     boolean okie=CoinFlip.Flip(500+user.Cchance);
@@ -1126,7 +1104,7 @@ class DebuffMod extends BeforeAbility //for altering the debuffs an ab applies, 
                         {
                             user.activeability.blind=true; user.activeability.evade=true; user.activeability.elusive=true;
                         }
-                        ArrayList<Character> friend= new ArrayList<Character>(); friend.add(user.passivefriend[0]);
+                        ArrayList<Character> friend= new ArrayList<Character>(); friend.add(user.passivefriend.get(0));
                         number.UseAssist(friend, target, user);
                     }
                     else
@@ -1215,7 +1193,7 @@ class DebuffMod extends BeforeAbility //for altering the debuffs an ab applies, 
 }
 class Ignore extends BeforeAbility
 {
-   String condition; //whether the benefits are given every time the attack is activated, or only sometimes
+   String condition; //condition needed to be met for ignore to apply
    String toig; //what the hero is ignoring
    int condnumber; //only for conditions that require it, usually a hp threshold
    boolean success=false;
@@ -1240,7 +1218,7 @@ class Ignore extends BeforeAbility
           else 
           this.desc=C+" ignore "+toignore+". ";
       }
-      else //the "i" in ignore is capital
+      else //desc is the same but the "i" in ignore is capital since it's unconditional
       {
           if (toignore.equals("Missed"))
           this.desc="Ignores miss. ";
@@ -1323,6 +1301,7 @@ class Ignore extends BeforeAbility
               case "Undermine": hero.ignores.add("Undermine"); break;
               case "Protect": hero.ignores.add("Protect"); break;
               case "Taunt": hero.ignores.add("Taunt"); break;
+              case "DR": hero.ignores.add("DR"); break; //damage reduction
           }
       }
       else
@@ -1342,6 +1321,7 @@ class Ignore extends BeforeAbility
               case "Undermine": hero.ignores.remove("Undermine"); break;
               case "Protect": hero.ignores.remove("Protect"); break;
               case "Taunt": hero.ignores.remove("Taunt"); break;
+              case "DR": hero.ignores.remove("DR"); break;
           }
       }
    }
@@ -1394,11 +1374,11 @@ class SelfDMG extends BeforeAbility
     {
         if (loss==false)
         {
-            Damage_Stuff.ElusiveDmg(null, hero, amount, "default");
+            Damage_Stuff.ElusiveDmg(hero, hero, amount, "default");
         }
         else
         {
-            hero.LoseHP(null, amount, "self");
+            hero.LoseHP(hero, amount, "self");
         }
         return 0;
     }

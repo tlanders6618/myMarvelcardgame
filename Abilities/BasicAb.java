@@ -25,11 +25,11 @@ class BasicAb extends AttackAb
         super.PrintDesc(true); //calls attackab's printdesc, not ability's printdesc
     }
     @Override 
-    public void SetChannelled (Character hero, Ability ab, ArrayList<Character> targets)
+    public void SetChannelled (Character hero, ArrayList<Character> targets)
     {
     }
     @Override 
-    public void InterruptChannelled (Character hero, Ability ab)
+    public void InterruptChannelled (Character hero)
     {
     }
     @Override 

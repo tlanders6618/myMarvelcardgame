@@ -16,6 +16,7 @@ public class Ability_List_Summon
         //type is single, self, multitarg, random, or aoe  
         switch (index) 
         {
+            //2.0
             case 1: return MakeAbNickLMD(counter); 
             case 27: return MakeAbSpiderling(counter); 
             case 28: return MakeAbNaught(counter);
@@ -24,6 +25,7 @@ public class Ability_List_Summon
             case 4: return MakeAbDrone(counter); 
             case 5: return MakeAbLilDoomie(counter); 
             case 6: return MakeAbDaemon(counter);
+            //The rest
             case 7: return null;
             case 12: return MakeAbGiganto(counter);
             case 14: return MakeAbBruin(counter);
@@ -83,7 +85,7 @@ public class Ability_List_Summon
             return r;
             case 3: AttackAb p= new AttackAb("Bellow", "single", "enemy", 70, 4); p.together=true;
             String[] i={"Provoke", "100", "616", "1", "false"}; String[][] z=StatFactory.MakeParam(i, null); p.AddStatString(z);
-            String[] truth={"Resistance", "100", "10", "1", "true"}; String[][] social=StatFactory.MakeParam(truth, null); p.AddStatString(social);
+            String[] truth={"Resistance", "100", "15", "1", "true"}; String[][] social=StatFactory.MakeParam(truth, null); p.AddStatString(social);
             return p;
             default: return null; 
         }

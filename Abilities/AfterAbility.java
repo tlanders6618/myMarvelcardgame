@@ -6,6 +6,7 @@ package myMarvelcardgamepack;
  * Purpose: To perform non status effect related functions on abilities.
  */
 import java.util.ArrayList;
+import java.util.Iterator;
 public abstract class AfterAbility extends SpecialAbility //applied after a hero attacks
 {
     public AfterAbility()
@@ -106,7 +107,7 @@ class ActivatePassive extends AfterAbility //ability activates a hero's passive 
         num=n;
     }
     @Override
-    public void Use (Character user, Character target, int ignore)
+    public void Use (Character user, Character target, int dmgdealt)
     {
         switch (user.index) //for specific passives
         {
@@ -158,13 +159,26 @@ class ActivatePassive extends AfterAbility //ability activates a hero's passive 
             case 17: //macdonald eating 
             if (target.dead==true)
             {
-                boolean yes=CoinFlip.Flip(500+user.Cchance);
-                user.activeability.dcd-=2;
+                System.out.println(user+"'s "+user.activeability.GetAbName(user)+" had its cooldown reduced by 2 turn(s).");
+                user.activeability.dcd-=2; //since afterabs occur before cooldowns are set, must make cd negative instead of using cd method
                 Regen drugs= new Regen (500, 45, 2, user);
-                if (yes==true)
+                if (CoinFlip.Flip(500+user.Cchance)==true)
                 StatEff.CheckApply(user, user, drugs);
                 else
                 StatEff.applyfail(user, drugs, "chance");
+            }
+            break;
+            case 22: //kk's embiggened bash, since drain and nullify are done after attacking; marvellous finish is a debuffmod
+            if (user.activeability.oname.equals("Embiggened Bash"))
+            {
+                if (user.CheckFor("Mighty Blows", false)==true)
+                {
+                    Nullify n=new Nullify(100, 1, "random", "any", false, true); n.Use(user, target, 616);
+                }
+                if (user.CheckFor("Evasion", false)==true)
+                {
+                    DrainAb d=new DrainAb(500, true); d.Use(user, target, dmgdealt);
+                }
             }
             break;
             case 27: //ultron's ult
@@ -217,14 +231,17 @@ class ActivatePassive extends AfterAbility //ability activates a hero's passive 
             }
             break;
             case 84: //namor's tidal wave
-            ArrayList<StatEff> joker= new ArrayList<StatEff>(); joker.addAll(target.effects);
-            for (StatEff e: joker)
+            if (!(user.binaries.contains("Missed")))
             {
-                if (e.getimmunityname().equals("Burn")&&e.getefftype().equals("Debuffs"))
+                ArrayList<StatEff> joker= new ArrayList<StatEff>(); joker.addAll(target.effects);
+                for (StatEff e: joker)
                 {
-                    StatEff hell=StaticPassive.InstaConversion(target, e, "Target Effect", 5, e.duration);
-                    target.remove(e.id, "normal");
-                    target.add(hell, true);
+                    if (e.getimmunityname().equals("Burn")&&e.getefftype().equals("Debuffs"))
+                    {
+                        StatEff hell=StaticPassive.InstaConversion(target, e, "Target Effect", 5, e.duration);
+                        target.remove(e.id, "normal");
+                        target.add(hell, true);
+                    }
                 }
             }
             break;
@@ -697,11 +714,39 @@ class BonusTurn extends AfterAbility //for letting ally take bonus turn, but not
     @Override
     public void Use (Character caster, Character hero, int ignore2)
     {
-        if (hero.dead==false)
+        if (hero.dead==false&&!(hero.binaries.contains("Banished")))
         {
-            System.out.println(hero+" took a bonus turn!");
             Battle.Turn(hero, true);
         }
+    }
+}
+class Confidence extends AfterAbility
+{
+    int amount; int chance; 
+    public Confidence(int cchance, int aamount)
+    {
+        amount=aamount; chance=cchance; 
+        String Chance;
+        if (chance>=500)
+        Chance="Apply ";
+        else
+        Chance=this.chance+"% chance to apply ";
+        this.desc=Chance+"Confidence: "+amount+". ";
+    }
+    @Override 
+    public void Use(Character caller, Character target, int ignore) 
+    {
+        if (caller.CheckFor("Afflicted", false)==false) //confidence is a heal ability
+        {
+            boolean success=CoinFlip.Flip(chance+caller.Cchance);
+            if (success==true&&target.dead==false)
+            {
+                target.Healed(amount, false, false);
+                target.Shielded(amount);
+            }
+        }
+        else
+        System.out.println (caller.Cname+"'s Confidence failed to apply due to a conflicting status effect.");
     }
 }
 class CopySteal extends AfterAbility //the only difference is that steal removes the buff; otherwise they're identical so they share a method
@@ -735,9 +780,13 @@ class CopySteal extends AfterAbility //the only difference is that steal removes
         Type="all ";
         String Name="";
         int i=effname.length;
-        for (int p=0; p<i; p++) //loop is used in copysteal and extend
+        for (int p=0; p<i; p++) //same loop is used to make desc for both copysteal and extend
         {
-            if (!(effname[p].equals("any")))
+            if (effname[p].equals("any")&&efftype[p].equals("any"))
+            {
+                Name=Name+"status effect(s)";
+            }
+            else if (!(effname[p].equals("any")))
             {
                 if (p!=(i-1))
                 Name=Name+effname[p]+"(s) and ";
@@ -1058,33 +1107,38 @@ class CopySteal extends AfterAbility //the only difference is that steal removes
         }
     }
 }
-class Confidence extends AfterAbility
+class DrainAb extends AfterAbility
 {
-    int amount; int chance; 
-    public Confidence(int cchance, int aamount)
+    int chance;
+    int percent;
+    public DrainAb (int c, boolean half)
     {
-        amount=aamount; chance=cchance; 
-        String Chance;
-        if (chance>=500)
-        Chance="Apply ";
-        else
-        Chance=this.chance+"% chance to apply ";
-        this.desc=Chance+"Confidence: "+amount+". ";
-    }
-    @Override 
-    public void Use(Character caller, Character target, int ignore) 
-    {
-        if (caller.CheckFor("Afflicted", false)==false) //confidence is a heal ability
+        chance=c; 
+        if (half==true)
         {
-            boolean success=CoinFlip.Flip(chance+caller.Cchance);
-            if (success==true&&target.dead==false)
-            {
-                target.Healed(amount, false, false);
-                target.Shielded(amount);
-            }
+            percent=50; this.desc="Drain: Half. ";
         }
         else
-        System.out.println (caller.Cname+"'s Confidence failed to apply due to a conflicting status effect.");
+        {
+            percent=100; this.desc="Drain: Full. ";
+        }
+    }
+    @Override 
+    public void Use (Character caller, Character target, int dmgdealt) 
+    {
+        if (caller.dead==false&&!(caller.binaries.contains("Missed"))&&caller.CheckFor("Afflicted", false)==false&&caller.lifesteal==0) //drain is a heal ability
+        {
+            if (CoinFlip.Flip(chance+caller.Cchance)==true) //also, drain does not stack; if caller has a drain eff, this won't do anything
+            {
+                caller.lifesteal+=percent; 
+                caller.CheckDrain(target, dmgdealt);
+                caller.lifesteal-=percent; 
+            }
+            else
+            System.out.println (caller.Cname+"'s Drain failed to apply due to chance.");
+        }
+        else
+        System.out.println (caller.Cname+"'s Drain failed to apply due to a conflicting status effect.");
     }
 }
 class Extend extends AfterAbility
@@ -1115,9 +1169,13 @@ class Extend extends AfterAbility
         Type="all ";
         String Name="";
         int i=effname.length;
-        for (int p=0; p<i; p++) //loop is used in copysteal and extend
+        for (int p=0; p<i; p++) //same loop is used to make desc for both copysteal and extend
         {
-            if (!(effname[p].equals("any")))
+            if (effname[p].equals("any")&&efftype[p].equals("any"))
+            {
+                Name=Name+"status effect(s)";
+            }
+            else if (!(effname[p].equals("any")))
             {
                 if (p!=(i-1))
                 Name=Name+effname[p]+"(s) and ";
@@ -1171,6 +1229,13 @@ class Extend extends AfterAbility
             effs=CoinFlip.GetEffs(target, effname, efftype); //the effs on the target eligible to be extended
             if (effs.size()>0)
             {
+                Iterator<StatEff> it=effs.iterator(); 
+                while (it.hasNext())
+                {
+                    StatEff e=it.next();
+                    if (e.getimmunityname().equals("Guard")) //guard cannot be extended since it technically doesn't have a duration
+                    it.remove();
+                }
                 if (type.equals("chosen"))
                 {
                     ExtendChosen(user, target, effs);
@@ -2057,6 +2122,46 @@ class Ricochet extends AfterAbility //do ricochet damage
             Ability.DoRicochetDmg (dmg, user, target, false, string); 
             else if (dmg>5) //don't print failure message if failure was due to low dmg
             System.out.println(user.Cname+"'s Ricochet failed to apply due to chance.");
+        }
+    }
+}
+class Strip extends AfterAbility //afterab wrapper for coinflip.strip
+{
+    String name, type; boolean print;
+    public Strip (String n, String t, boolean p)
+    {
+        this.name=n; this.type=t; this.print=p;
+        String Name="";
+        if (n.equals("any")&&t.equals("any"))
+        {
+            Name="status effects";
+        }
+        else if (n.equals("any"))
+        {
+            if (!(t.equals("Buffs"))&&!(t.equals("Debuffs")))
+            Name=t+" effects";
+            else
+            Name=t; 
+        }
+        else if (t.equals("any"))
+        {
+            Name=n;
+        }
+        else
+        {
+            if (!(t.equals("Buffs"))&&!(t.equals("Debuffs")))
+            Name=n+" "+t+" effects";
+            else
+            Name=n+" "+t;
+        }
+        this.desc="Remove all "+Name+" from the target. ";
+    }
+    @Override
+    public void Use (Character user, Character target, int ignore)  
+    { 
+        if (!(user.binaries.contains("Missed")))
+        {
+            CoinFlip.Strip(target, name, type, print);
         }
     }
 }
