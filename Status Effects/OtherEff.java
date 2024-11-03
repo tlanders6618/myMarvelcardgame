@@ -199,8 +199,9 @@ class Chlorine extends OtherEff
     {
         if (e.getimmunityname().equals("Burn")&&e.getefftype().equals("Debuffs"))
         {
-            System.out.println("\n"+hero+"'s Chlorine increased the strength of their "+e+" by 25!");
-            e.power+=25;
+            int inc=30;
+            System.out.println("\n"+hero+"'s Chlorine increased the strength of their "+inc+" by 30!");
+            e.power+=inc;
             hero.remove(this.id, "normal");
         }
     }
@@ -295,6 +296,42 @@ class DazeE extends OtherEff
     public void Nullified (Character target)
     {
         target.Cchance+=50;
+    }
+}
+class DisorientE extends OtherEff 
+{
+    @Override
+    public String getimmunityname()
+    {
+        return "Disorient";
+    }
+    @Override
+    public String geteffname()
+    {
+        if (this.duration<100)
+        {
+            return "Disorient Effect, "+this.duration+" turn(s)";
+        }
+        else
+        {
+            return "Disorient Effect";
+        }
+    }
+    public DisorientE (int c, int ndur, Character Q)
+    {
+        super(c, Q);
+        this.duration=ndur;
+        this.oduration=ndur;
+    }
+    @Override
+    public void onApply (Character target)
+    {
+        target.nCC+=50;
+    }
+    @Override
+    public void Nullified (Character target)
+    {
+        target.nCC-=50;
     }
 }
 class Empower extends OtherEff
@@ -491,7 +528,7 @@ class GuardE extends OtherEff
         this.power=npower;
         this.duration=ndur;
         this.oduration=ndur;
-        this.stackable=false;
+        //this.stackable=false;
     }
     @Override
     public void onTurnEnd (Character hero) //overriden to avoid decreasing duration on turn
@@ -543,7 +580,7 @@ class Hydrogen extends OtherEff
     {
         if (e.getimmunityname().equals("Burn")&&e.getefftype().equals("Debuffs"))
         {
-            Damage_Stuff.ElusiveDmg(null, hero, 55, "default");
+            Damage_Stuff.ElusiveDmg(null, hero, 60, "default");
             hero.remove(this.id, "normal");
         }
     }
@@ -1108,14 +1145,14 @@ class SnareE extends OtherEff
         this.stackable=false;
     }
     @Override
-    public void onApply (Character target)
+    public void onTurnEnd (Character hero)
     {
-        Battle.Snared(target);
-    }
-    @Override
-    public void Nullified (Character target)
-    {
-        Battle.Speeded(target);
+        --this.duration;
+        if (this.duration<=0)
+        {
+            hero.remove(this.id, "normal");
+            hero.add(new StunE(500, 1, this.prog), true);
+        }
     }
 }
 class Soaked extends OtherEff
@@ -1171,7 +1208,7 @@ class StunE extends OtherEff
        target.binaries.add("Stunned");
        if (target.activeability!=null&&target.activeability.channelled==true)
        {
-           target.activeability.InterruptChannelled(target, target.activeability);
+           target.activeability.InterruptChannelled(target);
        }
     }
     public StunE (int c, int d, Character p)
@@ -1243,5 +1280,43 @@ class Tracer extends OtherEff
     public Tracer (int c, int d, Character p) 
     {
         super(c, p);
+        this.duration=d;
+        this.oduration=d;
+    }
+}
+class WoundE extends OtherEff 
+{
+    @Override
+    public String getimmunityname()
+    {
+        return "Wound";
+    }
+    @Override
+    public String geteffname()
+    {
+        if (this.duration<100)
+        {
+            return "Wound Effect, "+this.duration+" turn(s)";
+        }
+        else
+        {
+            return "Wound Effect";
+        }
+    }
+    public WoundE (int c, int ndur, Character p)
+    {
+        super(c, p);
+        this.duration=ndur;
+        this.oduration=ndur;
+    }
+    @Override
+    public void onApply (Character target)
+    {
+        target.binaries.add("Wounded");
+    }
+    @Override
+    public void Nullified (Character target)
+    {
+        target.binaries.remove("Wounded");
     }
 }

@@ -902,14 +902,15 @@ class Snare extends DebuffEff
         this.oduration=nduration;
     }
     @Override
-    public void onApply (Character target)
+    public void onTurnEnd (Character hero)
     {
-        Battle.Snared(target);
-    }
-    @Override
-    public void Nullified (Character target)
-    {
-        Battle.Speeded(target);
+        --this.duration;
+        if (this.duration<=0)
+        {
+            hero.remove(this.id, "normal");
+            //if this.prog.index==iceboy, and target not immune, apply freeze instead
+            hero.add(new Stun(500, this.prog), true);
+        }
     }
 }
 class Stun extends DebuffEff
@@ -930,7 +931,7 @@ class Stun extends DebuffEff
        target.binaries.add("Stunned");
        if (target.activeability!=null&&target.activeability.channelled==true)
        {
-           target.activeability.InterruptChannelled(target, target.activeability);
+           target.activeability.InterruptChannelled(target);
        }
     }
     public Stun (int c, Character p)
@@ -1107,6 +1108,47 @@ class Undermine extends DebuffEff
         super(c, p);
         this.duration=nduration;
         this.oduration=nduration;
+    }
+}
+class Vulnerable extends DebuffEff 
+{
+    @Override
+    public String getimmunityname()
+    {
+        return "Vulnerable";
+    }
+    @Override
+    public String getalttype()
+    {
+        return "nondamaging";
+    }
+    @Override
+    public String geteffname()
+    {
+        if (this.duration<100)
+        {
+            return "Vulnerable, "+this.duration+" turn(s)";
+        }
+        else
+        {
+            return "Vulnerable";
+        }
+    }
+    public Vulnerable (int c, int nduration, Character p)
+    {
+        super(c, p);
+        this.duration=nduration;
+        this.oduration=nduration;
+    }
+    @Override 
+    public void onApply (Character target)
+    {
+        target.CritVul+=50;      
+    }
+    @Override
+    public void Nullified (Character target)
+    {
+        target.CritVul-=50;
     }
 }
 class Weakness extends DebuffEff 

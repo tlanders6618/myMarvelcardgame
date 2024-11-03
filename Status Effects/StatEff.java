@@ -163,7 +163,7 @@ public abstract class StatEff
             StatEff.applyfail(target, effect, "conflict");
             return true;
         }
-        else if (effect.getimmunityname().equals("Speed")||effect.getimmunityname().equals("Snare"))
+        /*else if (effect.getimmunityname().equals("Speed")||effect.getimmunityname().equals("Snare"))
         {
             boolean snare=false, speed=false;
             if (effect.getimmunityname().equals("Speed"))
@@ -194,8 +194,8 @@ public abstract class StatEff
                 StatEff.applyfail(target, effect, "dupe");
                 return true;
             } //else run below code
-        }
-        //occurs if none of the above cases returned false
+        }*/
+        //else occurs if none of the above cases returned false
         boolean apple=effect.CheckStacking(target); 
         if (apple==true)
         return false;

@@ -533,13 +533,14 @@ class Speed extends BuffEff
         this.oduration=nduration;
     }
     @Override
-    public void onApply (Character target)
+    public void onTurnEnd (Character hero)
     {
-        Battle.Speeded(target);
-    }
-    @Override
-    public void Nullified (Character target)
-    {
-        Battle.Snared(target);
+        --this.duration;
+        if (this.duration<=0)
+        {
+            hero.remove(this.id, "normal");
+            if (hero.dead==false&&!(hero.binaries.contains("Banished")))
+            hero.helpers.add(new BonusTurnHelper()); //must be a helper to allow other turn end stuff (other stateffs ticking, passives, etc) to finish before taking bonus turn
+        }
     }
 }

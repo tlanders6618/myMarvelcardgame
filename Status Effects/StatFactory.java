@@ -51,6 +51,7 @@ public class StatFactory
             case "Debilitate": return new Debilitate (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][2]), Integer.valueOf(param[0][3]), Q);
             case "Disarm": return new Disarm (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3]), Q);
             case "Disorient": return new Disorient (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3]), Q);
+            case "Disorient Effect": return new DisorientE (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3]), Q);
             case "Disrupt": return new Disrupt (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3]), Q);
             case "Drain": return new Drain (Integer.valueOf(param[0][1]), Boolean.valueOf(param[0][2]), Integer.valueOf(param[0][3]), Q); //boolean is true for half/false for full
             case "Empower": return new Empower(Integer.valueOf(param[0][1]), Integer.valueOf(param[0][2]), Integer.valueOf(param[0][3]), Q);
@@ -100,9 +101,11 @@ public class StatFactory
             case "Terror": return new Terror(Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3]), Q); 
             case "Tracer": return new Tracer (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3]), Q); 
             case "Undermine": return new Undermine (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3]), Q); 
+            case "Vulnerable": return new Vulnerable(Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3]), Q); 
             case "Weakness": return new Weakness (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][2]), Integer.valueOf(param[0][3]), Q); 
             case "Wither": return new Wither (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][2]), Integer.valueOf(param[0][3]), Q); 
             case "Wound": return new Wound (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3]), Q); 
+            case "Wound Effect": return new WoundE (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3]), Q); 
             default: System.out.println("Spelling error in statfactory; no matching stateff found."); return null;
         }
     }
@@ -121,23 +124,6 @@ class Tracker extends StatEff //displays a character's relevant personal statist
         name=nname; oname=name; this.duration=dur; this.id=CardCode.RandomCode();
     }
     @Override
-    public String geteffname()
-    {
-        return name;
-    }
-    @Override
-    public void onApply(Character target)
-    {
-        switch (oname)
-        {
-            case "Damage Taken: ": info=target.dmgtaken; name=oname+info+"/180"; break;
-            case "Energy: ": case "Control Points: ": case "Rage: ": case "Electrons: ": case "Momentum: ": case "Energy Reserve: ": case "Pain: ":
-            info=target.passivecount; name=oname+info; 
-            break;
-            case "Sand Storm active: ": info=target.passivecount; name=oname+(target.passivecount+" turns"); break;
-        }
-    }
-    @Override
     public String getimmunityname()
     {
         return oname;
@@ -148,23 +134,42 @@ class Tracker extends StatEff //displays a character's relevant personal statist
         return "Secret";
     }
     @Override
+    public String geteffname()
+    {
+        return name;
+    }
+    @Override
+    public void onApply(Character target)
+    {
+        switch (oname)
+        {
+            case "Damage Taken: ": name=oname+target.dmgtaken+"/180"; break;
+            case "Infinity Gems: ": name=oname+target.passivecount+"/6"; break;
+            case "Energy: ": case "Control Points: ": case "Rage: ": case "Electrons: ": case "Momentum: ": case "Energy Reserve: ": case "Pain: ":
+            info=target.passivecount; name=oname+info; 
+            break;
+            case "Sand Storm active: ": info=target.passivecount; name=oname+(target.passivecount+" turns"); break;
+        }
+    }
+    @Override
     public void onTurnEnd(Character hero)
     {
         switch (oname)
         {
-            case "Damage Taken: ": info=hero.dmgtaken;
-            if (info>=180)
+            case "Damage Taken: ": 
+            if (hero.dmgtaken>=180)
             {
                 name="Berserker Frenzy active";
                 oname=name;
             }
             else
             {
-                name=oname+info+"/180";
+                name=oname+hero.dmgtaken+"/180";
             }
             break;
+            case "Infinity Gems: ": name=oname+hero.passivecount+"/6"; break;
             case "Control Points: ": case "Electrons: ": 
-            info=hero.passivecount; name=(oname+info); 
+            name=oname+hero.passivecount; 
             break;
             case "Momentum: ":
             if (hero.passivecount==5)
