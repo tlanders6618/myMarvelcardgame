@@ -86,9 +86,7 @@ public class CardCode
     }
     public static void GetPDesc (Character hero) //print desc of passive of hero
     {
-        System.out.print("\n");
-        System.out.print(hero.pdesc);
-        System.out.print("\n");
+        System.out.print("\n"+Character.MakeDesc(hero.index, hero.summoned)+"\n");
         //print this stuff again since chooseab's loop still takes input but doesn't reprint options
         if (hero.team1==true)
         System.out.println ("\nPlayer 1, choose an ability for "+hero.Cname+" to use. Type its number, not its name.");

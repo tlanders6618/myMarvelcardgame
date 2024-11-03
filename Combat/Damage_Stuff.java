@@ -95,8 +95,11 @@ public class Damage_Stuff
         {
             //if (print==true)
             System.out.println(dealer+"'s attack was critical!");
-            double ndmg= dmg*dealer.critdmg;
-            dmg=5*(int)(Math.floor(ndmg/5)); //crit damage rounded down to nearest 5
+            if (!(dealer.immunities.contains("critdmg"))) //since some characters take no extra dmg from crits
+            {
+                double ndmg= dmg*dealer.critdmg;
+                dmg=5*(int)(Math.floor(ndmg/5)); //crit damage rounded down to nearest 5
+            }
             dealer.onCrit(chump);
         }
         else
@@ -108,7 +111,7 @@ public class Damage_Stuff
     }
     public static int DamageIncrease (Character dealer, Character chump, int dmg) //dealer is the one doing the damage and chump is the one taking it
     {
-        if (dealer.ignores.contains("DR")&&chump.DV<0) //negative dmg vuln is dr, so ignore it
+        if (dealer.ignores.contains("DR")&&chump.index!=61&&chump.DV<0) //negative dmg vuln is dr, so ignore it
         return dmg+dealer.BD+dealer.PBD;
         else
         return dmg+dealer.BD+dealer.PBD+chump.DV; //dealer's dmg boosts plus the chump's damage vulnerabilities
@@ -123,7 +126,7 @@ public class Damage_Stuff
         {
             dmg=dmg-(chump.ADR+chump.DR+chump.PRDR); //ignore resistance but not resistance Effects
         }
-        else if (dealer!=null&&dealer.ignores.contains("DR"))
+        else if (dealer!=null&&dealer.ignores.contains("DR")&&chump.index!=61) //thanos's dr cannot be bypassed
         {
             if (chump.DR<0) //if target takes more damage from attacks/all sources, do not ignore that; only ignore positive damage reduction
             dmg-=chump.DR;
@@ -146,34 +149,37 @@ public class Damage_Stuff
     }
     public static void ElusiveDmg (Character dealer, Character target, int dmg, String cause)
     {
-        if (target.immunities.contains("Damage"))
-        dmg=0; //should print dmg statement even if immune, to avoid confusion
-        else
+        if (target.dead==false)
         {
-            dmg-=target.ADR;
-            if (dmg<0)
-            dmg=0;
-        }
-        if (dealer!=null) 
-        {
-            switch (cause)
+            if (target.immunities.contains("Damage"))
+            dmg=0; //should still print dmg statement if immune, to avoid confusion
+            else if (dealer!=null&&!(dealer.ignores.contains("DR"))) 
             {
-                case "counter": System.out.println("\n"+dealer+" counterattacked "+target+" for "+dmg+" damage!"); break;
-                case "reflect": System.out.println ("\n"+dealer+" Reflected "+dmg+" damage back to "+target); break; 
-                case "ricochet": System.out.println ("\n"+target+" took "+dmg+" Ricochet damage"); break; //ricochet from an ability
-                case "default": System.out.println ("\n"+dealer+" did "+dmg+" damage to "+target); break;
+                dmg-=target.ADR; 
+                if (dmg<0)
+                dmg=0;
             }
-        }
-        else 
-        {
-            switch (cause)
+            if (dealer!=null) 
             {
-                case "countdown": System.out.println("\n"+target+" took "+dmg+" damage from their Countdown"); break;
-                case "ricochet": System.out.println ("\n"+target+" took "+dmg+" Ricochet damage"); break; //ricochet from shock
-                case "default": System.out.println ("\n"+target+" took "+dmg+" damage"); break; //used for selfdmg/battlefield effs
+                switch (cause)
+                {
+                    case "counter": System.out.println("\n"+dealer+" counterattacked "+target+" for "+dmg+" damage!"); break;
+                    case "reflect": System.out.println ("\n"+dealer+" Reflected "+dmg+" damage back to "+target); break; 
+                    case "ricochet": System.out.println ("\n"+target+" took "+dmg+" Ricochet damage"); break; //ricochet from an ability
+                    case "default": System.out.println ("\n"+dealer+" did "+dmg+" damage to "+target); break;
+                }
             }
+            else 
+            {
+                switch (cause)
+                {
+                    case "countdown": System.out.println("\n"+target+" took "+dmg+" damage from their Countdown"); break;
+                    case "ricochet": System.out.println ("\n"+target+" took "+dmg+" Ricochet damage"); break; //ricochet from shock
+                    case "default": System.out.println ("\n"+target+" took "+dmg+" damage"); break; //used for selfdmg/battlefield effs
+                }
+            }
+            target.TakeDamage(dmg, false); 
         }
-        target.TakeDamage(dmg, false); 
     }
     public static void CheckBlind (Character hero)
     {

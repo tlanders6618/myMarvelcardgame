@@ -5,7 +5,7 @@ package myMarvelcardgamepack;
  * Designer: Timothy Landers
  * Date: 8/8/22
  * Filename: Card_CoinFlip
- * Purpose: To determine whether an effect applies or fails to apply, and perform other misc. functions.
+ * Purpose: To determine whether an effect applies or fails to apply, and perform other misc. functions, mainly related to gathering status effects and adding immunities.
  */
 import java.util.ArrayList;
 public class CoinFlip
@@ -67,7 +67,7 @@ public class CoinFlip
         }
         return effs;
     }
-    public static ArrayList GetEffs (Character hero, String[] effname, String[] efftype, String ex, boolean type) //same as above but excluding a certain type
+    public static ArrayList GetEffs (Character hero, String[] effname, String[] efftype, String ex, boolean type) //same as above but excluding a certain type or stateff
     {
         ArrayList<StatEff> effs=new ArrayList<StatEff>();
         for (int i=0; i<effname.length; i++)
@@ -309,5 +309,22 @@ public class CoinFlip
             }
         }   
         return team;
+    }
+    public static void Strip (Character targ, String name, String type, boolean loud) //removing stateffs without nullify
+    {
+        ArrayList<StatEff> concurrentmodificationexception5electricboogalooboogaloo2thesequel=new ArrayList<StatEff>(targ.effects);
+        for (StatEff eff: concurrentmodificationexception5electricboogalooboogaloo2thesequel)
+        {
+           if (!(eff instanceof Tracker))
+           {
+               if ((name.equals("any")||eff.getimmunityname().equals(name))&&(type.equals("any")||eff.getefftype().equals(type)))
+               {
+                   if (loud==true)
+                   targ.remove(eff.id, "normal");
+                   else
+                   targ.remove(eff.id, "silent");
+               }
+            }
+        }
     }
 }

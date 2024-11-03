@@ -243,6 +243,8 @@ public class Battle
     }
     public static boolean Turn (Character hero, boolean bonus) //what happens on a character's turn; returns true if game ends before a hero finishes their turn 
     {
+        if (bonus==true)
+        System.out.println(hero+" took a bonus turn!");
         if (hero.activeability!=null&&hero.activeability.channelled==true) //activeability set later/on previous turn, when chooseab is called
         {
             ArrayList<StatEff> toadd= new ArrayList<StatEff>();
@@ -367,7 +369,11 @@ public class Battle
                         }
                     }
                 }
-                ArrayList<SpecialAbility> exceptions= new ArrayList<SpecialAbility>(); //then remove hero's used helpers too, or trigger a bonus turn
+                if (hero.team1==true&&p2heroes==0)
+                return true; //do not trigger bonus turn if all enemies are dead, or else game won't be able to end
+                else if (hero.team1==false&&p1heroes==0)
+                return true; 
+                ArrayList<SpecialAbility> exceptions= new ArrayList<SpecialAbility>(); //remove hero's used helpers/trigger a bonus turn
                 for (SpecialAbility h: hero.helpers)
                 {
                     exceptions.add(h); 
@@ -758,7 +764,7 @@ public class Battle
     }
     public static Character[] GetTeam(boolean team) //returns all valid character on a team
     {
-        //this makes a copy to avoid sending over the team itself, as that would cause aliasing problems
+        //makes a copy to avoid aliasing problems
         Character[] targs= new Character[6]; int ind=0;
         if (team==true)
         {
@@ -815,214 +821,22 @@ public class Battle
             return foes;
         }
     }
-    public static void Snared (Character snared) //losing speed and applying snare
-    {
-        int index=0, oindex=0; 
-        if (snared.team1==true&&p1solo==false) //speed and snare are useless if there's only one hero
-        {
-            for (int i=0; i<6; i++) //need to find out hero's position in their team
-            {
-                if (team1[i]==snared)
-                {
-                    index=i; oindex=i; break;
-                }
-            }
-            if (index!=(p1heroes-1)) //the hero isn't already last in their turn order; move them down one in the new turn order
-            {
-                Character[] buck=new Character[6];
-                team1[index]=null;
-                index+=1;   
-                buck[index]=snared;
-                ArrayList<Character> jimbom= CoinFlip.ToList(team1); //convert the team to a list and remove the nulls
-                ArrayList<Character> killers=new ArrayList<Character>();
-                for (Character c: jimbom)
-                {
-                    if (c==null)
-                    killers.add(c);
-                }
-                jimbom.removeAll(killers);
-                for (int e=0; e<6; e++) //snared's teammates fill in the blank spots in the new array in the same order they take turns, leaving snared's place intact
-                {
-                    if (buck[e]==null&&jimbom.size()>0)
-                    {
-                        buck[e]=jimbom.get(0); jimbom.remove(0);
-                    }
-                }
-                team1=buck; 
-                team1=NullShift(team1);
-                if (team1[P1active]==snared) 
-                Battle.CheckActive(true);
-            }
-            else //the hero already goes last
-            {
-                Character[] buck=new Character[6];
-                buck[0]=snared; //hero already goes last, so the snare now makes them go first
-                team1[index]=null;
-                for (int e=1; e<6; e++)
-                {
-                    buck[e]=team1[e-1];
-                }
-                team1=buck; 
-                do //this bypasses the usual playerturn method to skip the snared hero so the next one in the turn order goes instead, to avoid the snared one taking 2 turns
-                {
-                    Battle.CheckActive(true); 
-                } 
-                while(team1[P1active]==null); //skip the null slots until the next hero in turn order is located
-                if (team1[P1active]==snared) 
-                Battle.CheckActive(true);
-            }
-        }
-        else if (snared.team1==false&&p2solo==false) 
-        {
-            for (int i=0; i<6; i++) 
-            {
-                if (team2[i]==snared)
-                {
-                    index=i; oindex=i; break;
-                }
-            }
-            if (index!=(p2heroes-1)) 
-            {
-                Character[] buck=new Character[6];
-                team2[index]=null;
-                index+=1;   
-                buck[index]=snared;
-                ArrayList<Character> jimbom= CoinFlip.ToList(team2); //convert the team to a list and remove the nulls
-                ArrayList<Character> killers=new ArrayList<Character>();
-                for (Character c: jimbom)
-                {
-                    if (c==null)
-                    killers.add(c);
-                }
-                jimbom.removeAll(killers);
-                for (int e=0; e<6; e++) //snared's teammates fill in the blank spots in the new array in the same order they take turns, leaving snared's place intact
-                {
-                    if (buck[e]==null&&jimbom.size()>0)
-                    {
-                        buck[e]=jimbom.get(0); jimbom.remove(0);
-                    }
-                }
-                team2=buck; 
-                team2=NullShift(team2);
-                if (team2[P2active]==snared) 
-                Battle.CheckActive(false);
-            }
-            else //the hero already goes last
-            {
-                Character[] buck=new Character[6];
-                buck[0]=snared; //hero already goes last, so the snare now makes them go first
-                team2[index]=null;
-                for (int e=1; e<6; e++)
-                {
-                    buck[e]=team2[e-1];
-                }
-                team2=buck; 
-                do //this bypasses the usual playerturn method to skip the snared hero so the next one in the turn order goes instead, to avoid the snared one taking 2 turns
-                {
-                    Battle.CheckActive(false); 
-                } 
-                while(team2[P2active]==null); //skip the null slots until the next hero in turn order is located
-                if (team2[P2active]==snared) 
-                Battle.CheckActive(false);
-            }
-        }
-    }
-    public static void Speeded (Character sped) //losing snare and applying speed
-    {
-        int index=0, oindex=0; 
-        if (sped.team1==true&&p1solo==false)
-        {
-            for (int i=0; i<6; i++) //need to find out hero's position in their team
-            {
-                if (team1[i]==sped)
-                {
-                    index=i; oindex=i; break;
-                }
-            }
-            if (index!=0) //then move them up one in the new turn order
-            {
-                index-=1;
-            }
-            else //the hero already goes first
-            {
-                index=p1heroes-1; //the number of characters is how many turns they have to wait until they take their next one; with speed, it's one less
-            }
-            //swapping places with the next person in the turn order caused a ton of bugs, so this now works differently
-            Character[] buck=new Character[6];
-            buck[index]=sped; //the sped up character's place is predetermined and placed in a new array
-            team1[oindex]=null; 
-            ArrayList<Character> jimbom= CoinFlip.ToList(team1); //convert the team to a list and remove the nulls
-            ArrayList<Character> killers=new ArrayList<Character>();
-            for (Character c: jimbom)
-            {
-                if (c==null)
-                killers.add(c);
-            }
-            jimbom.removeAll(killers);
-            for (int e=0; e<6; e++) //sped's teammates fill in the blank spots in the new array in the same order they take turns, leaving sped's place intact
-            {
-                if (buck[e]==null&&jimbom.size()>0)
-                {
-                    buck[e]=jimbom.get(0); jimbom.remove(0);
-                }
-            }
-            team1=buck; 
-            team1=NullShift(team1);
-        }
-        else if (sped.team1==false&&p2solo==false) //speed and snare are useless if there's only one hero
-        {
-            for (int i=0; i<6; i++) //need to find out hero's position in their team
-            {
-                if (team2[i]==sped)
-                {
-                    index=i; oindex=i; break;
-                }
-            }
-            if (index!=0) //then move them up one in the new turn order
-            {
-                index-=1;
-            }
-            else //the hero already goes first
-            {
-                index=p2heroes-1; //the number of characters is how many turns they have to wait until they take their next one; with speed, it's one less
-            }
-            //swapping places with the next person in the turn order caused a ton of bugs, so this now works differently
-            Character[] buck=new Character[6];
-            buck[index]=sped; //the sped up character's place is predetermined and placed in a new array
-            team2[oindex]=null; 
-            ArrayList<Character> jimbom= CoinFlip.ToList(team2); //convert the team to a list and remove the nulls
-            ArrayList<Character> killers=new ArrayList<Character>();
-            for (Character c: jimbom)
-            {
-                if (c==null)
-                killers.add(c);
-            }
-            jimbom.removeAll(killers);
-            for (int e=0; e<6; e++) //sped's teammates fill in the blank spots in the new array in the same order they take turns, leaving sped's place intact
-            {
-                if (buck[e]==null&&jimbom.size()>0)
-                {
-                    buck[e]=jimbom.get(0); jimbom.remove(0);
-                }
-            }
-            team2=buck; 
-            team2=NullShift(team2);
-        }
-    }
     public static void AddDead (Character dead) //altering team arrays to remove dead characters
     {
+        Character[] newteam=new Character[6];
+        int ind=0;
         if (dead.team1==true)
         {            
             team1dead.add(dead); 
             for (int i=0; i<6; i++)
             {
-                if (team1[i]!=null&&team1[i]==dead) //make their spot in their team array null
+                if (team1[i]!=null&&team1[i]!=dead) //make new array with dead hero missing, instead of doing team[i]=null, to avoid bugs
                 {
-                    team1[i]=null;
-                    break;
+                    newteam[ind]=team1[i];
+                    ++ind;
                 }
             }
-            team1=NullShift(team1); 
+            team1=newteam; 
             p1teamsize-=dead.size;
             p1heroes--;
         }
@@ -1031,30 +845,16 @@ public class Battle
             team2dead.add(dead); 
             for (int i=0; i<6; i++)
             {
-                if (team2[i]!=null&&team2[i]==dead)
+                if (team2[i]!=null&&team2[i]!=dead)
                 {
-                    team2[i]=null;
-                    break;
+                    newteam[ind]=team2[i];
+                    ++ind;
                 }
             }
-            team2=NullShift(team2);
+            team2=newteam;
             p2teamsize-=dead.size;
             p2heroes--;
         }
-    }
-    public static Character[] NullShift (Character[] team) //after character dies, move others up in team array to put the nulls at the bottom/end
-    {
-       Character[] newteam= new Character[6]; 
-       int index=0;
-       for (int count=0; count<6; ++count) 
-       {
-           if (team[count]!=null)
-           { 
-               newteam[index]=team[count];
-               ++index;
-           }
-       }
-       return newteam;
     }
     public static void SummonSomeone (Character summoner, Summon friend) //checks if there's space on the team for a summon
     {
@@ -1084,7 +884,7 @@ public class Battle
             }
             else //if they are out of space, print error message
             {
-                System.out.println ("Player 1 max team size reached. Summon failed."); 
+                System.out.println ("Not enough space on Player 1's team for "+friend+". Summon failed."); 
             }
         }
         else ///they are on team 2
@@ -1112,7 +912,7 @@ public class Battle
             }
             else
             {
-                System.out.println ("Player 2 max team size reached. Summon failed."); 
+                System.out.println ("Not enough space on Player 2's team for "+friend+". Summon failed."); 
             }
         }
     }
@@ -1149,7 +949,7 @@ public class Battle
     }
     public static int CheckWin (int turn) //turn is tturns%2
     {
-        //if both team's heroes are dead (e.g. a lone ultron drone kills the last enemy), the winner is whoever's turn it is 
+        //if both team's heroes are dead (e.g. a lone doombot suicide kills the last enemy), the winner is whoever's turn it is 
         if (turn!=0) //player 1's turn; always odd numbers, starting with turn 1
         {
             if (p2heroes==0)
@@ -1157,7 +957,7 @@ public class Battle
                 return 1; //player 1 is the winner
             }
         }
-        else if (turn==0) //player 2' turn; always an even number, starting with turn 2
+        else //if (turn==0) //player 2' turn; always an even number, starting with turn 2
         {
             if (p1heroes==0) 
             { 

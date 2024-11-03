@@ -24,8 +24,8 @@ public class Card_Game_Main
         int[] charnames= new int[6];
         bans[6]=24; bans[7]=62; bans[8]=122; bans[9]=170; bans[10]=184; //players cannot pick gauntlet thanos, binary, etc        
         //Selecting cards
-        System.out.println ("Welcome. The current version is 4.4.18. The latest playable character is Vapor (Classic). "); 
-        System.out.println ("Currently, characters are playable from: 2.0, 2.1, 2.6, 2.7, 2.8, 2.9, and 2.10.");
+        System.out.println ("Welcome. The current version is 4.5.7. The latest playable character is Corvus Glaive (Classic). "); 
+        System.out.println ("Currently, characters are playable from: 2.0, 2.1, 2.5, 2.6, 2.7, 2.8, 2.9, and 2.10.");
         System.out.println ("Remember, characters will take turns in the order they are picked.");
         System.out.println ("\nEnter draft mode (allows character banning and up to one character swap)? Type yes or no.");
         boolean issue=true; 

@@ -34,7 +34,7 @@ public class Card_Selection
             {
                 Cname=Damage_Stuff.GetInput(); 
                 good=false;
-                if (Cname==616||Cname<=0||Cname>105||(Cname>41&&Cname<68))//&&!(Cname>=68&&Cname<=69)) //updated as more characters are released in each version
+                if (Cname==616||Cname<=0||Cname>105||(Cname>41&&Cname<68)&&!(Cname>=61&&Cname<=63)) //updated as more characters are released in each version
                 {
                     System.out.println("Index number not found.");
                 }
@@ -61,12 +61,12 @@ public class Card_Selection
         boolean typo=true;
         if (banned==true) //tried to pick banned character
         {
-            System.out.println ("\nThe selected character has been banned. Banned characters cannot be used. Please select another character.");
+            System.out.println ("The selected character has been banned. Banned characters cannot be used. Please select another character.");
         }
         do
         {
             rename=Damage_Stuff.GetInput();
-            if (rename==616||rename<=0||rename>105||(rename>41&&rename<68))
+            if (rename==616||rename<=0||rename>105||(rename>41&&rename<68)&&!(rename>=61&&rename<=63)) 
             {
                 System.out.println("Index number not found.");
             }
@@ -191,9 +191,9 @@ public class Card_Selection
         {
             for (Character c: team)
             {
-                if (hero.index==86&&c.binaries.contains("Invisible")&&c.CheckFor("Snare", false)==true) //kraven passive
+                if (hero.index==86&&c.binaries.contains("Invisible")&&c.CheckFor("Disorient", false)==true) //kraven passive
                 {
-                    //don't remove them, but don't add them to safe either; kraven treats snared invisible heroes like normal, so he can't target them through provoke/taunt
+                    //don't remove them, but don't add them to safe either; kraven treats snared invisible heroes like normal, so he still can't target them through provoke/taunt
                 }
                 else if (!(hero.ignores.contains("Invisible"))&&c.binaries.contains("Invisible"))
                 {
