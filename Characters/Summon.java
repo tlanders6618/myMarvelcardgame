@@ -18,7 +18,6 @@ public class Summon extends Character
         super(Sindex);
         summoned=true;
         size=SetSizeSum(index);
-        this.pdesc=Character.MakeDesc(Sindex, true);
         if (Sindex==13)
         {
             System.out.println("You forgot to implement the summon constructor for clones."); //clone health, name, and abilities depend on who they're a clone of
@@ -53,7 +52,7 @@ public class Summon extends Character
                 if (hero!=null&&hero.summoned==true&&hero.index==lad.index)
                 {
                     String name= hero.SetName(hero.index, true); //check the summoned hero's original name to compare with the new summon's original name
-                    if (name.equals(lad.Cname))
+                    if (name.equals(lad.Cname)) //can't check their current name or else thug==thug 2 would be false and wouldn't increment like it should
                     {
                         ++dupes;
                     }
@@ -274,26 +273,26 @@ public class Summon extends Character
     {
     }
     @Override
-    public Character onTargeted (Character attacker, Character target, int dmg, boolean aoe)
+    public Character onTargeted (Character attacker, int dmg, boolean aoe)
     { 
-        Character ntarg=target; 
-        if (aoe==false&&target.CheckFor("Protect", false)==true&&!(attacker.ignores.contains("Protect"))) //check for protect
+        Character ntarg=this; 
+        if (aoe==false&&this.CheckFor("Protect", false)==true&&!(attacker.ignores.contains("Protect"))) //check for protect
         { 
-            for (StatEff eff: target.effects)
+            for (StatEff eff: this.effects)
             {
-                if (eff.getimmunityname().equalsIgnoreCase("Protect")&&!(eff.getProtector()==target)) //target must have protected, not be protecting someone else
+                if (eff.getimmunityname().equalsIgnoreCase("Protect")&&!(eff.getProtector()==this)) //target must have protected, not be protecting someone else
                 {
                     Character bigman=eff.getProtector(); 
-                    if (!(target.binaries.contains("Banished"))&&!(bigman.binaries.contains("Banished"))&&!(bigman.binaries.contains("Stunned"))) //doesn't work while banished
+                    if (!(this.binaries.contains("Banished"))&&!(bigman.binaries.contains("Banished"))&&!(bigman.binaries.contains("Stunned"))) //doesn't work while banished
                     {
                         if (eff.getefftype().equalsIgnoreCase("Defence")&&!(attacker.ignores.contains("Defence"))) 
                         {
-                            System.out.println(bigman+" protected "+target+"!");
+                            System.out.println(bigman+" protected "+this+"!");
                             return bigman; //protector becomes target instead
                         } 
                         else if (eff.getefftype().equalsIgnoreCase("Other")) 
                         {
-                            System.out.println(bigman+" protected "+target+"!");
+                            System.out.println(bigman+" protected "+this+"!");
                             return bigman; //if the character is protected, end method bc they're safe now
                         }            
                     }
@@ -302,13 +301,13 @@ public class Summon extends Character
         }
         else //only need to notify allies and activate their passives if the character is still vulnerable
         {
-            Character[] friends=Battle.GetTeammates(target);
+            Character[] friends=Battle.GetTeammates(this);
             for (Character friend: friends) //this is where spidey, thing, etc do their thing
             {
                 if (friend!=null&&!(friend.binaries.contains("Banished")))
                 {
-                    ntarg=friend.onAllyTargeted(attacker, target, dmg, aoe);
-                    if (ntarg!=target)
+                    ntarg=friend.onAllyTargeted(attacker, this, dmg, aoe);
+                    if (ntarg!=this)
                     return ntarg; //only the first target switching passive should take effect
                 }
             }
@@ -491,7 +490,7 @@ public class Summon extends Character
         }
         if (this.activeability!=null&&this.activeability.channelled==true)
         {
-            this.activeability.InterruptChannelled(this, this.activeability);
+            this.activeability.InterruptChannelled(this);
         }
         this.HP=0;
         this.dead=true;
@@ -548,6 +547,15 @@ public class Summon extends Character
     @Override 
     public void onRez (Character healer)
     {
+        this.HPChange(0, this.HP); 
+        Character[] friends=Battle.GetTeammates(this);
+        for (Character c: friends)
+        {
+            if (c!=null&&!(c.binaries.contains("Banished")))
+            {
+                c.onAllyRez(this, healer);
+            }
+        }
     }
     @Override
     public void onAllyRez (Character ally, Character healer)
@@ -621,7 +629,6 @@ public class Summon extends Character
             this.AddImmune(false); //for getting rid of immunities when leaving a transformed form; e.g. a robot transforming would lose robot immunities
             this.index=newindex; 
             this.passivecount=0;
-            this.pdesc=Character.MakeDesc(newindex, true);
             this.AddImmune(true); //for gaining immunities when transforming into someone; e.g. transforming into a robot would grant robot immunities
             CheckSumDupes(this);
             //switch statement for triggering ontransform passives would go here, if any summons had passives like that

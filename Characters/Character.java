@@ -12,7 +12,6 @@ public abstract class Character
 {
     //base stats
     String Cname="J. Jonah Jameson";    
-    String pdesc; //describes hero passive(s)
     int size=1;
     int HP=0; //health
     int maxHP;
@@ -32,9 +31,9 @@ public abstract class Character
     double critdmg=1.5; //default is crits do +50% dmg
     int SHLD=0; //shield
     int Cchance=0; //extra status chance
-    int CritDR=0; //crit resistance
-    int CritVul=0; //vulnerable
-    double lifesteal=0; //drain
+    int CritDR=0; //crit resistance, mainly from bulwark
+    int CritVul=0; //vulnerable; not negative critdr because it only applies if target can crit
+    int lifesteal=0; //drain
     boolean team1=false; //which team they're on, for determining who's an ally and who's an enemy
     Ability[] abilities = new Ability[5];
     Ability[][] transabs= new Ability[3][5]; //storing abilities of characters they transformed into
@@ -187,31 +186,31 @@ public abstract class Character
         if (ReT<0)
         ReT=0;
         if (bleed==true) //if they had the eff, print how much total dmg/healing they took from it, even if it's 0, because it isn't done by the effs themselves anymore
-        System.out.println("\n"+this.Cname+" took "+BlT+" Bleed damage."); 
+        System.out.println("\n"+this+" took "+BlT+" Bleed damage."); 
         if (burn==true)
-        System.out.println("\n"+this.Cname+" took "+BuT+" Burn damage."); 
+        System.out.println("\n"+this+" took "+BuT+" Burn damage."); 
         if (shock==true)
-        System.out.println("\n"+this.Cname+" took "+ShT+" Shock damage."); 
+        System.out.println("\n"+this+" took "+ShT+" Shock damage."); 
         if (poison==true)
         {
             if (immune==true)
-            System.out.println("\n"+this.Cname+" no health from Poison due to an immunity."); 
+            System.out.println("\n"+this+" lost no health from Poison due to an immunity."); 
             else
-            System.out.println("\n"+this.Cname+" lost "+PoT+" health from Poison."); 
+            System.out.println("\n"+this+" lost "+PoT+" health from Poison."); 
         }
         if (wither==true)
         {
             if (immune==true)
-            System.out.println("\n"+this.Cname+" no health from Wither due to an immunity."); 
+            System.out.println("\n"+this+" lost no health from Wither due to an immunity."); 
             else
-            System.out.println("\n"+this.Cname+" lost "+WiT+" health from Wither."); 
+            System.out.println("\n"+this+" lost "+WiT+" health from Wither."); 
         }
         if (regen==true)
         {
             if (this.CheckFor("Wound", false)==true)
-            System.out.println("\n"+this.Cname+" could not be healed due to being Wounded.");
+            System.out.println("\n"+this+" could not be healed due to being Wounded.");
             else
-            System.out.println("\n"+this.Cname+" was healed for "+ReT+" health!"); 
+            System.out.println("\n"+this+" was healed for "+ReT+" health!"); 
         }
     }
     public void DOTdmg (int dmg, String type) //take dot dmg
@@ -395,13 +394,13 @@ public abstract class Character
         if (passive==false&&this.immunities.contains("Heal")) //passive healing isn't considered to be a heal ability
         {
             if (regen==false) //don't print anything for regen; that's already handled by hero.onTurnStart
-            System.out.println(this.Cname+" could not be healed due to an immunity!");
+            System.out.println("\n"+this.Cname+" could not be healed due to an immunity!");
             nowound=false;
         }
         else if (passive==false&&this.binaries.contains("Wounded"))
         {
             if (regen==false)
-            System.out.println(this.Cname+" could not be healed due to being Wounded!");
+            System.out.println("\n"+this.Cname+" could not be healed due to being Wounded!");
             nowound=false;
         }
         if (nowound==true&&this.dead==false) //able to be healed
@@ -450,27 +449,23 @@ public abstract class Character
     }
     public void CheckDrain (Character target, int amount) //this is now under the attack method instead of each attackab and basicab
     {
-        if (this.lifesteal<=0||target.immunities.contains("Drained")||this.binaries.contains("Wounded"))
+        if (this.lifesteal<=0||target.immunities.contains("Drained"))
         {
             //can't heal
         }
+        else if (this.binaries.contains("Wounded"))
+        {
+            System.out.println("\n"+this.Cname+" could not be healed due to being Wounded!");
+        }
         else
         {
-            int h=this.HP;
             if (this.lifesteal==50)
             {
                 double dub=amount/2;
-                amount=5*(int)Math.ceil(dub/5.0); //drain half, rounded up
+                amount=5*(int)Math.ceil(dub/5.0); //drain half, so only heal for half of damage dealt, rounded up
             }
             amount=this.GetHealAmount(amount, false);
-            if (this.HP<this.maxHP)
-            {
-                this.HP+=amount;
-                System.out.println("\n"+this.Cname+" healed themself for "+amount+" health!");
-            }
-            if (this.HP>this.maxHP)
-            this.HP=this.maxHP;
-            this.HPChange(h, this.HP);
+            this.Healed(amount, false, false);
         }
     }
     public void Shielded (int amount) //hero is gaining shield
@@ -492,7 +487,7 @@ public abstract class Character
             System.out.println("\n"+this.Cname+" received "+amount+" shield!");
         }
     }
-    public abstract Character onTargeted (Character attacker, Character target, int dmg, boolean aoe);
+    public abstract Character onTargeted (Character attacker, int dmg, boolean aoe);
     public abstract void onAllyTurn (Character ally, boolean summoned); 
     public abstract void onEnemyTurn (Character enemy, boolean summoned);
     public abstract void onFightStart();
@@ -502,7 +497,7 @@ public abstract class Character
     public Character Attack (Character dealer, Character target, int dmg, boolean aoe) //for attack skills
     {
         BeforeAttack(target, true);
-        target=target.onTargeted(dealer, target, dmg, aoe); 
+        target=target.onTargeted(dealer, dmg, aoe); 
         BeforeAttack(target, false);
         if (!(dealer.binaries.contains("Missed"))&&!(dealer.immunities.contains("Missed"))) //only check if dealer isn't immune to miss and hasn't missed already; can't miss twice 
         { 
@@ -553,7 +548,7 @@ public abstract class Character
     public Character AttackNoDamage (Character dealer, Character target, boolean aoe) //modified version of attack method since debuff skills cannot do damage
     {
         BeforeAttack(target, true);
-        target=target.onTargeted(dealer, target, 0, aoe);
+        target=target.onTargeted(dealer, 0, aoe);
         BeforeAttack(target, false);
         if ((!(dealer.binaries.contains("Missed"))&&!(dealer.immunities.contains("Missed"))))
         {
@@ -583,7 +578,7 @@ public abstract class Character
     public Character AttackNoDamage (Character dealer, Character target, int lossy, boolean aoe, boolean max) //for (max) health loss attacks
     {
         BeforeAttack(target, true);
-        target=target.onTargeted(dealer, target, 0, aoe);
+        target=target.onTargeted(dealer, 0, aoe);
         BeforeAttack(target, false);
         if ((!(dealer.binaries.contains("Missed"))&&!(dealer.immunities.contains("Missed"))))
         {
@@ -628,12 +623,12 @@ public abstract class Character
     public abstract int TakeDamage (int dmg, boolean dot); 
     public abstract void TookDamage (Character dealer, int dmg); //triggers relevant passives and checks if hero should be dead
     public abstract void TookDamage (boolean dot, int dmg); 
-    public abstract void onLethalDamage (Character killer, String dmgtype);
+    public abstract void onLethalDamage (Character killer, String dmgtype); //triggers relevant passives/immortality and calls ondeath
     public abstract void onDeath (Character killer, String dmgtype);
     public abstract void onAllyDeath (Character deadfriend, Character killer);
     public abstract void onEnemyDeath (Character deadfoe, Character killer);
     public abstract void onKill (Character victim);
-    public abstract void onRez (Character healer); //needs to call hpchange
+    public abstract void onRez (Character healer); 
     public abstract void onAllyRez (Character ally, Character healer); //to reapply passive bonuses to allies
     public void LoseMaxHP (Character attacker, int lossy)
     {
@@ -641,7 +636,7 @@ public abstract class Character
         {
             System.out.println("\n"+this.Cname+"'s max health was reduced by "+lossy+"!");
             this.maxHP-=lossy;
-            if (this.index==105) //mr.immortal is currently (4.2) the only hero with a passive relating to losing max hp, so this is an if instead of a switch
+            if (this.index==105) //mr.immortal is currently (4.5) the only hero with a passive relating to losing max hp, so this is an if instead of a switch
             ActivePassive.Immortal(this, "hp");
             if (this.maxHP<=0) //ignores immortality and the like; instant and permanent death
             {
@@ -731,14 +726,14 @@ public abstract class Character
                 case 75: case 79: case 81: case 82: case 84: case 86: case 88: case 89: case 90: case 92: case 94: case 97: case 98: case 100: case 101:
                 return 230;
                 //240
-                case 12: case 13: case 15: case 16: case 17: case 22: case 27: case 28: case 30: case 32: case 35: case 38: case 41: case 70: case 78:
+                case 12: case 13: case 15: case 16: case 17: case 22: case 27: case 28: case 30: case 32: case 35: case 38: case 41: case 61: case 62: case 70: case 78:
                 case 83: case 85: case 87: case 99: case 104:
                 return 240;
                 //special carrots
                 case 26: return 130; //modork
                 case 31: return 250; //hulk
                 case 76: case 105: return 100; //speedball and mr immortal
-                case 77: return 200; //penance
+                case 63: case 77: return 200; //penance and corvus
             }    
             return 616;
         }
@@ -813,9 +808,13 @@ public abstract class Character
                 case 36: return "Vulture (Classic)";
                 case 37: return "Mysterio (Classic)";
                 case 38: return "Doctor Octopus (Classic)";
-                case 39: return "Electro (Classic)";
+                case 39: return "Electro (Max Dillon)";
                 case 40: return "Sandman (Classic)";
                 case 41: return "Rhino (Classic)";
+                //2.5: Thanos Arrives
+                case 61: return "Thanos (Classic)";
+                case 62: return "Thanos (Infinity Gauntlet)";
+                case 63: return "Corvus Glaive (Classic)";
                 //2.6: U-Foes
                 case 68: return "Vector (Classic)";
                 case 69: return "X-Ray (Classic)";
@@ -894,15 +893,13 @@ public abstract class Character
     public abstract void onSelfControlled (Character controller);
     public void BanishTick ()
     {
-        StatEff ban=null;
-        for (StatEff eff: this.effects)
+        for (StatEff eff: new ArrayList<StatEff>(this.effects))
         {
             if (eff.getimmunityname().equals("Banish"))
             {
-                ban=eff; break; //banish does not stack since it would be redundant, not to mention impossible to apply more than once
+                eff.UseBanish(this); break; //banish does not stack since it would be redundant, not to mention impossible to apply more than once
             }
         }
-        ban.UseBanish(this);
     }
     public static String MakeDesc (int index, boolean summoned) //descriptions of every character's passives
     {
@@ -972,7 +969,7 @@ public abstract class Character
                 case 33: //deadpool
                 return "On turn, gain 30 HP. Do +15 damage against Summons and reduce all cooldowns by 1 turn on kill.";
                 case 35: //juggernaut
-                return "Gain immunity to Stun and Snare. Gain +10 damage reduction and Control immunity while above 100 HP. "+ 
+                return "Gain immunity to Stun and Copy. Gain +15 damage reduction and Control immunity while above 100 HP. "+ 
                 "Gain 1 M on turn and attack (max 5); while at 5, become debuff immune.";
                 //2.1: Sinister Six
                 case 36: //vulture
@@ -983,6 +980,14 @@ public abstract class Character
                 return "Gain immunity to Bleed, Disarm, Snare, and Shock, and ignore Counters; when receiving 2 Burns, convert them into a Stun Effect for 1 turn.";
                 case 41: //rhino
                 return "On fight start, gain Resistance. Take -10 Bleed damage. Gain immunity to max HP reduction, Suppression, Vulnerable, and Terror.";
+                //2.5: Thanos Arrives
+                case 61: //thanos
+                return "Gain immunity to Banish, Control, Wither, Persuaded, HP loss, and max HP reduction. Gain +10 damage reduction and +5 for each G. "+
+                "Gain 1 G on turn and enemy death. At 6, Transform into Thanos (Infinity Gauntlet). On death, enemies gain Confidence: 45.";
+                case 62: //gauntlet thanos
+                return "Gain immunity to status effects, crits, HP loss, and max HP reduction. All abilities are Elusive and inescapable. On Transform, take a turn.";
+                case 63: //corvus
+                return "Gain +100% crit chance. On lethal damage, gain -100% crit chance, gain Guard, and become immune to status effects and death until the Guard is lost.";
                 //2.6: U-Foes
                 case 68: //vector
                 return "Gain immunity to Shock, Bleed, Burn, and Freeze. When using an ability on self or an ally, 100% chance to Purify. "+
@@ -990,7 +995,7 @@ public abstract class Character
                 case 69: //x-ray
                 return "Gain immunity to Bleed, Poison, and Heal. Take no damage from Wither.";
                 case 70: //ironclad
-                return "Gain immunity to Bleed, Burn, and Freeze. When an ally takes over 95 damage, gain Taunt for 1 turn. "+ 
+                return "Gain immunity to Bleed, Burn, and Freeze, but take +10 damage from Poison. When an ally takes 100+ damage, gain Taunt for 1 turn. "+ 
                 "If attacked while Taunting, counter for 0 damage, affected by status effects on self.";
                 case 71: //vapor
                 return "Gain immunity to Bleed and Poison. Ignore Evade.";
@@ -1022,9 +1027,9 @@ public abstract class Character
                 return "Gain immunity to status effects. Channelled abilities cannot be interrupted.";
                 //2.9: Fearsome Foes of Spider-Man
                 case 86: //kraven
-                return "Attacks against Snared enemies ignore Invisible, Evade, and Blind.";
+                return "Attacks against Disoriented enemies ignore Invisible, Evade, and Blind.";
                 case 89: //hydro man
-                return "Gain immunity to Bleed, Burn, and Soaked, but take +10 damage from Shock.";
+                return "Gain immunity to Bleed, Burn, Snare, and Soaked, but take +10 damage from Shock.";
                 case 90: //carnage
                 return "When an enemy gains Bleed, gain Intensify: 5 with equal duration. On kill, gain Focus for 1 turn. Ignore Evade but take +10 damage while Burning."; 
                 case 91: //goblin
@@ -1050,7 +1055,7 @@ public abstract class Character
                 case 103: //nightcrawler
                 return "On Evade, counter for 25 damage and apply Bleed: 15 for 1 turn.";
                 case 104: //bishop
-                return "Store all damage taken as R. On turn, gain Taunt. When taking damage while Taunting, remove the Taunt and gain Regen: 35 for 1 turn.";
+                return "Store all damage taken as R. On turn, gain Taunt. When taking damage while Taunting, remove the Taunt and gain Regen: 30 for 1 turn.";
                 case 105: //mr immortal
                 return "On death, apply Confidence: 30 and Focus for 1 turn to all allies. 2 ally turns after dying, Resurrect with full HP. Max HP cannot fall below 5.";
                 //default

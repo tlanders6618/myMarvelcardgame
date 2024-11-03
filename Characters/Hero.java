@@ -15,7 +15,6 @@ public class Hero extends Character
     public Hero (int Pindex)
     {
         super(Pindex); //character's semi-unique identifier number     
-        this.pdesc=Character.MakeDesc(Pindex, false);
         //set identifiers
         this.HP=InHP (index, false);
         this.maxHP=HP;
@@ -146,6 +145,7 @@ public class Hero extends Character
                     if (name.equals("Burn"))
                     StaticPassive.Burn(this, -5);
                     break;
+                    case 63: StaticPassive.Corvus(this, "remove", eff); break;
                     case 78: 
                     if (name.equals("Burn"))
                     {
@@ -209,6 +209,7 @@ public class Hero extends Character
             case 33: StaticPassive.Deadpool(this, "heal", null); break;
             case 35: ActivePassive.Cain(this, "turn", 616); break;
             case 40: ActivePassive.Sandy(this, "turn"); break;
+            case 61: ActivePassive.Thanos(this, "gain", null, 0); break;
             case 72: StaticPassive.Zemo(this, true); break;
             case 74: ActivePassive.Songbird(this); break;
             case 78: ActivePassive.Rulk(this, "turn", 0); break;
@@ -289,26 +290,26 @@ public class Hero extends Character
         }
     }
     @Override
-    public Character onTargeted (Character attacker, Character target, int dmg, boolean aoe)
+    public Character onTargeted (Character attacker, int dmg, boolean aoe)
     {
-        Character ntarg=target;
-        if (aoe==false&&target.CheckFor("Protect", false)==true&&!(attacker.ignores.contains("Protect"))) //check for protect
+        Character ntarg=this;
+        if (aoe==false&&this.CheckFor("Protect", false)==true&&!(attacker.ignores.contains("Protect"))) //check for protect
         {
-            for (StatEff eff: target.effects)
+            for (StatEff eff: this.effects)
             {
-                if (eff.getimmunityname().equalsIgnoreCase("Protect")&&!(eff.getProtector()==target)) //target must have protected, not be protecting someone else
+                if (eff.getimmunityname().equalsIgnoreCase("Protect")&&!(eff.getProtector()==this)) //target must be protected, not be protecting someone else
                 {
                     Character bigman=eff.getProtector(); 
-                    if (!(target.binaries.contains("Banished"))&&!(bigman.binaries.contains("Stunned"))&&!(bigman.binaries.contains("Banished"))) //doesn't work while banished
+                    if (!(this.binaries.contains("Banished"))&&!(bigman.binaries.contains("Stunned"))&&!(bigman.binaries.contains("Banished"))) //doesn't work while banished
                     {
                         if (eff.getefftype().equalsIgnoreCase("Defence")&&!(attacker.ignores.contains("Defence"))) 
                         {
-                            System.out.println(bigman+" protected "+target+"!");
+                            System.out.println(bigman+" protected "+this+"!");
                             return bigman; //protector becomes target instead
                         } 
                         else if (eff.getefftype().equalsIgnoreCase("Other")) 
                         {
-                            System.out.println(bigman+" protected "+target+"!");
+                            System.out.println(bigman+" protected "+this+"!");
                             return bigman; //if the character is protected, end method bc they're safe now
                         }            
                     }
@@ -317,21 +318,21 @@ public class Hero extends Character
         }
         else //only need to notify allies and activate their passives if the character is still vulnerable
         {
-            Character[] friends=Battle.GetTeammates(target);
+            Character[] friends=Battle.GetTeammates(this);
             for (Character friend: friends) //this is where spidey, thing, etc do their thing
             {
                 if (friend!=null&&!(friend.binaries.contains("Banished")))
                 {
-                    ntarg=friend.onAllyTargeted(attacker, target, dmg, aoe);
-                    if (ntarg!=target)
+                    ntarg=friend.onAllyTargeted(attacker, this, dmg, aoe);
+                    if (ntarg!=this)
                     return ntarg; //only the first target switching passive should take effect
                 }
             }
-            switch (target.index) //for passives like howard the duck's that apply when attacked but take place before damage is dealt; mainly for avoidance
+            switch (this.index) //for passives like howard the duck's that apply when attacked but take place before damage is dealt; mainly for avoidance
             {
                 //no need to trigger these passives if protect/another passive was activated, since protect changes the attack's target
                 //but if no one else is going to be the target, then the original target triggers their ontargeted passive
-                case 18: ActivePassive.Spidey(target, attacker, true, aoe); break;
+                case 18: ActivePassive.Spidey(this, attacker, true, aoe); break;
             }
         }
         return ntarg;
@@ -432,9 +433,10 @@ public class Hero extends Character
     @Override
     public int TakeDamage (Character dealer, int dmg, boolean aoe) //this checks if shield is strong enough to prevent health damage from an enemy attack
     {
-        switch (this.index)
+        switch (this.index) //also triggers some dr passives
         {
             case 26: dmg=StaticPassive.MODOC(this, dealer, "attacked", dmg); break;
+            case 61: dmg=ActivePassive.Thanos(this, "damage", null, dmg); break;
             case 77: dmg=ActivePassive.Penance(this, dmg); break;
             case 83: dmg=StaticPassive.LukeCage(this, dmg); break;
         }
@@ -461,6 +463,10 @@ public class Hero extends Character
     @Override
     public int TakeDamage (int dmg, boolean dot) //same as above but for taking sourceless damage
     {
+        switch (this.index) //also triggers some dr passives
+        {
+            case 61: dmg=ActivePassive.Thanos(this, "damage", null, dmg); break;
+        }
         int odmg=dmg;
         if (SHLD>=dmg) 
         {
@@ -507,10 +513,13 @@ public class Hero extends Character
     @Override
     public void TookDamage (Character dealer, int dmg) //for taking damage from a hero
     {
-        if (this.immunities.contains("Damage")) //dmg number is unchanged, but print 0 because they didn't take any dmg
-        System.out.println ("\n"+dealer.Cname+" did 0 damage to "+this.Cname);
-        else
-        System.out.println ("\n"+dealer.Cname+" did "+dmg+" damage to "+this.Cname);
+        if (this.dead==false)
+        {
+            if (this.immunities.contains("Damage")) //dmg number is unchanged, but print 0 because they didn't take any dmg
+            System.out.println ("\n"+dealer.Cname+" did 0 damage to "+this.Cname);
+            else
+            System.out.println ("\n"+dealer.Cname+" did "+dmg+" damage to "+this.Cname);
+        }
         this.dmgtaken+=dmg; 
         int h=this.HP; h+=dmg;
         if (this.HP<=0)
@@ -575,6 +584,7 @@ public class Hero extends Character
         switch (this.index)
         {
             case 12: die=ActivePassive.DraxOG(this, false, this, dmgtype); break;
+            case 63: StaticPassive.Corvus(this, "lethal", null); break;
         }
         if (die==true&&!(this.binaries.contains("Immortal")))
         {
@@ -594,7 +604,7 @@ public class Hero extends Character
         }
         if (this.activeability!=null&&this.activeability.channelled==true)
         {
-            this.activeability.InterruptChannelled(this, this.activeability); //already checks if channelling was finished
+            this.activeability.InterruptChannelled(this); //already checks if channelling was finished
         }
         ArrayList <StatEff> removeme= new ArrayList<StatEff>();
         removeme.addAll(this.effects);  
@@ -648,6 +658,7 @@ public class Hero extends Character
                 }
             }
             break;
+            case 61: int liz=ActivePassive.Thanos(this, "death", null, 0); break;
             case 100: StaticPassive.Elixir(this); break;
             case 105: ActivePassive.Immortal(this, "death"); break;
         }
@@ -666,6 +677,7 @@ public class Hero extends Character
         {
             switch (this.index)
             {
+                case 61: int shaboozle=ActivePassive.Thanos(this, "gain", deadfoe, 0); break;
                 case 92: ActivePassive.Roblin(this, deadfoe, "death"); break;
                 case 93: ActivePassive.OGHobby(this, killer); break;
             }
@@ -691,7 +703,9 @@ public class Hero extends Character
             if (this.passivefriend.get(0).dead==false) //readd tracker that was removed on venom's death since his passive will continue to apply
             this.passivefriend.get(0).add(new Tracker ("Watched by Venom (Eddie Brock)"), false);
             break;
+            case 63: StaticPassive.Corvus(this, "rez", null); break;
         }
+        this.HPChange(0, this.HP); 
         Character[] friends=Battle.GetTeammates(this);
         for (Character c: friends)
         {
@@ -815,12 +829,12 @@ public class Hero extends Character
             }
             this.AddImmune(false); //for getting rid of immunities when leaving a transformed form; e.g. a robot transforming would lose robot immunities
             this.index=newindex; 
-            this.passivecount=0;
-            this.pdesc=Character.MakeDesc(newindex, false);
+            this.passivecount=0; //must only be reset after the first addimmune; value needed to undo some heroes' passives
             this.AddImmune(true); //for gaining immunities when transforming into someone; e.g. transforming into a robot would grant robot immunities
-            switch (this.index) //for triggering passives that specifically occur when transforming, like infinity gauntlet thanos's and diamond frost's
+            switch (this.index) //for triggering passives that specifically occur after a transformation, like infinity gauntlet thanos's and diamond frost's
             {
                 case 24: StaticPassive.Binary(this); break;
+                case 62: StaticPassive.Gauntlet(this); break;
                 case 96: StaticPassive.Frost(this); break;
             }
         }
@@ -889,8 +903,7 @@ public class Hero extends Character
                 case 32: //black bolt
                 this.immunities.add("Control"); Tracker elect= new Tracker ("Electrons: "); this.effects.add(elect); elect.onApply(this); break; 
                 case 35: //juggernaut
-                Tracker wrath= new Tracker("Momentum: "); this.effects.add(wrath); wrath.onApply(this); 
-                this.immunities.add("Copy"); this.immunities.add("Snare"); this.immunities.add("Stun");
+                Tracker wrath= new Tracker("Momentum: "); this.effects.add(wrath); wrath.onApply(this); this.immunities.add("Copy"); this.immunities.add("Stun");
                 if (this.HP>100)
                 {
                     this.ADR+=15; this.immunities.add("Control"); Tracker salt= new Tracker("Cyttorak's Blessing active"); this.effects.add(salt);
@@ -905,13 +918,22 @@ public class Hero extends Character
                 this.immunities.add("Bleed"); this.immunities.add("Shock"); this.immunities.add("Snare"); this.immunities.add("Disarm"); this.ignores.add("Counter"); break;
                 case 41: //rhino
                 this.immunities.add("Vulnerable"); this.immunities.add("Suppression"); this.immunities.add("Reduce"); this.immunities.add("Terror"); this.BlDR+=15; break; 
+                //2.5: Thanos Arrives
+                case 61: //thanos
+                this.immunities.add("Heal"); this.ADR+=10; this.immunities.add("Banish"); this.immunities.add("Control"); this.immunities.add("Persuaded"); 
+                this.immunities.add("Reduce"); this.immunities.add("Wither"); this.immunities.add("Lose"); 
+                Tracker hatred=new Tracker("Infinity Gems: "); this.effects.add(hatred); hatred.onApply(this); break;
+                case 62: //gauntlet thanos
+                CoinFlip.StatImmune(this, true); this.immunities.add("Lose"); this.immunities.add("Reduce"); break;
+                case 63: //corvus
+                this.CC+=100; break;
                 //2.6: U-Foes
                 case 68: //vector
                 this.immunities.add("Bleed"); this.immunities.add("Shock"); this.immunities.add("Freeze"); this.immunities.add("Burn"); break;
                 case 69: //x-ray
                 this.immunities.add("Bleed"); this.immunities.add("Poison"); this.immunities.add("Heal"); this.WiDR+=999; break;
                 case 70: //ironclad
-                this.immunities.add("Bleed"); this.immunities.add("Burn"); this.immunities.add("Freeze"); break;
+                this.immunities.add("Bleed"); this.immunities.add("Burn"); this.immunities.add("Freeze"); this.PoDR-=10; break;
                 case 71: //vapor
                 this.immunities.add("Bleed"); this.immunities.add("Poison"); this.ignores.add("Evade"); break;
                 //2.7: Thunderbolts
@@ -935,7 +957,7 @@ public class Hero extends Character
                 CoinFlip.StatImmune(this, true); this.immunities.add("Interrupt"); break;
                 //2.9: Fearsome Foes of Spider-Man
                 case 89: //hydroman
-                this.immunities.add("Bleed"); this.immunities.add("Burn"); this.immunities.add("Soaked"); this.ShDR-=10; break;
+                this.immunities.add("Bleed"); this.immunities.add("Burn"); this.immunities.add("Snare"); this.immunities.add("Soaked"); this.ShDR-=10; break;
                 case 92: //roblin
                 this.immunities.add("Burn"); this.immunities.add("Snare"); break;
                 //2.10: Marvellous Mutants
@@ -958,127 +980,113 @@ public class Hero extends Character
                 case 12: //drax classic
                 this.immunities.remove("Buffs"); this.immunities.remove("Persuaded"); CoinFlip.IgnoreTargeting(this, false); break; 
                 case 15: //wolverine
-                StatEff thor=null;
-                for (StatEff e: this.effects)
+                for (StatEff e: new ArrayList<StatEff>(this.effects))
                 {
                     if (e instanceof Tracker&&e.getimmunityname().equals("Damage Taken: "))
                     {
-                        thor=e; break;
+                        this.remove(e.id, "silent"); break;
                     }
                 }
-                this.remove(thor.id, "silent");
                 break;
                 case 16: case 17: case 90: //venom brock, venom mac, and carnage
                 this.ignores.remove("Evade"); break; 
                 case 23: //captain marvel
-                StatEff tor=null;
-                for (StatEff e: this.effects)
+                for (StatEff e: new ArrayList<StatEff>(this.effects))
                 {
                     if (e instanceof Tracker&&e.getimmunityname().equals("Energy: "))
                     {
-                        tor=e; break;
+                        this.remove(e.id, "silent"); break;
                     }
                 }
-                this.remove(tor.id, "silent"); this.immunities.remove("Poison"); this.BuDR-=999; this.ShDR-=999; 
+                this.immunities.remove("Poison"); this.BuDR-=999; this.ShDR-=999; 
                 break; 
                 case 24: //binary
-                StatEff khan=null;
-                for (StatEff e: this.effects)
+                for (StatEff e: new ArrayList<StatEff>(this.effects))
                 {
                     if (e instanceof Tracker&&e.getimmunityname().equals("Energy: "))
                     {
-                        khan=e; break;
+                        this.remove(e.id, "silent"); break;
                     }
                 }
-                this.remove(khan.id, "silent"); CoinFlip.StatImmune(this, false); 
+                CoinFlip.StatImmune(this, false); 
                 break; 
                 case 25: //agent venom
-                StatEff ret=null;
-                for (StatEff e: this.effects)
+                for (StatEff e: new ArrayList<StatEff>(this.effects))
                 {
                     if (e instanceof Tracker&&e.getimmunityname().equals("Control Points: "))
                     {
-                        ret=e; break;
+                        this.remove(e.id, "silent"); break;
                     }
                 }
-                this.remove(ret.id, "silent"); this.ignores.remove("Evade"); 
+                this.ignores.remove("Evade"); 
                 break; 
                 case 26: //modok
                 CoinFlip.IgnoreTargeting(this, false); break; 
                 case 27: //ultron
                 CoinFlip.RobotImmunities(this, false); this.immunities.remove("Snare"); this.immunities.remove("Steal"); this.immunities.remove("Control"); break; 
                 case 28: //dr doom
-                StatEff tree=null;
-                for (StatEff e: this.effects)
+                for (StatEff e: new ArrayList<StatEff>(this.effects))
                 {
                     if (e instanceof Tracker&&e.geteffname().equals("Titanium Battlesuit armed"))
                     {
-                        tree=e; break;
+                        this.remove(e.id, "silent"); break;
                     }
                 }
-                this.remove(tree.id, "silent"); this.immunities.remove("Persuaded"); this.immunities.remove("Control"); this.immunities.remove("Burn"); 
+                this.immunities.remove("Persuaded"); this.immunities.remove("Control"); this.immunities.remove("Burn"); 
                 this.immunities.remove("Freeze"); this.immunities.remove("Shock"); 
                 break;
                 case 30: //brawn
                 this.immunities.remove("Poison"); this.immunities.remove("Control"); break; 
                 case 31: //hulk
-                StatEff tef=null;
-                for (StatEff e: this.effects)
+                for (StatEff e: new ArrayList<StatEff>(this.effects))
                 {
                     if (e instanceof Tracker&&e.getimmunityname().equals("Rage: "))
                     {
-                        tef=e; break;
+                        this.remove(e.id, "silent"); break;
                     }
                 }
-                this.remove(tef.id, "silent"); this.immunities.remove("Terror"); this.immunities.remove("Poison"); 
-                this.immunities.remove("Control"); this.immunities.remove("Persuaded"); 
+                this.immunities.remove("Terror"); this.immunities.remove("Poison"); this.immunities.remove("Control"); this.immunities.remove("Persuaded"); 
                 break;
                 case 32: //black bolt
-                StatEff fer=null;
-                for (StatEff e: this.effects)
+                for (StatEff e: new ArrayList<StatEff>(this.effects))
                 {
                     if (e instanceof Tracker&&e.getimmunityname().equals("Electrons: "))
                     {
-                        fer=e; break;
+                        this.remove(e.id, "silent"); break;
                     }
                 }
-                this.remove(fer.id, "silent"); this.immunities.remove("Control"); 
+                this.immunities.remove("Control"); 
                 break; 
                 case 35: //juggernaut
-                StatEff very=null;
-                for (StatEff e: this.effects)
+                for (StatEff e: new ArrayList<StatEff>(this.effects))
                 {
-                    if (e instanceof Tracker&&e.getimmunityname().equals("Momentum: "))
+                    if (e instanceof Tracker&&(e.getimmunityname().equals("Momentum: ")||e.geteffname().equals("Unstoppable!")))
                     {
-                        very=e; break;
+                        this.remove(e.id, "silent"); break;
                     }
                 }
-                this.remove(very.id, "silent"); this.immunities.remove("Snare"); this.immunities.remove("Stun"); this.immunities.remove("Copy");
                 if (this.HP>100)
                 {
                     this.ADR-=15; this.immunities.remove("Control"); 
-                    StatEff fed=null;
-                    for (StatEff e: this.effects)
+                    for (StatEff e: new ArrayList<StatEff>(this.effects))
                     {
                         if (e instanceof Tracker&&e.geteffname().equals("Cyttorak's Blessing active"))
                         {
-                            fed=e; break;
+                            this.remove(e.id, "silent"); break;
                         }
                     }
-                    this.remove(fed.id, "silent");
                 }
                 else
                 {
-                    StatEff derf=null;
-                    for (StatEff e: this.effects)
+                    for (StatEff e: new ArrayList<StatEff>(this.effects))
                     {
                         if (e instanceof Tracker&&e.geteffname().equals("Cyttorak's Blessing lost"))
                         {
-                            derf=e; break;
+                            this.remove(e.id, "silent"); break;
                         }
                     }
-                    this.remove(derf.id, "silent");
                 }
+                this.immunities.remove("Stun"); this.immunities.remove("Copy");
                 break;
                 //2.1: Sinister Six
                 case 40: //sandman
@@ -1086,13 +1094,31 @@ public class Hero extends Character
                 this.immunities.remove("Disarm"); this.ignores.remove("Counter"); break;
                 case 41: //rhino
                 this.immunities.remove("Vulnerable"); this.immunities.remove("Suppression"); this.immunities.remove("Reduce"); this.immunities.remove("Terror"); this.BlDR-=15; break; 
+                //2.5: Thanos Arrives
+                case 61: //thanos
+                this.immunities.remove("Heal"); this.immunities.remove("Banish"); this.immunities.remove("Control"); this.immunities.remove("Persuaded"); 
+                this.immunities.remove("Wither"); this.immunities.remove("Reduce"); this.immunities.remove("Lose"); this.ADR-=10; this.ADR-=(this.passivecount*5);
+                for (StatEff e: new ArrayList<StatEff>(this.effects))
+                {
+                    if (e instanceof Tracker&&e.getimmunityname().equals("Infinity Gems: "))
+                    {
+                        this.remove(e.id, "silent"); break;
+                    }
+                }
+                break;
+                case 62: //gauntlet thanos
+                CoinFlip.StatImmune(this, false); this.immunities.remove("Lose"); this.immunities.remove("Reduce"); break;
+                case 63: //corvus
+                if (this.passivecount==0)
+                this.CC-=100; //only undo atom slicing blades if glaive of immortality hasn't already undone it
+                break;
                 //2.6: U-Foes
                 case 68: //vector
                 this.immunities.remove("Bleed"); this.immunities.remove("Shock"); this.immunities.remove("Freeze"); this.immunities.remove("Burn"); break;
                 case 69: //x-ray
                 this.immunities.remove("Bleed"); this.immunities.remove("Poison"); this.immunities.remove("Heal"); this.WiDR-=999; break;
                 case 70: //ironclad
-                this.immunities.remove("Bleed"); this.immunities.remove("Burn"); this.immunities.remove("Freeze"); break;
+                this.immunities.remove("Bleed"); this.immunities.remove("Burn"); this.immunities.remove("Freeze"); this.PoDR+=10; break;
                 case 71: //vapor
                 this.immunities.remove("Bleed"); this.immunities.remove("Poison"); this.ignores.remove("Evade"); break;
                 //2.7: Thunderbolts
@@ -1104,15 +1130,14 @@ public class Hero extends Character
                 this.immunities.remove("Control"); this.immunities.remove("Heal"); this.immunities.remove("Snare"); this.immunities.remove("Reduce"); this.immunities.remove("Lose");
                 CoinFlip.DMGImmune(this, false); break;
                 case 77: //penance
-                StatEff noggin=null;
-                for (StatEff e: this.effects)
+                for (StatEff e: new ArrayList<StatEff>(this.effects))
                 {
                     if (e instanceof Tracker&&e.getimmunityname().equals("Pain: "))
                     {
-                        noggin=e; break;
+                        this.remove(e.id, "silent"); break;
                     }
                 }
-                this.remove(noggin.id, "silent"); this.immunities.remove("Control"); this.immunities.remove("Heal");  
+                this.immunities.remove("Control"); this.immunities.remove("Heal");  
                 break;
                 case 80: //scarecrow
                 this.immunities.remove("Terror"); break;
@@ -1125,7 +1150,7 @@ public class Hero extends Character
                 CoinFlip.StatImmune(this, false); this.immunities.remove("Interrupt"); break;
                 //2.9: Fearsome Foes of Spider-Man
                 case 89: //hydroman
-                this.immunities.remove("Bleed"); this.immunities.remove("Burn"); this.immunities.remove("Soaked"); this.ShDR+=10; break;
+                this.immunities.remove("Bleed"); this.immunities.remove("Burn"); this.immunities.remove("Snare");  this.immunities.remove("Soaked"); this.ShDR+=10; break;
                 case 92: //roblin
                 this.immunities.remove("Burn"); this.immunities.remove("Snare"); break;
                 //2.10: Marvellous Mutants
@@ -1135,15 +1160,13 @@ public class Hero extends Character
                 case 99: //colossus
                 this.immunities.remove("Bleed"); this.immunities.remove("Burn"); this.immunities.remove("Freeze"); break;
                 case 104: //bishop
-                StatEff cant=null;
-                for (StatEff e: this.effects)
+                for (StatEff e: new ArrayList<StatEff>(this.effects))
                 {
                     if (e instanceof Tracker&&e.getimmunityname().equals("Energy Reserve: "))
                     {
-                        cant=e; break;
+                        this.remove(e.id, "silent"); break;
                     }
                 }
-                this.remove(cant.id, "silent"); 
                 break; 
             }       
         }

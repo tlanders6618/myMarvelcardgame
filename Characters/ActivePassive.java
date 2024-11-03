@@ -72,7 +72,7 @@ public class ActivePassive
                     }
                 }
                 lucas.remove(holder.id, "normal");
-                Regen r= new Regen(500, 35, 1, lucas);
+                Regen r= new Regen(500, 30, 1, lucas);
                 boolean go=CoinFlip.Flip(500+lucas.Cchance);
                 if (go==true)
                 StatEff.CheckApply(lucas, lucas, r);
@@ -159,9 +159,9 @@ public class ActivePassive
     {
         if (killer!=null) //passive occurs even if stunned
         {
-            if (killer.passivefriend.get(0)!=null&&killer.passivefriend.get(0)==kingsley) //all summons save their summoners at passivefriend index 0
+            if (killer.passivefriend.size()>0&&killer.passivefriend.get(0)==kingsley) //all summons save their summoners at passivefriend index 0
             {
-                kingsley.Healed(100, true, false);
+                kingsley.Healed(120, true, false);
                 FocusE pumpkin= new FocusE(500, 1, kingsley); 
                 boolean goal=CoinFlip.Flip(500+kingsley.Cchance);
                 if (goal==true) 
@@ -170,7 +170,7 @@ public class ActivePassive
                 StatEff.applyfail(kingsley, pumpkin, "chance");
                 for (int i=0; i<5; i++)
                 {
-                    if (kingsley.abilities[i]!=null&&!(kingsley.abilities[i] instanceof BasicAb)&&kingsley.abilities[i].dcd>0)
+                    if (kingsley.abilities[i]!=null&&kingsley.abilities[i].dcd>0)
                     {
                         System.out.println(kingsley.Cname+"'s "+kingsley.abilities[i].GetAbName(kingsley)+" had its cooldown reset.");
                         kingsley.abilities[i].CDReduction(100);
@@ -396,6 +396,48 @@ public class ActivePassive
             Damage_Stuff.ElusiveDmg(michael, other, strength, "counter");
         }
     }
+    //2.5: Thanos Arrives
+    public static int Thanos (Character thanos, String cause, Character dead, int dmg) //onturn, ondeath, enemydeath and both takedamages; all passives ignore stun
+    {
+        if (cause.equals("gain")&&(dead==null||dead.summoned==false)) //onturn sends null and enemydeath sends the dead enemy hero
+        {
+            System.out.println(thanos+" found an Infinity Gem."); thanos.passivecount++; thanos.ADR+=5;
+        }
+        for (StatEff e: thanos.effects) //update tracker, regardless of cause
+        {
+            if (e.getimmunityname().equals("Infinity Gems: "))
+            e.onApply(thanos);
+        }
+        if (cause.equals("damage")&&dmg>100) //both versions of takedamage
+        {
+            dmg=100; System.out.println("I am inevitable.");
+        }
+        if (thanos.passivecount>=6)
+        {
+            while (true) //not even kang cannot stop this
+            {
+                if (!(thanos.immunities.contains("Other"))&&!(thanos.immunities.contains("Transform")))
+                break;
+                else if (thanos.immunities.contains("Other"))
+                thanos.immunities.remove("Other");
+                else if (thanos.immunities.contains("Transform"))
+                thanos.immunities.remove("Transform");
+            }
+            System.out.println("\nINFINITE POWER IS MINE AT LAST!\n");
+            thanos.Transform(62, true);
+        }
+        if (cause.equals("death")) //ondeath
+        {
+            Confidence gift=new Confidence(500, 45);
+            Character[] foes=Battle.GetTeam(CoinFlip.TeamFlip(thanos.team1));
+            for (Character c: foes)
+            {
+                if (c!=null)
+                gift.Use(thanos,c,0);
+            }
+        }
+        return dmg;
+    }
     //2.1: Sinister 6
     public static void Sandy (Character baker, String o)
     {
@@ -448,21 +490,18 @@ public class ActivePassive
                         Damage_Stuff.ElusiveDmg(baker, chump, 20, "default");
                     }
                 }
-                StatEff hope=null;
-                for (StatEff e: baker.effects)
+                for (StatEff e: new ArrayList<StatEff>(baker.effects))
                 {
                     if (e instanceof Tracker&& e.geteffname().equals("Sand Storm active: "+(baker.passivecount+1)+" turns"))
                     {
-                        if (baker.passivecount>0)
-                        e.onApply(baker);
+                        if (baker.passivecount>0) //update tracker
+                        e.onApply(baker); 
                         else
-                        hope=e;
+                        {
+                            baker.remove(e.id, "silent"); System.out.println(baker.Cname+"'s Sand Storm ended.");
+                        }
                         break;
                     }
-                }
-                if (hope!=null)
-                {
-                    baker.remove(hope.id, "silent"); System.out.println(baker.Cname+"'s Sand Storm ended.");
                 }
             }
         }
@@ -537,27 +576,18 @@ public class ActivePassive
             }
         }
     }
-    public static void Hulk (Character banner) //hpchange
-    {
-        int dif=banner.maxHP-banner.HP;
-        int number=0;
-        if (dif>=40&&dif<80)
-        number=5;
-        else if (dif>=80&&dif<120)
-        number=10;
-        else if (dif>=120&&dif<160)
-        number=15; 
-        else if (dif>=160&&dif<200)
-        number=20;
-        else if (dif>=200&&dif<240) 
-        number=25;
-        else if (dif>=240&&dif<280) //more than 280 missing health is currently (4.1) impossible so it stops checking here
-        number=30;
-        banner.ADR=number; banner.PBD=number; banner.passivecount=number;
+    public static void Hulk (Character banner) //hpchange 
+    {    
+        int old=banner.passivecount; //previous/current rage level
+        int rage=((banner.maxHP-banner.HP)/40)*5; //every 40 missing hp is +5 damage
+        banner.ADR-=old; banner.PBD-=old; //undo old rage
+        banner.ADR+=rage; banner.PBD+=rage; banner.passivecount=rage; //apply and save new rage
         for (StatEff e: banner.effects) //update rage tracker
         {
             if (e instanceof Tracker&&e.getimmunityname().equals("Rage: "))
-            e.Attacked(banner, null, 616);
+            {
+                e.Attacked(banner, null, 616); break;
+            }
         }
     }
     public static void Flash (Character eugene, int change, boolean attacking, boolean start) 
@@ -785,12 +815,9 @@ public class ActivePassive
                 StatEff.CheckApply(wolvie, wolvie, f);
                 else
                 StatEff.applyfail(wolvie, f, "chance");
-                //abilities must be remade to change them to random target
-                BasicAb slash= new BasicAb ("X-Slash", "random 1", "enemy", 35); 
-                String[] bleed= {"Bleed", "50", "20", "1", "false"}; String[][] real=StatFactory.MakeParam(bleed, null); slash.AddStatString(real);
-                BasicAb punch =new BasicAb ("Primal Punch", "random 1", "enemy", 35); punch.special.add(new Purify(50, 1, "random", "any", true, true));
-                wolvie.abilities[0]=slash;
-                wolvie.abilities[1]=punch;
+                //attacks become random target
+                wolvie.abilities[0].target="random 1";
+                wolvie.abilities[1].target="random 1";
             }
         }
     }
@@ -821,33 +848,24 @@ public class ActivePassive
     {
         if (drax==victim) //onlethaldmg; check if undying rage should be triggered
         {
-            if (!(drax.binaries.contains("Stunned"))&&dmgtype.equalsIgnoreCase("dot")) 
-            { 
-                if (!(drax.binaries.contains("Death"))) //no need to trigger message for each tick of dot, just the first
-                {
+            if (drax.binaries.contains("Death"))
+            return false; //whether he should die or not
+            else //if (!(drax.binaries.contains("Death")))
+            {
+                if (!(drax.binaries.contains("Stunned"))) //undying rage can trigger
+                { 
                     System.out.println("\nDrax's rage is undying!");
-                }
-                drax.binaries.add("Death"); 
-                return false; //whether he should die or not
-            } 
-            else
-            return true;
+                    drax.binaries.add("Death"); 
+                    return false; 
+                } 
+                else
+                return true;
+            }
         }
         else if (attack==false&&drax.dead==false&&drax.binaries.contains("Death")) //onturnend; if undying rage was triggered earlier, he finally dies now
         {
-            int deaths=0;
-            for (String b: drax.binaries)
-            {
-                if (b.equals("Death")) 
-                {
-                    ++deaths;
-                }
-            }
-            for (int i=0; i<deaths; i++) //in case his passive is triggered more than once; this ensures drax won't die after being resurrected
-            {
-                drax.binaries.remove("Death");
-            }
-            drax.onDeath(null, "DoT");
+            drax.binaries.remove("Death"); //in case his passive is triggered more than once; this ensures drax won't die again after being resurrected
+            drax.onDeath(null, "passive");
         }
         else if (attack==true) //onattack; add one more obsession to the target
         {
@@ -906,7 +924,7 @@ public class ActivePassive
                 else
                 {
                     marcus.HP-=15;
-                    System.out.println ("\n"+marcus.Cname+" lost 15 health");
+                    System.out.println ("\n"+marcus.Cname+" lost 15 health.");
                     if (marcus.HP<=0)
                     {
                         marcus.HP=0;
@@ -918,7 +936,7 @@ public class ActivePassive
         else if (cause.equals("allyturn")&&marcus.passivecount==1&&summoned==false&&marcus.dead==false) //called on ally turn
         {
             marcus.HP-=15;
-            System.out.println ("\n"+marcus.Cname+" lost 15 health");
+            System.out.println ("\n"+marcus.Cname+" lost 15 health.");
             if (marcus.HP<=0)
             {
                 marcus.HP=0;

@@ -111,7 +111,7 @@ public class StaticPassive
     }
     public static void Kraven (Character sergei, Character prey, boolean attacking) //beforeattack and onattack
     {
-        if (attacking==true&&prey.CheckFor("Snare", false)==true)
+        if (attacking==true&&prey.CheckFor("Disorient", false)==true)
         {
             sergei.ignores.add("Blind"); sergei.ignores.add("Evade");
             sergei.passivecount=1;
@@ -137,7 +137,7 @@ public class StaticPassive
     public static void DD (Character matt, Character attacker) //attacked; counter doesn't trigger if stunned or attacker ignores it so no need to check for it here
     {
         ArrayList<StatEff> concurrentmodificationexception3electricboogalooboogaloo= new ArrayList<StatEff>(); //counter is removed after use :)
-        concurrentmodificationexception3electricboogalooboogaloo.addAll(matt.effects);
+        concurrentmodificationexception3electricboogalooboogaloo.addAll(matt.effects); //same boogaloo as the one in hero.attacked
         for (StatEff eff: concurrentmodificationexception3electricboogalooboogaloo)
         {
             if (eff.getimmunityname().equals("Counter")) //trigger all his remaining Counters
@@ -174,6 +174,64 @@ public class StaticPassive
                 else
                 StatEff.applyfail(helmut, p, "chance");
             }
+        }
+    }
+    //2.5: Thanos Arrives
+    public static void Corvus (Character glaive, String cuz, StatEff eff) //onlethal damage and remove and onrez
+    {
+        if (glaive.passivecount==0&&cuz.equals("lethal")) //all passives ignore stun
+        {
+            glaive.passivecount=1;
+            glaive.CC-=100;
+            GuardE guard= new GuardE(500, 0, 1, glaive);
+            if (CoinFlip.Flip(500+glaive.Cchance)==true)
+            {
+                if (StatEff.CheckFail(glaive, glaive, guard)==false) //only make him immortal if guard applies, or else he'd literally never die
+                {
+                    System.out.println("\nIt is not my time. Not yet...");
+                    for (StatEff e: new ArrayList<StatEff>(glaive.effects))
+                    {
+                        glaive.remove(e.id, "normal");
+                    }
+                    glaive.add(guard, true);
+                    CoinFlip.StatImmune(glaive, true);
+                    glaive.binaries.add("Immortal");
+                } 
+                else
+                System.out.println("\nHow can this be? My glaive...fails me."); //other than Leader or Kang, nothing should prevent it
+            }
+            else
+            {
+                StatEff.applyfail(glaive, guard, "chance");
+                System.out.println("\nHow can this be? My glaive...fails me.");
+            }
+        }
+        else if (cuz.equals("remove")&&glaive.passivecount==1&&eff.prog==glaive&&eff.getimmunityname().equals("Guard")&&eff.getefftype().equals("Other")) //his guard was removed
+        {
+            glaive.binaries.remove("Immortal"); CoinFlip.StatImmune(glaive, false); //or else he'd be immune to resurrect
+        }
+        else if (cuz.equals("rez"))
+        {
+            glaive.passivecount=0; glaive.CC+=100; //reset passives so they can be used again during his new life
+        }
+    }
+    public static void Gauntlet (Character thanos) //hero.transform
+    {
+        Character[] foes=Battle.GetTeam(CoinFlip.TeamFlip(thanos.team1));
+        boolean good=false; //if transformation triggered by last enemy dying, do not take turn or else game won't be able to end due to lack of targets
+        for (Character c: foes)
+        {
+            if (c!=null&&c.dead==false)
+            {
+                good=true; break;
+            }
+        }
+        if (good==true)
+        {
+            if (!(thanos.binaries.contains("Stunned"))&&(Battle.team1[Battle.P1active]==thanos||Battle.team2[Battle.P2active]==thanos)) //transformation happens on turn start
+            thanos.helpers.add(new BonusTurnHelper()); //only use helper if not stunned, to avoid interrupting turn
+            else //transformation happens on someone else's turn or after thanos skips turn due to stun; should take turn immediately
+            Battle.Turn(thanos, true);   
         }
     }
     //2.1: Sinister 6
