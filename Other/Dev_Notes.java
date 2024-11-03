@@ -13,7 +13,7 @@ public class Dev_Notes
      * -BeforeAbility
      * -BuffAb
      * -DebuffAb
-     * -DefenceAb
+     * -DefAb
      * -HealAb
      * -OtherAb
      * -SpecialAbility
@@ -50,13 +50,8 @@ public class Dev_Notes
      * 
      * all new methods go under cardcode which is empty for some reason
      * 
-     * Always add ricochet before multichain in an ability's afterabs
      * always add ignore miss as an ability's first beforeab OR change every miss to check for ignoring miss and remove immunity to miss from game
      * iceman's passive can just use debuffmod for deciding whether to apply freeze or not
-     * 
-     * To Do
-     * when adding vulnerable remember to make its effect unaffected by strength bc amplify
-     * If a character is the only one on their team, they cannot be Banished. All characters on a team cannot be Banished; banish interact already accounted for by targeting stuff
      * 
      * Keep in mind:
      * For unique Other effects, check for their interaction methods, e.g. characters cannot evade while submerged so change evade criteria
