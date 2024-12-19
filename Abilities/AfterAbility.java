@@ -188,6 +188,14 @@ class ActivatePassive extends AfterAbility //ability activates a hero's passive 
                 dispenser.Use(user, target, 616);
             }
             break;
+            case 65: //supergiant feast
+            if (target.binaries.contains("Dominated"))
+            {
+                target.LoseHP(user, target.HP, "ability", true);
+                if (target.dead==true) 
+                user.Healed(100, true, false);
+            }
+            break;
             case 72: //zemo's dominating blow
             if (target.dead==true&&user.dead==false)
             {
@@ -264,7 +272,7 @@ class ActivatePassive extends AfterAbility //ability activates a hero's passive 
             case 89: //hydro man's drown, since the health loss is only conditional
             if (target.CheckFor("Soaked", false)==true&&!(user.binaries.contains("Missed")))
             {
-                target.LoseHP (user, 60, "knull");
+                target.LoseHP (user, 60, "knull", false);
             }
             break;
             case 97: //angel blood transfusion
@@ -301,7 +309,7 @@ class ActivatePassive extends AfterAbility //ability activates a hero's passive 
             case 100: double ll=target.HP/2; int loss=5*(int)(Math.floor(ll/5)); //elixir death touch
             if (loss>150)
             loss=150;
-            target.LoseHP(user, loss, "knull");
+            target.LoseHP(user, loss, "knull", false);
             break;
         }
     }
@@ -422,6 +430,7 @@ class Assist extends AfterAbility //either random allies hitting enemy or chosen
     boolean together;
     boolean skull; //to trigger red skull's damagecounter ability bc this is the easiest way to do it
     boolean self; //for crossbones 
+    String condition="knull";
     public Assist (boolean f, int n, int b, boolean r, int cc, String[][] L, int c, boolean t)
     {
         friendly=f; num=n; bonus=b; random=r; chance=c; together=t; Cchance=cc; apply=L;
@@ -485,6 +494,21 @@ class Assist extends AfterAbility //either random allies hitting enemy or chosen
         }
         num=tnum; //reset num for next assist usage
     }
+    private boolean CheckValid (Character assistant, Character user) //checks if a character can be called for an assist or not
+    {
+        if (user.activeability.control==true&&assistant.immunities.contains("Control"))
+        {
+            return false; //cannot call a character using a control ability if they're immune to it
+        }
+        else
+        {
+            switch (condition)
+            {
+                case "Dominated": return (assistant.binaries.contains("Dominated"));
+                default: return true;
+            }
+        }
+    }
     public ArrayList<Character> RandomAssist (Character chump, Character user) //randomly select heroes to perform assist; chump is the target
     {
         Character[] targets=null;
@@ -494,13 +518,13 @@ class Assist extends AfterAbility //either random allies hitting enemy or chosen
         targets=Battle.GetTeam(CoinFlip.TeamFlip(user.team1));
         ArrayList<Character> champs=new ArrayList<Character>();
         int valid=0; //number of ally or enemy heroes who actually have basic attacks and thus are able to perform an assist
-        for (Character a: targets) //cannot call hero to assist a control ability if they're control immune
+        for (Character a: targets) 
         {
-            if (a!=null&&!(a.binaries.contains("Banished"))&&a!=chump) //cannot make target perform assist on themself
+            if (a!=null&&!(a.binaries.contains("Banished"))&&a!=chump) //also cannot make target perform assist on themself
             {
-                if (user.activeability.control==false||(user.activeability.control==true&&!(a.immunities.contains("Control")))) 
+                if (CheckValid(a, user)==true)
                 {
-                    for (Ability f: a.abilities)
+                    for (Ability f: a.abilities) 
                     {
                         if (f instanceof BasicAb)
                         {
@@ -555,10 +579,10 @@ class Assist extends AfterAbility //either random allies hitting enemy or chosen
                 else
                 targets=Battle.GetTeam(CoinFlip.TeamFlip(user.team1));
                 ArrayList<Character> champs=CoinFlip.ToList(targets); //heroes to choose from to perform the assist
-                ArrayList<Character> nuhuh=new ArrayList<Character>(); nuhuh.addAll(champs);
+                ArrayList<Character> nuhuh=new ArrayList<Character>(champs); 
                 for (Character c: nuhuh) //cannot call hero to assist a control ability if they're control immune
                 {
-                    if (user.activeability.control==true&&c.immunities.contains("Control"))
+                    if (CheckValid(c, user)==false)
                     champs.remove(c);
                 }
                 for (int hocley=0; hocley<num; hocley++) //num determines how many characters are affected by the assist; cannot choose more heroes than that
@@ -635,7 +659,7 @@ class Assist extends AfterAbility //either random allies hitting enemy or chosen
                             damage+=change;
                         } 
                         if (lose==true) 
-                        chump.LoseHP (dealer, damage, "knull");
+                        chump.LoseHP (dealer, damage, "knull", false);
                         else if (max==true)
                         chump.LoseMaxHP (dealer, damage);
                         else //assists are elusive
@@ -1460,15 +1484,9 @@ class MultiMod extends AfterAbility //like debuffmod but for multitarget abs tha
     }
     public void UseElixir (Character josh, Character targ, int use)
     {
-        if (use==1) //first target loses hp
+        if (use==1) //first target sacrifices hp
         {
-            int t=targ.HP; targ.HP-=40; System.out.println(targ.Cname+" sacrificed 40 health!");
-            if (targ.HP<=0)
-            {
-                targ.HP=0; targ.onLethalDamage(null, "other");
-            }
-            else
-            targ.HPChange(t, targ.HP);
+            targ.LoseHP(null, 40, "self", true);
         }
         else if (use==2) //second one gains hp
         {
