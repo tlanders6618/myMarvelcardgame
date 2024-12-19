@@ -487,7 +487,7 @@ public class Battle
             h.Undo (hero); 
         }
     }
-    public static ArrayList ChooseTarget (Character hero, String friendly, String type) 
+    public static ArrayList ChooseTarget (Character hero, String friendly, String type) //get list of targets for the hero's ability
     {
         //friendly means ally, enemy, both inc/exc, either inc/exc, self, ally inc/exc
         //type is single, multi, random, or aoe, fixed

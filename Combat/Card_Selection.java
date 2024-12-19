@@ -34,7 +34,7 @@ public class Card_Selection
             {
                 Cname=Damage_Stuff.GetInput(); 
                 good=false;
-                if (Cname==616||Cname<=0||Cname>105||(Cname>41&&Cname<68)&&!(Cname>=61&&Cname<=63)) //updated as more characters are released in each version
+                if (Cname==616||Cname<=0||Cname>105||(Cname>41&&Cname<68)&&!(Cname>=61&&Cname<=65)) //updated as more characters are released in each version
                 {
                     System.out.println("Index number not found.");
                 }
@@ -66,7 +66,7 @@ public class Card_Selection
         do
         {
             rename=Damage_Stuff.GetInput();
-            if (rename==616||rename<=0||rename>105||(rename>41&&rename<68)&&!(rename>=61&&rename<=63)) 
+            if (rename==616||rename<=0||rename>105||(rename>41&&rename<68)&&!(rename>=61&&rename<=65)) 
             {
                 System.out.println("Index number not found.");
             }
