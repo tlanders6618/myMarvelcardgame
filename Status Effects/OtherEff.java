@@ -334,6 +334,188 @@ class DisorientE extends OtherEff
         target.nCC-=50;
     }
 }
+class Dominate extends OtherEff 
+{
+    boolean killed=false;
+    @Override
+    public String getimmunityname()
+    {
+        return "Dominate";
+    }
+    @Override
+    public String geteffname()
+    {
+        return "Dominate Effect";
+    }
+    public Dominate (int c, Character Q)
+    {
+        super(c, Q);
+    }
+    private boolean CheckDom (Character target)
+    {
+        if (target.team1==this.prog.team1)
+        {
+            System.out.println(this.prog+"'s "+this.geteffname()+" could not be applied to "+target+" due to them being allies.");
+            return false; //teammates cannot be dominated
+        }
+        else if ((this.prog.team1==true&&Battle.p1teamsize+target.size>Battle.maxteamsize)||(this.prog.team1==false&&Battle.p2teamsize+target.size>Battle.maxteamsize))
+        {
+            System.out.println(this.prog+"'s "+this.geteffname()+" could not be applied to "+target+" due to not having enough space on her team.");
+            return false; //must be space on supergiant's team
+        }
+        else
+        {
+            return true;
+        }
+    }
+    @Override
+    public void onApply (Character target)
+    {
+        if (this.CheckDom(target)==true) //dominate should be applied
+        {
+            target.LoseHP(this.prog, 100, "status", true);
+            if (target.dead==false) //if they die from losing 100 hp, they don't switch teams
+            {
+                target.binaries.add("Dominated"); //target has switched teams
+                Character[] newteam=new Character[6];
+                int ind=0;
+                if (target.team1==true) //modified version of adddead
+                {            
+                    target.team1=false;
+                    for (int i=0; i<6; i++)
+                    {
+                        if (Battle.team1[i]!=null&&Battle.team1[i]!=target) //make new team array with dominated hero missing
+                        {
+                            newteam[ind]=Battle.team1[i];
+                            ++ind;
+                        }
+                    }
+                    Battle.team1=newteam; 
+                    Battle.p1teamsize-=target.size;
+                    Battle.p1heroes--;
+                    for (int i=0; i<6; i++)
+                    {
+                        if (Battle.team2[i]==null) //make dominated hero switch teams; added to end of turn order
+                        {
+                            Battle.team2[i]=target; break;
+                        }
+                    }
+                    Battle.p2teamsize+=target.size;
+                    Battle.p2heroes++;
+                }
+                else
+                {         
+                    target.team1=true;
+                    for (int i=0; i<6; i++)
+                    {
+                        if (Battle.team2[i]!=null&&Battle.team2[i]!=target) //make new team array with dominated hero missing
+                        {
+                            newteam[ind]=Battle.team2[i];
+                            ++ind;
+                        }
+                    }
+                    Battle.team2=newteam;
+                    Battle.p2teamsize-=target.size;
+                    Battle.p2heroes--;
+                    for (int i=0; i<6; i++)
+                    {
+                        if (Battle.team1[i]==null) //make dominated hero switch teams; added to end of turn order
+                        {
+                            Battle.team1[i]=target; break;
+                        }
+                    }
+                    Battle.p1teamsize+=target.size;
+                    Battle.p1heroes++;
+                }
+            }
+            else
+            this.killed=true; //target died from the eff
+        }
+        else //make sure this works
+        {
+            this.Nullified(target);
+        }
+    }
+    @Override
+    public void Nullified (Character target)
+    {
+        if (this.killed==true)
+        {
+            //dominate being removed due to target dying from health loss; nothing to undo
+        }
+        else if (!(target.binaries.contains("Dominated")))
+        {
+            //dominate being removed from failing checkdom; checkdom already prints failure message
+            this.killed=true; //to avoid infinite loop of removal calls
+            target.remove(this.id, "silent");
+        }
+        else if (target.binaries.contains("Dominated")) //target has dominate removed (by jeff or something), or dies
+        {
+            target.binaries.remove("Dominated"); 
+            this.killed=true; //to avoid infinite loop of removal calls
+            Character[] newteam=new Character[6];
+            int ind=0;
+            if (target.team1==true) //put them back on their normal team so they can be resurrected by the right side
+            {            
+                target.team1=false;
+                for (int i=0; i<6; i++)
+                {
+                    if (Battle.team1[i]!=null&&Battle.team1[i]!=target) //make new team array with dominated hero missing
+                    {
+                        newteam[ind]=Battle.team1[i];
+                        ++ind;
+                    }
+                }
+                Battle.team1=newteam; 
+                Battle.p1teamsize-=target.size;
+                Battle.p1heroes--;
+                for (int i=0; i<6; i++)
+                {
+                    if (Battle.team2[i]==null) //make dominated hero switch teams; added to end of turn order
+                    {
+                        Battle.team2[i]=target; break;
+                    }
+                }
+                Battle.p2teamsize+=target.size;
+                Battle.p2heroes++;
+            }
+            else
+            {         
+                target.team1=true;
+                for (int i=0; i<6; i++)
+                {
+                    if (Battle.team2[i]!=null&&Battle.team2[i]!=target) //make new team array with dominated hero missing
+                    {
+                        newteam[ind]=Battle.team2[i];
+                        ++ind;
+                    }
+                }
+                Battle.team2=newteam;
+                Battle.p2teamsize-=target.size;
+                Battle.p2heroes--;
+                for (int i=0; i<6; i++)
+                {
+                    if (Battle.team1[i]==null) //make dominated hero switch teams; added to end of turn order
+                    {
+                        Battle.team1[i]=target; break;
+                    }
+                }
+                Battle.p1teamsize+=target.size;
+                Battle.p1heroes++;
+            }
+            if (target.dead==true) //supergiant killed them; should be called in hero.ondeath while being removed
+            {
+                //nothing special happens; they stay dead
+            }
+            else //died from something other than supergiant (called in hero.lethaldamage), or jeff removed the dominate
+            {
+                System.out.println(target+" has been freed from their Domination!");
+                target.Healed(target.maxHP, true, false);
+                target.remove(this.id, "silent");
+            }
+        }
+    }
+}
 class Empower extends OtherEff
 {
     String name; //of hero who made the empowerment
@@ -389,9 +571,9 @@ class Empower extends OtherEff
                 }
                 break;
                 case 102: 
-                if (ab instanceof AttackAb&& !(ab instanceof BasicAb)) 
+                if (ab instanceof AttackAb&&!(ab instanceof BasicAb)) //only affects abilities
                 {
-                    used=true; String[] poio={"Burn", "500", "10", "1", "false"}; String[][] dp=StatFactory.MakeParam(poio, null); ab.AddTempString(dp); 
+                    used=true; String[] poio={"Burn", "500", "5", "1", "false"}; String[][] dp=StatFactory.MakeParam(poio, null); ab.AddTempString(dp); 
                 }
                 break;
             }
@@ -656,6 +838,56 @@ class Obsession extends OtherEff
     public Obsession(Character p) 
     {
         super(500, p);
+    }
+}
+class PoisonE extends OtherEff 
+{
+    @Override
+    public String getimmunityname()
+    {
+        return "Poison";
+    }
+    @Override
+    public String getalttype() 
+    {
+        return "damaging";
+    }
+    @Override
+    public String geteffname()
+    {
+        if (duration<100)
+        {
+            return "Poison Effect: "+this.power+", "+this.duration+" turn(s)";
+        }
+        else
+        {
+            return "Poison Effect: "+this.power;
+        }
+    }
+    public PoisonE (int c, int nstrength, int nduration, Character p)
+    {
+        super(c, p);
+        this.power=nstrength;
+        this.duration=nduration;
+        this.oduration=nduration;
+    }
+    @Override
+    public void onTurnStart (Character hero)
+    {
+        if (hero!=null) //after hero dies, their spot in the team array becomes null; if they die from one dot and another tries to tick down, it causes a null exception
+        {
+            hero.DOTdmg(this.power, "poison");
+            --this.duration;
+            if (this.duration<=0)
+            {
+                hero.remove(this.id, "normal");
+            }
+        }
+    }
+    @Override
+    public void onTurnEnd (Character hero)
+    {
+        //do nothing
     }
 }
 class PrecisionE extends OtherEff 

@@ -53,6 +53,7 @@ public class StatFactory
             case "Disorient": return new Disorient (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3]), Q);
             case "Disorient Effect": return new DisorientE (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3]), Q);
             case "Disrupt": return new Disrupt (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3]), Q);
+            case "Dominate": return new Dominate (Integer.valueOf(param[0][1]), Q);
             case "Drain": return new Drain (Integer.valueOf(param[0][1]), Boolean.valueOf(param[0][2]), Integer.valueOf(param[0][3]), Q); //boolean is true for half/false for full
             case "Empower": return new Empower(Integer.valueOf(param[0][1]), Integer.valueOf(param[0][2]), Integer.valueOf(param[0][3]), Q);
             case "Evade": return new Evade (Integer.valueOf(param[0][1]), Q);
@@ -74,6 +75,7 @@ public class StatFactory
             case "Placebo (Buff)": return new PlaceboB(Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3]), Q);
             case "Placebo (Debuff)": return new PlaceboD(Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3]), Q);
             case "Poison": return new Poison (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][2]), Integer.valueOf(param[0][3]), Q);
+            case "Poison Effect": return new PoisonE (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][2]), Integer.valueOf(param[0][3]), Q);
             case "Precision": return new Precision (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3]), Q);
             case "Protect": return new Protect (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3]), Q);
             case "Provoke": return new Provoke(Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3]), Q);
