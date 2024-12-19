@@ -245,7 +245,7 @@ public abstract class Character
                 dmg=(dmg-this.PoDR);
                 if (dmg<=0)
                 dmg=0;
-                this.LoseHP(null, dmg, "Poison");
+                this.LoseHP(null, dmg, "Poison", false);
             }
             else if (type.equalsIgnoreCase("shock"))
             {
@@ -264,7 +264,7 @@ public abstract class Character
                 dmg-=this.WiDR;
                 if (dmg<=0)
                 dmg=0;
-                this.LoseHP(null, dmg, "Wither");
+                this.LoseHP(null, dmg, "Wither", false);
             }
         }
     }
@@ -401,6 +401,10 @@ public abstract class Character
         {
             if (regen==false)
             System.out.println("\n"+this.Cname+" could not be healed due to being Wounded!");
+            nowound=false;
+        }
+        else if (this.binaries.contains("No Heal")) //can't recover any health by any means, only for corvus as of 4.6.3
+        {
             nowound=false;
         }
         if (nowound==true&&this.dead==false) //able to be healed
@@ -598,7 +602,7 @@ public abstract class Character
             if (max==true)
             target.LoseMaxHP (dealer, lossy);
             else
-            target.LoseHP (dealer, lossy, "knull");
+            target.LoseHP (dealer, lossy, "knull", false);
         }
         dealer.onAttack(target);
         if (target.dead==false)
@@ -651,35 +655,39 @@ public abstract class Character
         else
         System.out.println(attacker.Cname+"'s max health reduction failed due to"+this.Cname+"'s immunity.");
     }
-    public void LoseHP (Character attacker, int lossy, String dot) //modified version of tookdamage
+    public void LoseHP (Character attacker, int lossy, String dot, boolean sacrifice) //modified version of tookdamage
     {
-        if (!(this.immunities.contains("Lose")))
+        if (sacrifice==true||!(this.immunities.contains("Lose")))
         {
-            if (dot.equals("Poison"))
+            if (dot.equals("Poison")||dot.equals("Wither")) 
             {
-                //System.out.println(this.Cname+" lost "+lossy+" health from Poison!");
-            }
-            else if (dot.equals("Wither"))
-            {
-                //System.out.println(this.Cname+" lost "+lossy+" health from Wither!");
+                //moved print statement from here to the dotdmg method
             }
             else
-            System.out.println("\n"+this.Cname+" lost "+lossy+" health!");
+            {
+                if (sacrifice==false)
+                System.out.println("\n"+this.Cname+" lost "+lossy+" health!");
+                else
+                System.out.println("\n"+this.Cname+" sacrificed "+lossy+" health!");
+            }
             int h=this.HP;
             Damage_Stuff.CheckBarrier(this, null, lossy); //attacker has to be null or barrier won't have its value reduced by the health loss; see checkbarrier for why
             if (this.HP<=0)
             this.HP=0;
-            if (this.HP==0&&(dot.equals("Poison")||dot.equals("Wither"))&&!(this.binaries.contains("Immortal")))
+            if (this.HP==0&&!(this.binaries.contains("Immortal")))
             {
-                this.onLethalDamage(null, "DOT");
-            }
-            else if (this.HP==0&&dot.equalsIgnoreCase("Self")&&!(this.binaries.contains("Immortal")))
-            {
-                this.onLethalDamage(null, "Lose");
-            }
-            else if (this.HP==0&&!(this.binaries.contains("Immortal")))
-            {
-                this.onLethalDamage(attacker, "Lose");
+                if ((dot.equals("Poison")||dot.equals("Wither")))
+                {
+                    this.onLethalDamage(null, "DOT");
+                }
+                else if (dot.equalsIgnoreCase("self"))
+                {
+                    this.onLethalDamage(null, "Lose");
+                }
+                else
+                {
+                    this.onLethalDamage(attacker, "Lose");
+                }
             }
             if (this.dead==false)
             {
@@ -688,16 +696,7 @@ public abstract class Character
         }
         else
         {
-            if (dot.equals("Poison"))
-            {
-                //System.out.println(this.Cname+" lost no health from Poison due to an immunity!");
-            }
-            else if (dot.equals("Wither"))
-            {
-                //System.out.println(this.Cname+" lost no health from Wither due to an immunity!");
-            }
-            else
-            System.out.println(attacker.Cname+"'s health loss failed due to "+this.Cname+"'s immunity.");
+            System.out.println(attacker+"'s health loss failed due to "+this+"'s immunity.");
         }
     }
     public static String GetHP (Character hero)
@@ -718,12 +717,12 @@ public abstract class Character
             switch (index)
             {
                 //220
-                case 6: case 9: case 10: case 14: case 19: case 21: case 29: case 33: case 36: case 37: case 68: case 69: case 71: case 73: case 80: case 91: case 93: case 95: 
-                case 96: case 102: case 103:
+                case 6: case 9: case 10: case 14: case 19: case 21: case 29: case 33: case 36: case 37: case 68: case 69: case 71: case 73: case 80: case 91: case 93: 
+                case 95: case 96: case 102: case 103:
                 return 220;
                 //230
-                case 1: case 2: case 3: case 4: case 5: case 7: case 8: case 11: case 18: case 20: case 23: case 24: case 25: case 34: case 39: case 40: case 72: case 74: 
-                case 75: case 79: case 81: case 82: case 84: case 86: case 88: case 89: case 90: case 92: case 94: case 97: case 98: case 100: case 101:
+                case 1: case 2: case 3: case 4: case 5: case 7: case 8: case 11: case 18: case 20: case 23: case 24: case 25: case 34: case 39: case 40: case 64: case 72: 
+                case 74: case 75: case 79: case 81: case 82: case 84: case 86: case 88: case 89: case 90: case 92: case 94: case 97: case 98: case 100: case 101:
                 return 230;
                 //240
                 case 12: case 13: case 15: case 16: case 17: case 22: case 27: case 28: case 30: case 32: case 35: case 38: case 41: case 61: case 62: case 70: case 78:
@@ -733,7 +732,7 @@ public abstract class Character
                 case 26: return 130; //modork
                 case 31: return 250; //hulk
                 case 76: case 105: return 100; //speedball and mr immortal
-                case 63: case 77: return 200; //penance and corvus
+                case 63: case 65: case 77: return 200; //corvus, supergiant, penance
             }    
             return 616;
         }
@@ -782,7 +781,7 @@ public abstract class Character
                 case 11: return "Nick Fury (Modern)"; 
                 case 12: return "Drax (Classic)"; 
                 case 13: return "Drax (Modern)"; 
-                case 14: return "X-23 (Modern)"; 
+                case 14: return "X-23 (Classic)"; 
                 case 15: return "Wolverine (Classic)"; 
                 case 16: return "Venom (Eddie Brock)"; 
                 case 17: return "Venom (Mac Gargan)"; 
@@ -815,6 +814,8 @@ public abstract class Character
                 case 61: return "Thanos (Classic)";
                 case 62: return "Thanos (Infinity Gauntlet)";
                 case 63: return "Corvus Glaive (Classic)";
+                case 64: return "Proxima Midnight (Classic)";
+                case 65: return "Supergiant (Classic)";
                 //2.6: U-Foes
                 case 68: return "Vector (Classic)";
                 case 69: return "X-Ray (Classic)";
@@ -988,6 +989,11 @@ public abstract class Character
                 return "Gain immunity to status effects, crits, HP loss, and max HP reduction. All abilities are Elusive and inescapable. On Transform, take a turn.";
                 case 63: //corvus
                 return "Gain +100% crit chance. On lethal damage, gain -100% crit chance, gain Guard, and become immune to status effects and death until the Guard is lost.";
+                case 64: //proxima
+                return "Ignore Evade.";
+                case 65: //supergiant
+                return "Dominated enemies become allies with reduced HP. If Supergiant dies or they die from anything other than Feast, they lose Dominate and regain their HP.\n"+
+                "On Supergiant's first turn, apply Terror to an enemy for 1 turn(s).";
                 //2.6: U-Foes
                 case 68: //vector
                 return "Gain immunity to Shock, Bleed, Burn, and Freeze. When using an ability on self or an ally, 100% chance to Purify. "+
@@ -1015,7 +1021,7 @@ public abstract class Character
                 case 77: //penance
                 return "Gain immunity to Control and Heal. Take half damage from attacks, and gain 1 Pain for every 20 damage taken before damage reduction.";
                 case 78: //red hulk
-                return "Take -10 damage for each Burn on self. Every 40 damage taken, gain Burn: 0 for 3 turns; at 5+, lose 40 HP on turn until there are less than 5."; 
+                return "Take -10 damage for each Burn on self. Every 40 damage taken, gain Burn: 0 for 3 turns; at 5+, lose 30 HP on turn until there are less than 5."; 
                 case 80: //scarecrow
                 return "Gain immunity to Terror. Enemies immune to Terror cannot gain Fear.";
                 //2.8: Defenders

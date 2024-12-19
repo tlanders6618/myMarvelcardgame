@@ -4,9 +4,10 @@ package myMarvelcardgamepack;
  * Designer: Timothy Landers
  * Date: 26/7/22
  * Filename: Summon
- * Purpose: To make summons.
+ * Purpose: To make summoned characters.
  */
 import java.util.ArrayList; 
+import java.util.Iterator;
 public class Summon extends Character
 {
     //passivefriend[0] is the summoner
@@ -474,8 +475,24 @@ public class Summon extends Character
     @Override
     public void onLethalDamage (Character killer, String dmgtype)
     {
-        if (!(this.binaries.contains("Immortal")))
-        this.onDeath(killer, dmgtype);
+        boolean die=true;
+        if (die==true&&!(this.binaries.contains("Immortal")))
+        {
+            if (this.binaries.contains("Dominated")&&killer.id!=65) //if killed by anyone other than supergiant, undo dominate's effects
+            {
+                Iterator<StatEff> it=this.effects.iterator();
+                while (it.hasNext()==true) //if killer is supergiant, dominate will be removed by ondeath
+                {
+                    StatEff e=it.next();
+                    if (e.getimmunityname().equals("Dominate")) 
+                    {
+                        this.remove(e.id, "normal"); break; 
+                    }
+                }
+            }
+            else
+            this.onDeath(killer, dmgtype);
+        }
     }
     @Override
     public void onDeath (Character killer, String dmgtype)

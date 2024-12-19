@@ -10,6 +10,7 @@ package myMarvelcardgamepack;
 */
 import java.util.ArrayList; 
 import java.util.Scanner;
+import java.util.Iterator;
 public class Hero extends Character
 {
     public Hero (int Pindex)
@@ -75,7 +76,7 @@ public class Hero extends Character
                 break;
                 case 40:
                 if (name.equals("Burn"))
-                ActivePassive.Sandy(this, "burn");
+                StaticPassive.Sandy(this, "burn");
                 break;
                 case 76:
                 if (name.equals("Stun"))
@@ -208,8 +209,9 @@ public class Hero extends Character
             case 32: StaticPassive.BB(this); break;
             case 33: StaticPassive.Deadpool(this, "heal", null); break;
             case 35: ActivePassive.Cain(this, "turn", 616); break;
-            case 40: ActivePassive.Sandy(this, "turn"); break;
+            case 40: StaticPassive.Sandy(this, "turn"); break;
             case 61: ActivePassive.Thanos(this, "gain", null, 0); break;
+            case 65: StaticPassive.Supergiant(this); break;
             case 72: StaticPassive.Zemo(this, true); break;
             case 74: ActivePassive.Songbird(this); break;
             case 78: ActivePassive.Rulk(this, "turn", 0); break;
@@ -239,7 +241,7 @@ public class Hero extends Character
             {
                 case 11: ActivePassive.FuryJr(this, "allyturn", summoned); break;
                 case 24: ActivePassive.Binary(this); break;
-                case 40: ActivePassive.Sandy(this, "turn"); break;
+                case 40: StaticPassive.Sandy(this, "turn"); break;
                 case 105: ActivePassive.Immortal(this, "ally"); break;
             }
         }
@@ -584,10 +586,23 @@ public class Hero extends Character
         switch (this.index)
         {
             case 12: die=ActivePassive.DraxOG(this, false, this, dmgtype); break;
-            case 63: StaticPassive.Corvus(this, "lethal", null); break;
+            case 63: StaticPassive.Corvus(this, "lethal", null); break; //doesn't need to change the die boolean because it grants immortality
         }
         if (die==true&&!(this.binaries.contains("Immortal")))
         {
+            if (this.binaries.contains("Dominated")&&killer.index!=65) //if killed by anyone other than supergiant, undo dominate's effects
+            {
+                Iterator<StatEff> it=this.effects.iterator(); 
+                while (it.hasNext()==true) //if killer is supergiant, dominate will be removed by ondeath
+                {
+                    StatEff e=it.next();
+                    if (e.getimmunityname().equals("Dominate")) 
+                    {
+                        this.remove(e.id, "normal"); break; 
+                    }
+                }
+            }
+            else
             this.onDeath(killer, dmgtype);
         }
     }
@@ -606,7 +621,13 @@ public class Hero extends Character
         {
             this.activeability.InterruptChannelled(this); //already checks if channelling was finished
         }
-        ArrayList <StatEff> removeme= new ArrayList<StatEff>();
+        //moved to before stateff removal so supergiant works proper; make sure there are no complications
+        this.HP=0;
+        this.dead=true;
+        this.dmgtaken=0;
+        this.turn=0;
+        //
+        ArrayList <StatEff> removeme= new ArrayList<StatEff>(this.effects);
         removeme.addAll(this.effects);  
         for (StatEff eff: removeme)
         {
@@ -615,10 +636,7 @@ public class Hero extends Character
                 this.remove(eff.id, "silent"); 
             }
         }
-        this.HP=0;
-        this.dead=true;
-        this.dmgtaken=0;
-        this.turn=0;
+        //previous spot for status changes
         Character[] people=Battle.GetTeammates(this);
         for (Character friend: people)
         {
@@ -659,6 +677,7 @@ public class Hero extends Character
             }
             break;
             case 61: int liz=ActivePassive.Thanos(this, "death", null, 0); break;
+            case 65: StaticPassive.Supergiant(this); break;
             case 100: StaticPassive.Elixir(this); break;
             case 105: ActivePassive.Immortal(this, "death"); break;
         }
@@ -927,6 +946,8 @@ public class Hero extends Character
                 CoinFlip.StatImmune(this, true); this.immunities.add("Lose"); this.immunities.add("Reduce"); break;
                 case 63: //corvus
                 this.CC+=100; break;
+                case 64: //proxima
+                this.ignores.add("Evade"); break;
                 //2.6: U-Foes
                 case 68: //vector
                 this.immunities.add("Bleed"); this.immunities.add("Shock"); this.immunities.add("Freeze"); this.immunities.add("Burn"); break;
@@ -1112,6 +1133,8 @@ public class Hero extends Character
                 if (this.passivecount==0)
                 this.CC-=100; //only undo atom slicing blades if glaive of immortality hasn't already undone it
                 break;
+                case 64: //proxima
+                this.ignores.remove("Evade"); break;
                 //2.6: U-Foes
                 case 68: //vector
                 this.immunities.remove("Bleed"); this.immunities.remove("Shock"); this.immunities.remove("Freeze"); this.immunities.remove("Burn"); break;

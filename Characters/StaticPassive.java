@@ -177,6 +177,48 @@ public class StaticPassive
         }
     }
     //2.5: Thanos Arrives
+    public static void Supergiant (Character superg) //onturn and ondeath; uses superg.dead==false/true instead of param boolean, so both if statements are checked by both calls
+    {
+        if (superg.dead==false&&superg.turn==0&&!(superg.binaries.contains("Stunned"))) //first turn only; dead must be false since turn counter reset ondeath
+        {
+            if (superg.team1==true)
+            {
+                System.out.println ("\nPlayer 1, choose an enemy for Supergiant to apply Terror to. Type the number in front of their name.");
+            }
+            else
+            {
+                System.out.println ("\nPlayer 2, choose an enemy for Supergiant to apply Terror to. Type the number in front of their name.");
+            }
+            CoinFlip.AddInescapable (superg, true);
+            Character[] foes=Battle.TargetFilter(superg, "enemy", "single");
+            Terror bay= new Terror(500, 1, superg);
+            if (foes[0].immunities.contains("Control"))
+            {
+                System.out.println(superg+"'s Mind Games had no effect due to "+foes[0]+"'s immunity to Control.");
+            }
+            else
+            {
+                StatEff.CheckApply(superg, foes[0], bay); 
+            }
+            CoinFlip.AddInescapable (superg, false);
+        }
+        else if (superg.dead==true) //ondeath; remove all dominates
+        {
+            Character[] friends=Battle.GetTeammates(superg);
+            for (Character c: friends)
+            {
+                if (c!=null&&c.CheckFor("Dominate", false)==true)
+                {
+                    ArrayList<StatEff> opp= new ArrayList<StatEff>(c.effects); 
+                    for (StatEff e: opp)
+                    {
+                        if (e.getimmunityname().equals("Dominate"))
+                        c.remove(e.id, "normal");
+                    }
+                }
+            }
+        }
+    }
     public static void Corvus (Character glaive, String cuz, StatEff eff) //onlethal damage and remove and onrez
     {
         if (glaive.passivecount==0&&cuz.equals("lethal")) //all passives ignore stun
@@ -186,19 +228,22 @@ public class StaticPassive
             GuardE guard= new GuardE(500, 0, 1, glaive);
             if (CoinFlip.Flip(500+glaive.Cchance)==true)
             {
-                if (StatEff.CheckFail(glaive, glaive, guard)==false) //only make him immortal if guard applies, or else he'd literally never die
+                if (StatEff.CheckFail(glaive, glaive, guard)==false) //only immortal if guard can be applied, or else it couldn't be removed and he'd literally never die
                 {
                     System.out.println("\nIt is not my time. Not yet...");
+                    glaive.binaries.add("No Heal"); //to avoid missing health restoration; he's supposed to be dead after losing guard, not have an entire second life
                     for (StatEff e: new ArrayList<StatEff>(glaive.effects))
                     {
                         glaive.remove(e.id, "normal");
                     }
                     glaive.add(guard, true);
                     CoinFlip.StatImmune(glaive, true);
-                    glaive.binaries.add("Immortal");
+                    glaive.binaries.add("Immortal"); 
                 } 
                 else
-                System.out.println("\nHow can this be? My glaive...fails me."); //other than Leader or Kang, nothing should prevent it
+                {
+                    System.out.println("\nHow can this be? My glaive...fails me."); //other than Leader or Kang, nothing should prevent it
+                }
             }
             else
             {
@@ -243,6 +288,83 @@ public class StaticPassive
        StatEff.CheckApply(alexei, alexei, me);
        else
        StatEff.applyfail(alexei, me, "chance");
+    }
+    public static void Sandy (Character baker, String o)
+    {
+        if (o.equals("ult")) //activatep; use sandstorm 
+        {
+            ArrayList<StatEff> opp= new ArrayList<StatEff>(baker.effects); 
+            for (StatEff e: opp)
+            {
+                if (!(e.getefftype().equals("Secret")))
+                baker.remove(e.id, "normal");
+            }
+            String[]blast={"Safeguard", "500", "616", "1", "true"}; String[][] loopy=StatFactory.MakeParam(blast, null); baker.activeability.AddTempString(loopy);
+            Character[] friends=Battle.GetTeammates(baker);
+            Character[] foes=Battle.GetTeam(CoinFlip.TeamFlip(baker.team1));
+            for (Character c: friends)
+            {
+                if (c!=null)
+                {
+                    Blind k=new Blind(500, 1, baker); StatEff.CheckApply(baker, c, k);
+                }
+            }
+            for (Character c: foes)
+            {
+                if (c!=null)
+                {
+                    Blind k=new Blind(500, 1, baker); StatEff.CheckApply(baker, c, k);
+                }
+            }
+            baker.passivecount=4;
+            Tracker clunt=new Tracker("Sand Storm active: "); baker.effects.add(clunt); clunt.onApply(baker);
+        }
+        else if (o.equals("turn")) //onturn and onallyturn; sandstorm dmg
+        {
+            if (baker.passivecount>0&&baker.dead==false&&!(baker.binaries.contains("Stunned")))
+            {
+                --baker.passivecount;
+                Character[] friends=Battle.GetTeammates(baker);
+                Character[] foes=Battle.GetTeam(CoinFlip.TeamFlip(baker.team1));
+                for (Character chump: foes)
+                {
+                    if (chump!=null)
+                    {
+                        Damage_Stuff.ElusiveDmg(baker, chump, 20, "default");
+                    }
+                }
+                for (Character chump: friends)
+                {
+                    if (chump!=null)
+                    {
+                        Damage_Stuff.ElusiveDmg(baker, chump, 20, "default");
+                    }
+                }
+                for (StatEff e: new ArrayList<StatEff>(baker.effects))
+                {
+                    if (e instanceof Tracker&& e.geteffname().equals("Sand Storm active: "+(baker.passivecount+1)+" turns"))
+                    {
+                        if (baker.passivecount>0) //update tracker
+                        e.onApply(baker); 
+                        else
+                        {
+                            baker.remove(e.id, "silent"); System.out.println(baker.Cname+"'s Sand Storm ended.");
+                        }
+                        break;
+                    }
+                }
+            }
+        }
+        else //if (o.equals("burn")) //add
+        {
+            ArrayList<StatEff> burns= CoinFlip.GetEffs(baker, "Burn", "any");
+            if (burns.size()>1) //2 or more
+            {
+                System.out.print("\n");
+                baker.remove(burns.get(0).id, "normal"); baker.remove(burns.get(1).id, "normal");
+                StunE hope= new StunE(500, 1, baker); StatEff.CheckApply(baker, baker, hope);
+            }
+        }
     }
     public static void Vulture (Character adrian, Character prey) //beforeattack
     {

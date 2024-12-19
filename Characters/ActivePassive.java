@@ -255,7 +255,7 @@ public class ActivePassive
             int burns=CoinFlip.GetStatCount(ross, "Burn", "Other");
             if (cause.equals("turn")&&burns>=5)
             {
-                ross.LoseHP(null, 30, "self");
+                ross.LoseHP(null, 30, "self", false);
             }
             else if (cause.equals("add")&&burns>=5&&ross.CheckFor(ross+" is overheated!", false)==false) 
             {
@@ -437,84 +437,6 @@ public class ActivePassive
             }
         }
         return dmg;
-    }
-    //2.1: Sinister 6
-    public static void Sandy (Character baker, String o)
-    {
-        if (o.equals("ult")) //activatep; use sandstorm 
-        {
-            ArrayList<StatEff> opp= new ArrayList<StatEff>(); opp.addAll(baker.effects);
-            for (StatEff e: opp)
-            {
-                if (!(e.getefftype().equals("Secret")))
-                baker.remove(e.id, "normal");
-            }
-            String[]blast={"Safeguard", "500", "616", "1", "true"}; String[][] loopy=StatFactory.MakeParam(blast, null); baker.activeability.AddTempString(loopy);
-            Character[] friends=Battle.GetTeammates(baker);
-            Character[] foes=Battle.GetTeam(CoinFlip.TeamFlip(baker.team1));
-            for (Character c: friends)
-            {
-                if (c!=null)
-                {
-                    Blind k=new Blind(500, 1, baker); StatEff.CheckApply(baker, c, k);
-                }
-            }
-            for (Character c: foes)
-            {
-                if (c!=null)
-                {
-                    Blind k=new Blind(500, 1, baker); StatEff.CheckApply(baker, c, k);
-                }
-            }
-            baker.passivecount=4;
-            Tracker clunt=new Tracker("Sand Storm active: "); baker.effects.add(clunt); clunt.onApply(baker);
-        }
-        else if (o.equals("turn")) //onturn and onallyturn; sandstorm dmg
-        {
-            if (baker.passivecount>0&&baker.dead==false&&!(baker.binaries.contains("Stunned")))
-            {
-                --baker.passivecount;
-                Character[] friends=Battle.GetTeammates(baker);
-                Character[] foes=Battle.GetTeam(CoinFlip.TeamFlip(baker.team1));
-                for (Character chump: foes)
-                {
-                    if (chump!=null)
-                    {
-                        Damage_Stuff.ElusiveDmg(baker, chump, 20, "default");
-                    }
-                }
-                for (Character chump: friends)
-                {
-                    if (chump!=null)
-                    {
-                        Damage_Stuff.ElusiveDmg(baker, chump, 20, "default");
-                    }
-                }
-                for (StatEff e: new ArrayList<StatEff>(baker.effects))
-                {
-                    if (e instanceof Tracker&& e.geteffname().equals("Sand Storm active: "+(baker.passivecount+1)+" turns"))
-                    {
-                        if (baker.passivecount>0) //update tracker
-                        e.onApply(baker); 
-                        else
-                        {
-                            baker.remove(e.id, "silent"); System.out.println(baker.Cname+"'s Sand Storm ended.");
-                        }
-                        break;
-                    }
-                }
-            }
-        }
-        else //if (o.equals("burn")) //add
-        {
-            ArrayList<StatEff> burns= CoinFlip.GetEffs(baker, "Burn", "any");
-            if (burns.size()>1) //2 or more
-            {
-                System.out.print("\n");
-                baker.remove(burns.get(0).id, "normal"); baker.remove(burns.get(1).id, "normal");
-                StunE hope= new StunE(500, 1, baker); StatEff.CheckApply(baker, baker, hope);
-            }
-        }
     }
     //2.0: Original
     public static void Cain (Character marko, String time, int old)
