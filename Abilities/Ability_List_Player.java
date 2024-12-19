@@ -65,6 +65,8 @@ public class Ability_List_Player
             case 61: return MakeAbThanos(counter);
             case 62: return MakeAbGauntlet(counter, copy);
             case 63: return MakeAbCorvus(counter);
+            case 64: return MakeAbProxima(counter);
+            case 65: return MakeAbSupergiant(counter);
             //2.6: U-Foes
             case 68: return MakeAbVector(counter, copy);
             case 69: return MakeAbXRay(counter);
@@ -187,7 +189,7 @@ public class Ability_List_Player
             return pow;
             case 1: OtherAb trigger= new OtherAb("Stacked Deck", "self", "self", 3); trigger.unbound=true;
             String[] sour={"Empower", "500", "616", "2", "true"}; String[][] burn=StatFactory.MakeParam(sour, null); trigger.AddStatString(burn);
-            trigger.desc="Gain a(n) Empower for 2 use(s), making abilities apply Burn: 10 for 1 turn(s).";
+            trigger.desc="Gain a(n) Empower for 2 use(s), making abilities apply Burn: 5 for 1 turn(s).";
             return trigger;
             case 3: AttackAb three= new AttackAb("Three of a Kind", "single", "enemy", 5, 3, 2); 
             if (copy==false)
@@ -644,7 +646,7 @@ public class Ability_List_Player
             String[] reefer={"Poison", "50", "20", "1", "false"}; String[][] free=StatFactory.MakeParam(reefer, null); punch.AddStatString(free);
             return punch;
             case 1: DebuffAb radpoison=new DebuffAb("Radiation Poisoning", "single", "enemy", 3); radpoison.unbound=true; 
-            radpoison.special.add(new DebuffMod(79)); radpoison.desc="100% chance to apply Afflicted for 1 turn(s) if the target has Poison.";
+            radpoison.special.add(new DebuffMod(79)); radpoison.desc="If the target has Poison, 100% chance to apply Afflicted for 1 turn(s).";
             return radpoison;
             case 2: DebuffAb touch= new DebuffAb("Contamination", "single", "enemy", 3);
             String[] arum={"Poison", "100", "35", "3", "false"}; String[][] fresh=StatFactory.MakeParam(arum, null); touch.AddStatString(fresh);
@@ -870,6 +872,39 @@ public class Ability_List_Player
         }
     }
     //2.5: Thanos Arrives
+    public static Ability MakeAbSupergiant (int counter)
+    {
+        switch (counter)
+        {
+            case 0: OtherAb assist=new OtherAb("Command", "single", "enemy", 0); assist.desc="Must be Dominated. ";
+            Assist a= new Assist (true, 1, 0, true, 0, null, 500, true); a.condition="Dominated"; assist.special.add(a);
+            return assist;
+            case 1: OtherAb dom=new OtherAb("Dominate", "single", "enemy", 0); dom.control=true; dom.channelled=true;
+            String[] blast={"Dominate", "500", "616", "616", "false"}; String[][] it=StatFactory.MakeParam(blast, null); dom.AddStatString(it);
+            return dom;
+            case 4: OtherAb kill=new OtherAb("Feast", "single", "ally exclusive", 0); kill.channelled=true; kill.special.add(new ActivatePassive(65));
+            kill.desc="If the target is Dominated, kill them and regain 100 HP.";
+            return kill;
+            default: return null;
+        }
+    }
+    public static Ability MakeAbProxima (int counter)
+    {
+        switch (counter)
+        {
+            case 0: return new BasicAb("Impale", "single", "enemy", 45);
+            case 1: DebuffAb tip=new DebuffAb("Poisonous Tip", "single", "enemy", 3);
+            String[] boogy={"Poison Effect", "100", "20", "10", "false"}; String[][] oogy=StatFactory.MakeParam(boogy, null); tip.AddStatString(oogy);
+            return tip;
+            case 3: AttackAb power=new AttackAb("Infinite Mass Entanglement", "single", "enemy", 100, 4); 
+            String[] stunner={"Stun Effect", "100", "616", "1", "false"}; String[][] hook=StatFactory.MakeParam(stunner, null); power.AddStatString(hook);
+            return power;
+            case 4: AttackAb mask=new AttackAb("Last Light", "single", "enemy", 100, 4);
+            String[] clash={"Wound Effect", "100", "616", "1", "false"}; String[][] cow=StatFactory.MakeParam(clash, null); mask.AddStatString(cow);
+            return mask;
+            default: return null;
+        }
+    }
     public static Ability MakeAbCorvus (int counter)
     {
         switch (counter)

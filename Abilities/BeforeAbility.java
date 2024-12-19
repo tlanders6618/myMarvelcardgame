@@ -52,7 +52,7 @@ class ActivateP extends BeforeAbility //ability activates a hero's passive
             if (delete!=null)
             user.remove(delete.id, "normal");
             break;
-            case 40: ActivePassive.Sandy(user, "ult"); break; //activate sandstorm
+            case 40: StaticPassive.Sandy(user, "ult"); break; //activate sandstorm
         }
         return 0;
     }
@@ -1378,7 +1378,7 @@ class SelfDMG extends BeforeAbility
         }
         else
         {
-            hero.LoseHP(hero, amount, "self");
+            hero.LoseHP(hero, amount, "self", false);
         }
         return 0;
     }
