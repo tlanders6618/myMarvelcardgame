@@ -1,96 +1,101 @@
 package myMarvelcardgamepack;
-
-/**
- * Designer: Timothy Landers
- * Date: 20/6/22
- * Filename: Card_Selection
- * Purpose: Pre-fight character selection and banning, as well as target selection.
- */
+    
 import java.util.Scanner;
 import java.util.ArrayList;
+/**
+* @author Timothy Landers
+* <p>Date of creation: 20/6/22
+* <p>Purpose: Contains methods for pre-fight character selection and banning, as well as target selection.
+*/
 public class Card_Selection
 {
-    public static int Selection(int counter, boolean ban) //choosing heroes
+    /**
+    * Prompts the player to choose the index number of a hero, and prints the purpose of the selection. Used for character selection/reselection.
+    * <p>Also ensures index corresponds to a playable character, but does not check for bans/duplicates.
+    * @param counter Should be either 616 (if player's previous input was invalid) or from 0-5 inclusive, to track how many heroes have been chosen. 
+    * @param goal The purpose of the method call (e.g. previous input was a duplicate).
+    * @return The index number chosen.
+    * @see Card_Game_Main 
+    */
+    public static int Selection(int counter, String goal) 
     {
         int Cname=0;      
-        if (counter<6) //each player chooses 3 heroes
+        boolean good=false;
+        boolean check=false;
+        if (counter>-1&&counter<6)
+        check=true;
+        if (check==true)
         {
-            if (counter==0 || counter==2 || counter==4)
+            if (counter==0||counter==2||counter==4) //each player chooses 3 heroes; even numbers are for player 1
             {
-                if (ban==false)
+                if (goal.equals("select"))
                 System.out.println ("\nPlayer 1, choose a character. Type the character's index number, shown on the character list."); 
                 else
                 System.out.println ("\nPlayer 1, choose a character to ban. Type the character's index number, shown on the character list."); 
             }
             else
             {
-                if (ban==false)
+                if (goal.equals("select"))
                 System.out.println ("\nPlayer 2, choose a character. Type the character's index number, shown on the character list.");  
                 else
                 System.out.println ("\nPlayer 2, choose a character to ban. Type the character's index number, shown on the character list."); 
             }
-            boolean good;
-            do
-            {
-                Cname=Damage_Stuff.GetInput(); 
-                good=false;
-                if (Cname==616||Cname<=0||Cname>105||(Cname>41&&Cname<68)&&!(Cname>=61&&Cname<=65)) //updated as more characters are released in each version
-                {
-                    System.out.println("Index number not found.");
-                }
-                else
-                {
-                    good=true;
-                }
-            }
-            while (good==false);
-            return Cname;
         }
-        else 
+        else
         {
-            if (ban==false)
-            System.out.println ("Could not select a character due to counter error."); 
-            else
-            System.out.println ("Could not select a ban due to counter error.");  
-            return 616;           
-        }    
-    }  
-    public static int Retry(boolean banned) //if player inputs duplicate or banned hero
-    {
-        int rename=0;
-        boolean typo=true;
-        if (banned==true) //tried to pick banned character
-        {
-            System.out.println ("The selected character has been banned. Banned characters cannot be used. Please select another character.");
+            if (goal.equals("banned")) 
+            {
+                System.out.println ("The selected character has been banned. Banned characters cannot be used. Please select another character.");
+            } 
+            else if (goal.equals("dupe"))
+            {
+                System.out.println ("No duplicate characters allowed.");
+            }
+            else //just in case
+            {
+                System.out.println("Spelling error in Selection's argument. Fix it.");
+            }
         }
         do
         {
-            rename=Damage_Stuff.GetInput();
-            if (rename==616||rename<=0||rename>105||(rename>41&&rename<68)&&!(rename>=61&&rename<=65)) 
+            Cname=Damage_Stuff.GetInput(); 
+            if (Cname==616||Cname<=0||Cname>105||(Cname>41&&Cname<68)&&!(Cname>=61&&Cname<=65)) //updated as more characters are released in each version
             {
                 System.out.println("Index number not found.");
             }
             else
             {
-                typo=false;
+                good=true;
             }
         }
-        while (typo==true);
-        return rename;            
-    }
-    public static boolean OnlyOne (int chosen, int[] others) //Ensures players cannot choose duplicate heroes. 
+        while (good==false);
+        return Cname;
+    }  
+    /**
+     * Checks if the given index number is contained in the given list of indexes.
+     * @param given The index number a player selected.
+     * @param others The list of banned or currently chosen characters' index numbers.
+     * @return False if given is a duplicate/banned index number. True if given is not (given is the only one).
+     * @see Card_Game_Main
+     */
+    public static boolean OnlyOne (int given, int[] others) 
     { 
-        //Chosen is the name the player entered; the other names are previously selected heroes
         for (int i: others)
         {
-            if (i!=0&&chosen==i) //the default value for empty int array slots is 0; no point in checking those 
-            {
-                return false;
-            }
+            if (i!=0&&given==i) //0 is the default value for empty int array slots, so skip checking those 
+            return false;
         }
         return true;
     }
-    public static Character ChooseTargetFriend (Character[] list) //for targeting allies
+    /**
+     * Handles target selection for heroes targeting individual teammates (AoE abilities don't have or need a special method). 
+     * <p>The hero is not a parameter because targeting effects don't prevent them from targeting allies, and thus don't need to be checked.
+     * @param list The hero's teammates. 
+     * @return The teammate being targeted. If the hero has no valid targets, returns null.
+     * @see Battle
+     * @see StaticPassive
+     */
+    public static Character ChooseTargetFriend (Character[] list) 
     {
         int targ=616; boolean typo=true;
         boolean available=false;
@@ -136,6 +141,13 @@ public class Card_Selection
         else
         return null;
     }
+    /**
+     * Handles target selection for heroes targeting their enemies; checks for targeting effects. Used for both AoE and single target selection.
+     * @param hero The hero.
+     * @param list The hero's enemies. 
+     * @return A Character array of enemies being targeted; if a single target ability was used, the array will only contain a single enemy.
+     * @see Battle
+     */
     public static Character[] ChooseTargetFoe (Character hero, Character[] list) //targeting an enemy
     {
         int targ=56; boolean typo=true;
@@ -369,6 +381,6 @@ public class Card_Selection
         }
         while (typo==true);
         nlist[i]=nlist[targ]; //player's chosen target is at end of array
-        return nlist; //returns filtered list for sake of multitarget
+        return nlist; //returns filtered list that can be used by multitarget
     }
 }

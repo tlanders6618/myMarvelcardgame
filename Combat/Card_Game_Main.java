@@ -46,7 +46,7 @@ public class Card_Game_Main
             { 
                 while (unique==false) //ensures there are no duplicate bans
                 {
-                    name=Card_Selection.Selection(Ccounter, true);
+                    name=Card_Selection.Selection(Ccounter, "ban");
                     unique=Card_Selection.OnlyOne(name, bans); 
                     if (unique==false)
                     {
@@ -76,30 +76,26 @@ public class Card_Game_Main
             System.out.println ("Player 2's bans for this match: "+Character.SetName(bans[1], false)+", "+Character.SetName(bans[3], false)+", "+Character.SetName(bans[5], false));
         }
         //Creating teams
-        unique=false; boolean uncle; //uncle also represents hero uniqueness
-        boolean banned; 
+        unique=false; boolean notbanned=false; 
         System.out.println ("Now you will take turns choosing characters.");
         Ccounter=0;
         while (Ccounter<6)
         {
-            name=Card_Selection.Selection(Ccounter, false); //player picks their character 
+            name=Card_Selection.Selection(Ccounter, "select"); //player picks their character 
             unique=Card_Selection.OnlyOne(name, charnames); //check for duplicates
-            uncle=Card_Selection.OnlyOne(name, bans); //check for bans
-            while (unique==false||uncle==false) //ensures banned/duplicate characters cannot be used             
+            notbanned=Card_Selection.OnlyOne(name, bans); //check for bans
+            while (unique==false||notbanned==false) //ensures banned/duplicate characters cannot be used             
             {
-                if (unique==false)
+                if (unique==false) //character is already chosen
                 {
-                    banned=false;
-                    System.out.println ("No duplicate characters allowed.");
-                    name=Card_Selection.Retry(banned);
+                    name=Card_Selection.Selection(616, "dupe");
                 }
-                if (uncle==false) 
+                if (notbanned==false) //character is banned
                 {
-                    banned=true;
-                    name=Card_Selection.Retry(banned);
+                    name=Card_Selection.Selection(616, "banned");
                 }
                 unique=Card_Selection.OnlyOne(name, charnames);
-                uncle=Card_Selection.OnlyOne(name, bans);
+                notbanned=Card_Selection.OnlyOne(name, bans);
             }
             if (name==95) 
             bans[11]=96;
@@ -131,7 +127,7 @@ public class Card_Game_Main
             System.out.println("Player 2's team: "+Character.SetName(charnames[1], false)+", "+Character.SetName(charnames[3], false)+", "+Character.SetName(charnames[5], false));
             for (int i=0; i<2; i++) //this is the reason why it's called draft mode instead of ban mode. Players can change one of their characters
             {
-                unique=false; uncle=false;
+                unique=false; notbanned=false;
                 boolean typo=true;
                 if (i==0)
                 System.out.println ("\nPlayer 1, do you want to change one of your characters? Type yes or no.");
@@ -150,19 +146,19 @@ public class Card_Game_Main
                 if (dr.equalsIgnoreCase("yes"))
                 {
                     System.out.println ("Which character would you like to add to your team?");
-                    while (unique==false||uncle==false) //check for uniqueness again
+                    while (unique==false||notbanned==false) //check for uniqueness again
                     {
                         if (i==0)
-                        name=Card_Selection.Selection(0, false);
+                        name=Card_Selection.Selection(0, "select");
                         else
-                        name=Card_Selection.Selection(1, false);
+                        name=Card_Selection.Selection(1, "select");
                         unique=Card_Selection.OnlyOne(name, charnames);
-                        uncle=Card_Selection.OnlyOne(name, bans);
+                        notbanned=Card_Selection.OnlyOne(name, bans);
                         if (unique==false)
                         {
                             System.out.println ("No duplicate characters allowed.");
                         }
-                        if (uncle==false)
+                        if (notbanned==false)
                         {
                             System.out.println ("No banned characters allowed.");
                         }
