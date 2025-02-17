@@ -196,6 +196,21 @@ class ActivatePassive extends AfterAbility //ability activates a hero's passive 
                 user.Healed(100, true, false);
             }
             break;
+            case 66: //black dwarf protect
+            for (StatEff eff: user.effects) //modified version of copyall
+            {
+                if (eff.getefftype().equals("Buffs")||eff.getefftype().equals("Defence"))
+                {
+                    String name=eff.getimmunityname(); 
+                    if (!(name.equals("Protect"))&&!(name.equals("Taunt")))
+                    {
+                        int dur=eff.oduration; int pow=eff.power;
+                        String[] morb={name, "500", Integer.toString(pow), Integer.toString(dur), "true"}; String[][] string=StatFactory.MakeParam(morb, null);
+                        StatEff e=StatFactory.MakeStat(string, user); StatEff.CheckApply(user, target, e);
+                    }
+                }
+            }
+            break;
             case 72: //zemo's dominating blow
             if (target.dead==true&&user.dead==false)
             {
@@ -2268,7 +2283,7 @@ class Transformation extends AfterAbility
         hero.Transform(index, great);
     }
 }
-class Update extends AfterAbility //adds tracker to hero to make it clear that their otherwise silent otherab took effect; for drax modern, mephisto, the weaver, unstoppable colossus
+class Update extends AfterAbility //adds tracker to hero to make it clear that their otherwise silent otherab took effect; for drax modern, mephisto, the weaver, etc
 {
     int index=0;
     public Update (int ind)
@@ -2288,7 +2303,7 @@ class Update extends AfterAbility //adds tracker to hero to make it clear that t
                     ok=false; break;
                 }
             }
-            if (ok==true) //although unlikely to happen, still pointless to let this show twice since its effect doesn't stack
+            if (ok==true) //although unlikely to happen, still pointless to let this show twice since its effect doesn't stack, so check anyway
             hero.effects.add(new Tracker ("Twin Blades active")); 
             break;
         }

@@ -427,13 +427,13 @@ class AttackAb extends Ability
         return toadd;
     }
     @Override
-    public void CheckIgnore(Character user, boolean add) //does nothing, since disarm doesn't need to be ignored with binaries
+    public void CheckIgnore(Character user, boolean add) //does nothing, since disarm doesn't need to be ignored with binaries since it doesn't affect stateff application
     {
     }
     @Override
     public boolean CheckUse (Character user)
     {
-        if ((user.CheckFor("Disarm", false)==true&&this.ignore==false)||user.CheckFor("Suppression", false)==true)
+        if ((user.CheckFor("Disarm", false)==true&&this.ignore==false)||user.CheckFor("Suppression", false)==true||user.CheckFor("Persuaded", false)==true)
         {
             return false;
         }

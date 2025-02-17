@@ -263,7 +263,7 @@ class Use extends SpecialAbility //specialab so empowerments can be undone befor
         this.ab=ability; this.condition=usecase; 
         switch (condition)
         {
-            case "maw": this.desc="If the target has Persuaded, Use one of their abilities."; break;
+            case "maw": this.desc="If the target has Persuaded, make them Use one of their abilities."; break;
             case "default": this.desc="Use "+ab.oname+". "; break; //ability is always used, no matter what
         }
     }

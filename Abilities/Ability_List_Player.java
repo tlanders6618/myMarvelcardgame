@@ -67,6 +67,8 @@ public class Ability_List_Player
             case 63: return MakeAbCorvus(counter);
             case 64: return MakeAbProxima(counter);
             case 65: return MakeAbSupergiant(counter);
+            case 66: return MakeAbDwarf(counter);
+            case 67: return MakeAbMaw(counter, copy);
             //2.6: U-Foes
             case 68: return MakeAbVector(counter, copy);
             case 69: return MakeAbXRay(counter);
@@ -872,6 +874,46 @@ public class Ability_List_Player
         }
     }
     //2.5: Thanos Arrives
+    public static Ability MakeAbMaw (int counter, boolean copy)
+    {
+        switch (counter)
+        {
+            case 0: OtherAb insid=new OtherAb("Insidious Whisper", "single", "enemy", 0);
+            String[] sid={"Whisper", "500", "616", "616", "false"}; String[][] ous=StatFactory.MakeParam(sid, null); insid.AddStatString(ous);
+            if (copy==false)
+            {
+                insid.elusive=true; insid.special.add(new Ignore ("targeting effects", "always", 616));
+            }
+            return insid;
+            case 1: 
+            if (copy==false)
+            {
+                //power.elusive=true; power.special.add(new Ignore ("targeting effects", "always", 616));
+            }
+            default: return null;
+        }
+    }
+    public static Ability MakeAbDwarf (int counter)
+    {
+        switch (counter)
+        {
+            case 0: BasicAb punch=new BasicAb("Axe Slam", "single", "enemy", 45); punch.special.add(new DamageCounterSimple(45, "Provoke", false, true, true));
+            return punch;
+            case 1: AttackAb bigpunch=new AttackAb("Axe Throw", "single", "enemy", 100, 3); 
+            return bigpunch;
+            case 2: BuffAb skin=new BuffAb("Thick Skin", "self", "self", 3); 
+            String[] res={"Resistance", "100", "30", "2", "true"}; String[][] rez=StatFactory.MakeParam(res, null); skin.AddStatString(rez);
+            String[] safe={"Safeguard", "100", "616", "2", "true"}; String[][] guard=StatFactory.MakeParam(safe, null); skin.AddStatString(guard);
+            return skin;
+            case 3: DefAb sidian=new DefAb("Obsidian Guard", "single", "ally exclusive", 4); sidian.special.add(new ActivatePassive(66));
+            String[] gloom={"Protect", "500", "616", "1", "true"}; String[][] chic=StatFactory.MakeParam(gloom, null); sidian.AddStatString(chic); 
+            sidian.desc="The Protected ally gains a copy of Black Dwarf's buffs and Defence effects.";
+            return sidian;
+            case 4: AttackAb rick=new AttackAb("Devastating Cleave", "single", "enemy", 100, 4); rick.special.add(new Ricochet(50));
+            return rick;
+            default: return null;
+        }
+    }
     public static Ability MakeAbSupergiant (int counter)
     {
         switch (counter)

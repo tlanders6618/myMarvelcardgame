@@ -423,10 +423,10 @@ class Boost extends BeforeAbility //for abs with increased stat chance
         return 0;
     }
     @Override
-    public int Use (Character hero, int ignore, Character target) //specialab to undo so statchance increase stays active during stateff gen and application
+    public int Use (Character hero, int ig, Character target) //specialab to undo so statchance increase stays active during stateff gen and application
     {
         hero.Cchance-=amount;
-        return ignore;
+        return ig;
     }
 }
 class ChooseStat extends BeforeAbility //choose one effect to apply with the ability
