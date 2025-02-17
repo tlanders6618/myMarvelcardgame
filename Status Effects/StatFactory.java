@@ -59,7 +59,7 @@ public class StatFactory
             case "Evade": return new Evade (Integer.valueOf(param[0][1]), Q);
             case "Evade Effect": return new EvadeE (Integer.valueOf(param[0][1]), Q);
             case "Evasion": return new Evasion (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3]), Q);
-            case "Fear": return new Fear(Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3]), Q);
+            case "Evasion Effect": return new EvasionE (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3]), Q);
             case "Ferocity": return new Ferocity (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3]), Q);
             case "Focus": return new Focus (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3]), Q);
             case "Focus Effect": return new FocusE (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3]), Q);
@@ -70,8 +70,8 @@ public class StatFactory
             case "Intensify Effect": return new IntensifyE (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][2]), Integer.valueOf(param[0][3]), Q);
             case "Invisible": return new Invisible (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3]), Q);
             case "Mighty Blows": return new MightyBlows (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3]), Q);
-            case "Nauseated": return new Nauseated(Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3]), Q);
             case "Neutralise": return new Neutralise (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3]), Q);
+            case "Persuaded": return new Persuaded (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3]), Q);
             case "Placebo (Buff)": return new PlaceboB(Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3]), Q);
             case "Placebo (Debuff)": return new PlaceboD(Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3]), Q);
             case "Poison": return new Poison (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][2]), Integer.valueOf(param[0][3]), Q);
@@ -101,14 +101,14 @@ public class StatFactory
             case "Target Effect": return new TargetE (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][2]), Integer.valueOf(param[0][3]), Q); 
             case "Taunt": return new Taunt (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3]), Q); 
             case "Terror": return new Terror(Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3]), Q); 
-            case "Tracer": return new Tracer (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3]), Q); 
             case "Undermine": return new Undermine (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3]), Q); 
             case "Vulnerable": return new Vulnerable(Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3]), Q); 
             case "Weakness": return new Weakness (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][2]), Integer.valueOf(param[0][3]), Q); 
+            case "Whisper": return new Whisper(Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3]), Q); 
             case "Wither": return new Wither (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][2]), Integer.valueOf(param[0][3]), Q); 
             case "Wound": return new Wound (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3]), Q); 
             case "Wound Effect": return new WoundE (Integer.valueOf(param[0][1]), Integer.valueOf(param[0][3]), Q); 
-            default: System.out.println("Spelling error in statfactory; no matching stateff found."); return null;
+            default: return new Nametag(Integer.valueOf(param[0][1]), Integer.valueOf(param[0][2]), Integer.valueOf(param[0][3]), Q);
         }
     }
 }

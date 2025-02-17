@@ -1,20 +1,29 @@
 package myMarvelcardgamepack;
 
-
-/**
- * Designer: Timothy Landers
- * Date: 10/8/22
- * Filename: OtherEff
- * Purpose: To list all the Other status effects in one file.
- */
 import java.util.ArrayList; 
+/**
+ * @author Timothy Landers
+ * Date of creation: 10/8/22
+ * Purpose: To list and implement all the game's Other status effects in one file.
+ */
 public abstract class OtherEff extends StatEff 
 {
+    /**
+    * Constructor for all Other effects. Initialises the effect's status chance, progenitor, and id. Also sets stackable to true.
+    * <p> Individual Other effects override StatEff methods as needed for their implementation, and have their own constructors that also call this one.
+    * @param c The effect's status chance.
+    * @param p The effect's progenitor.
+    * @see StatEff
+    */
     public OtherEff (int c, Character p)
     {
         this.chance=c; this.prog=p; this.id=CardCode.RandomCode();
-        this.stackable=true; //by default, all other effs are stackable
+        this.stackable=true; //almost all othereffs are stackable, so it's easier to assume true and change in subclass constructor if needed
     }
+    /** 
+     * The same for all Other effects. 
+     * @return "Other" 
+     */
     @Override 
     public String getefftype()
     {
@@ -625,28 +634,30 @@ class EvadeE extends OtherEff
         super(c, p);
     }
 }
-class Fear extends OtherEff
+class EvasionE extends OtherEff 
 {
     @Override
     public String getimmunityname()
     {
-        return "Fear";
-    }
-    @Override
-    public String getalttype()
-    {
-        return "Terror";
+        return "Evasion";
     }
     @Override
     public String geteffname()
     {
-        return "Fear Effect, "+this.duration+" turn(s)";
+        if (this.duration<100)
+        {
+            return "Evasion Effect, "+this.duration+" turn(s)";
+        }
+        else
+        {
+            return "Evasion Effect";
+        }
     }
-    public Fear (int c, int d, Character p) 
+    public EvasionE (int c, int nduration, Character p)
     {
         super(c, p);
-        this.duration=d;
-        this.oduration=d;
+        this.duration=nduration;
+        this.oduration=nduration;
     }
 }
 class FocusE extends OtherEff 
@@ -804,40 +815,76 @@ class IntensifyE extends OtherEff
         target.BD-=this.power;
     }
 }
-class Nauseated extends OtherEff
+class Nametag extends OtherEff //unique effects that only exist to interact with a passive and otherwise do nothing; swap their names, but otherwise they're the same eff
 {
+    String name;
     @Override
     public String getimmunityname()
     {
-        return "Nauseated";
+        return name;
     }
     @Override
     public String geteffname()
     {
-        return "Nauseated Effect, "+this.duration+" turn(s)";
+        String add=name;
+        if (this.power!=616)
+        add+=": "+this.power;
+        if (this.duration>100)
+        return add+" Effect";
+        else
+        return add+" Effect, "+this.duration+" turn(s)";
     }
-    public Nauseated (int c, int nduration, Character p)
+    public Nametag (int c, int strong, int nduration, Character p)
+    {
+        super(c, p);
+        this.power=strong;
+        this.duration=nduration;
+        this.oduration=nduration;
+        if (p.summoned==false)
+        {
+            switch (p.index)
+            {
+                case 12: name="Obsession"; break;
+                case 20: name="Tracer"; break;
+                case 73: name="Nauseated"; break;
+                case 80: name="Fear"; break;
+            }
+        }
+        else
+        {
+            switch (p.index)
+            {
+                case 27: case 28: name="Tracer"; break;
+            }
+        }
+    }
+}
+class Persuaded extends OtherEff
+{
+    @Override
+    public String getimmunityname()
+    {
+        return "Persuaded";
+    }
+    @Override
+    public String geteffname()
+    {
+        return "Persuaded Effect";
+    }
+    public Persuaded (int c, int nduration, Character p) //ability.checkuse now treats persuaded as equal to suppression; no need to do anything here
     {
         super(c, p);
         this.duration=nduration;
         this.oduration=nduration;
     }
-}
-class Obsession extends OtherEff
-{
     @Override
-    public String getimmunityname()
+    public void onApply (Character target) //ebony maw's voice in your ear passive is done here because it's easier to implement this way
     {
-        return "Obsession";
-    }
-    @Override
-    public String geteffname()
-    {
-        return "Obsession Effect";
-    }
-    public Obsession(Character p) 
-    {
-        super(500, p);
+        if (this.prog.index==67&&this.prog.passivecount==0)
+        {
+            this.prog.passivecount=1; //only gains evasion the first time persuaded is applied
+            StatEff.CheckApply(this.prog, this.prog, new EvasionE(500, 616, this.prog));
+        }
     }
 }
 class PoisonE extends OtherEff 
@@ -1497,23 +1544,53 @@ class TargetE extends OtherEff
         target.DV-=power;
     }
 }
-class Tracer extends OtherEff
+class Whisper extends OtherEff
 {
     @Override
     public String getimmunityname()
     {
-        return "Tracer";
+        return "Whisper";
     }
     @Override
     public String geteffname()
     {
-        return "Tracer Effect, "+this.duration+" turn(s)";
+        return "Whisper Effect";
     }
-    public Tracer (int c, int d, Character p) 
+    public Whisper (int c, int nduration, Character p)
     {
         super(c, p);
-        this.duration=d;
-        this.oduration=d;
+        this.duration=nduration;
+        this.oduration=nduration;
+    }
+    @Override
+    public void onApply (Character target) //ebony maw's black tongue passive is here because it's easier to implement this way
+    {
+        if (this.prog.index==67&&this.prog.dead==false) 
+        {
+            ArrayList<StatEff> whispers=new ArrayList<StatEff>();
+            boolean good=false;
+            for (StatEff e: new ArrayList<StatEff>(target.effects))
+            {
+                if (e.getimmunityname().equals("Whisper"))
+                {
+                    whispers.add(e);
+                    if (whispers.size()==2) //2 whispers=1 persuaded
+                    {
+                        good=true; break;
+                    }
+                }
+            }
+            for (StatEff w: whispers)
+            {
+                target.remove(w.id, "normal");
+            }
+            StatEff.CheckApply(this.prog, target, new Persuaded(500, 616, this.prog));
+        }
+    }
+    @Override
+    public void Attacked(Character hero, Character attacker, int dmg)
+    {
+        hero.remove(this.id, "normal");
     }
 }
 class WoundE extends OtherEff 

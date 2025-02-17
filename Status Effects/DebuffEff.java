@@ -1,19 +1,28 @@
 package myMarvelcardgamepack;
 
-
-/**
- * Designer: Timothy Landers
- * Date: 8/8/22
- * Filename: DebuffEff
- * Purpose: To list all the debuffs in one file.
- */
 import java.util.ArrayList;
+/**
+ * @author Timothy Landers
+ * Date of creation: 8/8/22
+ * Purpose: To list and implement all the game's debuffs in one file.
+ */
 public abstract class DebuffEff extends StatEff 
 {
+    /**
+    * Constructor for all debuffs. Initialises the debuff's status chance, progenitor, and id.
+    * <p> Individual debuffs override StatEff methods as needed for their implementation, and have their own constructors that also call this one.
+    * @param c The debuff's status chance.
+    * @param p The debuff's progenitor.
+    * @see StatEff
+    */
     public DebuffEff (int c, Character p)
     {
         this.chance=c; this.prog=p; this.id=CardCode.RandomCode();
     }
+    /** 
+     * The same for all debuffs. 
+     * @return "Debuffs" 
+     */
     @Override 
     public String getefftype()
     {

@@ -1,11 +1,9 @@
 package myMarvelcardgamepack;
 
-
 /**
- * Designer: Timothy Landers
- * Date: 19/7/22
- * Filename: StatEff
- * Purpose: Has types of status effects.
+ * @author Timothy Landers
+ * Date of creation: 19/7/22
+ * Purpose: Contains the superclass for all status effects, as well as the methods for applying them/checking if they can be applied.
  */
 public abstract class StatEff 
 {   
@@ -13,7 +11,7 @@ public abstract class StatEff
     int oduration=616; //for copy/steal 
     int id; boolean stackable=false; 
     Character prog; //progenitor who made the stateff; needed for elsa, magneto, etc
-    public void StatEff () //bluej won't let me modify this for some reason, so all its subclasses instead have the same redundant constructor
+    public void StatEff () //bluej won't let me add anything to this for some reason, so all its subclasses instead have the same redundant constructor
     {   
     }
     @Override
@@ -163,38 +161,6 @@ public abstract class StatEff
             StatEff.applyfail(target, effect, "conflict");
             return true;
         }
-        /*else if (effect.getimmunityname().equals("Speed")||effect.getimmunityname().equals("Snare"))
-        {
-            boolean snare=false, speed=false;
-            if (effect.getimmunityname().equals("Speed"))
-            speed=true;
-            else if (effect.getimmunityname().equals("Snare"))
-            snare=true;
-            Character[] friends=Battle.GetTeammates(hero);
-            boolean good=true;
-            for (int i=0; i<friends.length; i++) //can only apply if no teammates have it; max one per team
-            {
-                if (speed==true)
-                {
-                    if (friends[i]!=null&&friends[i].CheckFor("Speed", false)==true) 
-                    {
-                        good=false; break;
-                    }
-                }
-                else if (snare==true)
-                {
-                    if (friends[i]!=null&&friends[i].CheckFor("Snare", false)==true)
-                    {
-                        good=false; break;
-                    }
-                }
-            }
-            if (good==false) //no duplicates on teammates but still need to check for duplicates on self; no double snare/speed allowed
-            {
-                StatEff.applyfail(target, effect, "dupe");
-                return true;
-            } //else run below code
-        }*/
         //else occurs if none of the above cases returned false
         boolean apple=effect.CheckStacking(target); 
         if (apple==true)

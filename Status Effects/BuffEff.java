@@ -1,20 +1,30 @@
 package myMarvelcardgamepack;
 
-
-/**
- * Designer: Timothy Landers
- * Date: 10/8/22
- * Filename: BuffEff
- * Purpose: To list all the buffs in one file.
- */
 import java.util.ArrayList;
+/**
+ * @author Timothy Landers
+ * Date of creation: 10/8/22
+ * Purpose: To list and implement all the game's buffs in one file.
+ */
 public abstract class BuffEff extends StatEff 
 {
+    /** Each buff has an instance variable indicating whether it's myriad or not. */
     boolean myriad=true;
+    /**
+    * Constructor for all buffs. Initialises the buff's status chance, progenitor, and id.
+    * <p> Individual buffs override StatEff methods as needed for their implementation, and have their own constructors that also call this one.
+    * @param c The buff's status chance.
+    * @param p The buff's progenitor.
+    * @see StatEff
+    */
     public BuffEff (int c, Character p)
     {
         this.chance=c; this.prog=p; this.id=CardCode.RandomCode();
     }
+    /** 
+     * The same for all buffs. 
+     * @return "Buffs" 
+     */
     @Override 
     public String getefftype() 
     {
@@ -539,7 +549,7 @@ class Speed extends BuffEff
         if (this.duration<=0)
         {
             hero.remove(this.id, "normal");
-            if (hero.dead==false&&!(hero.binaries.contains("Banished")))
+            if (hero.dead==false&&!(hero.binaries.contains("Stunned"))&&!(hero.binaries.contains("Banished")))
             hero.helpers.add(new BonusTurnHelper()); //must be a helper to allow other turn end stuff (other stateffs ticking, passives, etc) to finish before taking bonus turn
         }
     }

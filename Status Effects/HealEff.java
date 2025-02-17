@@ -1,18 +1,27 @@
 package myMarvelcardgamepack;
 
-
 /**
- * Designer: Timothy Landers
- * Date: 10/8/22
- * Filename: HealEff
- * Purpose: To list all the Heal effects in one file.
+ * @author Timothy Landers
+ * Date of creation: 10/8/22
+ * Purpose: To list and implement all the game's Heal effects in one file.
  */
 public abstract class HealEff extends StatEff
 {
+    /**
+    * Constructor for all Heal effects. Initialises the effect's status chance, progenitor, and id.
+    * <p> Individual Heal effects override StatEff methods as needed for their implementation, and have their own constructors that also call this one.
+    * @param c The effect's status chance.
+    * @param p The effect's progenitor.
+    * @see StatEff
+    */
     public HealEff (int c, Character p)
     {
         this.chance=c; this.prog=p; this.id=CardCode.RandomCode();
     }
+    /** 
+     * The same for all Heal effects. 
+     * @return "Heal" 
+     */
     @Override 
     public String getefftype()
     {

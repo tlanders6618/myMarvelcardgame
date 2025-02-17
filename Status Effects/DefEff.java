@@ -1,19 +1,28 @@
 package myMarvelcardgamepack;
 
-
-/**
- * Designer: Timothy Landers
- * Date: 8/8/22
- * Filename: DefEff
- * Purpose: To list all the Defence effects in one file.
- */
 import java.util.ArrayList;
-abstract class DefEff extends StatEff
+/**
+ * @author Timothy Landers
+ * Date of creation: 8/8/22
+ * Purpose: To list and implement all the game's Defence effects in one file.
+ */
+public abstract class DefEff extends StatEff
 {
+    /**
+    * Constructor for all Defence effects. Initialises the effect's status chance, progenitor, and id.
+    * <p> Individual Defence effects override StatEff methods as needed for their implementation, and have their own constructors that also call this one.
+    * @param c The effect's status chance.
+    * @param p The effect's progenitor.
+    * @see StatEff
+    */
     public DefEff (int c, Character p)
     {
         this.chance=c; this.prog=p; this.id=CardCode.RandomCode();
     }
+    /** 
+     * The same for all Defence effects. 
+     * @return "Defence" 
+     */
     @Override 
     public String getefftype()
     {
