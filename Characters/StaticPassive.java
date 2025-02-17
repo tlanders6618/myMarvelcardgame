@@ -177,9 +177,24 @@ public class StaticPassive
         }
     }
     //2.5: Thanos Arrives
+    public static void Maw (Character ebony) //just ondeath; all the maw's other passives are implemented under the whisper and persuaded effs because that was easier
+    { 
+        for (Character c: Battle.GetTeammates(ebony))
+        {
+            if (c!=null&&c.CheckFor("Persuaded", false)==true)
+            {
+                ArrayList<StatEff> opp= new ArrayList<StatEff>(c.effects); 
+                for (StatEff e: opp)
+                {
+                    if (e.getimmunityname().equals("Persuaded"))
+                    c.remove(e.id, "normal");
+                }
+            }
+        }
+    }
     public static void Supergiant (Character superg) //onturn and ondeath; uses superg.dead==false/true instead of param boolean, so both if statements are checked by both calls
     {
-        if (superg.dead==false&&superg.turn==0&&!(superg.binaries.contains("Stunned"))) //first turn only; dead must be false since turn counter reset ondeath
+        if (superg.dead==false&&superg.turn==0&&!(superg.binaries.contains("Stunned"))) //first turn only; dead must be false since turn counter resets ondeath
         {
             if (superg.team1==true)
             {
@@ -204,8 +219,7 @@ public class StaticPassive
         }
         else if (superg.dead==true) //ondeath; remove all dominates
         {
-            Character[] friends=Battle.GetTeammates(superg);
-            for (Character c: friends)
+            for (Character c: Battle.GetTeammates(superg))
             {
                 if (c!=null&&c.CheckFor("Dominate", false)==true)
                 {
@@ -660,7 +674,7 @@ public class StaticPassive
             System.out.println ("\nPlayer 2, choose Drax's Obsession.");
         }
         Character[] foes=Battle.TargetFilter(drax, "enemy", "single");
-        Obsession obsess= new Obsession(drax);  
+        Nametag obsess=new Nametag(500, 616, 616, drax);
         StatEff.CheckApply(drax, foes[0], obsess);
         drax.passivefriend.add(0,foes[0]); //add, not set, since arraylist starts empty and technically has no index 0 yet
         drax.ignores.remove("Invisible");

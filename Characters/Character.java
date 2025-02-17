@@ -725,14 +725,14 @@ public abstract class Character
                 case 74: case 75: case 79: case 81: case 82: case 84: case 86: case 88: case 89: case 90: case 92: case 94: case 97: case 98: case 100: case 101:
                 return 230;
                 //240
-                case 12: case 13: case 15: case 16: case 17: case 22: case 27: case 28: case 30: case 32: case 35: case 38: case 41: case 61: case 62: case 70: case 78:
+                case 12: case 13: case 15: case 16: case 17: case 22: case 27: case 28: case 30: case 32: case 35: case 38: case 41: case 61: case 62: case 66: case 70: case 78:
                 case 83: case 85: case 87: case 99: case 104:
                 return 240;
                 //special carrots
                 case 26: return 130; //modork
                 case 31: return 250; //hulk
                 case 76: case 105: return 100; //speedball and mr immortal
-                case 63: case 65: case 77: return 200; //corvus, supergiant, penance
+                case 63: case 65: case 67: case 77: return 200; //corvus, supergiant, maw, penance
             }    
             return 616;
         }
@@ -816,6 +816,8 @@ public abstract class Character
                 case 63: return "Corvus Glaive (Classic)";
                 case 64: return "Proxima Midnight (Classic)";
                 case 65: return "Supergiant (Classic)";
+                case 66: return "Black Dwarf (Classic)";
+                case 67: return "Ebony Maw (Classic)";
                 //2.6: U-Foes
                 case 68: return "Vector (Classic)";
                 case 69: return "X-Ray (Classic)";
@@ -994,6 +996,8 @@ public abstract class Character
                 case 65: //supergiant
                 return "Dominated enemies become allies with reduced HP. If Supergiant dies or they die from anything other than Feast, they lose Dominate and regain their HP.\n"+
                 "On Supergiant's first turn, apply Terror to an enemy for 1 turn(s).";
+                case 67: //maw
+                return "Enemy Whispers are removed when they are attacked, but 3 Whispers become Persuaded, disabling abilities and granting Ebony Maw Evasion.";
                 //2.6: U-Foes
                 case 68: //vector
                 return "Gain immunity to Shock, Bleed, Burn, and Freeze. When using an ability on self or an ally, 100% chance to Purify. "+

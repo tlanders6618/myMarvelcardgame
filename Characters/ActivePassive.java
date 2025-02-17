@@ -796,7 +796,7 @@ public class ActivePassive
                 if (victim.CheckFor("Obsession", false)==true)
                 {
                     boolean yes=CoinFlip.Flip(500+drax.Cchance);
-                    Obsession obs= new Obsession (drax);
+                    Nametag obs=new Nametag(500, 616, 616, drax);
                     if (yes==true)
                     {
                         StatEff.CheckApply(drax, drax.passivefriend.get(0), obs);

@@ -61,6 +61,7 @@ public class Hero extends Character
         }
         this.effects.add(eff);  
         eff.onApply(this); 
+        //onallygain will go here once it is created
         if (this.effects.contains(eff)) //if it wasn't instantly removed; primarily for banish
         {
             String type=eff.getefftype(); String name=eff.getimmunityname();
