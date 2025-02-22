@@ -40,7 +40,8 @@ public class Dev_Notes
      * -Test
      * 
      * Status Effects (7):
-     * -BuffEff (doc done)
+     consider making all subclasses private
+     * -BuffEff (doc done; update)
      * -DebuffEff (doc done)
      * -DefEff (doc done)
      * -HealEff (doc done)
