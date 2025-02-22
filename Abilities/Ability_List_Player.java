@@ -7,6 +7,15 @@ package myMarvelcardgamepack;
  */
 public class Ability_List_Player
 { 
+    /**
+    * Returns the given ability for the given hero. Whether the ability is being copied or not must be specified.
+    * <p> This is because copied abilities are made differently, due to the implentation of some heroes' abilities being intertwined with their passives.
+    * @param index The index of the hero whose abilities are being retrieved.
+    * @param counter The number of the ability being retrieved, e.g. the hero's 4th ability. The numbering is identical to the order abilities are listed on their cards.
+    * @param copy Whether the ability is being made for the original hero or being copied (e.g. by Rogue).
+    * @return The requested ability.
+    * @see Ability
+    */
     public static Ability GetAb (int index, int counter, boolean copy) //copy is for rogue and super adaptoid to copy abs
     {
         //abs construction: String name, String type, String friendly, int dmg, int cooldown
