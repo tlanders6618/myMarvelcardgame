@@ -4,8 +4,8 @@ public class Dev_Notes
     /*
      * ***FILES***
      * Abilities (13):
-     * -Ability
-     * -AbilityListPlayer
+     * -Ability (update)
+     * -AbilityListPlayer (update)
      * -AbilityListSummon
      * -AfterAbility
      * -AttackAb
