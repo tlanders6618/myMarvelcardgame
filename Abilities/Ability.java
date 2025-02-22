@@ -1,14 +1,13 @@
 
 package myMarvelcardgamepack;
 
-/**
- * Designer: Timothy Landers
- * Date: 17/7/22
- * Filename: Ability
- * Purpose: Creates characters' abilities.
- */
 import java.util.ArrayList;
 import java.util.Iterator;
+/**
+ * @author Timothy Landers
+ * Date of creation: 17/7/22
+ * Purpose: Creates the characters' abilities and the methods needed to use them.
+ */
 public abstract class Ability
 {
     boolean channelled=false; boolean finished=false; boolean interrupt=false; boolean usable=true; 
