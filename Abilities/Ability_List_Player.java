@@ -1,15 +1,12 @@
 package myMarvelcardgamepack;
 
-
 /**
- * Designer: Timothy Landers
- * Date: 25/7/22
- * Filename: Ability_List_Player
+ * @author Timothy Landers
+ * Date of creation: 25/7/22
  * Purpose: Creates/lists all character abilities.
  */
 public class Ability_List_Player
-{
-    static Ability hold=null; //for Use, so I don't need to remake any abilities    
+{ 
     public static Ability GetAb (int index, int counter, boolean copy) //copy is for rogue and super adaptoid to copy abs
     {
         //abs construction: String name, String type, String friendly, int dmg, int cooldown
