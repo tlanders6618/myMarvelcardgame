@@ -8,8 +8,7 @@ import java.util.ArrayList;
  */
 public abstract class BuffEff extends StatEff 
 {
-    /** Each buff has an instance variable indicating whether it's myriad or not. */
-    boolean myriad=true;
+    private boolean myriad=true;
     /**
     * Constructor for all buffs. Initialises the buff's status chance, progenitor, and id.
     * <p> Individual buffs override StatEff methods as needed for their implementation, and have their own constructors that also call this one.
