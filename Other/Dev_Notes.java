@@ -6,7 +6,7 @@ public class Dev_Notes
      * Abilities (13):
      * -Ability (update)
      * -AbilityListPlayer (doc done; update)
-     * -AbilityListSummon
+     * -AbilityListSummon (doc done; update)
      * -AfterAbility
      * -AttackAb
      * -BasicAb
