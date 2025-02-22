@@ -124,7 +124,7 @@ public class Ability_List_Player
         return null;
     }    
     //template
-    public static Ability MakeAbName (int counter)
+    private static Ability MakeAbName (int counter)
     {
         switch (counter)
         {
@@ -137,7 +137,7 @@ public class Ability_List_Player
         }
     }
     //2.10: Marvellous Mutants
-    public static Ability MakeAbImmortal (int counter)
+    private static Ability MakeAbImmortal (int counter)
     {
         switch (counter)
         {
@@ -153,7 +153,7 @@ public class Ability_List_Player
             default: return null;
         }
     }
-    public static Ability MakeAbBishop (int counter)
+    private static Ability MakeAbBishop (int counter)
     {
         switch (counter)
         {
@@ -168,7 +168,7 @@ public class Ability_List_Player
             default: return null;
         }
     }
-    public static Ability MakeAbCrawler (int counter)
+    private static Ability MakeAbCrawler (int counter)
     {
         switch (counter)
         {
@@ -189,7 +189,7 @@ public class Ability_List_Player
             default: return null;
         }
     }
-    public static Ability MakeAbGambit (int counter, boolean copy)
+    private static Ability MakeAbGambit (int counter, boolean copy)
     {
         switch (counter)
         {
@@ -224,7 +224,7 @@ public class Ability_List_Player
             default: return null;
         }
     }
-    public static Ability MakeAbElixirB (int counter)
+    private static Ability MakeAbElixirB (int counter)
     {
         switch (counter)
         {
@@ -244,7 +244,7 @@ public class Ability_List_Player
             default: return null;
         }
     }
-    public static Ability MakeAbElixirG (int counter)
+    private static Ability MakeAbElixirG (int counter)
     {
         switch (counter)
         {
@@ -265,7 +265,7 @@ public class Ability_List_Player
             default: return null;
         }
     }
-    public static Ability MakeAbColossus (int counter)
+    private static Ability MakeAbColossus (int counter)
     {
         switch (counter)
         {
@@ -284,7 +284,7 @@ public class Ability_List_Player
             default: return null;
         }
     }
-    public static Ability MakeAbAA (int counter)
+    private static Ability MakeAbAA (int counter)
     {
         switch (counter)
         {
@@ -300,7 +300,7 @@ public class Ability_List_Player
             default: return null;
         }
     }
-    public static Ability MakeAbAngel (int counter)
+    private static Ability MakeAbAngel (int counter)
     {
         switch (counter)
         {
@@ -318,7 +318,7 @@ public class Ability_List_Player
             default: return null;
         }
     }
-    public static Ability MakeAbDiamond (int counter)
+    private static Ability MakeAbDiamond (int counter)
     {
         switch (counter)
         {
@@ -330,7 +330,7 @@ public class Ability_List_Player
             default: return null;
         }
     }
-    public static Ability MakeAbFrost (int counter)
+    private static Ability MakeAbFrost (int counter)
     {
         switch (counter)
         {
@@ -354,7 +354,7 @@ public class Ability_List_Player
         }
     }
     //2.9: Fearsome Foes of Spider-Man
-    public static Ability MakeAbUrich (int counter)
+    private static Ability MakeAbUrich (int counter)
     {
         switch (counter)
         {
@@ -372,7 +372,7 @@ public class Ability_List_Player
             default: return null;
         }
     }
-    public static Ability MakeAbHobgobby (int counter)
+    private static Ability MakeAbHobgobby (int counter)
     {
         switch (counter)
         {
@@ -390,7 +390,7 @@ public class Ability_List_Player
             default: return null;
         }
     }
-    public static Ability MakeAbRoblin (int counter)
+    private static Ability MakeAbRoblin (int counter)
     {
         switch (counter)
         {
@@ -408,7 +408,7 @@ public class Ability_List_Player
             default: return null;
         }
     }
-    public static Ability MakeAbGobby (int counter)
+    private static Ability MakeAbGobby (int counter)
     {
         switch (counter)
         {
@@ -430,7 +430,7 @@ public class Ability_List_Player
             default: return null;
         }
     }
-    public static Ability MakeAbCabbage (int counter) //carbage
+    private static Ability MakeAbCabbage (int counter) //carbage
     {
         switch (counter)
         {
@@ -445,7 +445,7 @@ public class Ability_List_Player
             default: return null;
         }
     }
-    public static Ability MakeAbHydro (int counter)
+    private static Ability MakeAbHydro (int counter)
     {
         switch (counter)
         {
@@ -465,7 +465,7 @@ public class Ability_List_Player
             default: return null;
         }
     }
-    public static Ability MakeAbScorpion (int counter)
+    private static Ability MakeAbScorpion (int counter)
     {
         switch (counter)
         {
@@ -485,7 +485,7 @@ public class Ability_List_Player
             default: return null;
         }
     }
-    public static Ability MakeAbLizard (int counter)
+    private static Ability MakeAbLizard (int counter)
     {
         switch (counter)
         {
@@ -505,7 +505,7 @@ public class Ability_List_Player
             default: return null;
         }
     }
-    public static Ability MakeAbKraven (int counter)
+    private static Ability MakeAbKraven (int counter)
     {
         switch (counter)
         {
@@ -528,7 +528,7 @@ public class Ability_List_Player
         }
     }
     //2.8: Defenders
-    public static Ability MakeAbSurfer (int counter)
+    private static Ability MakeAbSurfer (int counter)
     {
         switch (counter)
         {
@@ -546,7 +546,7 @@ public class Ability_List_Player
             default: return null;
         }
     }
-    public static Ability MakeAbNamor (int counter)
+    private static Ability MakeAbNamor (int counter)
     {
         switch (counter)
         {
@@ -569,7 +569,7 @@ public class Ability_List_Player
             default: return null;
         }
     }
-    public static Ability MakeAbCage (int counter)
+    private static Ability MakeAbCage (int counter)
     {
         switch (counter)
         {
@@ -586,7 +586,7 @@ public class Ability_List_Player
             default: return null;
         }
     }
-    public static Ability MakeAbFist (int counter)
+    private static Ability MakeAbFist (int counter)
     {
         switch (counter)
         {
@@ -606,7 +606,7 @@ public class Ability_List_Player
             default: return null;
         }
     }
-    public static Ability MakeAbDD (int counter)
+    private static Ability MakeAbDD (int counter)
     {
         switch (counter)
         {
@@ -628,7 +628,7 @@ public class Ability_List_Player
         }
     }
     //2.7: Thunderbolts
-    public static Ability MakeAbScarecrow (int counter)
+    private static Ability MakeAbScarecrow (int counter)
     {
         switch (counter)
         {
@@ -646,7 +646,7 @@ public class Ability_List_Player
             default: return null;
         }
     }
-    public static Ability MakeAbRadioMan (int counter)
+    private static Ability MakeAbRadioMan (int counter)
     {
         switch (counter)
         {
@@ -668,7 +668,7 @@ public class Ability_List_Player
             default: return null;
         }
     }
-    public static Ability MakeAbRulk (int counter)
+    private static Ability MakeAbRulk (int counter)
     {
         switch (counter)
         {
@@ -687,7 +687,7 @@ public class Ability_List_Player
             default: return null;
         }
     }
-    public static Ability MakeAbPenance (int counter)
+    private static Ability MakeAbPenance (int counter)
     {
         switch (counter)
         {
@@ -705,7 +705,7 @@ public class Ability_List_Player
             default: return null;
         }
     }
-    public static Ability MakeAbSpeedball (int counter)
+    private static Ability MakeAbSpeedball (int counter)
     {
         switch (counter)
         {
@@ -723,7 +723,7 @@ public class Ability_List_Player
             default: return null;
         }
     }
-    public static Ability MakeAbMoonstone (int counter)
+    private static Ability MakeAbMoonstone (int counter)
     {
         switch (counter)
         {
@@ -740,7 +740,7 @@ public class Ability_List_Player
             default: return null;
         }
     }
-    public static Ability MakeAbSongbird (int counter, boolean copy)
+    private static Ability MakeAbSongbird (int counter, boolean copy)
     {
         switch (counter)
         {
@@ -765,7 +765,7 @@ public class Ability_List_Player
             default: return null;
         }
     }
-    public static Ability MakeAbMimi (int counter)
+    private static Ability MakeAbMimi (int counter)
     {
         switch (counter)
         {
@@ -784,7 +784,7 @@ public class Ability_List_Player
             default: return null;
         }
     }
-    public static Ability MakeAbZemo (int counter)
+    private static Ability MakeAbZemo (int counter)
     {
         switch (counter)
         {
@@ -802,7 +802,7 @@ public class Ability_List_Player
         }
     }
     //2.6: U-Foes
-    public static Ability MakeAbVapor (int counter)
+    private static Ability MakeAbVapor (int counter)
     {
         switch (counter)
         {
@@ -821,7 +821,7 @@ public class Ability_List_Player
             default: return null;
         }
     }
-    public static Ability MakeAbIronclad (int counter)
+    private static Ability MakeAbIronclad (int counter)
     {
         switch (counter)
         {
@@ -838,7 +838,7 @@ public class Ability_List_Player
             default: return null;
         }
     }
-    public static Ability MakeAbXRay (int counter)
+    private static Ability MakeAbXRay (int counter)
     {
         switch (counter)
         {
@@ -855,7 +855,7 @@ public class Ability_List_Player
             default: return null;
         }
     }
-    public static Ability MakeAbVector (int counter, boolean copy)
+    private static Ability MakeAbVector (int counter, boolean copy)
     {
         switch (counter)
         {
@@ -880,7 +880,7 @@ public class Ability_List_Player
         }
     }
     //2.5: Thanos Arrives
-    public static Ability MakeAbMaw (int counter, boolean copy)
+    private static Ability MakeAbMaw (int counter, boolean copy)
     {
         switch (counter)
         {
@@ -899,7 +899,7 @@ public class Ability_List_Player
             default: return null;
         }
     }
-    public static Ability MakeAbDwarf (int counter)
+    private static Ability MakeAbDwarf (int counter)
     {
         switch (counter)
         {
@@ -920,7 +920,7 @@ public class Ability_List_Player
             default: return null;
         }
     }
-    public static Ability MakeAbSupergiant (int counter)
+    private static Ability MakeAbSupergiant (int counter)
     {
         switch (counter)
         {
@@ -936,7 +936,7 @@ public class Ability_List_Player
             default: return null;
         }
     }
-    public static Ability MakeAbProxima (int counter)
+    private static Ability MakeAbProxima (int counter)
     {
         switch (counter)
         {
@@ -953,7 +953,7 @@ public class Ability_List_Player
             default: return null;
         }
     }
-    public static Ability MakeAbCorvus (int counter)
+    private static Ability MakeAbCorvus (int counter)
     {
         switch (counter)
         {
@@ -966,7 +966,7 @@ public class Ability_List_Player
             default: return null;
         }
     }
-    public static Ability MakeAbGauntlet (int counter, boolean copy)
+    private static Ability MakeAbGauntlet (int counter, boolean copy)
     {
         switch (counter)
         {
@@ -985,7 +985,7 @@ public class Ability_List_Player
             default: return null;
         }
     }
-    public static Ability MakeAbThanos (int counter)
+    private static Ability MakeAbThanos (int counter)
     {
         switch (counter)
         {
@@ -995,7 +995,7 @@ public class Ability_List_Player
         }
     }
     //2.1: Sinister Six
-    public static Ability MakeAbRhino (int counter)
+    private static Ability MakeAbRhino (int counter)
     {
         switch (counter)
         {
@@ -1011,7 +1011,7 @@ public class Ability_List_Player
             default: return null;
         }
     }
-    public static Ability MakeAbSandy (int counter)
+    private static Ability MakeAbSandy (int counter)
     {
         switch (counter)
         {
@@ -1023,7 +1023,7 @@ public class Ability_List_Player
             default: return null;
         }
     }
-    public static Ability MakeAbElectro (int counter)
+    private static Ability MakeAbElectro (int counter)
     {
         switch (counter)
         {
@@ -1042,7 +1042,7 @@ public class Ability_List_Player
             default: return null;
         }
     }
-    public static Ability MakeAbOck (int counter)
+    private static Ability MakeAbOck (int counter)
     {
         switch (counter)
         {
@@ -1064,7 +1064,7 @@ public class Ability_List_Player
             default: return null;
         }
     }
-    public static Ability MakeAbMysterio (int counter)
+    private static Ability MakeAbMysterio (int counter)
     {
         switch (counter)
         {
@@ -1086,7 +1086,7 @@ public class Ability_List_Player
             default: return null;
         }
     }
-    public static Ability MakeAbVulture (int counter)
+    private static Ability MakeAbVulture (int counter)
     {
         switch (counter)
         {
@@ -1107,7 +1107,7 @@ public class Ability_List_Player
         }
     }
     //2.0: Original 
-    public static Ability MakeAbCain (int counter)
+    private static Ability MakeAbCain (int counter)
     {
         switch (counter)
         {
@@ -1123,7 +1123,7 @@ public class Ability_List_Player
             default: return null;
         }
     }
-    public static Ability MakeAbSkull (int counter)
+    private static Ability MakeAbSkull (int counter)
     {
         switch (counter)
         {
@@ -1148,7 +1148,7 @@ public class Ability_List_Player
             default: return null;
         }
     }
-    public static Ability MakeAbDeadpool (int counter)
+    private static Ability MakeAbDeadpool (int counter)
     {
         switch (counter)
         {
@@ -1163,7 +1163,7 @@ public class Ability_List_Player
             default: return null;
         }
     }
-    public static Ability MakeAbBB (int counter, boolean copy)
+    private static Ability MakeAbBB (int counter, boolean copy)
     {
         switch (counter)
         {
@@ -1184,7 +1184,7 @@ public class Ability_List_Player
             default: return null;
         }
     }
-    public static Ability MakeAbHulk (int counter)
+    private static Ability MakeAbHulk (int counter)
     {
         switch (counter)
         {
@@ -1200,7 +1200,7 @@ public class Ability_List_Player
             default: return null;
         }
     }
-    public static Ability MakeAbBrawn (int counter, boolean copy)
+    private static Ability MakeAbBrawn (int counter, boolean copy)
     {
         switch (counter)
         {
@@ -1230,7 +1230,7 @@ public class Ability_List_Player
             default: return null;
         }
     }
-    public static Ability MakeAbStrange(int counter)
+    private static Ability MakeAbStrange(int counter)
     {
         switch (counter)
         {
@@ -1251,7 +1251,7 @@ public class Ability_List_Player
             default: return null;
         }
     }
-    public static Ability MakeAbDOOM (int counter)
+    private static Ability MakeAbDOOM (int counter)
     {
         switch (counter)
         {
@@ -1268,7 +1268,7 @@ public class Ability_List_Player
             default: return null;
         }
     }
-    public static Ability MakeAbUltron (int counter)
+    private static Ability MakeAbUltron (int counter)
     {
         switch (counter)
         {
@@ -1287,7 +1287,7 @@ public class Ability_List_Player
             default: return null;
         }
     }
-    public static Ability MakeAbMODORK (int counter)
+    private static Ability MakeAbMODORK (int counter)
     {
         switch (counter)
         {
@@ -1298,7 +1298,7 @@ public class Ability_List_Player
             default: return null;
         }
     }
-    public static Ability MakeAbFlash (int counter)
+    private static Ability MakeAbFlash (int counter)
     {
         switch (counter)
         {
@@ -1313,7 +1313,7 @@ public class Ability_List_Player
             default: return null;
         }
     }
-    public static Ability MakeAbBinary (int counter)
+    private static Ability MakeAbBinary (int counter)
     {
         switch (counter)
         {
@@ -1324,7 +1324,7 @@ public class Ability_List_Player
             default: return null;
         }
     }
-    public static Ability MakeAbCM (int counter)
+    private static Ability MakeAbCM (int counter)
     {
         switch (counter)
         {
@@ -1335,7 +1335,7 @@ public class Ability_List_Player
             default: return null;
         }
     }
-    public static Ability MakeAbKK (int counter)
+    private static Ability MakeAbKK (int counter)
     {
         switch (counter)
         {
@@ -1358,7 +1358,7 @@ public class Ability_List_Player
             default: return null;
         }
     }
-    public static Ability MakeAbStorm (int counter)
+    private static Ability MakeAbStorm (int counter)
     {
         switch (counter)
         {
@@ -1379,7 +1379,7 @@ public class Ability_List_Player
             default: return null;
         }
     }
-    public static Ability MakeAbSuperior (int counter)
+    private static Ability MakeAbSuperior (int counter)
     {
         switch (counter)
         {
@@ -1397,7 +1397,7 @@ public class Ability_List_Player
             default: return null;
         }
     }
-    public static Ability MakeAbMiles (int counter)
+    private static Ability MakeAbMiles (int counter)
     {
         switch (counter)
         {
@@ -1420,7 +1420,7 @@ public class Ability_List_Player
             default: return null;
         }
     }
-    public static Ability MakeAbSpidey (int counter) 
+    private static Ability MakeAbSpidey (int counter) 
     {
         switch (counter)
         {
@@ -1435,7 +1435,7 @@ public class Ability_List_Player
             default: return null;
         }
     }
-    public static Ability MakeAbVenom (int counter) 
+    private static Ability MakeAbVenom (int counter) 
     {
         switch (counter)
         {
@@ -1453,7 +1453,7 @@ public class Ability_List_Player
             default: return null;
         }
     }
-    public static Ability MakeAbOGVenom (int counter) 
+    private static Ability MakeAbOGVenom (int counter) 
     {
         switch (counter)
         {
@@ -1468,7 +1468,7 @@ public class Ability_List_Player
             default: return null;
         }
     }
-    public static Ability MakeAbWolvie (int counter)  
+    private static Ability MakeAbWolvie (int counter)  
     {
         switch (counter)
         {
@@ -1480,7 +1480,7 @@ public class Ability_List_Player
             default: return null;
         }
     }
-    public static Ability MakeAbX23 (int counter)  
+    private static Ability MakeAbX23 (int counter)  
     {
         switch (counter)
         {
@@ -1495,7 +1495,7 @@ public class Ability_List_Player
             default: return null;
         }
     }
-    public static Ability MakeAbDrax (int counter, boolean copy) 
+    private static Ability MakeAbDrax (int counter, boolean copy) 
     {
         switch (counter)
         {
@@ -1521,7 +1521,7 @@ public class Ability_List_Player
             default: return null;
         }
     }  
-    public static Ability MakeAbOGDrax (int counter)
+    private static Ability MakeAbOGDrax (int counter)
     {
         switch (counter)
         {
@@ -1532,7 +1532,7 @@ public class Ability_List_Player
             default: return null;
         }
     }
-    public static Ability MakeAbNickJr (int counter)
+    private static Ability MakeAbNickJr (int counter)
     {
         switch (counter)
         {
@@ -1553,7 +1553,7 @@ public class Ability_List_Player
             default: return null;
         }
     }
-    public static Ability MakeAbNickSr (int counter)
+    private static Ability MakeAbNickSr (int counter)
     {
         switch (counter)
         {
@@ -1570,7 +1570,7 @@ public class Ability_List_Player
             default: return null;
         }
     }
-    public static Ability MakeAbStarLord (int counter)
+    private static Ability MakeAbStarLord (int counter)
     {
         switch (counter)
         {
@@ -1592,7 +1592,7 @@ public class Ability_List_Player
             default: return null;
         }
     }
-    public static Ability MakeAbBucky (int counter)
+    private static Ability MakeAbBucky (int counter)
     {
         switch (counter)
         {
@@ -1612,7 +1612,7 @@ public class Ability_List_Player
             default: return null;
         }
     }
-    public static Ability MakeAbFalc (int counter)
+    private static Ability MakeAbFalc (int counter)
     {
         switch (counter)
         {
@@ -1632,7 +1632,7 @@ public class Ability_List_Player
             default: return null;
         }
     }
-    public static Ability MakeAbCap (int counter)
+    private static Ability MakeAbCap (int counter)
     {
         switch (counter)
         {
@@ -1652,7 +1652,7 @@ public class Ability_List_Player
             default: return null;
         }
     }
-    public static Ability MakeAbWM (int counter)
+    private static Ability MakeAbWM (int counter)
     {
         switch (counter)
         {
@@ -1670,7 +1670,7 @@ public class Ability_List_Player
             default: return null;
         }
     }
-    public static Ability MakeAbIM (int counter)
+    private static Ability MakeAbIM (int counter)
     {
         switch (counter)
         {
@@ -1689,7 +1689,7 @@ public class Ability_List_Player
             default: return null;
         }
     }
-    public static Ability MakeAbPun (int counter)
+    private static Ability MakeAbPun (int counter)
     {
         switch (counter)
         {
@@ -1717,7 +1717,7 @@ public class Ability_List_Player
             default: return null;
         }
     }
-    public static Ability MakeAbGam (int counter, boolean copy) 
+    private static Ability MakeAbGam (int counter, boolean copy) 
     {
         switch (counter)
         {
@@ -1750,7 +1750,7 @@ public class Ability_List_Player
             default: return null;
         }
     }
-    public static Ability MakeAbMK (int counter) 
+    private static Ability MakeAbMK (int counter) 
     {
         switch (counter)
         {
