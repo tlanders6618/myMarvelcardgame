@@ -2,11 +2,12 @@ package myMarvelcardgamepack;
 public class Dev_Notes
 {
     /*
+     * Finish adding javadocs by April 15?
      * ***FILES***
      * Abilities (13):
      * -Ability (update)
-     * -AbilityListPlayer (doc done; update)
-     * -AbilityListSummon (doc done; update)
+     * -AbilityListPlayer (doc mostly done; update)
+     * -AbilityListSummon (doc mostly done; update)
      * -AfterAbility
      * -AttackAb
      * -BasicAb
@@ -40,12 +41,11 @@ public class Dev_Notes
      * -Test
      * 
      * Status Effects (7):
-     consider making all subclasses private
-     * -BuffEff (doc done; update)
-     * -DebuffEff (doc done)
-     * -DefEff (doc done)
-     * -HealEff (doc done)
-     * -OtherEff (doc done)
+     * -BuffEff (doc mostly done; update)
+     * -DebuffEff (doc mostly done)
+     * -DefEff (doc mostly done)
+     * -HealEff (doc mostly done)
+     * -OtherEff (doc mostly done)
      * -StatEff
      * -StatFactory
      * 
