@@ -5,7 +5,7 @@ package myMarvelcardgamepack;
  * Designer: Timothy Landers
  * Date: 11/7/24
  * Filename: Scoreboard2
- * Purpose: To display the states of both teams in a way that adheres to GUI convention (the old scoreboard from 2022 didn't have invokelater, which led to bugs).
+ * Purpose: To display the states of both teams in a way that adheres to GUI conventions.
  */
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
