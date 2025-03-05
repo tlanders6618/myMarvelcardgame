@@ -23,7 +23,7 @@ public class Scoreboard2 extends JSplitPane
     static JTable table21; 
     static JTable table22;
     static JScrollPane Scroll11; static JScrollPane Scroll12; static JScrollPane Scroll21; static JScrollPane Scroll22; //where the tables are held
-    public static void main(Character[] team1, Character[] team2) //called by battle to make gui; now utilises the official recommended creation format to avoid problems
+    public static void main(Character[] team1, Character[] team2) //called by battle to make gui; now utilises the recommended creation format to avoid problems
     {
         javax.swing.SwingUtilities.invokeLater(new Runnable() 
         {
