@@ -9,11 +9,11 @@
 * If that doesn't work, instead select "view raw", and the file should automatically download.
 * Drag the jar from your downloads folder to your desktop
 * Right click your desktop, and make a new text document by moving your cursor down to "New", and "Text Document"
-* Open the text document and type java -jar [name of the jar file, including the .jar part]; see below image
+* Open the text document and type java -jar [full name of the jar file, including the .jar]; see below image
 ![image](https://github.com/tlanders6618/myMarvelcardgame/assets/113645988/6b32eb11-03f2-4cfb-8a8a-8894807785f4)
 * Go to file, and select save as
 * Go to "save as type" and change the file's type from .txt to all files
 * Title the file run.bat, and save it to your desktop
 * Double click on run.bat to run the game
   
-* If you encounter any problems or have any feedback, please let me know via a comment!
+* If you encounter any problems or have any feedback, please let me know via a comment.
