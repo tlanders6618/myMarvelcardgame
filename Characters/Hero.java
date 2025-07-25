@@ -1,21 +1,19 @@
-
 package myMarvelcardgamepack;
-
-        
+import java.util.ArrayList; 
+import java.util.Scanner;
+import java.util.Iterator;      
 /**
 * Designer: Timothy Landers
 * Date: 1/12/22
 * Filename: Hero
 * Purpose: Creates heroes and allows them to interact (fight) with each other.
 */
-import java.util.ArrayList; 
-import java.util.Scanner;
-import java.util.Iterator;
 public class Hero extends Character
 {
     public Hero (int Pindex)
     {
-        super(Pindex); //character's semi-unique identifier number     
+        super(Pindex); //character's semi-unique identifier number    
+        this.summoned=false;
         //set identifiers
         this.HP=InHP (index, false);
         this.maxHP=HP;

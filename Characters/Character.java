@@ -1,56 +1,55 @@
 package myMarvelcardgamepack;
-        
+import java.util.ArrayList; 
+import java.util.Scanner;        
 /**
 * Designer: Timothy Landers
 * Date: 1/12/22
 * Filename: Character
-* Purpose: Template for all characters.
+* Purpose: Template for all characters, both heroes and summons.
 */
-import java.util.ArrayList; 
-import java.util.Scanner;
 public abstract class Character 
 {
     //base stats
-    String Cname="J. Jonah Jameson";    
-    int size=1;
-    int HP=0; //health
-    int maxHP;
-    int BHP; //temporary bonus health from barrier
-    int index;
-    int turn=0; //++ at start of turn; which turn they are on
-    int DR=0; //damage reduction from hits from sources other than resistance (i.e. passives)
-    int PRDR=0; //damage reduction from Resistance Effects
-    int RDR=0; //damage reduction from Resistance
-    int ADR=0; //damage reduction from all sources
-    int BuDR, BlDR, PoDR, ShDR, WiDR=0; //dot damage reduction; burn, bleed, poison, shock, and wither
-    int DV=0; //damage vulnerability
-    int BD=0; //bonus damage on attacks from status effects
-    int PBD=0; //bonus damage on attacks from passives
-    int CC=0; //crit chance
-    int nCC=0; //negative crit chance
-    double critdmg=1.5; //default is crits do +50% dmg
-    int SHLD=0; //shield
-    int Cchance=0; //extra status chance
-    int CritDR=0; //crit resistance, mainly from bulwark
-    int CritVul=0; //vulnerable; not negative critdr because it only applies if target can crit
-    int lifesteal=0; //drain
-    boolean team1=false; //which team they're on, for determining who's an ally and who's an enemy
-    Ability[] abilities = new Ability[5];
-    Ability[][] transabs= new Ability[3][5]; //storing abilities of characters they transformed into
-    boolean dead=false; 
-    boolean summoned=false;
-    boolean targetable=true;
-    int accuracy=100; //for blind
-    int dmgtaken=0;
-    int id; //identifier number
-    int passivecount; //for keeping track of passive stuff
-    Ability activeability=null; //last used ability     
-    ArrayList<Character> passivefriend= new ArrayList<Character>(); //for lads like eddie brock venom
-    ArrayList<StatEff> effects= new ArrayList<StatEff>(); //holds status effects
-    ArrayList<String> immunities= new ArrayList<String>(); 
-    ArrayList<String> binaries=new ArrayList<String>(); //overlapping conditions like stunned and invisible
-    ArrayList<String> ignores=new ArrayList<String>(); //ignore when attacking
-    ArrayList<SpecialAbility> helpers=new ArrayList<SpecialAbility>(); //performs unique misc. functions like redwing
+    private String Cname="J. Jonah Jameson";    
+    private int size=1;
+    private int HP=0; //health
+    private int maxHP;
+    private int BHP; //temporary bonus health from barrier
+    private int index;
+    private int turn=0; //++ at start of turn; which turn they are on
+    private int DR=0; //damage reduction from hits from sources other than resistance (i.e. passives)
+    private int PRDR=0; //damage reduction from Resistance Effects
+    private int RDR=0; //damage reduction from Resistance
+    private int ADR=0; //damage reduction from all sources
+    private int BuDR, BlDR, PoDR, ShDR, WiDR=0; //dot damage reduction; burn, bleed, poison, shock, and wither
+    private int DV=0; //damage vulnerability
+    private int BD=0; //bonus damage on attacks from status effects
+    private int PBD=0; //bonus damage on attacks from passives
+    private int CC=0; //crit chance
+    private int nCC=0; //negative crit chance
+    private double critdmg=1.5; //default is crits do +50% dmg
+    private int SHLD=0; //shield
+    private int Cchance=0; //extra status chance
+    private int CritDR=0; //crit resistance, mainly from bulwark
+    private int CritVul=0; //vulnerable; not negative critdr because it only applies if target can crit
+    private int lifesteal=0; //drain
+    private boolean team1=false; //which team they're on, for determining who's an ally and who's an enemy
+    private Ability[] abilities = new Ability[5];
+    private Ability[][] transabs= new Ability[3][5]; //storing abilities of characters they transformed into
+    private boolean dead=false; 
+    private final boolean summoned=false;
+    private boolean targetable=true;
+    private int accuracy=100; //for blind
+    private int dmgtaken=0;
+    private int id; //identifier number
+    private int passivecount; //for keeping track of passive stuff
+    private Ability activeability=null; //last used ability     
+    private ArrayList<Character> passivefriend= new ArrayList<Character>(); //for lads like eddie brock venom
+    private ArrayList<StatEff> effects= new ArrayList<StatEff>(); //holds status effects
+    private ArrayList<String> immunities= new ArrayList<String>(); 
+    private ArrayList<String> binaries=new ArrayList<String>(); //overlapping conditions like stunned and invisible
+    private ArrayList<String> ignores=new ArrayList<String>(); //ignore when attacking
+    private ArrayList<SpecialAbility> helpers=new ArrayList<SpecialAbility>(); //performs unique misc. functions like redwing
     public Character (int index)
     {
         this.index=index;
@@ -531,7 +530,7 @@ public abstract class Character
         dmg=0;
         dealer.activeability.ReturnDamage(dmg); //tells the ability how much dmg the attack did
         dealer.onAttack(target); //activate relevant passives after attacking
-        if (target.dead==false)
+        if (target.dead==false&&(target.team1!=dealer.team1)) //characters like annihilus shouldn't trigger counter, reflect, etc on allies
         {
             target.onAttacked(dealer, dmg, aoe);
         }
@@ -568,6 +567,7 @@ public abstract class Character
             }
         }
         dealer.onAttack(target);
+        if (target.team1!=dealer.team1) //characters like annihilus shouldn't trigger counter, reflect, etc on allies
         target.onAttacked(dealer, 0, aoe);
         Character[] friends=Battle.GetTeammates(target);
         for (Character friend: friends)
@@ -605,7 +605,7 @@ public abstract class Character
             target.LoseHP (dealer, lossy, "knull", false);
         }
         dealer.onAttack(target);
-        if (target.dead==false)
+        if (target.dead==false&&(target.team1!=dealer.team1)) //characters like annihilus shouldn't trigger counter, reflect, etc on allies)
         target.onAttacked(dealer, 0, aoe);
         Character[] friends=Battle.GetTeammates(target);
         for (Character friend: friends)
