@@ -2,8 +2,8 @@ package myMarvelcardgamepack;
 
 /**
  * @author Timothy Landers
- * Date of creation: 10/8/22
- * Purpose: To list and implement all the game's Heal effects in one file.
+ * <p> Date of creation: 10/8/22
+ * <p> Purpose: To list and implement all the game's Heal effects in one file.
  */
 public abstract class HealEff extends StatEff
 {

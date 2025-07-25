@@ -3,8 +3,8 @@ package myMarvelcardgamepack;
 import java.util.ArrayList; 
 /**
  * @author Timothy Landers
- * Date of creation: 10/8/22
- * Purpose: To list and implement all the game's Other status effects in one file.
+ * <p> Date of creation: 10/8/22
+ * <p> Purpose: To list and implement all the game's Other status effects in one file.
  */
 public abstract class OtherEff extends StatEff 
 {
@@ -63,7 +63,7 @@ class Aura extends OtherEff
     {
         if (attacker==hero) //hero is attacking; add tempstring
         {   
-            hero.activeability.AddTempString(statstring);
+            hero.activeability.setStatStrings(false, statstring);
         }
         else //hero was attacked; debuff the attacker; ignores stun
         {
@@ -568,9 +568,9 @@ class Empower extends OtherEff
                 }
                 break;
                 case 88:
-                if (ab.attack==true)
+                if (ab.isAttack())
                 {
-                    used=true; String[] poio={"Poison", "50", "10", "2", "false"}; String[][] dp=StatFactory.MakeParam(poio, null); ab.AddTempString(dp); 
+                    used=true; String[] poio={"Poison", "50", "10", "2", "false"}; String[][] dp=StatFactory.MakeParam(poio, null); ab.setStatStrings(false, dp); 
                 }
                 break;
                 case 95: 
@@ -582,7 +582,7 @@ class Empower extends OtherEff
                 case 102: 
                 if (ab instanceof AttackAb&&!(ab instanceof BasicAb)) //only affects abilities
                 {
-                    used=true; String[] poio={"Burn", "500", "5", "1", "false"}; String[][] dp=StatFactory.MakeParam(poio, null); ab.AddTempString(dp); 
+                    used=true; String[] poio={"Burn", "500", "5", "1", "false"}; String[][] dp=StatFactory.MakeParam(poio, null); ab.setStatStrings(false, dp); 
                 }
                 break;
             }
@@ -597,7 +597,8 @@ class Empower extends OtherEff
                 {
                     case 95: hero.Cchance+=100; break;
                     case 102: 
-                    if (ab.GetMultihit(false)>0) //to ensure each hit of a multihit attack gets to apply the burn; only count as a use once all hits have finished
+                    if (ab instanceof AttackAb&& ((AttackAb) ab).GetMultihit(false)>0) 
+                    //to ensure each hit of a multihit attack gets to apply the burn; only count as a use once all hits have finished
                     this.uses++;
                     break;
                 }
@@ -1485,7 +1486,7 @@ class StunE extends OtherEff
     public void onApply (Character target)
     {
        target.binaries.add("Stunned");
-       if (target.activeability!=null&&target.activeability.channelled==true)
+       if (target.activeability!=null&&target.activeability.getChannelled()==true)
        {
            target.activeability.InterruptChannelled(target);
        }

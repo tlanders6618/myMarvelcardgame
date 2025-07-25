@@ -7,12 +7,40 @@ package myMarvelcardgamepack;
  */
 public abstract class StatEff 
 {   
-    int duration=616; int chance=500; int power=616;
-    int oduration=616; //for copy/steal 
-    int id; boolean stackable=false; 
-    Character prog; //progenitor who made the stateff; needed for elsa, magneto, etc
+    private int chance=500; 
+    private int duration=616; 
+    private int oduration=616; //for copy/steal 
+    private int power=616;
+    private int id; 
+    private boolean stackable=false; 
+    private Character prog; //progenitor who made the stateff; needed for elsa, magneto, etc
     public void StatEff () //bluej won't let me add anything to this for some reason, so all its subclasses instead have the same redundant constructor
     {   
+        this.id=CardCode.RandomCode();
+    }
+    public int getID()
+    {
+        return this.id;
+    }
+    public Character getProg()
+    {
+        return this.prog;
+    }
+    public int getChance()
+    {
+        return this.chance;
+    }
+    public int getDuration()
+    {
+        return this.duration;
+    }
+    public int getStrength()
+    {
+        return this.power;
+    }
+    public boolean canStack()
+    {
+        return this.stackable;
     }
     @Override
     public String toString()

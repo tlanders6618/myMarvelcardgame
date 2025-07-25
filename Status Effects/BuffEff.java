@@ -3,8 +3,8 @@ package myMarvelcardgamepack;
 import java.util.ArrayList;
 /**
  * @author Timothy Landers
- * Date of creation: 10/8/22
- * Purpose: To list and implement all the game's buffs in one file.
+ * <p> Date of creation: 10/8/22
+ * <p> Purpose: To list and implement all the game's buffs in one file.
  */
 public abstract class BuffEff extends StatEff 
 {
@@ -28,6 +28,14 @@ public abstract class BuffEff extends StatEff
     public String getefftype() 
     {
         return "Buffs";
+    }
+    /** 
+     * Returns whether the buff is myriad or not.
+     * @return True if the buff is myriad; false otherwise. 
+     */
+    public boolean isMyriad ()
+    {
+        return this.myriad;
     }
 }
 class Bulwark extends BuffEff 

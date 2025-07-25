@@ -3,8 +3,8 @@ package myMarvelcardgamepack;
 import java.util.ArrayList;
 /**
  * @author Timothy Landers
- * Date of creation: 8/8/22
- * Purpose: To list and implement all the game's debuffs in one file.
+ * <p> Date of creation: 8/8/22
+ * <p> Purpose: To list and implement all the game's debuffs in one file.
  */
 public abstract class DebuffEff extends StatEff 
 {
@@ -938,7 +938,7 @@ class Stun extends DebuffEff
     public void onApply (Character target)
     {
        target.binaries.add("Stunned");
-       if (target.activeability!=null&&target.activeability.channelled==true)
+       if (target.activeability!=null&&target.activeability.getChannelled()==true)
        {
            target.activeability.InterruptChannelled(target);
        }

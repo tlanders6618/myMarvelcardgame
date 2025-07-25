@@ -3,8 +3,8 @@ package myMarvelcardgamepack;
 import java.util.ArrayList;
 /**
  * @author Timothy Landers
- * Date of creation: 8/8/22
- * Purpose: To list and implement all the game's Defence effects in one file.
+ * <p> Date of creation: 8/8/22
+ * <p> Purpose: To list and implement all the game's Defence effects in one file.
  */
 public abstract class DefEff extends StatEff
 {
