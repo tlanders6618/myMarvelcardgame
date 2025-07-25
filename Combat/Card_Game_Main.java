@@ -1,17 +1,17 @@
 package myMarvelcardgamepack;
-
- 
+import java.util.ArrayList; 
+import java.util.Scanner;
 /**
  * Designer: Timothy Landers
  * Date: 17/7/22
  * Filename: Card_Game_Main
  * Purpose: Launches the card game.
  */
-import java.util.ArrayList; 
-import java.util.Scanner;
 public class Card_Game_Main 
 {
-    static Scanner trash;
+    public static Scanner trash;
+    public static final int INVALID=616;
+    public static final int TEAM_SIZE=6; 
     public static void main (String[] args)
     {
         //Variables    

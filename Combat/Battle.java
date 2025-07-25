@@ -1,24 +1,22 @@
 
 package myMarvelcardgamepack;
-
+import java.util.ArrayList;
 /**
  * Designer: Timothy Landers
  * Date: 25/7/22
  * Filename: Battle
  * Purpose: For the characters to fight.
  */
-import java.util.ArrayList;
 public class Battle
 {
-    static Character[] team1= new Character[6];
-    static Character[] team2= new Character[6];
+    static Character[] team1= new Character[TEAM_SIZE];
+    static Character[] team2= new Character[TEAM_SIZE];
     static ArrayList <Character> team1dead= new ArrayList <Character>();
     static ArrayList <Character> team2dead= new ArrayList <Character>();
     static int p1teamsize=0, p2teamsize=0; //size of team 
-    static int p1heroes=3, p2heroes=3; //number of characters on the team
+    static int p1heroes=3, p2heroes=3; //number of characters on the team; obviously both players start with 3
     static boolean p1solo=false, p2solo=false;
     static int P1active=0, P2active=0; //active character's array index number
-    final static int maxteamsize=6;
     static int tturns=1; //keep track of which player's turn it is 
     public static boolean main (Character Char11, Character Char12, Character Char13, Character Char21, Character Char22, Character Char23)
     {
@@ -27,7 +25,7 @@ public class Battle
         boolean Pwinner=false; //true for player 1 wins, and false for player 2 wins
         FightStart(Char11, Char12, Char13, Char21, Char22, Char23); //allows certain passives to take effect
         Scoreboard2.main(team1, team2);
-        int winner=616;
+        int winner=INVALID;
         while (gamewinner==false)
         {
             if (tturns%2!=0) //odd number means player 1's turn
@@ -78,7 +76,7 @@ public class Battle
         if (team==true)
         {
             ++P1active;
-            if (P1active>=6) //avoiding index exceptions since 1995
+            if (P1active>=TEAM_SIZE) //avoiding index exceptions since 1995
             {
                 P1active=0;
             }
@@ -90,7 +88,7 @@ public class Battle
         else
         {
             ++P2active;
-            if (P2active>=6)
+            if (P2active>=TEAM_SIZE)
             {
                 P2active=0;
             }
@@ -111,8 +109,12 @@ public class Battle
         Char23.team1=false;
         p1teamsize+=(Char11.size+Char12.size+Char13.size); //for extra big lads like Giganto who take up 2 spaces
         p2teamsize+=(Char21.size+Char22.size+Char23.size);
-        team1=SetTurnOrder(Char11, Char12, Char13);
-        team2=SetTurnOrder(Char21, Char22, Char23);
+        team1[0]=Char11;
+        team1[1]=Char12;
+        team1[2]=Char13;
+        team2[0]=Char21;
+        team2[1]=Char22;
+        team2[2]=Char23;
         Char11.onFightStart(); 
         Char21.onFightStart(); 
         Char12.onFightStart(); 
@@ -121,14 +123,6 @@ public class Battle
         Char23.onFightStart(); 
         //test
         //Battle.SummonSomeone(Char21, new Summon(7)); Battle.SummonSomeone(Char21, new Summon(7)); Battle.SummonSomeone(Char21, new Summon(7));  
-    }
-    public static Character[] SetTurnOrder (Character one, Character two, Character three) 
-    {
-        Character[] team= new Character[6];
-        team[0]=one; 
-        team[1]=two; 
-        team[2]=three;
-        return team;
     }
     public static boolean PlayerTurn (Character[] champions, boolean team, boolean bonusturn) //passes on boolean from battle.turn to end the game early if needed
     {
@@ -245,6 +239,7 @@ public class Battle
     {
         if (bonus==true)
         System.out.println(hero+" took a bonus turn!");
+        //activate channelled if any
         if (hero.activeability!=null&&hero.activeability.channelled==true) //activeability set later/on previous turn, when chooseab is called
         {
             ArrayList<StatEff> toadd= new ArrayList<StatEff>();
@@ -288,6 +283,7 @@ public class Battle
                 return true;
             }
         }
+        //then take turn
         if (!(hero.binaries.contains("Banished"))) //if channelled ab applies linked banish or hero is banished by passive after attacking with channelled ab, do not take turn
         {
             Ability activeAb=null;

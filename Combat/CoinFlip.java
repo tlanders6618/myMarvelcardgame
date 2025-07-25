@@ -320,9 +320,9 @@ public class CoinFlip
                if ((name.equals("any")||eff.getimmunityname().equals(name))&&(type.equals("any")||eff.getefftype().equals(type)))
                {
                    if (loud==true)
-                   targ.remove(eff.id, "normal");
+                   targ.remove(eff.getID(), "normal");
                    else
-                   targ.remove(eff.id, "silent");
+                   targ.remove(eff.getID(), "silent");
                }
             }
         }

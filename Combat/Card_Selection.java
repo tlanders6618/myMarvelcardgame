@@ -156,7 +156,7 @@ public class Card_Selection
         ArrayList<Character> remove=new ArrayList<Character>();        
         if (hero.activeability!=null) //war machine's passive triggers before he uses any abilities, so null check is needed to avoid nullexception
         {
-            for (SpecialAbility s: hero.activeability.special) //has to be called here or else the ignore is applied after target filtering
+            for (SpecialAbility s: hero.activeability.getSpecial()) //has to be called here or else the ignore is applied after target filtering
             { 
                 if (s instanceof Ignore)
                 {
