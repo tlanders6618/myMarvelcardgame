@@ -1,31 +1,31 @@
 package myMarvelcardgamepack;
 
-
-/**
- * Designer: Timothy Landers
- * Date: 15/8/22
- * Filename: BasicAb
- * Purpose: To make basic attacks.
- */
 import java.util.ArrayList;
+/**
+ * @author Timothy Landers
+ * <p>Date of creation: 15/8/22
+ * <p>Purpose: To make basic attacks.
+ */
 class BasicAb extends AttackAb
 {
     public BasicAb (String aname, String atype, String afriendly, int dmg)
     {
-        super(aname, atype, afriendly, dmg, 0);
+        super(aname, atype, afriendly, dmg, 0, 0, null);
+    }
+    public BasicAb (String aname, String atype, String afriendly, int dmg, Trait[] trait)
+    {
+        super(aname, atype, afriendly, dmg, 0, 0, trait);
     }
     public BasicAb (String aname, String atype, String afriendly, int dmg, int mult)
     {
-        super(aname, atype, afriendly, dmg, 0, mult);
+        super(aname, atype, afriendly, dmg, 0, mult, null);
     }
-    @Override
-    public void PrintDesc (boolean ignore)
+    public BasicAb (String aname, String atype, String afriendly, int dmg, int mult, Trait[] trait)
     {
-        System.out.print("Basic attack. "); 
-        super.PrintDesc(true); //calls attackab's printdesc, not ability's printdesc
+        super(aname, atype, afriendly, dmg, 0, mult, trait);
     }
     @Override 
-    public void SetChannelled (Character hero, ArrayList<Character> targets)
+    public void PrepChannelled (Character hero, ArrayList<Character> targets)
     {
     }
     @Override 
@@ -40,14 +40,15 @@ class BasicAb extends AttackAb
     @Override
     public boolean CheckUse (Character user)
     {
-        if (user.CheckFor("Disarm", false)==true&&this.ignore==false)
+        if (user.CheckFor("Disarm", false)==true&&this.getIgnore()==false)
         {
             return false;
         }
-        else if (this.dcd>0)
+        else if (this.getCD(true)>0) //sealed
         {
             return false;
         }
+        //basic abs don't have restrictions, or else they'd be attack abs
         return true;
     }
 }

@@ -1,40 +1,30 @@
 package myMarvelcardgamepack;
 
-
 /**
- * Designer: Timothy Landers
- * Date: 15/8/22
- * Filename: AttackAb
- * Purpose: To make attack abilities.
+ * @author Timothy Landers
+ * <p>Date of creation: 15/8/22
+ * <p>Purpose: To make debuff abilities.
  */
-import java.util.ArrayList;
 class DebuffAb extends Ability
 {
-    public DebuffAb (String aname, String atarget, String afriendly, int cod)
+    public DebuffAb (String name, String targ, String friend, int cod)
     {
-        this.oname=aname;
-        this.friendly=afriendly;
-        this.target=atarget;
-        this.cd=cod;
-        if (afriendly.equalsIgnoreCase("enemy")||afriendly.equalsIgnoreCase("both")||afriendly.equalsIgnoreCase("either")) //anything other than ally or self
-        {
-            this.attack=true;
-        }
-        if (atarget.equalsIgnoreCase("aoe"))
-        {
-            this.aoe=true;
-        }
+        super(name, targ, friend, 0, cod, 0, null);
+    }
+    public DebuffAb (String name, String targ, String friend, int cod, Trait[] trait)
+    {
+        super(name, targ, friend, 0, cod, 0, trait);
     }
     @Override
-    public void PrintDesc (boolean ignore)
+    public void PrintDesc ()
     {
         System.out.print("Debuff ability. "); 
-        if (this.ignore==true)
+        if (this.getIgnore()==true)
         System.out.print("Ignores Neutralise. ");
         super.PrintDesc(false);
     }
     @Override
-    public void CheckIgnore(Character user, boolean add) //enusures ab ignores its disable debuff both when checking useability, and when applying stateffs
+    public void CheckIgnore(Character user, boolean add) //ensures ab ignores its disable debuff both when checking useability, and when applying stateffs
     {
         if (add==true)
         user.ignores.add("Neutralise");
@@ -44,22 +34,12 @@ class DebuffAb extends Ability
     @Override
     public boolean CheckUse (Character user)
     {
-        if ((user.CheckFor("Neutralise", false)==true&&this.ignore==false)||user.CheckFor("Suppression", false)==true||user.CheckFor("Persuaded", false)==true)
+        if (user.CheckFor("Neutralise", false)==true&&this.getIgnore()==false)
         {
             return false;
         }
-        else if (singleuse==true&&used==true)
-        {
-            return false;
-        }
-        else if (usable==false)
-        {
-            return false;
-        }
-        else if (dcd>0) 
-        {
-            return false;
-        }
-        return true;
+        //restrictions to be added here if any debuff abs ever have them
+        //even if free of disable debuff, must check suppression, cooldowns, etc
+        return super.CheckUse(user);
     }
 }

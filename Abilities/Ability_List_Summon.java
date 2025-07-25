@@ -2,8 +2,8 @@ package myMarvelcardgamepack;
 
 /**
  * @author Timothy Landers
- * Date of creation: 7/8/22
- * Purpose: Creates/lists all summon abilities.
+ * <p> Date of creation: 7/8/22
+ * <p> Purpose: Creates/lists all summon abilities.
  */
 public class Ability_List_Summon
 {
@@ -83,8 +83,9 @@ public class Ability_List_Summon
         switch (counter)
         {
             case 0: return new BasicAb("Body Slam", "single", "enemy", 35);
-            case 1: return new BasicAb("Lacerate", "single", "enemy", 60, 2);
-            case 3: AttackAb p= new AttackAb("Bellow", "single", "enemy", 70, 4); p.together=true;
+            case 1: return new AttackAb("Lacerate", "single", "enemy", 60, 2);
+            case 3: String[] param= {"together"};
+            AttackAb p= new AttackAb("Bellow", "single", "enemy", 70, 4, param); 
             String[] i={"Provoke", "100", "616", "1", "false"}; String[][] z=StatFactory.MakeParam(i, null); p.AddStatString(z);
             String[] truth={"Resistance", "100", "15", "1", "true"}; String[][] social=StatFactory.MakeParam(truth, null); p.AddStatString(social);
             return p;
@@ -114,9 +115,9 @@ public class Ability_List_Summon
     {
         switch (counter)
         {
-            case 0: BasicAb blast= new BasicAb("Electric Blast", "single", "enemy", 35); blast.special.add(new Ignore("Invisible", "always", 616));
+            case 0: BasicAb blast= new BasicAb("Electric Blast", "single", "enemy", 35); blast.addSpecial(new Ignore("Invisible", "always", 616));
             return blast;
-            case 1: BasicAb core= new BasicAb("Self Destruct", "single", "enemy", 60); core.ignore=true; core.special.add(new Suicide());
+            case 1: BasicAb core= new BasicAb("Self Destruct", "single", "enemy", 60, new String[] {"ignore"}); core.addSpecial(new Suicide());
             return core;
             default: return null; 
         }
@@ -125,11 +126,11 @@ public class Ability_List_Summon
     {
         switch (counter)
         {
-            case 0: BasicAb laser= new BasicAb("Laser Beam", "single", "enemy", 30); laser.special.add(new DebuffMod(4));
-            laser.desc="100% chance to Copy 1 random buff(s) on the target. \nIf they have none, randomly gain Bulwark, Focus, or Placebo (Buff) for 2 turns.";
+            case 0: BasicAb laser= new BasicAb("Laser Beam", "single", "enemy", 30); laser.addSpecial(new DebuffMod(4));
+            laser.setDesc("100% chance to Copy 1 random buff(s) on the target. \nIf they have none, randomly gain Bulwark, Focus, or Placebo (Buff) for 2 turns.");
             return laser;
-            case 1: BasicAb core= new BasicAb("Core Meltdown", "single", "enemy", 60); core.special.add(new DamageCounterRemove("Buffs", true, 10, true, false, false));
-            core.special.add(new Suicide()); core.ignore=true; 
+            case 1: BasicAb core= new BasicAb("Core Meltdown", "single", "enemy", 60, new String[] {"ignore"}); 
+            core.addSpecial(new DamageCounterRemove("Buffs", true, 10, true, false, false)); core.addSpecial(new Suicide());
             return core;
             default: return null; 
         }
@@ -147,9 +148,8 @@ public class Ability_List_Summon
     {
         switch (counter)
         {
-            case 0: //BasicAb rpg= new BasicAb("RPG", "single", "enemy", 30); rpg.special.add(new Ricochet(500));
-            //return rpg;
-            return new BasicAb("RPG", "single", "enemy", 30).special.add(new Ricochet(500));
+            case 0: BasicAb rpg= new BasicAb("RPG", "single", "enemy", 30); rpg.addSpecial(new Ricochet(500));
+            return rpg;
             case 1: return new BasicAb("Rocket Barrage", "AoE", "enemy", 20); 
             default: return null; 
         }
@@ -163,10 +163,10 @@ public class Ability_List_Summon
             String[] hungry={"Bleed", "100", "5", "2", "false"}; String[][] revenge=StatFactory.MakeParam(hungry, null);
             rail.AddStatString(anger); rail.AddStatString(revenge);
             return rail;
-            case 1: BasicAb mortar= new BasicAb("Mortar Fire", "single", "enemy", 30); mortar.special.add(new DebuffMod(28)); mortar.together=true;
-            mortar.desc="100% chance to apply Weakness: 5 for 1 turn(s). 100% chance to apply Provoke for 1 turn(s). \n+1 duration to both if the target is Summoned.";
+            case 1: BasicAb mortar= new BasicAb("Mortar Fire", "single", "enemy", 30, new String[] {"together"}); mortar.addSpecial(new DebuffMod(28)); 
+            mortar.setDesc("100% chance to apply Weakness: 5 for 1 turn(s). 100% chance to apply Provoke for 1 turn(s). \n+1 duration to both if the target is Summoned.");
             return mortar;
-            case 3: OtherAb leo= new OtherAb ("Ejector Seat", "self", "self", 0); leo.singleuse=true; leo.channelled=true; leo.special.add(new Transformation(27, true, true));
+            case 3: OtherAb leo= new OtherAb ("Ejector Seat", "self", "self", 0, new String[] {"singleuse", "channelled"}); leo.addSpecial(new Transformation(27, true, true));
             return leo;
             default: return null; 
         }
@@ -184,8 +184,8 @@ public class Ability_List_Summon
             String[] twofer={"Burn", "100", "5", "2", "false"}; String[][] twoface=StatFactory.MakeParam(twofer, null);
             duty.AddStatString(twoface); duty.AddStatString(twoface);
             return duty;
-            case 2: OtherAb trans=new OtherAb("Pilot Arachnaught", "self", "self", 0); trans.singleuse=true; trans.channelled=true; 
-            trans.special.add(new Transformation(28, true, true));
+            case 2: String[] conds= {"singleuse", "channelled"};
+            OtherAb trans=new OtherAb("Pilot Arachnaught", "self", "self", 0, conds); trans.addSpecial(new Transformation(28, true, true)); 
             return trans;
             default: return null; 
         }
