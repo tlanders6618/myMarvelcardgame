@@ -1,6 +1,6 @@
 
 ## **Everything you need to know about the game**
-* [List of playable characters and their indexes.](https://docs.google.com/document/d/11X2RJjk_Kqkzj8V_dEJ4P0Kh9GT5Yp1zUSa5XPfw-y8/edit?tab=t.0)
+* [List of playable characters (in black) and their indexes.](https://docs.google.com/document/d/11X2RJjk_Kqkzj8V_dEJ4P0Kh9GT5Yp1zUSa5XPfw-y8/edit?tab=t.0)
 * [Ability/status effect/term glossary.](https://docs.google.com/document/d/15FDMeq_5LfxNlgl68iY7VRzkq7aykl1OsR_Lm4oCCPw/edit?tab=t.0)
 * [The characters' abilities.](https://docs.google.com/presentation/d/1tXi-Xax6gpD_fK78wmKdNHbxzLkiDPN8nPUgWfP-6OY/edit#slide=id.g13593422b03_0_15)
   
