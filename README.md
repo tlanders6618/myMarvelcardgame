@@ -8,6 +8,6 @@
 ## **How to play the game**
 * [Download and install Java 8.](https://www.java.com/en/download/manual.jsp)
 * Download myMarvelcardgame.exe from above: click on it and either use ctrl+shift+s or select "view raw".
-* Double click on the exe to run the game.
+* Double click on the downloaded exe to run the game.
   
 * If you encounter any problems or have any feedback, please let me know via a comment.
