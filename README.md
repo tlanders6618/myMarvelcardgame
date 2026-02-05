@@ -5,7 +5,7 @@
 * [The characters.](https://docs.google.com/presentation/d/1tXi-Xax6gpD_fK78wmKdNHbxzLkiDPN8nPUgWfP-6OY/edit#slide=id.g13593422b03_0_15)
 * [List of changes to the game.](https://docs.google.com/document/d/1m5htYmuw6_CzlOKdH2-YIJ8YVSzh7EQaqVrsZceUpUc/edit?tab=t.0)
   
-## **How to run the program**
+## **How to play the game**
 * [Download and install Java 8.](https://www.java.com/en/download/manual.jsp)
 * Download the latest version of the myMarvelcardgame.jar file from above (the one with the higher number), by clicking on it and then using ctrl+shift+s
 * If that doesn't work, instead select "view raw", and the file should automatically download.
