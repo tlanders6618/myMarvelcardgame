@@ -22,7 +22,10 @@ public class Scoreboard2 extends JSplitPane
     static JTable table12; //for player 1's second set of 3 characters
     static JTable table21; 
     static JTable table22;
-    static JScrollPane Scroll11; static JScrollPane Scroll12; static JScrollPane Scroll21; static JScrollPane Scroll22; //where the tables are held
+    static JPanel bholder; static JPanel tholder; //where the tables are held
+    static JScrollPane Scroll11; static JScrollPane Scroll12; 
+    static JScrollPane Scroll21; static JScrollPane Scroll22; 
+    
     public static void main(Character[] team1, Character[] team2) //called by battle to make gui; now utilises the official recommended creation format to avoid problems
     {
         javax.swing.SwingUtilities.invokeLater(new Runnable() 
@@ -45,10 +48,15 @@ public class Scoreboard2 extends JSplitPane
     }
     public Scoreboard2 (Character[] team1, Character[] team2) 
     {
-        //scoreboard (this) is a jsplitpane that holds the two panels, which hold the tables; necessary for 4 tables to be shown at once (since each table holds a max of 3 heroes)
+        //scoreboard2 holds the two panels, which hold the tables; necessary for 4 tables to be shown at once (each table holds 3 heroes)
         this.setOrientation(JSplitPane.VERTICAL_SPLIT);
         TopPanel = new JPanel(new BorderLayout()); 
-        BottomPanel = new JPanel(new BorderLayout());    
+        tholder = new JPanel(new GridLayout(1,2)); //holds tables so they can be automatically resized
+        TopPanel.add(tholder, BorderLayout.CENTER);
+        BottomPanel = new JPanel(new BorderLayout());   
+        bholder = new JPanel(new GridLayout(1,2)); //holds tables so they can be automatically resized
+        BottomPanel.add(bholder, BorderLayout.CENTER);
+        //Get table data
         String row11[][]; String column11[]; //for player 1's heroes
         String row12[][]; String column12[]; 
         String row21[][]; String column21[]; //for player 2's heroes
@@ -75,8 +83,8 @@ public class Scoreboard2 extends JSplitPane
             table12.getColumnModel().getColumn(0).setMinWidth(90); table12.getColumnModel().getColumn(0).setMaxWidth(90);
             table12.setEnabled(false);
             JScrollPane Scroll12 = new JScrollPane(table12); 
-            Scroll12.setPreferredSize(new Dimension(675,100));   
-            BottomPanel.add (Scroll12, BorderLayout.WEST);
+            bholder.add(Scroll12);
+            Scroll12.setPreferredSize(new Dimension(600,100));
         }
         if (Battle.p2heroes>3)
         {
@@ -86,17 +94,17 @@ public class Scoreboard2 extends JSplitPane
             table22.getColumnModel().getColumn(0).setMinWidth(90); table22.getColumnModel().getColumn(0).setMaxWidth(90);
             table22.setEnabled(false);
             JScrollPane Scroll22 = new JScrollPane(table22); 
-            Scroll22.setPreferredSize(new Dimension(675,100));     
-            BottomPanel.add(Scroll22, BorderLayout.EAST);
+            bholder.add(Scroll22);
+            Scroll22.setPreferredSize(new Dimension(600,100)); 
         }
         JScrollPane Scroll11 = new JScrollPane(table11); 
-        JScrollPane Scroll21 = new JScrollPane(table21);    
-        TopPanel.add(Scroll11, BorderLayout.WEST);
-        TopPanel.add(Scroll21, BorderLayout.EAST);  
+        JScrollPane Scroll21 = new JScrollPane(table21);  
+        tholder.add(Scroll11);
+        tholder.add(Scroll21);
         this.setLeftComponent(TopPanel);
         this.setRightComponent(BottomPanel);        
-        Scroll11.setPreferredSize(new Dimension(675,100));      
-        Scroll21.setPreferredSize(new Dimension(675,100));         
+        Scroll11.setPreferredSize(new Dimension(600,100));      
+        Scroll21.setPreferredSize(new Dimension(600,100));         
         this.setDividerSize(0); this.setEnabled(false); //makes the divider invisible and unusable, respectively
         this.setDividerLocation(200);
     }
@@ -117,6 +125,8 @@ public class Scoreboard2 extends JSplitPane
             //reset first column width
             table11.getColumnModel().getColumn(0).setMinWidth(90); table11.getColumnModel().getColumn(0).setMaxWidth(90);
             table21.getColumnModel().getColumn(0).setMinWidth(90); table21.getColumnModel().getColumn(0).setMaxWidth(90);
+            
+            //team 1
             if (Battle.p1heroes>3)
             {
                 String[][] newrow12=GetRows(team1, false);
@@ -127,8 +137,8 @@ public class Scoreboard2 extends JSplitPane
                     table12.getTableHeader().setReorderingAllowed(false);
                     table12.setEnabled(false);
                     JScrollPane Scroll12 = new JScrollPane(table12);
-                    Scroll12.setPreferredSize(new Dimension(675,100));   
-                    BottomPanel.add (Scroll12, BorderLayout.WEST);                
+                    bholder.add(Scroll12);
+                    Scroll12.setPreferredSize(new Dimension(600,100));               
                 }
                 else
                 {
@@ -140,6 +150,8 @@ public class Scoreboard2 extends JSplitPane
             {
                 table12.setModel(new DefaultTableModel());
             }
+            
+            //team 2
             if (Battle.p2heroes>3)
             {
                 String[][] newrow22=GetRows(team2, false);
@@ -150,8 +162,8 @@ public class Scoreboard2 extends JSplitPane
                     table22.getTableHeader().setReorderingAllowed(false);
                     table22.setEnabled(false); 
                     JScrollPane Scroll22 = new JScrollPane(table22); 
-                    Scroll22.setPreferredSize(new Dimension(675,100));     
-                    BottomPanel.add(Scroll22, BorderLayout.EAST);   
+                    bholder.add(Scroll22);  
+                    Scroll22.setPreferredSize(new Dimension(600,100));
                 }
                 else
                 {
