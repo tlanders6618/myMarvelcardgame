@@ -2,7 +2,7 @@
 ## **Everything you need to know about the game**
 * [List of playable characters (in black) and their indexes.](https://drive.proton.me/urls/W13EFJT28W#94m7oed2Igz3)
 * [Ability/status effect/term glossary.](https://drive.proton.me/urls/M7KDRRS0VW#cFB04SPYg7Qp)
-* [The characters.]()
+* [The characters.](https://docs.google.com/presentation/d/1tXi-Xax6gpD_fK78wmKdNHbxzLkiDPN8nPUgWfP-6OY/edit?usp=sharing)
 * [List of changes to the game.](https://drive.proton.me/urls/93FTQDRBG0#RVexsz8t5NeU)
   
 ## **How to play the game**
